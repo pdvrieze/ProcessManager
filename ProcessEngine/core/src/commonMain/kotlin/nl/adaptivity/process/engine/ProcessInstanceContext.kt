@@ -14,18 +14,20 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.processModel
+package nl.adaptivity.process.engine
 
-import nl.adaptivity.messaging.EndpointDescriptor
-import nl.adaptivity.process.engine.PETransformer
-import nl.adaptivity.process.engine.ProcessData
+import net.devrieze.util.ComparableHandle
+import net.devrieze.util.ReadableHandleAware
+import net.devrieze.util.security.SecureObject
+import nl.adaptivity.process.engine.processModel.NodeInstanceState
+import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.processModel.ProcessNode
 
-// TODO use ActivityInstanceContext
-expect class ProcessNodeInstanceContext(
-    processNodeInstance: IProcessNodeInstance,
-    defines: List<ProcessData>,
-    provideResults: Boolean,
-    localEndpoint: EndpointDescriptor
-                                       ) : PETransformer.AbstractDataContext {
+interface ProcessInstanceContext: ReadableHandleAware<SecureObject<ProcessInstance>> {
+}
 
+interface ActivityInstanceContext: ReadableHandleAware<SecureObject<ProcessNodeInstance<*>>> {
+    val processContext: ProcessInstanceContext
+    val node: ProcessNode
+    val state: NodeInstanceState
 }

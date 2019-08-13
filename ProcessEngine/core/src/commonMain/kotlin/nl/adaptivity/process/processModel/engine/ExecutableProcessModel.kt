@@ -63,6 +63,7 @@ class ExecutableProcessModel @JvmOverloads constructor(
         return ExecutableProcessModel(Builder(this).apply(body))
     }
 
+    @Suppress("UNCHECKED_CAST")
     override val handle: Handle<ExecutableProcessModel>
         get() = super.handle as Handle<ExecutableProcessModel>
 

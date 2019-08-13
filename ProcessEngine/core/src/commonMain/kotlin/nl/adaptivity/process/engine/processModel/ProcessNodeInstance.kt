@@ -72,7 +72,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
     override val handle: Handle<SecureObject<ProcessNodeInstance<*>>> get() = _handle
 
     val hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>> = hProcessInstance.toComparableHandle()
-    val results: List<ProcessData> = results.toList()
+    override val results: List<ProcessData> = results.toList()
 
     override val predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>> =
         predecessors.asSequence().filter { it.isValid }.map { it.toComparableHandle() }.toArraySet()
@@ -95,6 +95,11 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         builder.entryNo, builder.handle, builder.state,
         builder.results, builder.failureCause
                                                                   )
+
+    override val processContext: ProcessInstanceContext
+        get() = object : ProcessInstanceContext {
+            override val handle: ComparableHandle<SecureObject<ProcessInstance>> get() = hProcessInstance
+        }
 
     override fun build(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance<T> = this
 
@@ -128,12 +133,6 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         return results.firstOrNull { name == it.name }
     }
 
-    fun getDefines(engineData: ProcessEngineDataAccess): List<ProcessData> {
-        return node.defines.map {
-            it.applyData(engineData, this)
-        }
-    }
-
     private fun hasDirectPredecessor(handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>): Boolean {
         return predecessors.any { it.handleValue == handle.handleValue }
     }
@@ -144,90 +143,12 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         }.toList()
     }
 
-    private fun getPredecessor(
-        engineData: ProcessEngineDataAccess,
-        nodeName: String
-                              ): Handle<SecureObject<ProcessNodeInstance<*>>>? {
-        // TODO Use process structure knowledge to do this better/faster without as many database lookups.
-        predecessors
-            .asSequence()
-            .map { engineData.nodeInstance(it).withPermission() }
-            .forEach {
-                if (nodeName == it.node.id) {
-                    return it.handle
-                } else {
-                    val result = it.getPredecessor(engineData, nodeName)
-                    if (result != null) {
-                        return result
-                    }
-                }
-            }
-        return null
-    }
-
-    fun resolvePredecessor(engineData: ProcessEngineDataAccess, nodeName: String): ProcessNodeInstance<*>? {
-        val handle = getPredecessor(engineData, nodeName)
-            ?: throw NullPointerException("Missing predecessor with name $nodeName referenced from node ${node.id}")
-        return engineData.nodeInstances[handle]?.withPermission()
-    }
-
     fun getHandleValue(): Long {
         return _handle.handleValue
     }
 
     override fun toString(): String {
         return "nodeInstance  ($handle, ${node.id}[$entryNo] - $state)"
-    }
-
-    fun instantiateXmlPlaceholders(
-        engineData: ProcessEngineDataAccess,
-        source: Source,
-        result: Result,
-        localEndpoint: EndpointDescriptor
-                                  ) {
-        instantiateXmlPlaceholders(engineData, source.newReader(), result.newWriter(), true, localEndpoint)
-    }
-
-    fun instantiateXmlPlaceholders(
-        engineData: ProcessEngineDataAccess,
-        xmlReader: XmlReader,
-        out: XmlWriter,
-        removeWhitespace: Boolean,
-        localEndpoint: EndpointDescriptor
-                                          ) {
-        val defines = getDefines(engineData)
-        val transformer = PETransformer.create(
-            ProcessNodeInstanceContext(
-                this,
-                defines,
-                state == Complete, localEndpoint
-                                      ),
-            removeWhitespace
-                                              )
-        transformer.transform(xmlReader, out.filterSubstream())
-    }
-
-    fun instantiateXmlPlaceholders(
-        engineData: ProcessEngineDataAccess,
-        source: Source,
-        removeWhitespace: Boolean,
-        localEndpoint: EndpointDescriptor
-                                  ): ICompactFragment {
-        val xmlReader = source.newReader()
-        return instantiateXmlPlaceholders(engineData, xmlReader, removeWhitespace, localEndpoint)
-    }
-
-    fun instantiateXmlPlaceholders(
-        engineData: ProcessEngineDataAccess,
-        xmlReader: XmlReader,
-        removeWhitespace: Boolean,
-        localEndpoint: EndpointDescriptor
-                                          ): WritableCompactFragment {
-        val charArray = generateXmlString(true) { writer ->
-            instantiateXmlPlaceholders(engineData, xmlReader, writer, removeWhitespace, localEndpoint)
-        }
-
-        return WritableCompactFragment(emptyList(), charArray)
     }
 
     fun serialize(engineData: ProcessEngineDataAccess, out: XmlWriter, localEndpoint: EndpointDescriptor) {
@@ -275,10 +196,10 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         override val predecessors: MutableSet<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>
         val processInstanceBuilder: ProcessInstance.Builder
         val hProcessInstance: Handle<SecureObject<ProcessInstance>> get() = processInstanceBuilder.handle
-        var owner: Principal
+        override var owner: Principal
         override var handle: Handle<SecureObject<ProcessNodeInstance<*>>>
         override var state: NodeInstanceState
-        val results: MutableList<ProcessData>
+        override val results: MutableList<ProcessData>
         fun toXmlInstance(body: ICompactFragment?): XmlProcessNodeInstance
         override val entryNo: Int
         var failureCause: Throwable?
@@ -382,6 +303,9 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
     }
 
     abstract class AbstractBuilder<N : ExecutableProcessNode, T : ProcessNodeInstance<*>> : Builder<N, T> {
+
+        override val processContext: ProcessInstanceContext
+            get() = processInstanceBuilder
 
         override fun toXmlInstance(body: ICompactFragment?): XmlProcessNodeInstance {
             return XmlProcessNodeInstance(
@@ -503,7 +427,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         }
 
         override fun toString(): String {
-            return "${node.getClass()}  ($handle, ${node.id}[$entryNo] - $state)"
+            return "${node::class}  ($handle, ${node.id}[$entryNo] - $state)"
         }
 
     }
@@ -528,7 +452,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
 
         override fun invalidateBuilder(engineData: ProcessEngineDataAccess) {
-            engineData.nodeInstances[this.handle]?.withPermission()?.let { newBase ->
+            engineData.nodeInstances[handle]?.withPermission()?.let { newBase ->
                 @Suppress("UNCHECKED_CAST")
                 node = newBase.node as N
                 predecessors.replaceBy(newBase.predecessors)
@@ -554,10 +478,12 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         final override var owner by overlay(observer()) { base.owner }
         final override var handle: Handle<SecureObject<ProcessNodeInstance<*>>> by overlay(observer()) { base.handle }
 
-        final override var state = base.state
+        private var _state: NodeInstanceState = base.state
+        final override var state
+            get() = _state
             set(value) {
-                if (field != value) {
-                    field = value
+                if (_state != value) {
+                    _state = value
                     changed = true
                     processInstanceBuilder.storeChild(this)
                 }
@@ -566,10 +492,16 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         var changed: Boolean = false
         final override val entryNo: Int = base.entryNo
 
-        @Suppress("UNCHECKED_CAST")
         override fun invalidateBuilder(engineData: ProcessEngineDataAccess) {
             changed = false
-            base = engineData.nodeInstance(this.handle).withPermission() as T
+            @Suppress("UNCHECKED_CAST")
+            val newBase = engineData.nodeInstance(handle).withPermission() as T
+            base = newBase
+            predecessors.replaceBy(newBase.predecessors)
+            owner = newBase.owner
+            handle = newBase.handle
+            _state = newBase.state
+            results.replaceBy(newBase.results)
         }
 
         override abstract fun build(): T

@@ -34,7 +34,8 @@ import java.sql.SQLException
 import javax.xml.xpath.XPathConstants
 
 @Throws(SQLException::class)
-actual fun IXmlDefineType.applyData(engineData: ProcessEngineDataAccess, node: ProcessNodeInstance<*>): ProcessData {
+actual fun IXmlDefineType.applyData(engineData: ProcessEngineDataAccess, context: ActivityInstanceContext): ProcessData {
+    val node = engineData.nodeInstance(context.handle).withPermission()
     return applyDataImpl(engineData, refNode?.let { node.resolvePredecessor(engineData, it)}, node.hProcessInstance)
 }
 

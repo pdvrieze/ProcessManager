@@ -19,11 +19,13 @@ package nl.adaptivity.process.engine
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.IMessageService
-import nl.adaptivity.process.engine.processModel.NodeInstanceState
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.MessageSendingResult
+import nl.adaptivity.process.engine.ActivityInstanceContext
+import nl.adaptivity.process.engine.processModel.*
 import nl.adaptivity.process.processModel.IXmlMessage
 import nl.adaptivity.process.processModel.XmlMessage
 import nl.adaptivity.xmlutil.util.CompactFragment
+import net.devrieze.util.Handle
 import java.util.*
 
 
@@ -32,50 +34,49 @@ import java.util.*
  */
 class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMessageService<IXmlMessage> {
 
-  class ExtMessage(val base: IXmlMessage, val source: net.devrieze.util.Handle<SecureObject<ProcessNodeInstance<*>>>) : IXmlMessage by base
+    class ExtMessage(val base: IXmlMessage, val source: Handle<SecureObject<ProcessNodeInstance<*>>>) : IXmlMessage by base
 
-  var _messages = mutableListOf<ExtMessage>()
+    var _messages = mutableListOf<ExtMessage>()
 
-  override fun createMessage(message: IXmlMessage): IXmlMessage {
-    return message
-  }
-
-  fun clear() {
-    _messages.clear()
-  }
-
-  fun getMessageNode(i: Int): net.devrieze.util.Handle<SecureObject<ProcessNodeInstance<*>>> {
-    return _messages[i].source
-  }
-
-  override val localEndpoint: EndpointDescriptor
-    get() = mLocalEndpoint
-
-  override fun sendMessage(engineData: MutableProcessEngineDataAccess,
-                           protoMessage: IXmlMessage,
-                           instanceBuilder: ProcessNodeInstance.Builder<*,*>): Boolean {
-    assert(instanceBuilder.handle.isValid) { "Sending messages from invalid nodes is a bad idea (${instanceBuilder})" }
-
-    val instantiatedContent = if (! protoMessage.messageBody.isEmpty) {
-      // This just creates a temporary copy
-      instanceBuilder.build().instantiateXmlPlaceholders(engineData,
-                                                 protoMessage.messageBody.getXmlReader(),
-                                                 false,
-                                                 localEndpoint)
-    } else {
-      CompactFragment(Collections.emptyList(), CharArray(0))
+    override fun createMessage(message: IXmlMessage): IXmlMessage {
+        return message
     }
-    val processedMessage = XmlMessage(protoMessage.service,
-                                    protoMessage.endpoint,
-                                    protoMessage.operation,
-                                    protoMessage.url,
-                                    protoMessage.method,
-                                    protoMessage.contentType,
-                                    instantiatedContent)
 
-    _messages.add(ExtMessage(processedMessage, instanceBuilder.handle))
-    instanceBuilder.state = NodeInstanceState.Acknowledged
-    instanceBuilder.store(engineData)
-    return true
-  }
+    fun clear() {
+        _messages.clear()
+    }
+
+    fun getMessageNode(i: Int): Handle<SecureObject<ProcessNodeInstance<*>>> {
+        return _messages[i].source
+    }
+
+    override val localEndpoint: EndpointDescriptor
+        get() = mLocalEndpoint
+
+    override fun sendMessage(engineData: ProcessEngineDataAccess,
+                             protoMessage: IXmlMessage,
+                             activityInstanceContext: ActivityInstanceContext): MessageSendingResult {
+        assert(activityInstanceContext.handle.isValid) { "Sending messages from invalid nodes is a bad idea (${activityInstanceContext})" }
+
+        val instantiatedContent = if (! protoMessage.messageBody.isEmpty) {
+            // This just creates a temporary copy
+            activityInstanceContext.instantiateXmlPlaceholders(engineData,
+                                                               protoMessage.messageBody.getXmlReader(),
+                                                               false,
+                                                               localEndpoint)
+        } else {
+            CompactFragment(Collections.emptyList(), CharArray(0))
+        }
+        val processedMessage = XmlMessage(protoMessage.service,
+                                          protoMessage.endpoint,
+                                          protoMessage.operation,
+                                          protoMessage.url,
+                                          protoMessage.method,
+                                          protoMessage.contentType,
+                                          instantiatedContent)
+
+        _messages.add(ExtMessage(processedMessage, activityInstanceContext.handle))
+
+        return MessageSendingResult.ACKNOWLEDGED
+    }
 }

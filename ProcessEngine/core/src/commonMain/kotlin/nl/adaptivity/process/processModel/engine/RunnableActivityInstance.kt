@@ -25,8 +25,7 @@ import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.impl.CompactFragment
-import nl.adaptivity.process.engine.processModel.NodeInstanceState
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.*
 import nl.adaptivity.process.engine.processModel.tryCreateTask
 import nl.adaptivity.process.engine.processModel.tryRunTask
 import nl.adaptivity.util.security.Principal

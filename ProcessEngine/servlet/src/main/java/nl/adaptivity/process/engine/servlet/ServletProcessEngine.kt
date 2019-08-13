@@ -25,6 +25,7 @@ import nl.adaptivity.io.Writable
 import nl.adaptivity.io.WritableReader
 import nl.adaptivity.messaging.*
 import nl.adaptivity.process.IMessageService
+import nl.adaptivity.process.MessageSendingResult
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
@@ -115,9 +116,9 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
             return NewServletMessage(message, localEndpoint)
         }
 
-        override fun sendMessage(engineData: MutableProcessEngineDataAccess,
+        override fun sendMessage(engineData: ProcessEngineDataAccess,
                                  protoMessage: NewServletMessage,
-                                 instanceBuilder: ProcessNodeInstance.Builder<*, *>): Boolean {
+                                 instanceBuilder: ProcessNodeInstance.Builder<*, *>): MessageSendingResult {
             val nodeHandle = instanceBuilder.handle
 
             protoMessage.setHandle(engineData, instanceBuilder)
@@ -127,11 +128,12 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
                                                                                    protoMessage.owner),
                                                        DataSource::class.java, emptyArray())
             if (result.isCancelled) {
-                return false
+                return MessageSendingResult.FAILED
             }
             if (result.isDone) {
                 try {
                     result.get()
+                    return MessageSendingResult.ACKNOWLEDGED
                 } catch (e: ExecutionException) {
                     val cause = e.cause
                     if (cause is RuntimeException) {
@@ -139,11 +141,11 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
                     }
                     throw RuntimeException(cause)
                 } catch (e: InterruptedException) {
-                    return false
+                    return MessageSendingResult.SENT
                 }
 
             }
-            return true
+            return MessageSendingResult.SENT
         }
 
     }

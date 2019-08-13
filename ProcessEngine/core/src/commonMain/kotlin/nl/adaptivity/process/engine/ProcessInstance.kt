@@ -91,10 +91,10 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         }
     }
 
-    interface Builder {
+    interface Builder: ProcessInstanceContext {
         val generation: Int
         val pendingChildren: List<Future<out ProcessNodeInstance<*>>>
-        var handle: Handle<SecureObject<ProcessInstance>>
+        override var handle: Handle<SecureObject<ProcessInstance>>
         var parentActivity: Handle<SecureObject<ProcessNodeInstance<*>>>
         var owner: Principal
         var processModel: ExecutableModelCommon
@@ -257,9 +257,10 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
             val self = this
             // make a copy as the list may be changed due to tickling.
             active().toList().forEach { nodeInstance ->
-                val newNodeInstance = updateChild(ticklePredecessors(nodeInstance)) {
+                updateChild(ticklePredecessors(nodeInstance)) {
                     tickle(engineData, messageService)
                 }
+                val newNodeInstance = engineData.nodeInstance(nodeInstance.handle).withPermission()
                 if (newNodeInstance.state.isFinal) {
                     handleFinishedState(engineData, newNodeInstance)
                 }
@@ -470,13 +471,13 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
             mutableListOf<InstanceFuture<out ProcessNodeInstance<*>, out ExecutableProcessNode>>()
         override val pendingChildren: List<Future<out ProcessNodeInstance<*>>> get() = _pendingChildren
         override var handle: Handle<SecureObject<ProcessInstance>> by overlay { base.handle }
-        override var parentActivity by overlay { base.parentActivity }
+        override var parentActivity: Handle<SecureObject<ProcessNodeInstance<*>>> by overlay { base.parentActivity }
 
-        override var owner by overlay { base.owner }
-        override var processModel by overlay { base.processModel }
-        override var instancename by overlay { base.name }
-        override var uuid by overlay({ newVal -> generation = 0; handle = getInvalidHandle(); newVal }) { base.uuid }
-        override var state by overlay(base = { base.state }, update = { newValue ->
+        override var owner: Principal by overlay { base.owner }
+        override var processModel: ExecutableModelCommon by overlay { base.processModel }
+        override var instancename: String? by overlay { base.name }
+        override var uuid: UUID by overlay({ newVal -> generation = 0; handle = getInvalidHandle(); newVal }) { base.uuid }
+        override var state: State by overlay(base = { base.state }, update = { newValue ->
             if (base.state.isFinal) {
                 throw IllegalStateException("Cannot change from final instance state ${base.state} to ${newValue}")
             }
@@ -484,8 +485,8 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         })
         override val children: List<Handle<SecureObject<ProcessNodeInstance<*>>>> get() = base.childNodes.map { it.withPermission()
             .handle }
-        override val inputs by lazy { base.inputs.toMutableList() }
-        override val outputs by lazy { base.outputs.toMutableList() }
+        override val inputs: MutableList<ProcessData> by lazy { base.inputs.toMutableList() }
+        override val outputs: MutableList<ProcessData> by lazy { base.outputs.toMutableList() }
 
         override fun allChildren(): Sequence<IProcessNodeInstance> {
             val pendingChildren = _pendingChildren.asSequence().map { it.origBuilder }

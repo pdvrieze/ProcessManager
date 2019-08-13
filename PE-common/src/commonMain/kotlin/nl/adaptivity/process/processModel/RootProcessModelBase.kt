@@ -181,6 +181,9 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
 
     override fun getChildModel(childId: Identifiable) = _childModels[childId]
 
+    /**
+     * Get the handle recorded for this model.
+     */
     override val handle: Handle<RootProcessModelBase<NodeT>>
         get() = handle(handle = _handle)
 

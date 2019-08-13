@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine.processModel
 
+import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
@@ -26,6 +27,6 @@ import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.xmlutil.util.ICompactFragment
 
 expect fun IXmlResultType.applyData(payload: ICompactFragment?): ProcessData
-expect fun IXmlDefineType.applyData(engineData: ProcessEngineDataAccess, node: ProcessNodeInstance<*>): ProcessData
+expect fun IXmlDefineType.applyData(engineData: ProcessEngineDataAccess,context: ActivityInstanceContext): ProcessData
 expect fun IXmlDefineType.applyFromProcessInstance(engineData: ProcessEngineDataAccess, processInstance: ProcessInstance): ProcessData
 expect fun IXmlDefineType.applyFromProcessInstance(engineData: ProcessEngineDataAccess, processInstance: ProcessInstance.Builder): ProcessData

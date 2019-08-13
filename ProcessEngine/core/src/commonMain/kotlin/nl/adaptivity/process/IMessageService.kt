@@ -17,7 +17,9 @@
 package nl.adaptivity.process
 
 import nl.adaptivity.messaging.EndpointDescriptor
+import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
+import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.IXmlMessage
 
@@ -52,11 +54,17 @@ interface IMessageService<MSG_T> {
    * @return `true` or lack of failure, `false` on failure.
    *
    */
-  fun sendMessage(engineData: MutableProcessEngineDataAccess, protoMessage: MSG_T, instanceBuilder: ProcessNodeInstance.Builder<*, *>): Boolean
+  fun sendMessage(engineData: ProcessEngineDataAccess, protoMessage: MSG_T, activityInstanceContext: ActivityInstanceContext): MessageSendingResult
 
   /**
    * Get the endpoint belonging to the messenger. (Where can replies go)
    * @return The descriptor of the local endpoint.
    */
   val localEndpoint: EndpointDescriptor
+}
+
+enum class MessageSendingResult {
+    SENT,
+    ACKNOWLEDGED,
+    FAILED
 }
