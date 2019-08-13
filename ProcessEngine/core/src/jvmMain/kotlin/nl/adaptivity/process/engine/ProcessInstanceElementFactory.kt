@@ -34,7 +34,7 @@ import uk.ac.bournemouth.kotlinsql.Table
 /**
  * Factory that helps in storing and retrieving process instances from the database.
  */
-internal class ProcessInstanceElementFactory(private val mProcessEngine: ProcessEngine<ProcessDBTransaction>) : AbstractElementFactory<ProcessInstance.BaseBuilder, SecureObject<ProcessInstance>, ProcessDBTransaction>() {
+internal class ProcessInstanceElementFactory(private val processEngine: ProcessEngine<*>) : AbstractElementFactory<ProcessInstance.BaseBuilder, SecureObject<ProcessInstance>, ProcessDBTransaction>() {
 
   override fun getHandleCondition(where: Database._Where,
                                   handle: Handle<SecureObject<ProcessInstance>>): Database.WhereClause? {
@@ -51,7 +51,7 @@ internal class ProcessInstanceElementFactory(private val mProcessEngine: Process
     val owner = pi.owner.nullableValue(columns, values)?.let(::SimplePrincipal) ?: SYSTEMPRINCIPAL
     val hProcessModel = pi.pmhandle.value(columns, values)
     val parentActivity = pi.parentActivity.value(columns, values)
-    val processModel = mProcessEngine.getProcessModel(transaction.readableEngineData, hProcessModel, SYSTEMPRINCIPAL).mustExist(hProcessModel)
+    val processModel = processEngine.getProcessModel(transaction.readableEngineData, hProcessModel, SYSTEMPRINCIPAL).mustExist(hProcessModel)
     val instancename = pi.name.nullableValue(columns, values)
     val piHandle = pi.pihandle.value(columns, values)
     val state = pi.state.nullableValue(columns, values) ?: State.NEW

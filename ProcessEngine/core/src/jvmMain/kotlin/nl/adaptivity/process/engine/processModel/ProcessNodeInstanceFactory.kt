@@ -40,7 +40,7 @@ import java.sql.SQLException
  * Factory object to help with process node creation from a database.
  */
 
-internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<ProcessDBTransaction>): AbstractElementFactory<ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>>, SecureObject<ProcessNodeInstance<*>>, ProcessDBTransaction>() {
+internal class ProcessNodeInstanceFactory(val processEngine:ProcessEngine<*>): AbstractElementFactory<ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>>, SecureObject<ProcessNodeInstance<*>>, ProcessDBTransaction>() {
 
   companion object {
     private val tbl_pni = ProcessEngineDB.processNodeInstances
