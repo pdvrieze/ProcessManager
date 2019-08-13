@@ -21,6 +21,8 @@ import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.get
 import nl.adaptivity.process.engine.test.ProcessEngineTestSupport
+import nl.adaptivity.process.engine.test.loanOrigination.datatypes.*
+import nl.adaptivity.process.engine.test.loanOrigination.systems.*
 import nl.adaptivity.process.processModel.configurableModel.ConfigurableProcessModel
 import nl.adaptivity.process.processModel.configurableModel.endNode
 import nl.adaptivity.process.processModel.configurableModel.output
@@ -70,7 +72,13 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
 
     val start by startNode
     val inputCustomerMasterData by runnableActivity<Unit, LoanCustomer>(start) {
-        val newData = CustomerData("cust123456", "taxId234", "passport345", "John Doe", "10 Downing Street")
+        val newData = CustomerData(
+            "cust123456",
+            "taxId234",
+            "passport345",
+            "John Doe",
+            "10 Downing Street"
+                                                                                             )
         customerFile.enterCustomerData(AuthInfo(), newData)
         LoanCustomer(newData.customerId)
     }
@@ -83,14 +91,21 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
             LoanApplication(
                 it.customerId,
                 10000,
-                listOf(CustomerCollateral("house", "100000", "residential"))
-                           )
+                listOf(
+                    CustomerCollateral(
+                        "house",
+                        "100000",
+                        "residential"
+                                      )
+                      )
+                                                                                       )
         }
     }
     val evaluateCredit by object : ConfigurableCompositeActivity(createLoanRequest) {
         val creditBureau = CreditBureau()
         val customerFile get() = this@Model1.customerFile
-        val creditApplication = CreditApplication(customerFile)
+        val creditApplication =
+            CreditApplication(customerFile)
 
         val startCreditEvaluate by startNode
         val getCustomerApproval by runnableActivity(
@@ -115,7 +130,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
         val getLoanEvaluation by configureRunnableActivity<Pair<LoanApplication, CreditReport>, LoanEvaluation>(
             getCreditReport,
             LoanEvaluation.serializer()
-                                                                                                               ) {
+                                                                                                                                                                           ) {
             val apIn = defineInput("application", null, "loanApplication", LoanApplication.serializer())
             val credIn = defineInput("creditReport", getCreditReport, CreditReport.serializer())
             inputCombiner = InputCombiner {

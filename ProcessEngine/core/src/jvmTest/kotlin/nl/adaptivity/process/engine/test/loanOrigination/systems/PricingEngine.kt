@@ -14,15 +14,15 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.test.loanOrigination
+package nl.adaptivity.process.engine.test.loanOrigination.systems
 
-class CustomerInformationFile {
-    private val customerData = mutableMapOf<String, CustomerData>()
-    fun enterCustomerData(authInfo: AuthInfo, data: CustomerData) {
-        customerData[data.customerId] = data
+import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanProductBundle
+import nl.adaptivity.process.engine.test.loanOrigination.datatypes.PricedLoanProductBundle
+import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanEvaluation
+
+class PricingEngine {
+    fun priceLoan(chosenProduct: LoanProductBundle, loanEval: LoanEvaluation): PricedLoanProductBundle {
+        return chosenProduct.withPrice(loanEval.customerId, 0.05)
     }
 
-    fun getCustomerData(authInfo: AuthInfo, customerId: String): CustomerData? {
-        return customerData[customerId]
-    }
 }

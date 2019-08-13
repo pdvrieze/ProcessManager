@@ -14,15 +14,28 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.test.loanOrigination
+package nl.adaptivity.process.engine.test.loanOrigination.datatypes
+
+import nl.adaptivity.process.engine.test.loanOrigination.AuthInfo
+import nl.adaptivity.process.engine.test.loanOrigination.systems.CustomerInformationFile
 
 class CreditApplication(val customerInformationFile: CustomerInformationFile) {
     fun evaluateLoan(authInfo: AuthInfo, application: LoanApplication, creditReport: CreditReport): LoanEvaluation {
         val customer = customerInformationFile.getCustomerData(AuthInfo(), application.customerId)!!
         if (application.amount<creditReport.maxLoan) {
-            return LoanEvaluation(application.customerId, application, true, "Loan for customer ${customer.name} in the amoount of ${application.amount} approved")
+            return LoanEvaluation(
+                application.customerId,
+                application,
+                true,
+                "Loan for customer ${customer.name} in the amoount of ${application.amount} approved"
+                                                                                             )
         } else {
-            return LoanEvaluation(application.customerId, application, false, "Loan for customer ${customer.name} for ${application.amount} could not be automatically approved")
+            return LoanEvaluation(
+                application.customerId,
+                application,
+                false,
+                "Loan for customer ${customer.name} for ${application.amount} could not be automatically approved"
+                                                                                             )
         }
     }
 }

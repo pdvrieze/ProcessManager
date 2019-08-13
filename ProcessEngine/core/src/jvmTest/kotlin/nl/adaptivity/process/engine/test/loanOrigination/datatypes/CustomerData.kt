@@ -14,12 +14,12 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.test.loanOrigination
+package nl.adaptivity.process.engine.test.loanOrigination.datatypes
 
-import kotlinx.serialization.Serializable
-import nl.adaptivity.xmlutil.serialization.XmlValue
-
-@Serializable
-data class CreditReport(@XmlValue(true) val reportData: String, val creditRating: Int, val maxLoan: Int) {
-
-}
+data class CustomerData(
+    val customerId: String,
+    val taxId: String,
+    val passportNo: String,
+    val name: String,
+    val address: String
+                       )

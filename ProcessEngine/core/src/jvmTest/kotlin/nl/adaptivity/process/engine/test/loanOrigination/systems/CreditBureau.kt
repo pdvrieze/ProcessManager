@@ -14,11 +14,20 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.test.loanOrigination
+package nl.adaptivity.process.engine.test.loanOrigination.systems
 
-class PricingEngine {
-    fun priceLoan(chosenProduct: LoanProductBundle, loanEval: LoanEvaluation): PricedLoanProductBundle {
-        return chosenProduct.withPrice(loanEval.customerId, 0.05)
+import nl.adaptivity.process.engine.test.loanOrigination.AuthInfo
+import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CreditReport
+import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
+
+class CreditBureau {
+    fun getCreditReport(authInfo: AuthInfo, customerData: CustomerData): CreditReport {
+        val creditRating = 400
+        return CreditReport(
+            "${customerData.name} (rating $creditRating) is approved for loans up to 20000",
+            creditRating,
+            20000
+                                                                                      )
     }
 
 }

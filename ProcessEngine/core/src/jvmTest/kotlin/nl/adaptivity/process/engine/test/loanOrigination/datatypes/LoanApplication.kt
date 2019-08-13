@@ -14,12 +14,17 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.test.loanOrigination
+package nl.adaptivity.process.engine.test.loanOrigination.datatypes
 
 import kotlinx.serialization.Serializable
-import javax.xml.bind.annotation.XmlValue
+import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerCollateral
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable
-data class Approval(@XmlValue val isApproved: Boolean) {
-
-}
+@XmlSerialName("myLoanApplication", "", "")
+data class LoanApplication(
+    val customerId: String,
+    val amount: Int,
+    @XmlSerialName("collateral", "", "")
+    val collateral: List<CustomerCollateral>
+                          )

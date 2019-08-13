@@ -14,12 +14,15 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.test.loanOrigination
+package nl.adaptivity.process.engine.test.loanOrigination.datatypes
 
 import kotlinx.serialization.Serializable
-import nl.adaptivity.xmlutil.serialization.XmlValue
 
 @Serializable
-data class BankAccountNumber(@XmlValue(true) val number: String) {
+data class Offer(val id: String, val customerId: String, val customerSignature: String? = null) {
+    fun signCustomer(signature: String) = copy(customerSignature = signature)
+}
 
+@Serializable
+data class Contract(val id: String, val offerId: String, val customerId: String, val customerSignature: String, val bankSignature: String? = null) {
 }

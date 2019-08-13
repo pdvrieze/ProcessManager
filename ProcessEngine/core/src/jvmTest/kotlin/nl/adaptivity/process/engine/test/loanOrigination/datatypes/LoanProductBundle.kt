@@ -14,14 +14,20 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.test.loanOrigination
+package nl.adaptivity.process.engine.test.loanOrigination.datatypes
 
 import kotlinx.serialization.Serializable
 
 @Serializable
 open class LoanProductBundle(val name: String, val id: String) {
     fun withPrice(customerId: String, price: Double): PricedLoanProductBundle {
-        return PricedLoanProductBundle(name, id, customerId, price, false)
+        return PricedLoanProductBundle(
+            name,
+            id,
+            customerId,
+            price,
+            false
+                                                                                                  )
     }
 
 }
@@ -39,7 +45,13 @@ class PricedLoanProductBundle : LoanProductBundle {
     }
 
     fun approve(): PricedLoanProductBundle {
-        return PricedLoanProductBundle(name, id, customerId, price, true)
+        return PricedLoanProductBundle(
+            name,
+            id,
+            customerId,
+            price,
+            true
+                                                                                                  )
     }
 }
 

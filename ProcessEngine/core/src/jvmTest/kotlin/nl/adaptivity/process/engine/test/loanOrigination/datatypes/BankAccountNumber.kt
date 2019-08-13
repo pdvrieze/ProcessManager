@@ -14,13 +14,12 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.test.loanOrigination
+package nl.adaptivity.process.engine.test.loanOrigination.datatypes
 
-class AccountManagementSystem {
-    fun openAccountFor(authInfo: AuthInfo, contract: Contract): BankAccountNumber {
-        // check auth
-        // check contract
-        return BankAccountNumber("123456")
-    }
+import kotlinx.serialization.Serializable
+import nl.adaptivity.xmlutil.serialization.XmlValue
+
+@Serializable
+data class BankAccountNumber(@XmlValue(true) val number: String) {
 
 }

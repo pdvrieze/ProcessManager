@@ -14,12 +14,18 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.test.loanOrigination
+package nl.adaptivity.process.engine.test.loanOrigination.systems
 
-data class CustomerData(
-    val customerId: String,
-    val taxId: String,
-    val passportNo: String,
-    val name: String,
-    val address: String
-                       )
+import nl.adaptivity.process.engine.test.loanOrigination.AuthInfo
+import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
+
+class CustomerInformationFile {
+    private val customerData = mutableMapOf<String, CustomerData>()
+    fun enterCustomerData(authInfo: AuthInfo, data: CustomerData) {
+        customerData[data.customerId] = data
+    }
+
+    fun getCustomerData(authInfo: AuthInfo, customerId: String): CustomerData? {
+        return customerData[customerId]
+    }
+}

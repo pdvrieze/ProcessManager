@@ -14,9 +14,11 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.test.loanOrigination
+package nl.adaptivity.process.engine.test.loanOrigination.systems
 
+import nl.adaptivity.process.engine.test.loanOrigination.datatypes.PricedLoanProductBundle
 import java.util.*
+import nl.adaptivity.process.engine.test.loanOrigination.datatypes.*
 
 class OutputManagementSystem {
     private val _contracts = mutableMapOf<UUID, Contract>()

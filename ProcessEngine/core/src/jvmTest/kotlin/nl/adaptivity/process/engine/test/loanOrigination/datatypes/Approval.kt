@@ -14,12 +14,12 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.test.loanOrigination
+package nl.adaptivity.process.engine.test.loanOrigination.datatypes
 
-class CreditBureau {
-    fun getCreditReport(authInfo: AuthInfo, customerData: CustomerData): CreditReport {
-        val creditRating = 400
-        return CreditReport("${customerData.name} (rating $creditRating) is approved for loans up to 20000", creditRating, 20000)
-    }
+import kotlinx.serialization.Serializable
+import javax.xml.bind.annotation.XmlValue
+
+@Serializable
+data class Approval(@XmlValue val isApproved: Boolean) {
 
 }
