@@ -17,7 +17,10 @@
 package nl.adaptivity.process.engine.processModel
 
 import net.devrieze.util.ComparableHandle
+import net.devrieze.util.Handle
+import net.devrieze.util.ReadableHandleAware
 import net.devrieze.util.security.SecureObject
+import net.devrieze.util.toComparableHandle
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
@@ -25,11 +28,15 @@ import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 /**
  * Simple base interface for process node instances that can also be implemented by builders
  */
-interface IProcessNodeInstance {
+interface IProcessNodeInstance/*: ReadableHandleAware<Any>*/ {
     val node: ExecutableProcessNode
     val predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>
 
-    fun handle(): ComparableHandle<SecureObject<ProcessNodeInstance<*>>>
+    @Deprecated("use property", ReplaceWith("handleXXX"))
+    fun handle(): Handle<SecureObject<ProcessNodeInstance<*>>> = handleXXX.toComparableHandle() as Handle<SecureObject<ProcessNodeInstance<*>>>
+
+    val handleXXX: Handle<SecureObject<ProcessNodeInstance<*>>>
+
     val entryNo: Int
     val state: NodeInstanceState
     fun builder(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance.Builder<*, *>

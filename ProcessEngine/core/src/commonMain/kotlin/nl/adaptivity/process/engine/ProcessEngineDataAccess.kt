@@ -33,7 +33,7 @@ interface ProcessEngineDataAccess {
 
     val nodeInstances: HandleMap<SecureObject<ProcessNodeInstance<*>>>
 
-    fun nodeInstance(handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) =
+    fun nodeInstance(handle: Handle<SecureObject<ProcessNodeInstance<*>>>) =
         nodeInstances[handle].mustExist(handle)
 
     val processModels: IProcessModelMapAccess
@@ -56,7 +56,7 @@ interface MutableProcessEngineDataAccess : ProcessEngineDataAccess {
 
     fun invalidateCachePI(handle: Handle<SecureObject<ProcessInstance>>)
 
-    fun invalidateCachePNI(handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>)
+    fun invalidateCachePNI(handle: Handle<SecureObject<ProcessNodeInstance<*>>>)
 
     fun commit()
 

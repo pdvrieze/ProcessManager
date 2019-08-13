@@ -20,6 +20,7 @@ import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.internal.UnitSerializer
 import net.devrieze.util.TypecheckingCollection
+import net.devrieze.util.toComparableHandle
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
@@ -100,7 +101,7 @@ class RunnableActivity<I: Any, O: Any> : ActivityBase, ExecutableProcessNode {
             }
         }
         return RunnableActivityInstance.BaseBuilder(
-            this, predecessor.handle(),
+            this, predecessor.handleXXX.toComparableHandle(),
             processInstanceBuilder,
             processInstanceBuilder.owner, entryNo
                                                    )

@@ -16,10 +16,8 @@
 
 package nl.adaptivity.process.engine.processModel
 
-import net.devrieze.util.ComparableHandle
+import net.devrieze.util.*
 import net.devrieze.util.collection.replaceBy
-import net.devrieze.util.getInvalidHandle
-import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.impl.generateXmlString
@@ -78,19 +76,19 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
 
     class BaseBuilder(
         node: ExecutableCompositeActivity,
-        predecessor: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>?,
+        predecessor: Handle<SecureObject<ProcessNodeInstance<*>>>?,
         processInstanceBuilder: ProcessInstance.Builder,
-        childInstance: ComparableHandle<SecureObject<ProcessInstance>>,
+        childInstance: Handle<SecureObject<ProcessInstance>>,
         owner: Principal,
         entryNo: Int,
-        handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
+        handle: Handle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
         state: NodeInstanceState = NodeInstanceState.Pending
                      ) : ProcessNodeInstance.BaseBuilder<ExecutableCompositeActivity, CompositeInstance>(
         node, listOfNotNull(predecessor), processInstanceBuilder, owner,
         entryNo, handle, state
                                                                                                         ), Builder {
 
-        override var hChildInstance: ComparableHandle<SecureObject<ProcessInstance>> = childInstance
+        override var hChildInstance: ComparableHandle<SecureObject<ProcessInstance>> = childInstance.toComparableHandle()
 
         override fun invalidateBuilder(engineData: ProcessEngineDataAccess) {
             engineData.nodeInstances[handle]?.withPermission()?.let { n ->

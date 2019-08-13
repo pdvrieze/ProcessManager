@@ -91,9 +91,10 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         builder.results, builder.failureCause
                                                                   )
 
+    override val handleXXX: Handle<SecureObject<ProcessNodeInstance<*>>> get() = handle
 
+    @Deprecated("use property", ReplaceWith("handleXXX"))
     override fun getHandle() = handle
-    final override fun handle() = handle
 
     override fun build(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance<T> = this
 
@@ -394,8 +395,6 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
                                          )
         }
 
-        final override fun handle() = handle
-
         override var failureCause: Throwable? = null
 
         /**
@@ -449,7 +448,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
         final override fun finishTask(engineData: MutableProcessEngineDataAccess, resultPayload: ICompactFragment?) {
             if (state.isFinal) {
-                throw ProcessException("instance ${node.id}:${handle()}($state) cannot be finished as it is already in a final state.")
+                throw ProcessException("instance ${node.id}:$handleXXX($state) cannot be finished as it is already in a final state.")
             }
             doFinishTask(engineData, resultPayload)
             state = Complete
@@ -504,20 +503,24 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         }
 
         override fun toString(): String {
-            return "${node.getClass()}  (${handle()}, ${node.id}[$entryNo] - $state)"
+            return "${node.getClass()}  ($handleXXX, ${node.id}[$entryNo] - $state)"
         }
 
     }
 
     abstract class BaseBuilder<N : ExecutableProcessNode, T : ProcessNodeInstance<T>>(
         final override var node: N,
-        predecessors: Iterable<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
+        predecessors: Iterable<Handle<SecureObject<ProcessNodeInstance<*>>>>,
         final override val processInstanceBuilder: ProcessInstance.Builder,
         final override var owner: Principal,
         final override val entryNo: Int,
-        final override var handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
+        handle: Handle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
         state: NodeInstanceState = Pending
                                                                                      ) : AbstractBuilder<N, T>() {
+
+        final override var handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = handle.toComparableHandle()
+        override val handleXXX: Handle<SecureObject<ProcessNodeInstance<*>>>
+            get() = handle
 
         final override var state = state
             set(value) {
@@ -537,7 +540,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         }
 
         final override var predecessors: MutableSet<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>> =
-            predecessors.toMutableArraySet()
+            predecessors.asSequence().map { it.toComparableHandle() }.toMutableArraySet()
         final override val results = mutableListOf<ProcessData>()
     }
 
@@ -552,6 +555,8 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         final override var predecessors = ObservableSet(base.predecessors.toMutableArraySet(), { changed = true })
         final override var owner by overlay(observer()) { base.owner }
         final override var handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> by overlay(observer()) { base.getHandle() }
+        override val handleXXX: Handle<SecureObject<ProcessNodeInstance<*>>>
+            get() = handle
         final override var state = base.state
             set(value) {
                 if (field != value) {

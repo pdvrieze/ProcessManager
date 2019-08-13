@@ -68,7 +68,7 @@ interface ExecutableProcessNode : ProcessNode, Identified {
         }
       }
     }
-    return DefaultProcessNodeInstance.BaseBuilder(this, listOf(predecessor.handle()),
+    return DefaultProcessNodeInstance.BaseBuilder(this, listOf(predecessor.handleXXX),
                                                   processInstanceBuilder,
                                                   processInstanceBuilder.owner, entryNo)
   }

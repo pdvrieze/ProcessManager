@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.engine.spek
 
-import net.devrieze.util.ComparableHandle
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ProcessInstance
@@ -27,7 +26,6 @@ import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.updateChild
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xmlutil.util.CompactFragment
-import org.w3c.dom.Node
 import kotlin.reflect.KProperty
 
 class ProcessNodeInstanceDelegate(val instanceSupport: InstanceSupport, val instanceHandle: Handle<SecureObject<ProcessInstance>>, val nodeId: Identified) {
@@ -47,7 +45,7 @@ interface SafeNodeActions {
   fun ProcessNodeInstance<*>.take(): ProcessNodeInstance<*> {
     val ib = transaction.writableEngineData.instance(hProcessInstance).withPermission().builder()
     this.update(ib) { state= NodeInstanceState.Taken }
-    return transaction.readableEngineData.nodeInstance(handle()).withPermission()
+    return transaction.readableEngineData.nodeInstance(handleXXX).withPermission()
   }
 
   fun ProcessNodeInstance<*>.start(): ProcessNodeInstance<*> {
@@ -71,7 +69,7 @@ interface ProcessNodeActions: SafeNodeActions {
         finishTask(transaction.writableEngineData, payload)
       }
     }
-    return transaction.readableEngineData.nodeInstance(handle()).withPermission()
+    return transaction.readableEngineData.nodeInstance(handleXXX).withPermission()
   }
 
 }

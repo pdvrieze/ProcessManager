@@ -49,7 +49,7 @@ abstract class IProcessEngineData<T : ProcessTransaction> : TransactionFactory<T
         }
     }
 
-    fun invalidateCachePNI(handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) {
+    fun invalidateCachePNI(handle: Handle<SecureObject<ProcessNodeInstance<*>>>) {
         processNodeInstances.apply {
             if (handle.isValid) invalidateCache(handle) else invalidateCache()
         }

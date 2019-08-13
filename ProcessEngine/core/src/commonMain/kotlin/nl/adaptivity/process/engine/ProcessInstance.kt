@@ -109,7 +109,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         fun build(data: MutableProcessEngineDataAccess): ProcessInstance
         fun <T : ProcessNodeInstance<*>> storeChild(child: T): Future<T>
         fun getChild(handle: Handle<SecureObject<ProcessNodeInstance<*>>>): IProcessNodeInstance =
-            allChildren { it.handle() == handle }.first()
+            allChildren { it.handleXXX == handle }.first()
 
         fun <N : ExecutableProcessNode> getChild(node: N, entryNo: Int): ProcessNodeInstance.Builder<N, *>? =
             getChildren(node).firstOrNull { it.entryNo == entryNo }
@@ -174,7 +174,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                     .mustExist(successorId)
                     .createOrReuseInstance(engineData, this, predecessor, predecessor.entryNo)
 
-                nonRegisteredNodeInstance.predecessors.add(predecessor.handle())
+                nonRegisteredNodeInstance.predecessors.add(predecessor.handleXXX.toComparableHandle())
                 val conditionResult = nonRegisteredNodeInstance.condition(engineData, predecessor)
                 if (conditionResult == ConditionResult.NEVER) {
                     nonRegisteredNodeInstance.state = NodeInstanceState.Skipped
@@ -252,7 +252,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                             this.tickle(engineData, messageService)
                         }
                     }
-                return getChild(successor.handle())
+                return getChild(successor.handleXXX)
             }
 
             val self = this
@@ -284,7 +284,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                     if (! state.isFinal) {
                         engineData.logger.log(LogLevel.WARNING, "Calling finish on a process instance that should already be finished.")
                         finish(engineData).apply {
-                            val h = nodeInstance.handle()
+                            val h = nodeInstance.handleXXX
                             assert(getChild(h).let { it.state.isFinal && it.node is ExecutableEndNode })
                         }
                     }
@@ -493,7 +493,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
             val pendingHandles = pendingChildren.map { it.handle }.toSet()
             return pendingChildren + base.childNodes.asSequence()
                 .map { it.withPermission() }
-                .filter { it.handle() !in pendingHandles }
+                .filter { it.handleXXX !in pendingHandles }
         }
 
         override fun allChildren(childFilter: (IProcessNodeInstance) -> Boolean): Sequence<IProcessNodeInstance> {
@@ -502,7 +502,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                 .filter { childFilter(it) }
             return pendingChildren.asSequence() + base.childNodes.asSequence()
                 .map { it.withPermission() }
-                .filter { it.handle() !in pendingHandles && childFilter(it) }
+                .filter { it.handleXXX !in pendingHandles && childFilter(it) }
         }
 
         override fun build(data: MutableProcessEngineDataAccess): ProcessInstance {
@@ -712,9 +712,6 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     override val handleXXX: Handle<SecureObject<ProcessInstance>>
         get() = handle
 
-    @Deprecated("use property", ReplaceWith("handleXXX"))
-    override fun getHandle() = handle
-
     /**
      * Get the payload that was passed to start the instance.
      * @return The process initial payload.
@@ -751,7 +748,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         for (future in pending) {
             if (!future.origBuilder.handle.isValid) {
                 // Set the handle on the builder so that lookups in the future will be more correct.
-                createdNodes += data.putNodeInstance(future).also { future.origBuilder.handle = it.handle() }
+                createdNodes += data.putNodeInstance(future).also { future.origBuilder.handle = it.handleXXX.toComparableHandle() }
             } else {
                 assert(future.origBuilder.hProcessInstance == handle)
                 updatedNodes[future.origBuilder.handle] = data.storeNodeInstance(future)

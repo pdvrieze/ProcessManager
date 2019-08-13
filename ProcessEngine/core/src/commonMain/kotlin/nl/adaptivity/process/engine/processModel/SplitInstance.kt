@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine.processModel
 
 import net.devrieze.util.ComparableHandle
+import net.devrieze.util.Handle
 import net.devrieze.util.collection.replaceByNotNull
 import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.overlay
@@ -70,11 +71,11 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
 
     class BaseBuilder(
         node: ExecutableSplit,
-        predecessor: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
+        predecessor: Handle<SecureObject<ProcessNodeInstance<*>>>,
         processInstanceBuilder: ProcessInstance.Builder,
         owner: Principal,
         entryNo: Int,
-        handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
+        handle: Handle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
         state: NodeInstanceState = NodeInstanceState.Pending
                      ) : ProcessNodeInstance.BaseBuilder<ExecutableSplit, SplitInstance>(
         node, listOf(predecessor), processInstanceBuilder, owner, entryNo,

@@ -154,11 +154,11 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
 
   class BaseBuilder(
       node: ExecutableProcessNode,
-      predecessors: Iterable<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
+      predecessors: Iterable<Handle<SecureObject<ProcessNodeInstance<*>>>>,
       processInstanceBuilder: ProcessInstance.Builder,
       owner: Principal,
       entryNo: Int,
-      handle: ComparableHandle<SecureObject<DefaultProcessNodeInstance>> = getInvalidHandle(),
+      handle: Handle<SecureObject<DefaultProcessNodeInstance>> = getInvalidHandle(),
       state: NodeInstanceState = NodeInstanceState.Pending)
     : ProcessNodeInstance.BaseBuilder<ExecutableProcessNode, DefaultProcessNodeInstance>(node, predecessors, processInstanceBuilder, owner, entryNo, handle, state), Builder {
 

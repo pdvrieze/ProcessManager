@@ -90,7 +90,7 @@ open class ProcessEngineTestSupport() {
 
     protected fun ProcessInstance.assertFinished(vararg handles: IProcessNodeInstance) = apply {
         val actual = ArrayList(sortedFinished)
-        val expected = handles.asSequence().map { it.handle() }.sortedBy { it.handleValue }.toList()
+        val expected = handles.asSequence().map { it.handleXXX }.sortedBy { it.handleValue }.toList()
         try {
             assertEquals(expected, actual)
         } catch (e: AssertionError) {
@@ -104,7 +104,7 @@ open class ProcessEngineTestSupport() {
 
     protected fun ProcessInstance.assertActive(vararg handles: IProcessNodeInstance) = apply {
         val actual = ArrayList(sortedActive)
-        val expected = handles.asSequence().map { it.handle() }.sortedBy { it.handleValue }.toList()
+        val expected = handles.asSequence().map { it.handleXXX }.sortedBy { it.handleValue }.toList()
         try {
             assertEquals(expected, actual)
         } catch (e: AssertionError) {
@@ -118,7 +118,7 @@ open class ProcessEngineTestSupport() {
 
     protected fun ProcessInstance.assertCompleted(vararg nodes: IProcessNodeInstance): ProcessInstance {
         val actual = ArrayList(sortedCompleted)
-        val expected = nodes.asSequence().map { it.handle() }.sortedBy { it.handleValue }.toList()
+        val expected = nodes.asSequence().map { it.handleXXX }.sortedBy { it.handleValue }.toList()
         assertEquals(expected, actual)
         return this
     }
@@ -154,7 +154,7 @@ open class ProcessEngineTestSupport() {
     protected fun IProcessNodeInstance.assertState(state: NodeInstanceState) {
         try {
             assertEquals(state, this.state,
-                         "Node ${this.node.id}(${this.handle()}) should be in the ${state.name} state")
+                         "Node ${this.node.id}(${this.handleXXX}) should be in the ${state.name} state")
         } catch (e: AssertionError) {
             throw dropStack(e, 2)
         }

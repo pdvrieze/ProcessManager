@@ -16,10 +16,7 @@
 
 package nl.adaptivity.process.engine.processModel
 
-import net.devrieze.util.ComparableHandle
-import net.devrieze.util.Handle
-import net.devrieze.util.getInvalidHandle
-import net.devrieze.util.overlay
+import net.devrieze.util.*
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
@@ -113,11 +110,11 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
     class BaseBuilder(
         node: ExecutableJoin,
-        predecessors: Iterable<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
+        predecessors: Iterable<Handle<SecureObject<ProcessNodeInstance<*>>>>,
         processInstanceBuilder: ProcessInstance.Builder,
         owner: Principal,
         entryNo: Int,
-        handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
+        handle: Handle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
         state: NodeInstanceState = NodeInstanceState.Pending)
         : ProcessNodeInstance.BaseBuilder<ExecutableJoin, JoinInstance>(node, predecessors, processInstanceBuilder, owner, entryNo, handle, state), Builder {
         override fun build() = JoinInstance(this)
@@ -189,8 +186,10 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
             // register existing predecessors
             val instantiatedPredecessors = processInstanceBuilder.allChildren { pred ->
                 join in pred.node.successors &&
-                    ( pred.handle() in predecessors ||
-                        node.getExistingInstance(engineData, processInstanceBuilder, pred, pred.entryNo).first?.let { predecessorsToAdd.add(pred.handle()); it.handle() } == handle() )
+                    ( pred.handleXXX in predecessors ||
+                        node.getExistingInstance(engineData, processInstanceBuilder, pred, pred.entryNo).first?.let { predecessorsToAdd.add(
+                            pred.handleXXX.toComparableHandle()); it.handleXXX
+                        } == handleXXX )
             }.toList()
             predecessors.addAll(predecessorsToAdd)
 

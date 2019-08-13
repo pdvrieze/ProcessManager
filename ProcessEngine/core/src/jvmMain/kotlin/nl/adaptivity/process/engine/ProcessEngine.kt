@@ -163,7 +163,7 @@ class ProcessEngine<TR : ProcessTransaction> {
                 this@DelegateProcessEngineData.invalidateCachePI(handle)
             }
 
-            override fun invalidateCachePNI(handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) {
+            override fun invalidateCachePNI(handle: Handle<SecureObject<ProcessNodeInstance<*>>>) {
                 this@DelegateProcessEngineData.invalidateCachePNI(handle)
             }
 
@@ -220,7 +220,7 @@ class ProcessEngine<TR : ProcessTransaction> {
                 this@DBProcessEngineData.invalidateCachePI(handle)
             }
 
-            override fun invalidateCachePNI(handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) {
+            override fun invalidateCachePNI(handle: Handle<SecureObject<ProcessNodeInstance<*>>>) {
                 this@DBProcessEngineData.invalidateCachePNI(handle)
             }
 
