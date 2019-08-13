@@ -41,7 +41,7 @@ import nl.adaptivity.xmlutil.util.ICompactFragment
 interface IProcessNodeInstance: ReadableHandleAware<SecureObject<ProcessNodeInstance<*>>>, ActivityInstanceContext {
     override val node: ExecutableProcessNode
     val predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>
-    val owner: Principal
+    override val owner: Principal
 
     override val handle: Handle<SecureObject<ProcessNodeInstance<*>>>
 

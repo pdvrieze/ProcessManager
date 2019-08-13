@@ -16,12 +16,13 @@
 
 package nl.adaptivity.process.engine
 
-import net.devrieze.util.ComparableHandle
 import net.devrieze.util.ReadableHandleAware
 import net.devrieze.util.security.SecureObject
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.ProcessNode
+import nl.adaptivity.util.security.Principal
 
 interface ProcessInstanceContext: ReadableHandleAware<SecureObject<ProcessInstance>> {
 }
@@ -30,4 +31,19 @@ interface ActivityInstanceContext: ReadableHandleAware<SecureObject<ProcessNodeI
     val processContext: ProcessInstanceContext
     val node: ProcessNode
     val state: NodeInstanceState
+    val owner: Principal
 }
+
+interface ProcessContextFactory<A:ActivityInstanceContext> {
+    fun newActivityInstanceContext(engineDataAccess: ProcessEngineDataAccess, processNodeInstance: IProcessNodeInstance): A
+
+    companion object DEFAULT: ProcessContextFactory<ActivityInstanceContext> {
+        override fun newActivityInstanceContext(
+            engineDataAccess: ProcessEngineDataAccess,
+            processNodeInstance: IProcessNodeInstance
+                                               ): ActivityInstanceContext {
+            return processNodeInstance
+        }
+    }
+}
+

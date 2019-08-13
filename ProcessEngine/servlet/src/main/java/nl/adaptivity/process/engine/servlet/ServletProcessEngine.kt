@@ -28,9 +28,7 @@ import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.MessageSendingResult
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef
-import nl.adaptivity.process.engine.processModel.NodeInstanceState
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
-import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.*
 import nl.adaptivity.process.messaging.ActivityResponse
 import nl.adaptivity.process.messaging.EndpointServlet
 import nl.adaptivity.process.messaging.GenericEndpoint
@@ -45,6 +43,7 @@ import nl.adaptivity.rest.annotations.RestParamType
 import nl.adaptivity.util.DomUtil
 import nl.adaptivity.xml.SerializableList
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.util.CompactFragment
 import org.jetbrains.annotations.TestOnly
 import org.w3.soapEnvelope.Envelope
 import org.w3c.dom.Element
@@ -94,7 +93,7 @@ import kotlin.contracts.contract
 */
 open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), GenericEndpoint {
 
-    private lateinit var processEngine: ProcessEngine<TR>
+    private lateinit var processEngine: ProcessEngine<TR, *>
     private lateinit var messageService: MessageService
 
     override val serviceName: QName
@@ -118,10 +117,10 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
 
         override fun sendMessage(engineData: ProcessEngineDataAccess,
                                  protoMessage: NewServletMessage,
-                                 instanceBuilder: ProcessNodeInstance.Builder<*, *>): MessageSendingResult {
-            val nodeHandle = instanceBuilder.handle
+                                 activityInstanceContext: ActivityInstanceContext): MessageSendingResult {
+            val nodeHandle = activityInstanceContext.handle
 
-            protoMessage.setHandle(engineData, instanceBuilder)
+            protoMessage.setHandle(engineData, activityInstanceContext)
 
             val result = MessagingRegistry.sendMessage(protoMessage,
                                                        MessagingCompletionListener(nodeHandle,
@@ -150,7 +149,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
 
     }
 
-    private inner class MessagingCompletionListener(private val handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
+    private inner class MessagingCompletionListener(private val handle: Handle<SecureObject<ProcessNodeInstance<*>>>,
                                                     private val owner: Principal) : CompletionListener<DataSource> {
 
         override fun onMessageCompletion(future: Future<out DataSource>) {
@@ -162,13 +161,13 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     class NewServletMessage(private val message: IXmlMessage,
                             private val localEndpoint: EndpointDescriptor) : ISendableMessage, Writable {
 
-        private var nodeInstance: ProcessNodeInstance<*>? = null
+        private var activityInstanceContext: ActivityInstanceContext? = null
 
         private var data: Writable? = null
 
 
         internal val owner: Principal
-            get() = nodeInstance?.owner ?:
+            get() = activityInstanceContext?.owner ?:
                     throw IllegalStateException("The message has not been initialised with a node yet")
 
         private val source: XmlReader
@@ -208,12 +207,12 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
         }
 
 
-        private fun setHandle(engineData: MutableProcessEngineDataAccess, nodeInstance: ProcessNodeInstance<*>) {
-            this.nodeInstance = nodeInstance
+        fun setHandle(engineData: ProcessEngineDataAccess, activityInstanceContext: ActivityInstanceContext) {
+            this.activityInstanceContext = activityInstanceContext
 
             try {
 
-                data = nodeInstance.instantiateXmlPlaceholders(engineData, source, false, localEndpoint)
+                data = activityInstanceContext.instantiateXmlPlaceholders(engineData, source, false, localEndpoint)
 
             } catch (e: Exception) {
                 when (e) {
@@ -222,11 +221,6 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
                 }
             }
 
-        }
-
-        fun setHandle(engineData: MutableProcessEngineDataAccess,
-                      nodeInstance: ProcessNodeInstance.Builder<*, *>) {
-            setHandle(engineData, nodeInstance.build())
         }
 
         override fun getAttachments(): Map<String, DataSource> {
@@ -437,7 +431,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     }
 
     @TestOnly
-    protected fun init(engine: ProcessEngine<TR>) {
+    protected fun init(engine: ProcessEngine<TR, *>) {
         processEngine = engine
     }
 
@@ -455,7 +449,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
 
         val logger = Logger.getLogger(ServletProcessEngine::class.java.name)
 
-        processEngine = ProcessEngine.newInstance(messageService, logger) as ProcessEngine<TR>
+        processEngine = ProcessEngine.newInstance(messageService, logger) as ProcessEngine<TR, *>
 
         MessagingRegistry.getMessenger().registerEndpoint(this)
     }
@@ -821,9 +815,10 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
                    user: Principal)
         : NodeInstanceState = translateExceptions {
 
+        val payloadNode = DomUtil.nodeToFragment(payload)
         processEngine.startTransaction().use { transaction ->
             return transaction.commit(
-                processEngine.finishTask(transaction, handle<ProcessNodeInstance<*>>(handle), payload,
+                processEngine.finishTask(transaction, handle<ProcessNodeInstance<*>>(handle), payloadNode,
                                          user).state)
         }
     }
@@ -837,7 +832,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
      */
     @Throws(FileNotFoundException::class)
     fun onMessageCompletion(future: Future<out DataSource>,
-                            handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
+                            handle: Handle<SecureObject<ProcessNodeInstance<*>>>,
                             owner: Principal) = translateExceptions {
         // XXX do this better
         if (future.isCancelled) {

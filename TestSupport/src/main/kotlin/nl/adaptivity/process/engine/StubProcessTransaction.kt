@@ -43,7 +43,7 @@ class StubProcessTransaction(private val engineData: IProcessEngineData<StubProc
 
   }
 
-  fun ProcessEngine<StubProcessTransaction>.testProcess(model: ExecutableProcessModel, owner: Principal, payload: CompactFragment? = null): InstanceWrapper {
+  fun ProcessEngine<StubProcessTransaction, *>.testProcess(model: ExecutableProcessModel, owner: Principal, payload: CompactFragment? = null): InstanceWrapper {
     val modelHandle = addProcessModel(this@StubProcessTransaction, model, owner)
     val instanceHandle = startProcess(this@StubProcessTransaction, owner, modelHandle, "TestInstance", UUID.randomUUID(), payload)
     return InstanceWrapper(instanceHandle)
