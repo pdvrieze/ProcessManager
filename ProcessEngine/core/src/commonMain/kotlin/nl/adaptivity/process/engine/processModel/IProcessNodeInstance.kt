@@ -28,14 +28,11 @@ import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 /**
  * Simple base interface for process node instances that can also be implemented by builders
  */
-interface IProcessNodeInstance/*: ReadableHandleAware<Any>*/ {
+interface IProcessNodeInstance: ReadableHandleAware<SecureObject<ProcessNodeInstance<*>>> {
     val node: ExecutableProcessNode
     val predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>
 
-    @Deprecated("use property", ReplaceWith("handleXXX"))
-    fun handle(): Handle<SecureObject<ProcessNodeInstance<*>>> = handleXXX.toComparableHandle() as Handle<SecureObject<ProcessNodeInstance<*>>>
-
-    val handleXXX: Handle<SecureObject<ProcessNodeInstance<*>>>
+    override val handleXXX: Handle<SecureObject<ProcessNodeInstance<*>>>
 
     val entryNo: Int
     val state: NodeInstanceState

@@ -156,7 +156,7 @@ open class CachingHandleMap<V : Any, T : Transaction>(
         if (pValue is Handle<*>) {
             putCache(transaction, pValue as Handle<V>, pValue)
         } else if (pValue is ReadableHandleAware<*>) {
-            putCache(transaction, (pValue as ReadableHandleAware<V>).getHandle(), pValue)
+            putCache(transaction, (pValue as ReadableHandleAware<V>).handleXXX, pValue)
         }
     }
 
@@ -168,7 +168,7 @@ open class CachingHandleMap<V : Any, T : Transaction>(
                 // Don't cache if the updated value has a handle that does not match
                 if (updatedValue == null ||
                     (updatedValue is ReadableHandleAware<*> &&
-                     updatedValue.getHandle() != handle)) return
+                     updatedValue.handleXXX != handle)) return
 
                 synchronized(cacheHandles) {
                     transaction.addRollbackHandler(Runnable { invalidateCache(handle) })

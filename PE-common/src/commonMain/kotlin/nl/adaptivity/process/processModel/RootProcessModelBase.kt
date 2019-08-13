@@ -335,7 +335,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
                 nodes = emptyList(),
                 childModels = emptyList(),
                 name = base.name,
-                handle = (base as? ReadableHandleAware<*>)?.getHandle()?.handleValue ?: -1L,
+                handle = (base as? ReadableHandleAware<*>)?.handleXXX?.handleValue ?: -1L,
                 owner = base.owner,
                 roles = base.roles.toMutableList(),
                 uuid = base.uuid,

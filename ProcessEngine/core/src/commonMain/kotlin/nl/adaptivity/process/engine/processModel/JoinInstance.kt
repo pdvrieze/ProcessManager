@@ -132,12 +132,12 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
     fun canFinish() = predecessors.size>=node.min
 
     constructor(node: ExecutableJoin,
-                predecessors: Collection<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
+                predecessors: Collection<Handle<SecureObject<ProcessNodeInstance<*>>>>,
                 processInstanceBuilder: ProcessInstance.Builder,
-                hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>>,
+                hProcessInstance: Handle<SecureObject<ProcessInstance>>,
                 owner: Principal,
                 entryNo: Int,
-                handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
+                handle: Handle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
                 state: NodeInstanceState = NodeInstanceState.Pending,
                 results: Iterable<ProcessData> = emptyList()) :
         super(node, predecessors, processInstanceBuilder, hProcessInstance, owner, entryNo, handle, state, results) {

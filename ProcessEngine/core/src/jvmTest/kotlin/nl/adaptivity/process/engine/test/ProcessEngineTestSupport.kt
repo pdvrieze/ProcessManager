@@ -193,7 +193,7 @@ open class ProcessEngineTestSupport() {
     companion object {
 
         internal val PNI_SET_HANDLE = fun(transaction: StubProcessTransaction, pni: SecureObject<ProcessNodeInstance<*>>, handle: Handle<SecureObject<ProcessNodeInstance<*>>>): SecureObject<ProcessNodeInstance<*>>? {
-            if (pni.withPermission().getHandle() == handle) {
+            if (pni.withPermission().handleXXX == handle) {
                 return pni
             }
             val piBuilder = transaction.readableEngineData.instance(pni.withPermission().hProcessInstance).withPermission().builder()

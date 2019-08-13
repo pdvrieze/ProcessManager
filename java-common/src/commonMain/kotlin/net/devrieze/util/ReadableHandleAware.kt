@@ -21,8 +21,5 @@ package net.devrieze.util
  */
 interface ReadableHandleAware<out T : Any> {
 
-    @Deprecated("Use getHandle()", ReplaceWith("this.handleXXX"))
-    fun getHandle(): Handle<T> = handleXXX
-
-    val handleXXX: Handle<T> get() = getHandle()
+    val handleXXX: Handle<T>
 }

@@ -32,7 +32,7 @@ import java.util.*
  */
 class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMessageService<IXmlMessage> {
 
-  class ExtMessage(val base: IXmlMessage, val source: net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) : IXmlMessage by base
+  class ExtMessage(val base: IXmlMessage, val source: net.devrieze.util.Handle<SecureObject<ProcessNodeInstance<*>>>) : IXmlMessage by base
 
   var _messages = mutableListOf<ExtMessage>()
 
@@ -44,7 +44,7 @@ class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMess
     _messages.clear()
   }
 
-  fun getMessageNode(i: Int): net.devrieze.util.ComparableHandle<SecureObject<ProcessNodeInstance<*>>> {
+  fun getMessageNode(i: Int): net.devrieze.util.Handle<SecureObject<ProcessNodeInstance<*>>> {
     return _messages[i].source
   }
 

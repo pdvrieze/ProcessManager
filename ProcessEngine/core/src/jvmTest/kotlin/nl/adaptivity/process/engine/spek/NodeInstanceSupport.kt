@@ -55,7 +55,7 @@ interface SafeNodeActions {
         startTask(transaction.writableEngineData)
       }
     }
-    return transaction.readableEngineData.nodeInstance(getHandle()).withPermission()
+    return transaction.readableEngineData.nodeInstance(handleXXX).withPermission()
   }
 
 }

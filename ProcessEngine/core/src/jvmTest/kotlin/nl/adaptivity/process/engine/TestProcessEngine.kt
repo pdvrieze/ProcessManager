@@ -372,9 +372,11 @@ class TestProcessEngine: ProcessEngineTestSupport() {
 
         stubMessageService.clear() // (Process the message)
         assertEquals(0, ac1.results.size)
-        ac1 = processEngine.finishTask(transaction, ac1.getHandle(), getDocument("testModel2_response1.xml").toFragment(), modelOwnerPrincipal)
+        ac1 = processEngine.finishTask(transaction,
+                                       ac1.handleXXX, getDocument("testModel2_response1.xml").toFragment(), modelOwnerPrincipal)
         assertEquals(NodeInstanceState.Complete, ac1.state)
-        ac1 = processEngine.getNodeInstance(transaction, ac1.getHandle(), modelOwnerPrincipal) ?: throw AssertionError("Node ${ac1.getHandle()} not found")
+        ac1 = processEngine.getNodeInstance(transaction,
+                                            ac1.handleXXX, modelOwnerPrincipal) ?: throw AssertionError("Node ${ac1.handleXXX} not found")
         assertEquals(2, ac1.results.size)
         val result1 = ac1.results[0]
         val result2 = ac1.results[1]

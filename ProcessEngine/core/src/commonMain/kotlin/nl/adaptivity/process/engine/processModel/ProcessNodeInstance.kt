@@ -59,7 +59,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
     hProcessInstance: Handle<SecureObject<ProcessInstance>>,
     override final val owner: Principal,
     override final val entryNo: Int,
-    private var handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
+    handle: Handle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
     override final val state: NodeInstanceState = Pending,
     results: Iterable<ProcessData> = emptyList(),
     val failureCause: Throwable? = null
@@ -67,6 +67,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
                                                                          ReadableHandleAware<SecureObject<ProcessNodeInstance<*>>>,
                                                                          IProcessNodeInstance {
 
+    private var handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = handle.toComparableHandle()
     val hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>> = hProcessInstance.toComparableHandle()
     val results: List<ProcessData> = results.toList()
     override val predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>> =
@@ -94,7 +95,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
     override val handleXXX: Handle<SecureObject<ProcessNodeInstance<*>>> get() = handle
 
     @Deprecated("use property", ReplaceWith("handleXXX"))
-    override fun getHandle() = handle
+    open fun getHandle() = handle
 
     override fun build(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance<T> = this
 
@@ -147,14 +148,14 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
     private fun getPredecessor(
         engineData: ProcessEngineDataAccess,
         nodeName: String
-                              ): ComparableHandle<SecureObject<ProcessNodeInstance<*>>>? {
+                              ): Handle<SecureObject<ProcessNodeInstance<*>>>? {
         // TODO Use process structure knowledge to do this better/faster without as many database lookups.
         predecessors
             .asSequence()
             .map { engineData.nodeInstance(it).withPermission() }
             .forEach {
                 if (nodeName == it.node.id) {
-                    return it.getHandle()
+                    return it.handleXXX
                 } else {
                     val result = it.getPredecessor(engineData, nodeName)
                     if (result != null) {
@@ -176,7 +177,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
     }
 
     override fun toString(): String {
-        return "nodeInstance  (${getHandle()}, ${node.id}[$entryNo] - $state)"
+        return "nodeInstance  ($handleXXX, ${node.id}[$entryNo] - $state)"
     }
 
     fun instantiateXmlPlaceholders(
@@ -274,9 +275,9 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         override var node: N
         override val predecessors: MutableSet<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>
         val processInstanceBuilder: ProcessInstance.Builder
-        val hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>> get() = processInstanceBuilder.handle
+        val hProcessInstance: Handle<SecureObject<ProcessInstance>> get() = processInstanceBuilder.handle
         var owner: Principal
-        var handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>
+        var handle: Handle<SecureObject<ProcessNodeInstance<*>>>
         override var state: NodeInstanceState
         val results: MutableList<ProcessData>
         fun toXmlInstance(body: ICompactFragment?): XmlProcessNodeInstance
@@ -518,7 +519,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         state: NodeInstanceState = Pending
                                                                                      ) : AbstractBuilder<N, T>() {
 
-        final override var handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = handle.toComparableHandle()
+        final override var handle: Handle<SecureObject<ProcessNodeInstance<*>>> = handle.toComparableHandle()
         override val handleXXX: Handle<SecureObject<ProcessNodeInstance<*>>>
             get() = handle
 
@@ -554,7 +555,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
         final override var predecessors = ObservableSet(base.predecessors.toMutableArraySet(), { changed = true })
         final override var owner by overlay(observer()) { base.owner }
-        final override var handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> by overlay(observer()) { base.getHandle() }
+        final override var handle: Handle<SecureObject<ProcessNodeInstance<*>>> by overlay(observer()) { base.handleXXX }
         override val handleXXX: Handle<SecureObject<ProcessNodeInstance<*>>>
             get() = handle
         final override var state = base.state

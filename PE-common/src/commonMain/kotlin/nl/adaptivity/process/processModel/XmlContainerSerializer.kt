@@ -154,7 +154,7 @@ open class XmlContainerSerializer<T : XMLContainer> {
             delegate.eventType.handle()
         }
 
-        fun EventType.handle() {
+        private fun EventType.handle() {
             @Suppress("NON_EXHAUSTIVE_WHEN")
             when (this) {
                 EventType.START_ELEMENT -> {

@@ -77,7 +77,7 @@ private fun <T : ProcessTransaction> wrapNodeCache(base: MutableTransactionedHan
         return base
     }
     return CachingHandleMap(base, cacheSize, { tr, pni, handle ->
-        if (pni.withPermission().getHandle() == handle) {
+        if (pni.withPermission().handleXXX == handle) {
             pni
         } else {
             val piBuilder = tr.readableEngineData.instance(
@@ -167,7 +167,7 @@ class ProcessEngine<TR : ProcessTransaction> {
                 this@DelegateProcessEngineData.invalidateCachePNI(handle)
             }
 
-            override fun handleFinishedInstance(handle: ComparableHandle<SecureObject<ProcessInstance>>) {
+            override fun handleFinishedInstance(handle: Handle<SecureObject<ProcessInstance>>) {
                 // Ignore the completion for now. Just keep it in the engine.
             }
 
@@ -224,7 +224,7 @@ class ProcessEngine<TR : ProcessTransaction> {
                 this@DBProcessEngineData.invalidateCachePNI(handle)
             }
 
-            override fun handleFinishedInstance(handle: ComparableHandle<SecureObject<ProcessInstance>>) {
+            override fun handleFinishedInstance(handle: Handle<SecureObject<ProcessInstance>>) {
                 // Do nothing at this point. In the future, this will probably lead the node intances to be deleted.
             }
 
@@ -677,7 +677,7 @@ class ProcessEngine<TR : ProcessTransaction> {
      */
     @Throws(SQLException::class)
     fun getNodeInstance(transaction: TR,
-                        handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
+                        handle: Handle<SecureObject<ProcessNodeInstance<*>>>,
                         user: Principal): ProcessNodeInstance<*>? {
         engineData.inReadonlyTransaction(transaction) {
             return nodeInstances[handle]?.withPermission(securityProvider, SecureObject.Permissions.READ, user) {
@@ -687,7 +687,7 @@ class ProcessEngine<TR : ProcessTransaction> {
     }
 
     @Throws(SQLException::class)
-    fun finishInstance(transaction: TR, hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>>) {
+    fun finishInstance(transaction: TR, hProcessInstance: Handle<SecureObject<ProcessInstance>>) {
         // TODO evict these nodes from the cache (not too bad to keep them though)
         //    for (ProcessNodeInstance childNode:pProcessInstance.getProcessNodeInstances()) {
         //      getNodeInstances().invalidateModelCache(childNode);
@@ -791,7 +791,7 @@ class ProcessEngine<TR : ProcessTransaction> {
     @Throws(SQLException::class)
     fun finishTask(
         transaction: TR,
-        handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
+        handle: Handle<SecureObject<ProcessNodeInstance<*>>>,
         payload: ICompactFragment?,
         user: Principal): ProcessNodeInstance<*> {
         try {

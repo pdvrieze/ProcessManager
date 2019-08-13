@@ -87,18 +87,16 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
     override val node: ExecutableSplit
         get() = super.node as ExecutableSplit
 
-
-    @Suppress("UNCHECKED_CAST")
-    override fun getHandle(): ComparableHandle<SecureObject<SplitInstance>> =
-        super.getHandle() as ComparableHandle<SecureObject<SplitInstance>>
+    override val handleXXX: Handle<SecureObject<SplitInstance>>
+        get() = super.handleXXX as Handle<SecureObject<SplitInstance>>
 
     constructor(
         node: ExecutableSplit,
-        predecessor: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
+        predecessor: Handle<SecureObject<ProcessNodeInstance<*>>>,
         processInstanceBuilder: ProcessInstance.Builder,
-        hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>>,
+        hProcessInstance: Handle<SecureObject<ProcessInstance>>,
         owner: Principal,
-        handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
+        handle: Handle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
         state: NodeInstanceState = NodeInstanceState.Pending,
         results: Iterable<ProcessData> = emptyList(),
         entryNo: Int

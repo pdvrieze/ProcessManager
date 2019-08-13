@@ -22,8 +22,6 @@ import net.devrieze.util.security.SYSTEMPRINCIPAL
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.impl.*
-import nl.adaptivity.process.engine.impl.dom.isNamespaceAware
-import nl.adaptivity.process.engine.impl.dom.newDocumentBuilderFactory
 import nl.adaptivity.process.engine.processModel.*
 import nl.adaptivity.process.processModel.EndNode
 import nl.adaptivity.process.processModel.Split
@@ -96,14 +94,14 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     interface Builder {
         val generation: Int
         val pendingChildren: List<Future<out ProcessNodeInstance<*>>>
-        var handle: ComparableHandle<SecureObject<ProcessInstance>>
-        var parentActivity: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>
+        var handle: Handle<SecureObject<ProcessInstance>>
+        var parentActivity: Handle<SecureObject<ProcessNodeInstance<*>>>
         var owner: Principal
         var processModel: ExecutableModelCommon
         var instancename: String?
         var uuid: UUID
         var state: State
-        val children: List<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>
+        val children: List<Handle<SecureObject<ProcessNodeInstance<*>>>>
         val inputs: MutableList<ProcessData>
         val outputs: MutableList<ProcessData>
         fun build(data: MutableProcessEngineDataAccess): ProcessInstance
@@ -135,8 +133,9 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
          */
         fun store(data: MutableProcessEngineDataAccess)
 
-        fun getDirectSuccessorsFor(predecessor: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>): Sequence<IProcessNodeInstance> {
-            return allChildren { predecessor in it.predecessors }
+        fun getDirectSuccessorsFor(predecessor: Handle<SecureObject<ProcessNodeInstance<*>>>): Sequence<IProcessNodeInstance> {
+            val comparablePred = predecessor.toComparableHandle()
+            return allChildren { comparablePred in it.predecessors }
         }
 
         fun updateSplits(engineData: MutableProcessEngineDataAccess) {
@@ -378,8 +377,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
          */
         fun getOutputPayload(): ICompactFragment? {
             if (outputs.isEmpty()) return null
-            val document = newDocumentBuilderFactory().apply { isNamespaceAware = true }.newDocumentBuilder()
-                .newDocument()
+
             return CompactFragment { writer ->
                 outputs.forEach { output ->
                     output.serialize(writer)
@@ -391,21 +389,21 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     }
 
     data class BaseBuilder(
-        override var handle: ComparableHandle<SecureObject<ProcessInstance>> = getInvalidHandle(),
+        override var handle: Handle<SecureObject<ProcessInstance>> = getInvalidHandle(),
         override var owner: Principal = SYSTEMPRINCIPAL,
         override var processModel: ExecutableModelCommon,
         override var instancename: String? = null,
         override var uuid: UUID = randomUUID(),
         override var state: State = State.NEW,
-        override var parentActivity: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> /*= Handles.getInvalid()*/
+        override var parentActivity: Handle<SecureObject<ProcessNodeInstance<*>>> /*= Handles.getInvalid()*/
                           ) : Builder {
         override var generation: Int = 0
             private set
         private val _pendingChildren = mutableListOf<InstanceFuture<out ProcessNodeInstance<*>, *>>()
         override val pendingChildren: List<Future<out ProcessNodeInstance<*>>> get() = _pendingChildren
         internal var rememberedChildren: MutableList<ProcessNodeInstance<*>> = mutableListOf()
-        override val children: List<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>
-            get() = rememberedChildren.map(ProcessNodeInstance<*>::getHandle)
+        override val children: List<Handle<SecureObject<ProcessNodeInstance<*>>>>
+            get() = rememberedChildren.map(ProcessNodeInstance<*>::handleXXX)
         override val inputs = mutableListOf<ProcessData>()
         override val outputs = mutableListOf<ProcessData>()
 
@@ -471,7 +469,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         private val _pendingChildren =
             mutableListOf<InstanceFuture<out ProcessNodeInstance<*>, out ExecutableProcessNode>>()
         override val pendingChildren: List<Future<out ProcessNodeInstance<*>>> get() = _pendingChildren
-        override var handle by overlay { base.handle }
+        override var handle: Handle<SecureObject<ProcessInstance>> by overlay { base.handleXXX }
         override var parentActivity by overlay { base.parentActivity }
 
         override var owner by overlay { base.owner }
@@ -484,7 +482,8 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
             }
             newValue
         })
-        override val children get() = base.childNodes.map { it.withPermission().getHandle() }
+        override val children: List<Handle<SecureObject<ProcessNodeInstance<*>>>> get() = base.childNodes.map { it.withPermission()
+            .handleXXX }
         override val inputs by lazy { base.inputs.toMutableList() }
         override val outputs by lazy { base.outputs.toMutableList() }
 
@@ -498,7 +497,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
         override fun allChildren(childFilter: (IProcessNodeInstance) -> Boolean): Sequence<IProcessNodeInstance> {
             val pendingHandles = mutableSetOf<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>()
-            val pendingChildren = _pendingChildren.map { pendingHandles.add(it.origBuilder.handle); it.origBuilder }
+            val pendingChildren = _pendingChildren.map { pendingHandles.add(it.origBuilder.handle.toComparableHandle()); it.origBuilder }
                 .filter { childFilter(it) }
             return pendingChildren.asSequence() + base.childNodes.asSequence()
                 .map { it.withPermission() }
@@ -625,7 +624,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     class ProcessInstanceRef(processInstance: ProcessInstance) : ComparableHandle<SecureObject<ProcessInstance>>,
                                                                  XmlSerializable {
 
-        override val handleValue = processInstance.handle.handleValue
+        override val handleValue = processInstance.handleXXX.handleValue
 
         val processModel = processInstance.processModel.rootModel.handleXXX
 
@@ -663,19 +662,19 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
     val childNodes: Collection<SecureObject<ProcessNodeInstance<*>>>
 
-    val parentActivity: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>
+    val parentActivity: Handle<SecureObject<ProcessNodeInstance<*>>>
 
-    val children: Sequence<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>
-        get() = childNodes.asSequence().map { it.withPermission().getHandle() }
+    val children: Sequence<Handle<SecureObject<ProcessNodeInstance<*>>>>
+        get() = childNodes.asSequence().map { it.withPermission().handleXXX }
 
     val activeNodes
         get() = childNodes.asSequence()
             .map { it.withPermission() }
             .filter { !it.state.isFinal }
 
-    val active: Collection<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>
+    val active: Collection<Handle<SecureObject<ProcessNodeInstance<*>>>>
         get() = activeNodes
-            .map { it.getHandle() }
+            .map { it.handleXXX }
             .toList()
 
     val finishedNodes
@@ -683,9 +682,9 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
             .map { it.withPermission() }
             .filter { it.state.isFinal && it.node !is EndNode }
 
-    val finished: Collection<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>
+    val finished: Collection<Handle<SecureObject<ProcessNodeInstance<*>>>>
         get() = finishedNodes
-            .map { it.getHandle() }
+            .map { it.handleXXX }
             .toList()
 
     val completedNodeInstances: Sequence<SecureObject<ProcessNodeInstance<*>>>
@@ -693,9 +692,9 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
             .map { it.withPermission() }
             .filter { it.state.isFinal && it.node is EndNode }
 
-    val completedEndnodes: Collection<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>
+    val completedEndnodes: Collection<Handle<SecureObject<ProcessNodeInstance<*>>>>
         get() = completedNodeInstances
-            .map { it.withPermission().getHandle() }
+            .map { it.withPermission().handleXXX }
             .toList()
 
     private val pendingJoinNodes
@@ -708,9 +707,9 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         get() =
             pendingJoinNodes.associateBy { it.node }
 
-    private var handle: ComparableHandle<SecureObject<ProcessInstance>>
-    override val handleXXX: Handle<SecureObject<ProcessInstance>>
-        get() = handle
+    //    private var _handle: Handle<SecureObject<ProcessInstance>>
+    override var handleXXX: Handle<SecureObject<ProcessInstance>>
+        private set
 
     /**
      * Get the payload that was passed to start the instance.
@@ -738,7 +737,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         uuid = builder.uuid
         processModel = builder.processModel
         state = builder.state
-        handle = handle(builder.handle)
+        handleXXX = handle(builder.handle)
         parentActivity = builder.parentActivity
 
         val pending = builder.pendingChildren.asSequence().map { it as InstanceFuture<*, *> }
@@ -750,7 +749,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                 // Set the handle on the builder so that lookups in the future will be more correct.
                 createdNodes += data.putNodeInstance(future).also { future.origBuilder.handle = it.handleXXX.toComparableHandle() }
             } else {
-                assert(future.origBuilder.hProcessInstance == handle)
+                assert(future.origBuilder.hProcessInstance == handleXXX)
                 updatedNodes[future.origBuilder.handle] = data.storeNodeInstance(future)
             }
         }
@@ -770,14 +769,14 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     constructor(
         data: MutableProcessEngineDataAccess,
         processModel: ExecutableModelCommon,
-        parentActivity: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>,
+        parentActivity: Handle<SecureObject<ProcessNodeInstance<*>>>,
         body: Builder.() -> Unit
                ) : this(data, BaseBuilder(processModel = processModel, parentActivity = parentActivity).apply(body))
 
     override fun withPermission() = this
 
     private fun checkOwnership(node: ProcessNodeInstance<*>) {
-        if (node.hProcessInstance != handle) throw ProcessException("The node is not owned by this instance")
+        if (node.hProcessInstance != handleXXX) throw ProcessException("The node is not owned by this instance")
     }
 
     @Synchronized
@@ -797,18 +796,18 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         val base = newInstanceBuilder.base
 
         fun dataValid(): Boolean {
-            val stored = writableEngineData.instance(handle).withPermission()
+            val stored = writableEngineData.instance(handleXXX).withPermission()
             assert(uuid == base.uuid) { "Uuid mismatch this: $uuid, base: ${base.uuid}" }
             assert(stored.uuid == base.uuid) { "Uuid mismatch this: $uuid, stored: ${stored.uuid}" }
             assert(newInstance.uuid == base.uuid) { "Uuid mismatch this: $uuid, new: ${newInstance.uuid}" }
             assert(base.generation == stored.generation) { "Generation mismatch this: ${base.generation} stored: ${stored.generation}" }
             assert(base.generation + 1 == newInstance.generation) { "Generation mismatch this+1: ${base.generation + 1} new: ${newInstance.generation}" }
-            return newInstance.handle.isValid && handle.isValid
+            return newInstance.handleXXX.isValid && handleXXX.isValid
         }
 
-        if (handleXXX.isValid && handle.isValid) {
+        if (handleXXX.isValid && handleXXX.isValid) {
             assert(dataValid()) { "Instance generations lost in the waves" }
-            writableEngineData.instances[handle] = newInstance
+            writableEngineData.instances[handleXXX] = newInstance
             return newInstance
         }
         return newInstance
@@ -850,7 +849,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
                     engineData.commit()
                     // TODO don't remove old transactions
-                    engineData.handleFinishedInstance(handle)
+                    engineData.handleFinishedInstance(handleXXX)
                 }
 
             } else {
@@ -872,12 +871,12 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
     @Synchronized
     override fun setHandleValue(handleValue: Long) {
-        if (handle.handleValue != handleValue) {
+        if (handleXXX.handleValue != handleValue) {
             if (handleValue == -1L) {
                 throw IllegalArgumentException("Setting the handle to invalid is not allowed")
             }
-            if (handle.isValid) throw IllegalStateException("Handles are not allowed to change")
-            handle = handle(handle = handleValue)
+            if (handleXXX.isValid) throw IllegalStateException("Handles are not allowed to change")
+            handleXXX = handle(handle = handleValue)
         }
     }
 
@@ -943,19 +942,19 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     fun getDirectSuccessors(
         engineData: ProcessEngineDataAccess,
         predecessor: ProcessNodeInstance<*>
-                           ): Collection<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>> {
+                           ): Collection<Handle<SecureObject<ProcessNodeInstance<*>>>> {
         checkOwnership(predecessor)
         // TODO rewrite, this can be better with the children in the instance
-        val result = ArrayList<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>(predecessor.node.successors.size)
+        val result = ArrayList<Handle<SecureObject<ProcessNodeInstance<*>>>>(predecessor.node.successors.size)
 
         fun addDirectSuccessor(
             candidate: ProcessNodeInstance<*>,
-            predecessor: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>
+            predecessor: Handle<SecureObject<ProcessNodeInstance<*>>>
                               ) {
 
             // First look for this node, before diving into it's children
             if (candidate.predecessors.any { it.handleValue == predecessor.handleValue }) {
-                result.add(candidate.getHandle())
+                result.add(candidate.handleXXX)
                 return
             }
             candidate.predecessors
@@ -967,7 +966,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         val data = engineData
         active.asSequence()
             .map { data.nodeInstance(it).withPermission() }
-            .forEach { addDirectSuccessor(it, predecessor.getHandle()) }
+            .forEach { addDirectSuccessor(it, predecessor.handleXXX) }
 
         return result
     }
@@ -976,7 +975,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     fun serialize(transaction: ProcessTransaction, writer: XmlWriter) {
         //
         writer.smartStartTag(Constants.PROCESS_ENGINE_NS, "processInstance", Constants.PROCESS_ENGINE_NS_PREFIX) {
-            writeHandleAttr("handle", handle)
+            writeHandleAttr("handle", handleXXX)
             writeAttribute("name", name)
             when (processModel) {
                 is ExecutableProcessModel -> writeHandleAttr("processModel", processModel.handleXXX)
@@ -1011,7 +1010,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
     private fun XmlWriter.writeActiveNodeRef(
         transaction: ProcessTransaction,
-        handleNodeInstance: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>
+        handleNodeInstance: Handle<SecureObject<ProcessNodeInstance<*>>>
                                             ) {
 
         val nodeInstance = transaction.readableEngineData.nodeInstance(handleNodeInstance).withPermission()
@@ -1022,7 +1021,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
     private fun XmlWriter.writeResultNodeRef(
         transaction: ProcessTransaction,
-        handleNodeInstance: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>
+        handleNodeInstance: Handle<SecureObject<ProcessNodeInstance<*>>>
                                             ) {
         val nodeInstance = transaction.readableEngineData.nodeInstance(handleNodeInstance).withPermission()
         startTag(Constants.PROCESS_ENGINE_NS, "nodeinstance") {
@@ -1035,7 +1034,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     }
 
     override fun toString(): String {
-        return "ProcessInstance(handle=${handle.handleValue}, name=$name, state=$state, generation=$generation, childNodes=$childNodes)"
+        return "ProcessInstance(handle=${handleXXX.handleValue}, name=$name, state=$state, generation=$generation, childNodes=$childNodes)"
     }
 
     override fun equals(other: Any?): Boolean {
@@ -1047,7 +1046,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         if (generation != other.generation) return false
         if (processModel != other.processModel) return false
         if (childNodes != other.childNodes) return false
-        if (handle != other.handle) return false
+        if (handleXXX != other.handleXXX) return false
         if (inputs != other.inputs) return false
         if (outputs != other.outputs) return false
         if (name != other.name) return false
@@ -1062,7 +1061,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         var result = generation
         result = 31 * result + processModel.hashCode()
         result = 31 * result + childNodes.hashCode()
-        result = 31 * result + handle.hashCode()
+        result = 31 * result + handleXXX.hashCode()
         result = 31 * result + inputs.hashCode()
         result = 31 * result + outputs.hashCode()
         result = 31 * result + (name?.hashCode() ?: 0)
