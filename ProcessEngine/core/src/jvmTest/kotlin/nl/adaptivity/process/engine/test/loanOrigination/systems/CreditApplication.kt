@@ -14,18 +14,22 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.test.loanOrigination.datatypes
+package nl.adaptivity.process.engine.test.loanOrigination.systems
 
 import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthInfo
-import nl.adaptivity.process.engine.test.loanOrigination.systems.AuthService
-import nl.adaptivity.process.engine.test.loanOrigination.systems.CustomerInformationFile
+import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthorizationCode
+import nl.adaptivity.process.engine.test.loanOrigination.auth.Service
+import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CreditReport
+import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanApplication
+import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanEvaluation
 
 class CreditApplication(
-    val authService: AuthService,
+    authService: AuthService,
     val customerInformationFile: CustomerInformationFile
-                       ) {
-    fun evaluateLoan(authInfo: AuthInfo, application: LoanApplication, creditReport: CreditReport): LoanEvaluation {
-        val customer = customerInformationFile.getCustomerData(AuthInfo(), application.customerId)!!
+                       ): Service(authService, "Credit_Application") {
+    fun evaluateLoan(authInfo: AuthInfo, delegateAuthorization:AuthorizationCode, application: LoanApplication, creditReport: CreditReport): LoanEvaluation {
+        val cifServiceAuth = authService.getAuthToken(serviceAuth, delegateAuthorization)
+        val customer = customerInformationFile.getCustomerData(cifServiceAuth, application.customerId)!!
         if (application.amount<creditReport.maxLoan) {
             return LoanEvaluation(
                 application.customerId,

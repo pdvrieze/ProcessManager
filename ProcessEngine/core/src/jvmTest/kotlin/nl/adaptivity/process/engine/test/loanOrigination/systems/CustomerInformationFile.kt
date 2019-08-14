@@ -16,29 +16,21 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
-import net.devrieze.util.security.SimplePrincipal
-import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthInfo
-import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthToken
-import nl.adaptivity.process.engine.test.loanOrigination.auth.IdSecretAuthInfo
-import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
+import nl.adaptivity.process.engine.test.loanOrigination.auth.*
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
-import java.util.*
-import kotlin.random.Random
 
-class CustomerInformationFile(val authService: AuthService) {
-    val clientAuth = IdSecretAuthInfo(SimplePrincipal("CustomerInformationFile:${Random.nextString()}"))
-    val clientId get() = clientAuth.principal.name
+class CustomerInformationFile(authService: AuthService): Service(authService, "Customer_Information_File") {
 
     private val customerData = mutableMapOf<String, CustomerData>()
 
-    fun enterCustomerData(authInfo: AuthInfo, data: CustomerData) {
-        authService.validateAuthInfo(clientId, authInfo, LoanPermissions.CREATE_CUSTOMER)
+    fun enterCustomerData(authToken: AuthToken, data: CustomerData) {
+        validateAuthInfo(authToken, LoanPermissions.CREATE_CUSTOMER)
         customerData[data.customerId] = data
     }
 
-    fun getCustomerData(authInfo: AuthInfo, customerId: String): CustomerData? {
+    fun getCustomerData(authToken: AuthToken, customerId: String): CustomerData? {
         // TODO make this customer specific and add an identifyCustomer function that only requires less data
-        authService.validateAuthInfo(clientId, authInfo, LoanPermissions.QUERY_CUSTOMER_DATA.context(customerId))
+        validateAuthInfo(authToken, LoanPermissions.QUERY_CUSTOMER_DATA.context(customerId))
         return customerData[customerId]
     }
 }

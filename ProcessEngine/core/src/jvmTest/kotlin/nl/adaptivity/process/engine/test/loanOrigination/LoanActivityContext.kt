@@ -18,8 +18,10 @@ package nl.adaptivity.process.engine.test.loanOrigination
 
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ActivityInstanceContext
+import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthScope
 import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthToken
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
+import nl.adaptivity.process.engine.test.loanOrigination.auth.Service
 import nl.adaptivity.process.engine.test.loanOrigination.systems.TaskList
 import nl.adaptivity.util.security.Principal
 import java.util.*
@@ -42,10 +44,10 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
         val hNodeInstance = handle
         val taskListToEngineAuthToken = with (processContext) {
             authService.createAuthorizationCode(
-                loanContextFactory.engineClientAuth,
-                loanContextFactory.engineClientId,
-                taskList.clientId,
+                engineService.serviceAuth,
+                taskList.serviceId,
                 hNodeInstance,
+                engineService,
                 LoanPermissions.UPDATE_ACTIVITY_STATE.context(hNodeInstance)
                                                )
         }
@@ -61,9 +63,9 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
      * TODO Function that registers permissions for the task. This should be done based upon task definition
      *      and in acceptActivity.
      */
-    fun registerTaskPermission(serviceId: String, scope: LoanPermissions) {
+    fun registerTaskPermission(service: Service, scope: AuthScope) {
         pendingPermissions.add { taskIdToken ->
-            processContext.authService.grantPermission(processContext.loanContextFactory.engineClientAuth, taskIdToken, serviceId, scope)
+            processContext.authService.grantPermission(processContext.loanContextFactory.engineClientAuth, taskIdToken, service, scope)
         }
     }
 

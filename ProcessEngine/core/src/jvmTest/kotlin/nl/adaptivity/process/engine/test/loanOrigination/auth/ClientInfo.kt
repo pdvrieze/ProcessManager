@@ -14,19 +14,6 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.test.loanOrigination.systems
-import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthInfo
-import nl.adaptivity.process.engine.test.loanOrigination.auth.Service
-import nl.adaptivity.process.engine.test.loanOrigination.datatypes.*
-import java.util.*
-import kotlin.random.Random
+package nl.adaptivity.process.engine.test.loanOrigination.auth
 
-class AccountManagementSystem(authService: AuthService): Service(authService, "Account_Management_System") {
-
-    fun openAccountFor(authInfo: AuthInfo, contract: Contract): BankAccountNumber {
-        // check auth
-        // check contract
-        return BankAccountNumber("123456")
-    }
-
-}
+data class ClientInfo(val clientId: String, val name: String, val secret: String)

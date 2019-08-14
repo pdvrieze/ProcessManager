@@ -23,6 +23,7 @@ import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.get
 import nl.adaptivity.process.engine.test.BaseProcessEngineTestSupport
 import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthInfo
+import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthorizationException
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.*
 import nl.adaptivity.process.processModel.configurableModel.ConfigurableProcessModel
@@ -30,6 +31,7 @@ import nl.adaptivity.process.processModel.configurableModel.endNode
 import nl.adaptivity.process.processModel.configurableModel.output
 import nl.adaptivity.process.processModel.configurableModel.startNode
 import nl.adaptivity.process.processModel.engine.*
+import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.security.Principal
@@ -38,7 +40,7 @@ import java.util.logging.Logger
 
 class TestLoanOrigination : BaseProcessEngineTestSupport<LoanActivityContext>(LoanContextFactory(Logger.getLogger(TestLoanOrigination::class.java.name))) {
 
-//    @Test
+    @Test
     fun testCreateModel() {
         assertEquals("inputCustomerMasterData", Model1(modelOwnerPrincipal).inputCustomerMasterData.id)
     }
@@ -63,6 +65,7 @@ class TestLoanOrigination : BaseProcessEngineTestSupport<LoanActivityContext>(Lo
 }
 
 private val clerk1 = SimplePrincipal("preprocessing clerk 1")
+private val automatedService = SimplePrincipal("<automated>")
 
 @UseExperimental(ImplicitReflectionSerializer::class)
 private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProcessNode>(
@@ -73,10 +76,10 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
 
     val start by startNode
     val inputCustomerMasterData by runnableActivity<Unit, LoanCustomer>(start) {
-        ctx.registerTaskPermission(serviceId = customerFile.clientId, scope = LoanPermissions.CREATE_CUSTOMER)
+        ctx.registerTaskPermission(customerFile, LoanPermissions.CREATE_CUSTOMER)
         ctx.acceptActivity(clerk1)
 
-        val customerFileAuthToken = authService.getAuthTokenDirect(clerk1, ctx.taskList.taskIdentityToken!!, customerFile.clientId, LoanPermissions.CREATE_CUSTOMER)
+        val customerFileAuthToken = authService.getAuthTokenDirect(clerk1, ctx.taskList.taskIdentityToken!!, customerFile.serviceId, LoanPermissions.CREATE_CUSTOMER)
 
         val newData = CustomerData(
             "cust123456",
@@ -94,6 +97,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
                                                                                      ) {
         defineInput(this@Model1.inputCustomerMasterData)
         action = {
+            // TODO this would normally require some application access
             LoanApplication(
                 it.customerId,
                 10000,
@@ -119,9 +123,30 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
             LoanCustomer.serializer(),
             null, "customerId"
                                                ) { customer ->
-            val customerData: CustomerData = customerFile.getCustomerData(AuthInfo(), customer.customerId)
+
+            ctx.registerTaskPermission(customerFile, LoanPermissions.QUERY_CUSTOMER_DATA.context(customer.customerId))
+            ctx.registerTaskPermission(creditBureau, LoanPermissions.GET_CREDIT_REPORT.context("taxId234"))
+            ctx.acceptActivity(automatedService)
+
+            val taskIdentityToken = ctx.taskList.taskIdentityToken!!
+            assertForbidden {authService.getAuthTokenDirect(clerk1, taskIdentityToken, customerFile.serviceId, LoanPermissions.CREATE_CUSTOMER)}
+            assertForbidden {authService.getAuthTokenDirect(clerk1, taskIdentityToken, customerFile.serviceId, LoanPermissions.QUERY_CUSTOMER_DATA)}
+
+            val custInfoAuthToken = authService.getAuthTokenDirect(automatedService, taskIdentityToken, customerFile.serviceId, LoanPermissions.QUERY_CUSTOMER_DATA.context(customer.customerId))
+
+
+            val customerData: CustomerData = customerFile.getCustomerData(custInfoAuthToken, customer.customerId)
                 ?: throw NullPointerException("Missing customer data")
-            creditBureau.getCreditReport(AuthInfo(), customerData)
+
+            assertForbidden { authService.getAuthTokenDirect(automatedService, taskIdentityToken, creditBureau.serviceId, LoanPermissions.CREATE_CUSTOMER) }
+            assertForbidden { authService.getAuthTokenDirect(automatedService, taskIdentityToken, creditBureau.serviceId, LoanPermissions.GET_CREDIT_REPORT) }
+            assertForbidden { authService.getAuthTokenDirect(automatedService, taskIdentityToken, creditBureau.serviceId, LoanPermissions.GET_CREDIT_REPORT.context("taxId5")) }
+            val creditAuthToken = authService.getAuthTokenDirect(automatedService, taskIdentityToken, creditBureau.serviceId, LoanPermissions.GET_CREDIT_REPORT.context(customerData.taxId))
+
+
+            assertForbidden { creditBureau.getCreditReport(custInfoAuthToken, customerData) }
+            assertForbidden { creditBureau.getCreditReport(taskIdentityToken, customerData) }
+            creditBureau.getCreditReport(creditAuthToken, customerData)
         }
         val getLoanEvaluation by configureRunnableActivity<Pair<LoanApplication, CreditReport>, LoanEvaluation>(
             getCreditReport,
@@ -134,7 +159,13 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
             }
 
             action = { (application, creditReport) ->
-                creditApplication.evaluateLoan(AuthInfo(), application, creditReport)
+                ctx.registerTaskPermission(creditApplication, LoanPermissions.EVALUATE_LOAN.context(application.customerId))
+                ctx.acceptActivity(automatedService)
+
+                val delegateAuthorization = ctx.authService.createAuthorizationCode(ctx.processContext.engineService.serviceAuth, creditApplication.serviceId, handle, customerFile, LoanPermissions.QUERY_CUSTOMER_DATA.context(application.customerId))
+
+                val authToken = authService.getAuthTokenDirect(automatedService, ctx.taskList.taskIdentityToken!!, creditApplication.serviceId, LoanPermissions.EVALUATE_LOAN.context(application.customerId))
+                creditApplication.evaluateLoan(authToken, delegateAuthorization, application, creditReport)
             }
         }
         val end by endNode(getLoanEvaluation)
@@ -212,3 +243,9 @@ private inline val ActivityInstanceContext.creditBureau get() = ctx.processConte
 private inline val ActivityInstanceContext.creditApplication get() = ctx.processContext.creditApplication
 private inline val ActivityInstanceContext.pricingEngine get() = ctx.processContext.pricingEngine
 private inline val ActivityInstanceContext.authService get() = ctx.processContext.authService
+
+const val ASSERTFORBIDDENENABLED = true
+
+inline fun assertForbidden(noinline action: ()-> Unit) {
+    if(ASSERTFORBIDDENENABLED) Assertions.assertThrows(AuthorizationException::class.java, action)
+}

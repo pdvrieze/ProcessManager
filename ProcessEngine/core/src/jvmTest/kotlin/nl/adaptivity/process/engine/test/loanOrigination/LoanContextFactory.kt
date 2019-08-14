@@ -24,15 +24,17 @@ import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.test.loanOrigination.auth.IdSecretAuthInfo
-import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CreditApplication
+import nl.adaptivity.process.engine.test.loanOrigination.systems.CreditApplication
 import nl.adaptivity.process.engine.test.loanOrigination.systems.*
 import java.security.Principal
 import java.util.logging.Logger
 import kotlin.random.Random
+import kotlin.random.nextUInt
 
 class LoanContextFactory(authLogger: Logger): ProcessContextFactory<LoanActivityContext> {
+    @UseExperimental(ExperimentalUnsignedTypes::class)
     val engineClientAuth: IdSecretAuthInfo =
-        IdSecretAuthInfo(SimplePrincipal("ProcessEngine:${Random.nextString()}"))
+        IdSecretAuthInfo(SimplePrincipal("ProcessEngine:${Random.nextUInt().toString(16)}"))
     val engineClientId get() = engineClientAuth.principal.name
 
     private val processContexts = mutableMapOf<Handle<SecureObject<ProcessInstance>>, LoanProcessContext>()
@@ -41,7 +43,8 @@ class LoanContextFactory(authLogger: Logger): ProcessContextFactory<LoanActivity
     val outputManagementSystem = OutputManagementSystem(authService)
     val accountManagementSystem = AccountManagementSystem(authService)
     val creditBureau = CreditBureau(authService)
-    val creditApplication = CreditApplication(authService, customerFile)
+    val creditApplication =
+        CreditApplication(authService, customerFile)
     val pricingEngine = PricingEngine(authService)
     private val taskLists = mutableMapOf<Principal, TaskList>()
     private val taskListClientAuth =
@@ -55,7 +58,7 @@ class LoanContextFactory(authLogger: Logger): ProcessContextFactory<LoanActivity
                                            ): LoanActivityContext {
 
         val instanceHandle = processNodeInstance.processContext.handle
-        val processContext = processContexts.getOrPut(instanceHandle) { LoanProcessContext(this, instanceHandle) }
+        val processContext = processContexts.getOrPut(instanceHandle) { LoanProcessContext(engineDataAccess,this, instanceHandle) }
         return LoanActivityContext(processContext, processNodeInstance)
     }
 
@@ -64,6 +67,19 @@ class LoanContextFactory(authLogger: Logger): ProcessContextFactory<LoanActivity
         processInstance: Handle<SecureObject<ProcessInstance>>
                                   ) {
         processContexts.remove(processInstance)
+    }
+
+    override fun onActivityTermination(
+        engineDataAccess: ProcessEngineDataAccess,
+        processNodeInstance: IProcessNodeInstance
+                                      ) {
+        val nodeInstanceHandle = processNodeInstance.handle
+        for (taskList in taskLists.values) {
+            if(taskList.taskIdentityToken?.nodeInstanceHandle == nodeInstanceHandle) {
+                taskList.finishTask(nodeInstanceHandle)
+            }
+        }
+        authService.invalidateActivityTokens(engineClientAuth, processNodeInstance.handle)
     }
 
     fun taskList(principal: Principal): TaskList {

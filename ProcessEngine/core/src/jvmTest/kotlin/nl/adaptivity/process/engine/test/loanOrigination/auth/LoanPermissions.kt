@@ -17,10 +17,20 @@
 package nl.adaptivity.process.engine.test.loanOrigination.auth
 
 enum class LoanPermissions : AuthScope {
+    INVALIDATE_ACTIVITY {
+        override fun includes(scope: AuthScope): Boolean {
+            return when (scope) {
+                is ExtScope -> scope.extraData != "-1"
+                else        -> scope == this
+            }
+        }
+    },
+    EVALUATE_LOAN,
     CREATE_CUSTOMER,
     QUERY_CUSTOMER_DATA,
     UPDATE_CUSTOMER_DATA,
     UPDATE_ACTIVITY_STATE,
+    GET_CREDIT_REPORT,
     /** Identify the user as themselves */
     IDENTIFY,
     /** Create a token that allows a "user" to editify as task */
@@ -30,6 +40,10 @@ enum class LoanPermissions : AuthScope {
 
     fun context(contextData: Any): AuthScope {
         return ExtScope(this, contextData.toString())
+    }
+
+    override fun includes(scope: AuthScope): Boolean {
+        return this == scope
     }
 
     override val description: String

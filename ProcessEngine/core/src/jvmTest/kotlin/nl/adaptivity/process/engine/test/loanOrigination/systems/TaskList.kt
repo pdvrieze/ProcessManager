@@ -16,26 +16,38 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
+import net.devrieze.util.Handle
+import net.devrieze.util.security.SecureObject
+import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthToken
 import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthorizationCode
 import nl.adaptivity.process.engine.test.loanOrigination.auth.IdSecretAuthInfo
+import nl.adaptivity.process.engine.test.loanOrigination.auth.Service
+import java.lang.IllegalStateException
 import java.security.Principal
 
-class TaskList(private val authService:AuthService, private val clientAuth: IdSecretAuthInfo, val principal: Principal) {
+class TaskList(authService:AuthService, clientAuth: IdSecretAuthInfo, val principal: Principal): Service(authService, clientAuth) {
     private val tokens = mutableListOf<AuthToken>()
 
     var taskIdentityToken: AuthToken? = null
         private set
 
     fun registerToken(authorizationCode: AuthorizationCode): AuthToken {
-        val token = authService.getAuthToken(clientAuth, authorizationCode)
+        assert(taskIdentityToken == null)
+        val token = authService.getAuthToken(serviceAuth, authorizationCode)
         tokens.add(token)
 
 
-        return authService.createTaskIdentityToken(clientAuth, token.nodeInstanceHandle, principal).also {
+        return authService.createTaskIdentityToken(serviceAuth, token.nodeInstanceHandle, principal).also {
             taskIdentityToken = it
         }
     }
 
-    val clientId get() = clientAuth.principal.name
+    fun finishTask(nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>) {
+        if(nodeInstanceHandle!=taskIdentityToken?.nodeInstanceHandle) {
+            throw IllegalStateException("task identity token is not for active task")
+        }
+        taskIdentityToken = null
+        tokens.removeIf { it.nodeInstanceHandle == nodeInstanceHandle }
+    }
 }

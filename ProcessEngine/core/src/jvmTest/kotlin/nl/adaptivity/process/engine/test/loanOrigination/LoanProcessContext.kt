@@ -18,10 +18,13 @@ package nl.adaptivity.process.engine.test.loanOrigination
 
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
+import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.ProcessInstanceContext
+import nl.adaptivity.process.engine.test.loanOrigination.systems.EngineService
 
 class LoanProcessContext(
+    engineData: ProcessEngineDataAccess,
     internal val loanContextFactory: LoanContextFactory,
     override val handle: Handle<SecureObject<ProcessInstance>>
                         ): ProcessInstanceContext {
@@ -33,5 +36,5 @@ class LoanProcessContext(
     val creditApplication get() = loanContextFactory.creditApplication
     val pricingEngine get() = loanContextFactory.pricingEngine
     val authService get() = loanContextFactory.authService
-
+    val engineService = EngineService(engineData, loanContextFactory.authService, loanContextFactory.engineClientAuth)
 }

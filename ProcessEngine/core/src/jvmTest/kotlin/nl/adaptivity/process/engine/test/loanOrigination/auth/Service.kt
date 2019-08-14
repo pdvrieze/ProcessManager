@@ -14,19 +14,20 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.test.loanOrigination.systems
+package nl.adaptivity.process.engine.test.loanOrigination.auth
 
-import nl.adaptivity.process.engine.test.loanOrigination.auth.Service
-import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanProductBundle
-import nl.adaptivity.process.engine.test.loanOrigination.datatypes.PricedLoanProductBundle
-import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanEvaluation
-import java.util.*
+import nl.adaptivity.process.engine.test.loanOrigination.systems.AuthService
 import kotlin.random.Random
+import kotlin.random.nextULong
 
-class PricingEngine(authService: AuthService): Service(authService, "Pricing_Engine") {
+open class Service(val authService: AuthService, val serviceAuth: IdSecretAuthInfo) {
 
-    fun priceLoan(chosenProduct: LoanProductBundle, loanEval: LoanEvaluation): PricedLoanProductBundle {
-        return chosenProduct.withPrice(loanEval.customerId, 0.05)
+    val serviceId: String get() = serviceAuth.principal.name
+
+    @UseExperimental(ExperimentalUnsignedTypes::class)
+    constructor(authService: AuthService, name: String): this(authService, authService.registerClient(name, Random.nextULong().toString(16)))
+
+    fun validateAuthInfo(authInfo: AuthInfo, scope: AuthScope) {
+        authService.validateAuthInfo(this, authInfo, scope)
     }
-
 }

@@ -17,9 +17,18 @@
 package nl.adaptivity.process.engine.test.loanOrigination.auth
 
 interface AuthScope {
+    /**
+     * Determine whether this scope is larger than the passed one. In other words, whether the parameter scope
+     * is allowed if this scope is allowed.
+     */
+    fun includes(scope: AuthScope): Boolean
+
     val description: String
 }
 
 fun AuthScope(description: String) = object : AuthScope {
     override val description: String get() = description
+    override fun includes(scope: AuthScope): Boolean {
+        return scope===this
+    }
 }

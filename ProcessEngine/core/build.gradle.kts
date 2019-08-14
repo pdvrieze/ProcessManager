@@ -38,10 +38,12 @@ kotlin {
     targets {
         jvm {
             compilations.all {
-                tasks.getByName<KotlinCompile>(compileKotlinTaskName).kotlinOptions {
-                    jvmTarget = "1.8"
-                    freeCompilerArgs = listOf(argJvmDefault)
+                tasks.withType<KotlinCompile>/*(compileKotlinTaskName).*/  {
+                    kotlinOptions {
+                        jvmTarget = "1.8"
+                        freeCompilerArgs = listOf(argJvmDefault)
 //                    freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental", "-Xjvm-default=enable")
+                    }
                 }
                 tasks.withType<Test> {
                     useJUnitPlatform()

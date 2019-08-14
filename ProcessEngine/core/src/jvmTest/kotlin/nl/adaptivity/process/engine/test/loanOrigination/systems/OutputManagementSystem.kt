@@ -16,13 +16,13 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
+import nl.adaptivity.process.engine.test.loanOrigination.auth.Service
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.PricedLoanProductBundle
 import java.util.*
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.*
 import kotlin.random.Random
 
-class OutputManagementSystem(val authService: AuthService) {
-    val clientId = "OutputManagementSystem:${Random.nextString()}"
+class OutputManagementSystem(authService: AuthService): Service(authService, "Output_Manamgent_System") {
 
     private val _contracts = mutableMapOf<UUID, Contract>()
     val contracts: Map<UUID, Contract> get() = _contracts
