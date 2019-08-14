@@ -22,7 +22,7 @@ import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.ProcessInstanceContext
 
 class LoanProcessContext(
-    private val loanContextFactory: LoanContextFactory,
+    internal val loanContextFactory: LoanContextFactory,
     override val handle: Handle<SecureObject<ProcessInstance>>
                         ): ProcessInstanceContext {
 

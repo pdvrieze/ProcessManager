@@ -14,19 +14,22 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.test.loanOrigination.systems
+package nl.adaptivity.process.engine.test.loanOrigination.auth
 
-import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanProductBundle
-import nl.adaptivity.process.engine.test.loanOrigination.datatypes.PricedLoanProductBundle
-import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanEvaluation
+import net.devrieze.util.Handle
+import net.devrieze.util.security.SecureObject
+import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import java.security.Principal
 import java.util.*
-import kotlin.random.Random
 
-class PricingEngine(val authService: AuthService) {
-    val clientId = "PricingEngine:${Random.nextString()}"
-
-    fun priceLoan(chosenProduct: LoanProductBundle, loanEval: LoanEvaluation): PricedLoanProductBundle {
-        return chosenProduct.withPrice(loanEval.customerId, 0.05)
+class AuthToken(
+    val principal: Principal,
+    val nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>,
+    val tokenValue: String,
+    val serviceId: String,
+    val scope: AuthScope
+               ): AuthInfo() {
+    override fun toString(): String {
+        return "AuthToken($tokenValue - $principal[act=${nodeInstanceHandle.handleValue}] -> $serviceId.$scope )"
     }
-
 }

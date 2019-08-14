@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine
 
+import net.devrieze.util.Handle
 import net.devrieze.util.ReadableHandleAware
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
@@ -36,6 +37,18 @@ interface ActivityInstanceContext: ReadableHandleAware<SecureObject<ProcessNodeI
 
 interface ProcessContextFactory<out A:ActivityInstanceContext> {
     fun newActivityInstanceContext(engineDataAccess: ProcessEngineDataAccess, processNodeInstance: IProcessNodeInstance): A
+
+    /**
+     * Called to inform the factory that the activity is no longer active: completed, failed, cancelled etc.
+     * This means any resources can be released.
+     */
+    fun onActivityTermination(engineDataAccess: ProcessEngineDataAccess, processNodeInstance: IProcessNodeInstance) {}
+
+    /**
+     * Called to inform the factory that the process is no longer active: completed, failed, cancelled etc.
+     * This means any resources can be released.
+     */
+    fun onProcessFinished(engineDataAccess: ProcessEngineDataAccess, processInstance: Handle<SecureObject<ProcessInstance>>) {}
 
     companion object DEFAULT: ProcessContextFactory<ActivityInstanceContext> {
         override fun newActivityInstanceContext(

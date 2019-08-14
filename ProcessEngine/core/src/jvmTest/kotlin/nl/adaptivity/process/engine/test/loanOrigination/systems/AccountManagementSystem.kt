@@ -15,10 +15,14 @@
  */
 
 package nl.adaptivity.process.engine.test.loanOrigination.systems
-import nl.adaptivity.process.engine.test.loanOrigination.AuthInfo
+import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthInfo
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.*
+import java.util.*
+import kotlin.random.Random
 
-class AccountManagementSystem {
+class AccountManagementSystem(val authService: AuthService) {
+    val clientId = "AccountManagementSystem:${Random.nextString()}"
+
     fun openAccountFor(authInfo: AuthInfo, contract: Contract): BankAccountNumber {
         // check auth
         // check contract

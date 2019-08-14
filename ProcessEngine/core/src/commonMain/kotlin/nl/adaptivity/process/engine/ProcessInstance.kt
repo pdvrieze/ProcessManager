@@ -364,9 +364,8 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                             finishTask(engineData)
                         }
                     }
+                    store(engineData)
                 }
-
-                store(engineData)
                 engineData.commit()
                 // TODO don't remove old transactions
                 engineData.handleFinishedInstance(handle)

@@ -16,10 +16,14 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.datatypes
 
-import nl.adaptivity.process.engine.test.loanOrigination.AuthInfo
+import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthInfo
+import nl.adaptivity.process.engine.test.loanOrigination.systems.AuthService
 import nl.adaptivity.process.engine.test.loanOrigination.systems.CustomerInformationFile
 
-class CreditApplication(val customerInformationFile: CustomerInformationFile) {
+class CreditApplication(
+    val authService: AuthService,
+    val customerInformationFile: CustomerInformationFile
+                       ) {
     fun evaluateLoan(authInfo: AuthInfo, application: LoanApplication, creditReport: CreditReport): LoanEvaluation {
         val customer = customerInformationFile.getCustomerData(AuthInfo(), application.customerId)!!
         if (application.amount<creditReport.maxLoan) {

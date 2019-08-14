@@ -14,19 +14,6 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.test.loanOrigination
+package nl.adaptivity.process.engine.test.loanOrigination.auth
 
-import java.util.*
-
-class AuthScope(val description: String)
-
-class AuthToken(
-    val id: String,
-    val service: UUID,
-    val scope: AuthScope
-               ) {
-    val value: UUID = UUID.randomUUID()
-}
-
-class AuthInfo {
-}
+data class AuthorizationCode(val code: String)

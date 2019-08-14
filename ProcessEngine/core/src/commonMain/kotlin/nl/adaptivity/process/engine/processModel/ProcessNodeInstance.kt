@@ -23,8 +23,6 @@ import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.impl.*
-import nl.adaptivity.process.engine.impl.dom.newReader
-import nl.adaptivity.process.engine.impl.dom.newWriter
 import nl.adaptivity.process.engine.processModel.NodeInstanceState.*
 import nl.adaptivity.process.processModel.MessageActivity
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
@@ -32,7 +30,6 @@ import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.multiplatform.addSuppressedCompat
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.util.security.Principal
-import nl.adaptivity.xml.WritableCompactFragment
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.util.ICompactFragment
 import kotlin.contracts.ExperimentalContracts
@@ -378,6 +375,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             state = Complete
             store(engineData)
             engineData.commit()
+            engineData.processContextFactory.onActivityTermination(engineData, this)
 
             // The splits need to be updated before successors are started. This prevents unneeded/unexpected cancellations.
             // Joins should trigger updates before cancellations anyway though as a safeguard.
@@ -404,18 +402,21 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             }
             state = SkippedInvalidated
             store(engineData)
+            engineData.processContextFactory.onActivityTermination(engineData, this)
             processInstanceBuilder.storeChild(this)
         }
 
         final override fun failTask(engineData: MutableProcessEngineDataAccess, cause: Throwable) {
             failureCause = cause
             state = if (state == Pending) FailRetry else Failed
+            engineData.processContextFactory.onActivityTermination(engineData, this)
             processInstanceBuilder.skipSuccessors(engineData, this, SkippedFail)
         }
 
         final override fun cancel(engineData: MutableProcessEngineDataAccess) {
             doCancel(engineData)
             softUpdateState(engineData, Cancelled)
+            engineData.processContextFactory.onActivityTermination(engineData, this)
             processInstanceBuilder.skipSuccessors(engineData, this, SkippedCancel)
         }
 
@@ -423,6 +424,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             engineData: MutableProcessEngineDataAccess
                                         ) {
             doCancelAndSkip(engineData)
+            engineData.processContextFactory.onActivityTermination(engineData, this)
             processInstanceBuilder.skipSuccessors(engineData, this, Skipped)
         }
 

@@ -16,11 +16,15 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
-import nl.adaptivity.process.engine.test.loanOrigination.AuthInfo
+import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthInfo
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CreditReport
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
+import java.util.*
+import kotlin.random.Random
 
-class CreditBureau {
+class CreditBureau(val authService: AuthService) {
+    val clientId = "CreditBureau:${Random.nextString()}"
+
     fun getCreditReport(authInfo: AuthInfo, customerData: CustomerData): CreditReport {
         val creditRating = 400
         return CreditReport(

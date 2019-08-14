@@ -19,13 +19,12 @@ package nl.adaptivity.process.engine.test.loanOrigination
 import kotlinx.serialization.ImplicitReflectionSerializer
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ActivityInstanceContext
-import nl.adaptivity.process.engine.ProcessContextFactory
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.get
 import nl.adaptivity.process.engine.test.BaseProcessEngineTestSupport
-import nl.adaptivity.process.engine.test.ProcessEngineTestSupport
+import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthInfo
+import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.*
-import nl.adaptivity.process.engine.test.loanOrigination.systems.*
 import nl.adaptivity.process.processModel.configurableModel.ConfigurableProcessModel
 import nl.adaptivity.process.processModel.configurableModel.endNode
 import nl.adaptivity.process.processModel.configurableModel.output
@@ -35,10 +34,11 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Test
 import java.security.Principal
 import java.util.*
+import java.util.logging.Logger
 
-class TestLoanOrigination : BaseProcessEngineTestSupport<LoanActivityContext>(LoanContextFactory()) {
+class TestLoanOrigination : BaseProcessEngineTestSupport<LoanActivityContext>(LoanContextFactory(Logger.getLogger(TestLoanOrigination::class.java.name))) {
 
-    @Test
+//    @Test
     fun testCreateModel() {
         assertEquals("inputCustomerMasterData", Model1(modelOwnerPrincipal).inputCustomerMasterData.id)
     }
@@ -46,7 +46,6 @@ class TestLoanOrigination : BaseProcessEngineTestSupport<LoanActivityContext>(Lo
     @Test
     fun testRunModel() {
         val model = ExecutableProcessModel(Model1(modelOwnerPrincipal).configurationBuilder)
-        val loanContextFactory = LoanContextFactory()
 
         testProcess(model) { tr, model, hinstance ->
             val instance = tr[hinstance]
@@ -74,6 +73,11 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
 
     val start by startNode
     val inputCustomerMasterData by runnableActivity<Unit, LoanCustomer>(start) {
+        ctx.registerTaskPermission(serviceId = customerFile.clientId, scope = LoanPermissions.CREATE_CUSTOMER)
+        ctx.acceptActivity(clerk1)
+
+        val customerFileAuthToken = authService.getAuthTokenDirect(clerk1, ctx.taskList.taskIdentityToken!!, customerFile.clientId, LoanPermissions.CREATE_CUSTOMER)
+
         val newData = CustomerData(
             "cust123456",
             "taxId234",
@@ -81,25 +85,19 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
             "John Doe",
             "10 Downing Street"
                                                                                              )
-        customerFile.enterCustomerData(AuthInfo(), newData)
+        customerFile.enterCustomerData(customerFileAuthToken, newData)
         LoanCustomer(newData.customerId)
     }
     val createLoanRequest by configureRunnableActivity<LoanCustomer, LoanApplication>(
         inputCustomerMasterData,
         LoanApplication.serializer()
                                                                                      ) {
-        defineInput(inputCustomerMasterData)
+        defineInput(this@Model1.inputCustomerMasterData)
         action = {
             LoanApplication(
                 it.customerId,
                 10000,
-                listOf(
-                    CustomerCollateral(
-                        "house",
-                        "100000",
-                        "residential"
-                                      )
-                      )
+                listOf(CustomerCollateral("house", "100000", "residential"))
                                                                                        )
         }
     }

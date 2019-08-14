@@ -174,6 +174,7 @@ class ProcessEngine<TR : ProcessTransaction, PIC: ActivityInstanceContext> {
             }
 
             override fun handleFinishedInstance(handle: Handle<SecureObject<ProcessInstance>>) {
+                processContextFactory.onProcessFinished(this, handle)
                 // Ignore the completion for now. Just keep it in the engine.
             }
 
@@ -233,6 +234,7 @@ class ProcessEngine<TR : ProcessTransaction, PIC: ActivityInstanceContext> {
             }
 
             override fun handleFinishedInstance(handle: Handle<SecureObject<ProcessInstance>>) {
+                processContextFactory.onProcessFinished(this, handle)
                 // Do nothing at this point. In the future, this will probably lead the node intances to be deleted.
             }
 

@@ -14,19 +14,25 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.test.loanOrigination.systems
+package nl.adaptivity.process.engine.test.loanOrigination.auth
 
-import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanProductBundle
-import nl.adaptivity.process.engine.test.loanOrigination.datatypes.PricedLoanProductBundle
-import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanEvaluation
-import java.util.*
-import kotlin.random.Random
+enum class LoanPermissions : AuthScope {
+    CREATE_CUSTOMER,
+    QUERY_CUSTOMER_DATA,
+    UPDATE_CUSTOMER_DATA,
+    UPDATE_ACTIVITY_STATE,
+    /** Identify the user as themselves */
+    IDENTIFY,
+    /** Create a token that allows a "user" to editify as task */
+    CREATE_TASK_IDENTITY,
+    GRANT_PERMISSION
+    ;
 
-class PricingEngine(val authService: AuthService) {
-    val clientId = "PricingEngine:${Random.nextString()}"
-
-    fun priceLoan(chosenProduct: LoanProductBundle, loanEval: LoanEvaluation): PricedLoanProductBundle {
-        return chosenProduct.withPrice(loanEval.customerId, 0.05)
+    fun context(contextData: Any): AuthScope {
+        return ExtScope(this, contextData.toString())
     }
 
+    override val description: String
+        get() = name
 }
+

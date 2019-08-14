@@ -16,12 +16,57 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination
 
+import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ActivityInstanceContext
-import nl.adaptivity.process.engine.test.loanOrigination.systems.AccountManagementSystem
-import nl.adaptivity.process.engine.test.loanOrigination.systems.CustomerInformationFile
-import nl.adaptivity.process.engine.test.loanOrigination.systems.OutputManagementSystem
+import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthToken
+import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
+import nl.adaptivity.process.engine.test.loanOrigination.systems.TaskList
+import nl.adaptivity.util.security.Principal
+import java.util.*
 
 class LoanActivityContext(override val processContext:LoanProcessContext, private val baseContext: ActivityInstanceContext): ActivityInstanceContext by baseContext {
+    override var owner: Principal = baseContext.owner
+        private set
 
+    private val pendingPermissions = ArrayDeque<(AuthToken)->Unit>()
+
+    fun acceptActivity(principal: SimplePrincipal) {
+        if (::taskList.isInitialized) {
+            if (taskList.principal != principal) {
+                throw UnsupportedOperationException("Attempting to change the user for an activity after it has already been set")
+            }
+        } else {
+            taskList = processContext.loanContextFactory.taskList(principal)
+            owner = principal
+        }
+        val hNodeInstance = handle
+        val taskListToEngineAuthToken = with (processContext) {
+            authService.createAuthorizationCode(
+                loanContextFactory.engineClientAuth,
+                loanContextFactory.engineClientId,
+                taskList.clientId,
+                hNodeInstance,
+                LoanPermissions.UPDATE_ACTIVITY_STATE.context(hNodeInstance)
+                                               )
+        }
+
+        val taskIdentityToken = taskList.registerToken(taskListToEngineAuthToken)
+        while(pendingPermissions.isNotEmpty()) {
+            val pendingPermission = pendingPermissions.removeFirst()
+            pendingPermission(taskIdentityToken)
+        }
+    }
+
+    /**
+     * TODO Function that registers permissions for the task. This should be done based upon task definition
+     *      and in acceptActivity.
+     */
+    fun registerTaskPermission(serviceId: String, scope: LoanPermissions) {
+        pendingPermissions.add { taskIdToken ->
+            processContext.authService.grantPermission(processContext.loanContextFactory.engineClientAuth, taskIdToken, serviceId, scope)
+        }
+    }
+
+    lateinit var taskList: TaskList
 
 }
