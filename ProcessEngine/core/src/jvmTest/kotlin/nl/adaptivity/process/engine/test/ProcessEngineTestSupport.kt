@@ -42,8 +42,10 @@ import java.util.*
 import java.util.logging.Logger
 import kotlin.collections.ArrayList
 
-open class ProcessEngineTestSupport() {
-    protected lateinit var processEngine: ProcessEngine<StubProcessTransaction, *>
+open class ProcessEngineTestSupport(): BaseProcessEngineTestSupport<ActivityInstanceContext>(ProcessContextFactory.DEFAULT)
+
+open class BaseProcessEngineTestSupport<A : ActivityInstanceContext>(val contextFactory: ProcessContextFactory<A>) {
+    protected lateinit var processEngine: ProcessEngine<StubProcessTransaction, A>
     private val localEndpoint = EndpointDescriptorImpl(QName.valueOf("processEngine"),
                                                        "processEngine",
                                                        URI.create("http://localhost/"))
@@ -174,7 +176,9 @@ open class ProcessEngineTestSupport() {
             stubTransactionFactory,
             cacheModels<Any>(MemProcessModelMap(), 3),
             cacheInstances(MemTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>(), 1),
-            cacheNodes<Any>(MemTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction>(PNI_SET_HANDLE), 2), true, Logger.getAnonymousLogger())
+            cacheNodes<Any>(MemTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction>(PNI_SET_HANDLE), 2), true, Logger.getAnonymousLogger(),
+            contextFactory
+                                                     )
     }
 
     fun assertEqualsXml(expected: String?, actual: String?) {

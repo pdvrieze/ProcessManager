@@ -33,7 +33,7 @@ import nl.adaptivity.xmlutil.Namespace
 import nl.adaptivity.xmlutil.XmlWriter
 import nl.adaptivity.xmlutil.serialization.XML
 
-typealias RunnableAction<I, O> = (I) -> O
+typealias RunnableAction<I, O> = ActivityInstanceContext.(I) -> O
 
 class RunnableActivity<I: Any, O: Any> : ActivityBase, ExecutableProcessNode {
 
@@ -136,7 +136,7 @@ class RunnableActivity<I: Any, O: Any> : ActivityBase, ExecutableProcessNode {
             refName: String,
             inputSerializer: DeserializationStrategy<I>,
             outputSerializer: SerializationStrategy<O>? = null,
-            action: (I) -> O = { throw UnsupportedOperationException("Action not provided") }
+            action: RunnableAction<I,O> = { throw UnsupportedOperationException("Action not provided") }
                    ) : super(predecessor = predecessor) {
             this.outputSerializer = outputSerializer
             this.action = action
@@ -159,7 +159,7 @@ class RunnableActivity<I: Any, O: Any> : ActivityBase, ExecutableProcessNode {
             predecessor: Identified,
             inputCombiner: InputCombiner<I> = InputCombiner(),
             outputSerializer: SerializationStrategy<O>? = null,
-            action: (I) -> O = { throw UnsupportedOperationException("Action not provided") }
+            action: RunnableAction<I,O> = { throw UnsupportedOperationException("Action not provided") }
                    ) : super(predecessor = predecessor) {
             results.add(XmlResultType("output"))
             this.outputSerializer = outputSerializer

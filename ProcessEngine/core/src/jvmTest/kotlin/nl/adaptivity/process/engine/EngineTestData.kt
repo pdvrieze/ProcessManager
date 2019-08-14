@@ -22,10 +22,10 @@ import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.MemTransactionedHandleMap
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
-import nl.adaptivity.process.engine.test.ProcessEngineTestSupport.Companion.PNI_SET_HANDLE
-import nl.adaptivity.process.engine.test.ProcessEngineTestSupport.Companion.cacheInstances
-import nl.adaptivity.process.engine.test.ProcessEngineTestSupport.Companion.cacheModels
-import nl.adaptivity.process.engine.test.ProcessEngineTestSupport.Companion.cacheNodes
+import nl.adaptivity.process.engine.test.BaseProcessEngineTestSupport.Companion.PNI_SET_HANDLE
+import nl.adaptivity.process.engine.test.BaseProcessEngineTestSupport.Companion.cacheInstances
+import nl.adaptivity.process.engine.test.BaseProcessEngineTestSupport.Companion.cacheModels
+import nl.adaptivity.process.engine.test.BaseProcessEngineTestSupport.Companion.cacheNodes
 import java.net.URI
 import java.util.logging.Logger
 import javax.xml.namespace.QName

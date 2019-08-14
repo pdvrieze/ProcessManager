@@ -19,9 +19,10 @@ package nl.adaptivity.process.processModel.engine
 import nl.adaptivity.process.processModel.configurableModel.ConfigurableNodeContainer
 import nl.adaptivity.process.util.Identified
 import kotlinx.serialization.serializer
+import nl.adaptivity.process.engine.ActivityInstanceContext
 
 @kotlinx.serialization.ImplicitReflectionSerializer
-inline fun <reified I: Any, reified O:Any> ConfigurableNodeContainer<ExecutableProcessNode>.runnableActivity(predecessor: Identified, noinline action: (I) -> O): RunnableActivity.Builder<I,O> {
+inline fun <reified I: Any, reified O:Any> ConfigurableNodeContainer<ExecutableProcessNode>.runnableActivity(predecessor: Identified, noinline action: RunnableAction<I,O>): RunnableActivity.Builder<I,O> {
     return runnableActivity(
         predecessor,
         O::class.serializer(),

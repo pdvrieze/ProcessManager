@@ -20,87 +20,87 @@ import nl.adaptivity.util.multiplatform.JvmDefault
 
 interface HandleMap<V:Any> : Iterable<V> {
 
-  /**
-   * Determine whether the given object is contained in the map. If the object
-   * implements [HandleAware] a shortcut is applied instead of looping
-   * through all values.
+    /**
+     * Determine whether the given object is contained in the map. If the object
+     * implements [HandleAware] a shortcut is applied instead of looping
+     * through all values.
 
-   * @param element The object to check.
-   *
-   * @return `true` if it does.
-   */
-  fun containsElement(element: @UnsafeVariance V): Boolean
+     * @param element The object to check.
+     *
+     * @return `true` if it does.
+     */
+    fun containsElement(element: @UnsafeVariance V): Boolean
 
-  override operator fun iterator(): Iterator<V>
+    override operator fun iterator(): Iterator<V>
 
-  @Deprecated("Don't use, this may be expensive", level = DeprecationLevel.ERROR)
-  @JvmDefault
-  fun isEmpty(): Boolean = ! iterator().hasNext()
+    @Deprecated("Don't use, this may be expensive", level = DeprecationLevel.ERROR)
+    @JvmDefault
+    fun isEmpty(): Boolean = ! iterator().hasNext()
 
-  operator fun contains(handle: Handle<V>): Boolean
+    operator fun contains(handle: Handle<V>): Boolean
 
-  /**
-   * Determine whether the given handle is contained in the map.
+    /**
+     * Determine whether the given handle is contained in the map.
 
-   * @param handle The handle to check.
-   *
-   * @return `true` if it does.
-   */
-  @Deprecated("Don't use untyped handles", ReplaceWith("contains(Handle(handle))", "net.devrieze.util.Handle"))
-  @JvmDefault
-  operator fun contains(handle: Long): Boolean = contains(Handle(handle))
+     * @param handle The handle to check.
+     *
+     * @return `true` if it does.
+     */
+    @Deprecated("Don't use untyped handles", ReplaceWith("contains(Handle(handle))", "net.devrieze.util.Handle"))
+    @JvmDefault
+    operator fun contains(handle: Long): Boolean = contains(Handle(handle))
 
-  operator fun get(handle: Handle<V>): V?
+    operator fun get(handle: Handle<V>): V?
 
-  /**
-   * Request the handle map to invalidate any caches it has for this item
-   */
-  fun invalidateCache(handle:Handle<V>) = Unit
+    /**
+     * Request the handle map to invalidate any caches it has for this item
+     */
+    fun invalidateCache(handle:Handle<V>) = Unit
 
-  @Deprecated("Don't use, this may be expensive", level = DeprecationLevel.ERROR)
-  fun getSize():Int
+    @Deprecated("Don't use, this may be expensive", level = DeprecationLevel.ERROR)
+    fun getSize():Int
 
-  companion object {
+    companion object {
 
-    const val NULL_HANDLE: Long = 0
-  }
+        const val NULL_HANDLE: Long = 0
+    }
 
 }
 
 interface MutableHandleMap<V:Any>: HandleMap<V>, MutableIterable<V> {
-  override operator fun iterator(): MutableIterator<V>
-  /**
-   * Put a new walue into the map. This is thread safe.
+    override operator fun iterator(): MutableIterator<V>
+    /**
+     * Put a new walue into the map. This is thread safe.
 
-   * @param value The value to put into the map.
-   *
-   * @return The handle for the value.
-   */
-  fun <W : V> put(value: W): ComparableHandle<W>
+     * @param value The value to put into the map.
+     *
+     * @return The handle for the value.
+     */
+    fun <W : V> put(value: W): ComparableHandle<W>
 
-  @Deprecated("Don't use untyped handles", ReplaceWith("set(Handles.handle(handle), value)", "net.devrieze.util.Handles"))
-  @JvmDefault
-  operator fun set(handle: Long, value: V): V? = set(Handle(handle), value)
+    @Deprecated("Don't use untyped handles", ReplaceWith("set(Handles.handle(handle), value)", "net.devrieze.util.Handles"))
+    @JvmDefault
+    operator fun set(handle: Long, value: V): V? = set(Handle(handle), value)
 
-  operator fun set(handle: Handle<V>, value: V): V?
+    operator fun set(handle: Handle<V>, value: V): V?
 
-  fun remove(handle: Handle<V>): Boolean
+    fun remove(handle: Handle<V>): Boolean
 
-  /** Remove all elements */
-  fun clear()
+    /** Remove all elements */
+    fun clear()
 
 }
 
 fun <T> HANDLE_AWARE_ASSIGNER(@Suppress("UNUSED_PARAMETER") transaction: Transaction, value:T, handle: Handle<T>):T? {
     (value as? ReadableHandleAware<*>)?.let { if (it.handle ==handle) return value } // no change needed
     (value as? MutableHandleAware<*>)?.let { it.apply { setHandleValue(handle.handleValue) }} // The handle has been set
-  return null
+    return null
 }
 
 fun <T> HANDLE_AWARE_ASSIGNER(value:T, handle: Handle<T>):T? {
     (value as? ReadableHandleAware<*>)?.let { if (it.handle ==handle) return value } // no change needed
     (value as? MutableHandleAware<*>)?.let { it.apply { setHandleValue(handle.handleValue) }} // The handle has been set
-  return null
+    return null
 }
 
 class HandleNotFoundException: Exception {
@@ -108,4 +108,16 @@ class HandleNotFoundException: Exception {
     constructor(message: String?) : super(message)
     constructor(message: String?, cause: Throwable?) : super(message, cause)
     constructor(cause: Throwable?) : super(cause)
+}
+
+
+inline fun <V:Any> MutableHandleMap<V>.getOrPut(key: Handle<V>, defaultValue: ()-> V): V {
+    val value = get(key)
+    return if (value==null) {
+        val newValue = defaultValue()
+        set(key, newValue)
+        newValue
+    } else {
+        value
+    }
 }

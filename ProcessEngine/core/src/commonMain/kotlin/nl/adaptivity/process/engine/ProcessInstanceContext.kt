@@ -34,7 +34,7 @@ interface ActivityInstanceContext: ReadableHandleAware<SecureObject<ProcessNodeI
     val owner: Principal
 }
 
-interface ProcessContextFactory<A:ActivityInstanceContext> {
+interface ProcessContextFactory<out A:ActivityInstanceContext> {
     fun newActivityInstanceContext(engineDataAccess: ProcessEngineDataAccess, processNodeInstance: IProcessNodeInstance): A
 
     companion object DEFAULT: ProcessContextFactory<ActivityInstanceContext> {

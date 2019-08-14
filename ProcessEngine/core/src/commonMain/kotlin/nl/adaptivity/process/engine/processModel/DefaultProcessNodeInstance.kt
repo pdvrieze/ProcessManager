@@ -127,7 +127,10 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
 
                 if (node is MessageActivity) {
                     val preparedMessage = messageService.createMessage(node.message ?: XmlMessage())
-                    val sendingResult = tryCreateTask { messageService.sendMessage(engineData, preparedMessage, this) }
+                    val sendingResult = tryCreateTask {
+                        val aic = engineData.processContextFactory.newActivityInstanceContext(engineData, this)
+                        messageService.sendMessage(engineData, preparedMessage, aic)
+                    }
                     when (sendingResult) {
                         MessageSendingResult.SENT         -> state = NodeInstanceState.Sent
                         MessageSendingResult.ACKNOWLEDGED -> state = NodeInstanceState.Acknowledged

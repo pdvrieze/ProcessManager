@@ -145,6 +145,8 @@ class ProcessEngine<TR : ProcessTransaction, PIC: ActivityInstanceContext> {
                                                            ) : IProcessEngineData<T>(), TransactionFactory<T> {
 
         private inner class DelegateEngineDataAccess(transaction: T) : AbstractProcessEngineDataAccess<T>(transaction) {
+            override val processContextFactory: ProcessContextFactory<*>
+                get() = this@DelegateProcessEngineData.engine.processContextFactory
             override val instances: MutableHandleMap<SecureObject<ProcessInstance>>
                 get() = this@DelegateProcessEngineData.processInstances.withTransaction(transaction)
             override val nodeInstances: MutableHandleMap<SecureObject<ProcessNodeInstance<*>>>
@@ -202,6 +204,8 @@ class ProcessEngine<TR : ProcessTransaction, PIC: ActivityInstanceContext> {
 
         private inner class DBEngineDataAccess(transaction: ProcessDBTransaction) :
             AbstractProcessEngineDataAccess<ProcessDBTransaction>(transaction) {
+            override val processContextFactory: ProcessContextFactory<*>
+                get() = this@DBProcessEngineData.engine.processContextFactory
             override val instances: MutableHandleMap<SecureObject<ProcessInstance>>
                 get() = this@DBProcessEngineData.processInstances.withTransaction(transaction)
             override val nodeInstances: MutableHandleMap<SecureObject<ProcessNodeInstance<*>>>
@@ -957,6 +961,30 @@ class ProcessEngine<TR : ProcessTransaction, PIC: ActivityInstanceContext> {
                 processInstances, processNodeInstances,
                 autoTransition, logger,
                 ProcessContextFactory.DEFAULT
+                                )
+        }
+
+        @JvmStatic
+        @JvmName("newTestInstance")
+        @PublishedApi
+        internal fun <T : ProcessTransaction, A : ActivityInstanceContext>
+            newTestInstance(
+            messageService: IMessageService<*>,
+            transactionFactory: ProcessTransactionFactory<T>,
+            processModels: IMutableProcessModelMap<T>,
+            processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance>, T>,
+            processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, T>,
+            autoTransition: Boolean,
+            logger: Logger,
+            processContextFactory: ProcessContextFactory<A>
+                           ): ProcessEngine<T, A> {
+
+
+            return ProcessEngine(
+                messageService, transactionFactory, processModels,
+                processInstances, processNodeInstances,
+                autoTransition, logger,
+                processContextFactory
                                 )
         }
     }

@@ -60,7 +60,7 @@ open class MemHandleMap<V : Any>
      * This array contains the actual values in the map.
      */
     @Suppress("UNCHECKED_CAST")
-    private var values: Array<V?> = arrayOfNulls<Any>(capacity) as Array<V?>
+    private var _values: Array<V?> = arrayOfNulls<Any>(capacity) as Array<V?>
 
     /**
      * This array records for each value what generation it is. This is used to
@@ -95,10 +95,10 @@ open class MemHandleMap<V : Any>
      */
     fun reset() {
         lock.write {
-            Arrays.fill(values, null)
+            Arrays.fill(_values, null)
             Arrays.fill(generations, 0)
             size = 0
-            barrier = values.size
+            barrier = _values.size
             offset = 0
             nextHandle = FIRST_HANDLE
             ++changeMagic
@@ -110,7 +110,7 @@ open class MemHandleMap<V : Any>
      */
     override fun clear() {
         lock.write {
-            Arrays.fill(values, null)
+            Arrays.fill(_values, null)
             Arrays.fill(generations, 0)
             size = 0
             updateBarrier()
@@ -129,7 +129,7 @@ open class MemHandleMap<V : Any>
             return contains(element)
         } else {
             return lock.read {
-                values.any { it == element }
+                _values.any { it == element }
             }
         }
     }
@@ -144,10 +144,10 @@ open class MemHandleMap<V : Any>
     override fun contains(handle: Handle<V>): Boolean {
         lock.read {
             val index = indexFromHandle(handle.handleValue)
-            if (index < 0 || index >= values.size) {
+            if (index < 0 || index >= _values.size) {
                 return false
             }
-            return values[index] != null
+            return _values[index] != null
         }
     }
 
@@ -177,17 +177,17 @@ open class MemHandleMap<V : Any>
             if (nextHandle != barrier) {
                 index = nextHandle
                 nextHandle++
-                if (nextHandle == values.size) {
-                    if (barrier == values.size) {
+                if (nextHandle == _values.size) {
+                    if (barrier == _values.size) {
                         barrier = 0
                     }
                     nextHandle = 0
-                    offset += values.size
+                    offset += _values.size
                 }
                 generation = START_GENERATION
             } else {
                 // Ring buffer too full
-                if (size == values.size || size >= loadFactor * values.size) {
+                if (size == _values.size || size >= loadFactor * _values.size) {
                     expand()
                     return put(value)
                     // expand
@@ -200,7 +200,7 @@ open class MemHandleMap<V : Any>
             val h = (generation.toLong() shl 32) + handleFromIndex(index)
             val updatedValue = handleAssigner(value, handle(handle= h)) ?: value
 
-            values[index] = updatedValue
+            _values[index] = updatedValue
             generations[index] = generation
             size++
 
@@ -228,7 +228,7 @@ open class MemHandleMap<V : Any>
             }
 
             // Just get the element out of the map.
-            return values[index]
+            return _values[index]
         }
     }
 
@@ -258,8 +258,8 @@ open class MemHandleMap<V : Any>
             val updatedValue = handleAssigner(value, handle(handle= handle)) ?: value
 
             // Just get the element out of the map.
-            values[index] = updatedValue
-            return values[index]
+            _values[index] = updatedValue
+            return _values[index]
         }
     }
 
@@ -297,9 +297,9 @@ open class MemHandleMap<V : Any>
             if (generations[index] != generation) {
                 return false
             }
-            if (values[index] != null) {
+            if (_values[index] != null) {
                 ++changeMagic
-                values[index] = null
+                _values[index] = null
                 generations[index]++ // Update the generation for safety checking
                 size--
                 updateBarrier()
@@ -317,15 +317,15 @@ open class MemHandleMap<V : Any>
     private fun updateBarrier() {
         if (size == 0) {
             offset += nextHandle
-            barrier = values.size
+            barrier = _values.size
             nextHandle = 0
         } else {
-            if (barrier == values.size) {
+            if (barrier == _values.size) {
                 barrier = 0
             }
-            while (values[barrier] == null) {
+            while (_values[barrier] == null) {
                 barrier++
-                if (barrier == values.size) {
+                if (barrier == _values.size) {
                     barrier = 0
                 }
             }
@@ -347,14 +347,14 @@ open class MemHandleMap<V : Any>
         val handle = pHandle.toInt()
         var result = handle - offset
         if (result < 0) {
-            result += values.size
+            result += _values.size
             if (result < barrier) {
                 return -1
             }
         } else if (result >= nextHandle) {
             return -1
         }
-        if (result >= values.size) {
+        if (result >= _values.size) {
             return -1
         }
         return result
@@ -369,15 +369,15 @@ open class MemHandleMap<V : Any>
             // must be at same offset as mNextHandle
             return pIndex + offset
         } else {
-            return pIndex + offset - values.size
+            return pIndex + offset - _values.size
         }
     }
 
     private fun findNextFreeIndex(): Int {
         var i = barrier
-        while (values[i] != null) {
+        while (_values[i] != null) {
             i++
-            if (i == values.size) {
+            if (i == _values.size) {
                 i = 0
             }
         }
@@ -385,7 +385,7 @@ open class MemHandleMap<V : Any>
     }
 
     private fun expand() {
-        if (barrier == values.size) {
+        if (barrier == _values.size) {
             System.err.println("Unexpected code visit")
             barrier = 0
         }
@@ -395,7 +395,7 @@ open class MemHandleMap<V : Any>
             return
         }
 
-        val newLen = values.size * 2
+        val newLen = _values.size * 2
 
         @Suppress("UNCHECKED_CAST")
         val newValues = arrayOfNulls<Any>(newLen) as Array<V?>
@@ -403,16 +403,16 @@ open class MemHandleMap<V : Any>
         val newGenerations = IntArray(newLen)
 
 
-        System.arraycopy(values, barrier, newValues, 0, values.size - barrier)
+        System.arraycopy(_values, barrier, newValues, 0, _values.size - barrier)
         System.arraycopy(generations, barrier, newGenerations, 0, generations.size - barrier)
         if (barrier > 0) {
-            System.arraycopy(values, 0, newValues, values.size - barrier, barrier)
+            System.arraycopy(_values, 0, newValues, _values.size - barrier, barrier)
             System.arraycopy(generations, 0, newGenerations, generations.size - barrier, barrier)
         }
 
         offset = handleFromIndex(barrier)
-        nextHandle = values.size
-        values = newValues
+        nextHandle = _values.size
+        _values = newValues
         generations = newGenerations
         barrier = 0
     }
@@ -443,7 +443,7 @@ open class MemHandleMap<V : Any>
 
     private fun <T> writeToArray(result: Array<T?>): Array<T?> {
         var i = 0
-        for (elem in values) {
+        for (elem in _values) {
             @Suppress("UNCHECKED_CAST")
             result[i] = elem as T
             ++i
@@ -618,7 +618,7 @@ open class MemHandleMap<V : Any>
 
         init {
             iteratorMagic = lock.read {
-                iterPos = if (barrier >= values.size) 0 else barrier
+                iterPos = if (barrier >= _values.size) 0 else barrier
                 changeMagic
             }
         }
@@ -650,11 +650,11 @@ open class MemHandleMap<V : Any>
 
                 do {
                     iterPos++
-                    if (iterPos >= values.size) {
+                    if (iterPos >= _values.size) {
                         iterPos = 0
                     }
-                } while (values[iterPos] == null && inRange(iterPos))
-                return values[oldPos]!!
+                } while (_values[iterPos] == null && inRange(iterPos))
+                return _values[oldPos]!!
             }
         }
 
@@ -662,10 +662,10 @@ open class MemHandleMap<V : Any>
             lock.write {
                 if (iteratorMagic!=changeMagic) throw ConcurrentModificationException("The underlying collection changed before remove")
 
-                if (values[oldPos] == null) {
+                if (_values[oldPos] == null) {
                     throw IllegalStateException("Calling remove twice can not work")
                 }
-                values[oldPos] = null
+                _values[oldPos] = null
                 generations[oldPos]++
                 updateBarrier()
                 if (iterPos == barrier) {

@@ -27,6 +27,7 @@ import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 
 interface ProcessEngineDataAccess {
+    val processContextFactory: ProcessContextFactory<*>
     val instances: HandleMap<SecureObject<ProcessInstance>>
 
     fun instance(handle: Handle<SecureObject<ProcessInstance>>) = instances[handle].mustExist(handle)

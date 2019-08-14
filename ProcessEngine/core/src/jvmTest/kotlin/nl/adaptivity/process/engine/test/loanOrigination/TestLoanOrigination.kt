@@ -18,8 +18,11 @@ package nl.adaptivity.process.engine.test.loanOrigination
 
 import kotlinx.serialization.ImplicitReflectionSerializer
 import net.devrieze.util.security.SimplePrincipal
+import nl.adaptivity.process.engine.ActivityInstanceContext
+import nl.adaptivity.process.engine.ProcessContextFactory
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.get
+import nl.adaptivity.process.engine.test.BaseProcessEngineTestSupport
 import nl.adaptivity.process.engine.test.ProcessEngineTestSupport
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.*
 import nl.adaptivity.process.engine.test.loanOrigination.systems.*
@@ -33,7 +36,7 @@ import org.junit.jupiter.api.Test
 import java.security.Principal
 import java.util.*
 
-class TestLoanOrigination : ProcessEngineTestSupport() {
+class TestLoanOrigination : BaseProcessEngineTestSupport<LoanActivityContext>(LoanContextFactory()) {
 
     @Test
     fun testCreateModel() {
@@ -43,6 +46,8 @@ class TestLoanOrigination : ProcessEngineTestSupport() {
     @Test
     fun testRunModel() {
         val model = ExecutableProcessModel(Model1(modelOwnerPrincipal).configurationBuilder)
+        val loanContextFactory = LoanContextFactory()
+
         testProcess(model) { tr, model, hinstance ->
             val instance = tr[hinstance]
             assertEquals(ProcessInstance.State.FINISHED, instance.state)
@@ -66,9 +71,6 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
     owner, UUID.fromString("fbb730ab-f1c4-4af5-979b-7e04a399d75a")
                                                                                         ) {
 
-    val customerFile = CustomerInformationFile()
-    val outputManagementSystem = OutputManagementSystem()
-    val accountManagementSystem = AccountManagementSystem()
 
     val start by startNode
     val inputCustomerMasterData by runnableActivity<Unit, LoanCustomer>(start) {
@@ -102,10 +104,6 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
         }
     }
     val evaluateCredit by object : ConfigurableCompositeActivity(createLoanRequest) {
-        val creditBureau = CreditBureau()
-        val customerFile get() = this@Model1.customerFile
-        val creditApplication =
-            CreditApplication(customerFile)
 
         val startCreditEvaluate by startNode
         val getCustomerApproval by runnableActivity(
@@ -158,7 +156,6 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
         LoanProductBundle("simpleLoan", "simpleLoan2019.a")
     }
     val offerPricedLoan by object: ConfigurableCompositeActivity(chooseBundledProduct) {
-        val pricingEngine = PricingEngine()
 
         init {
             input("loanEval", this@Model1.evaluateCredit, "loanEvaluation")
@@ -208,3 +205,12 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
     }
 }
 private data class PricingInput(val loanEvaluation: LoanEvaluation, val chosenProduct: LoanProductBundle)
+
+private inline val ActivityInstanceContext.ctx: LoanActivityContext get() = this as LoanActivityContext
+private inline val ActivityInstanceContext.customerFile get() = ctx.processContext.customerFile
+private inline val ActivityInstanceContext.outputManagementSystem get() = ctx.processContext.outputManagementSystem
+private inline val ActivityInstanceContext.accountManagementSystem get() = ctx.processContext.accountManagementSystem
+private inline val ActivityInstanceContext.creditBureau get() = ctx.processContext.creditBureau
+private inline val ActivityInstanceContext.creditApplication get() = ctx.processContext.creditApplication
+private inline val ActivityInstanceContext.pricingEngine get() = ctx.processContext.pricingEngine
+private inline val ActivityInstanceContext.authService get() = ctx.processContext.authService

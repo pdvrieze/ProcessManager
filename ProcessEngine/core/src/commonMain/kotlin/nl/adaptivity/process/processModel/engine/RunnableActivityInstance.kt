@@ -61,7 +61,8 @@ class RunnableActivityInstance<I: Any,O: Any>(builder: Builder<I,O>):
                     val build = build()
                     val input: I = build.getInputData(engineData)
                     val action: RunnableAction<I, O> = n.action
-                    val result: O = action(input)
+                    val context = engineData.processContextFactory.newActivityInstanceContext(engineData, this)
+                    val result: O = context.action(input)
 
 //                engineData.instance(hChildInstance)
 //                    .withPermission()
