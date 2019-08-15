@@ -22,6 +22,7 @@ import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.test.loanOrigination.auth.*
+import java.lang.UnsupportedOperationException
 import java.security.Principal
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -183,7 +184,23 @@ class AuthService(val logger: Logger): Service {
         internalValidateAuthInfo(taskIdentityToken, LoanPermissions.IDENTIFY)
         // Assume the principal has been logged in validly
         if (principal!=taskIdentityToken.principal) throw AuthorizationException("Mismatch between task identity user and task user $principal <> ${taskIdentityToken.principal}")
-        internalValidateAuthInfo(taskIdentityToken, LoanPermissions.GRANT_PERMISSION.context(service, scope))
+        val effectiveScope: AuthScope
+        if(scope==ANYSCOPE) {
+            val scopes = (tokenPermissions[taskIdentityToken.tokenValue]
+                ?.asSequence()
+                ?: emptySequence())
+                .map { it.scope }
+                .filterIsInstance<LoanPermissions.GRANT_PERMISSION.ContextScope>()
+                .filter { it.serviceId == serviceId }
+                .ifEmpty { throw AuthorizationException("The token $taskIdentityToken has no permission to create delegate tokens") }
+                .map { it.childScope }
+                .toList()
+            if (scopes.size!=1) throw UnsupportedOperationException("Multiple authorizations in a single scope are not yet supported")
+            effectiveScope = scopes.single()
+        } else {
+            effectiveScope = scope
+            internalValidateAuthInfo(taskIdentityToken, LoanPermissions.GRANT_PERMISSION.context(service, scope))
+        }
 
 /*
         val tokenPermissions = tokenPermissions.get(taskIdentityToken.tokenValue) ?:emptyList<Permission>()
@@ -195,7 +212,7 @@ class AuthService(val logger: Logger): Service {
 */
         // TODO look up permissions for taskIdentityToken
 
-        return AuthToken(principal, taskIdentityToken.nodeInstanceHandle, Random.nextString(), serviceId, scope).also {
+        return AuthToken(principal, taskIdentityToken.nodeInstanceHandle, Random.nextString(), serviceId, effectiveScope).also {
             activeTokens.add(it)
             logger.log(Level.INFO, "getAuthTokenDirect($taskIdentityToken) = $it")
         }

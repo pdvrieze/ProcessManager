@@ -24,6 +24,7 @@ import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.test.loanOrigination.auth.IdSecretAuthInfo
+import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
 import nl.adaptivity.process.engine.test.loanOrigination.systems.CreditApplication
 import nl.adaptivity.process.engine.test.loanOrigination.systems.*
 import java.security.Principal
@@ -49,9 +50,15 @@ class LoanContextFactory(authLogger: Logger) : ProcessContextFactory<LoanActivit
         GeneralClientService(authService)
 
     private val taskLists = mutableMapOf<Principal, TaskList>()
-    private val taskListClientAuth =
-        IdSecretAuthInfo(SimplePrincipal("TaskList:${Random.nextString()}"))
-    val taskListClientId get() = taskListClientAuth.principal.name
+    private val taskListClientAuth = IdSecretAuthInfo(SimplePrincipal("TaskList:${Random.nextString()}"))
+
+    val customerData = CustomerData(
+        "cust123456",
+        "taxId234",
+        "passport345",
+        "John Doe",
+        "10 Downing Street"
+                                   )
 
 
     override fun newActivityInstanceContext(
@@ -88,5 +95,11 @@ class LoanContextFactory(authLogger: Logger) : ProcessContextFactory<LoanActivit
     fun taskList(principal: Principal): TaskList {
         return taskLists.getOrPut(principal) { TaskList(authService, taskListClientAuth, principal) }
     }
+
+
+    val clerk1 = Browser(SimplePrincipal("preprocessing clerk 1"))
+    val postProcClerk = Browser(SimplePrincipal("postprocessing clerk 2"))
+    val customer = Browser(SimplePrincipal("Customer"))
+
 }
 

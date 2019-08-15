@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine.test.loanOrigination.auth
 
 import nl.adaptivity.process.engine.test.loanOrigination.systems.AuthService
+import nl.adaptivity.process.engine.test.loanOrigination.systems.Browser
 import kotlin.random.Random
 import kotlin.random.nextULong
 
@@ -33,5 +34,11 @@ open class ServiceImpl(val authService: AuthService, protected val serviceAuth: 
 
     protected fun validateAuthInfo(authInfo: AuthInfo, scope: AuthScope) {
         authService.validateAuthInfo(this, authInfo, scope)
+    }
+
+    fun loginBrowser(browser: Browser): AuthToken {
+        return browser.loginToService(authService, this)
+
+
     }
 }

@@ -49,14 +49,7 @@ class PricedLoanProductBundle : LoanProductBundle {
     }
 
     fun approve(): PricedLoanProductBundle {
-        return PricedLoanProductBundle(
-            name,
-            id,
-            customerId,
-            amount,
-            price,
-            true
-                                      )
+        return PricedLoanProductBundle(name, id, customerId, amount, price, true)
     }
 }
 

@@ -50,15 +50,16 @@ class TaskList(authService:AuthService, clientAuth: IdSecretAuthInfo, val princi
         tokens.removeIf { it.nodeInstanceHandle == nodeInstanceHandle }
     }
 
-    fun contextImpl(): Context = ContextImpl()
+    fun contextImpl(browser: Browser): Context = ContextImpl(browser)
 
     interface Context {
-        fun loginToService(user: Principal, service: Service, scope: AuthScope): AuthToken
+        fun loginToService(service: ServiceImpl): AuthToken
     }
 
-    private inner class ContextImpl: Context {
-        override fun loginToService(user: Principal, service: Service, scope: AuthScope): AuthToken {
-            return authService.getAuthTokenDirect(user, taskIdentityToken!!, service, scope)
+    private inner class ContextImpl(val browser: Browser) : Context {
+        override fun loginToService(service: ServiceImpl): AuthToken {
+            return browser.loginToService(service)
+//            return authService.getAuthTokenDirect(browser.user, taskIdentityToken!!, service, ANYSCOPE)
         }
 
     }

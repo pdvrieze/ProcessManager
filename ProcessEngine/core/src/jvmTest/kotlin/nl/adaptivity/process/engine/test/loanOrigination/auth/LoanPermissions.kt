@@ -80,8 +80,8 @@ sealed class LoanPermissions : AuthScope {
         }
 
         class ContextScope(
-            private val serviceId: String,
-            private val childScope: AuthScope
+            val serviceId: String,
+            val childScope: AuthScope
                           ) : AuthScope {
 
             override fun includes(scope: AuthScope): Boolean = when (scope) {

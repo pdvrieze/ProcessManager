@@ -19,6 +19,7 @@ package nl.adaptivity.process.engine.test.loanOrigination
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.test.loanOrigination.auth.*
+import nl.adaptivity.process.engine.test.loanOrigination.systems.Browser
 import nl.adaptivity.process.engine.test.loanOrigination.systems.TaskList
 import nl.adaptivity.util.security.Principal
 import java.util.*
@@ -29,20 +30,20 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
 
     private val pendingPermissions = ArrayDeque<PendingPermission>()
 
-    inline fun <R> acceptActivity(principal: SimplePrincipal, action: TaskList.Context.() -> R): R {
-        acceptActivityImpl(principal)
-        return taskList.contextImpl().action()
+    inline fun <R> acceptBrowserActivity(browser: Browser, action: TaskList.Context.() -> R): R {
+        acceptActivityImpl(browser)
+        return taskList.contextImpl(browser).action()
     }
 
     @PublishedApi
-    internal fun acceptActivityImpl(principal: SimplePrincipal) {
+    internal fun acceptActivityImpl(browser: Browser) {
         if (::taskList.isInitialized) {
-            if (taskList.principal != principal) {
+            if (taskList.principal != browser.user) {
                 throw UnsupportedOperationException("Attempting to change the user for an activity after it has already been set")
             }
         } else {
-            taskList = processContext.loanContextFactory.taskList(principal)
-            owner = principal
+            taskList = processContext.taskList(browser.user)
+            owner = browser.user
         }
         val hNodeInstance = handle
         val taskListToEngineAuthToken = with(processContext) {
@@ -64,6 +65,7 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
                 processContext.authService,
                 LoanPermissions.GRANT_PERMISSION.context(pendingPermission.service, pendingPermission.scope))
         }
+        browser.addToken(taskIdentityToken)
     }
 
     fun serviceTask(): AuthorizationCode {

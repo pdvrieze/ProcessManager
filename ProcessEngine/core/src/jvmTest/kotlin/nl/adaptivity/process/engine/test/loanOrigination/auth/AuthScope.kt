@@ -26,6 +26,15 @@ interface AuthScope {
     val description: String get() = toString()
 }
 
+object ANYSCOPE: AuthScope {
+    override fun includes(scope: AuthScope): Boolean {
+        return false
+    }
+
+    override val description get() = "*"
+    override fun toString() = "AnyScope"
+}
+
 fun AuthScope(description: String) = object : AuthScope {
     override val description: String get() = description
     override fun includes(scope: AuthScope): Boolean {
