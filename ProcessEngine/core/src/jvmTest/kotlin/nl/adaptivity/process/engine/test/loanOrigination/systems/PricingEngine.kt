@@ -17,13 +17,14 @@
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
 import nl.adaptivity.process.engine.test.loanOrigination.auth.Service
+import nl.adaptivity.process.engine.test.loanOrigination.auth.ServiceImpl
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanProductBundle
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.PricedLoanProductBundle
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanEvaluation
 import java.util.*
 import kotlin.random.Random
 
-class PricingEngine(authService: AuthService): Service(authService, "Pricing_Engine") {
+class PricingEngine(authService: AuthService): ServiceImpl(authService, "Pricing_Engine") {
 
     fun priceLoan(chosenProduct: LoanProductBundle, loanEval: LoanEvaluation): PricedLoanProductBundle {
         return chosenProduct.withPrice(loanEval.customerId, 0.05)

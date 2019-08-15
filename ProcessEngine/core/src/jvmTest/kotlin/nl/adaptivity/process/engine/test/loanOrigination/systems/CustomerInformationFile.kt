@@ -19,7 +19,7 @@ package nl.adaptivity.process.engine.test.loanOrigination.systems
 import nl.adaptivity.process.engine.test.loanOrigination.auth.*
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
 
-class CustomerInformationFile(authService: AuthService): Service(authService, "Customer_Information_File") {
+class CustomerInformationFile(authService: AuthService): ServiceImpl(authService, "Customer_Information_File") {
 
     private val customerData = mutableMapOf<String, CustomerData>()
 

@@ -20,14 +20,18 @@ import nl.adaptivity.process.engine.test.loanOrigination.systems.AuthService
 import kotlin.random.Random
 import kotlin.random.nextULong
 
-open class Service(val authService: AuthService, val serviceAuth: IdSecretAuthInfo) {
+interface Service {
+    val serviceId: String
+}
 
-    val serviceId: String get() = serviceAuth.principal.name
+open class ServiceImpl(val authService: AuthService, protected val serviceAuth: IdSecretAuthInfo) : Service {
+
+    override val serviceId: String get() = serviceAuth.principal.name
 
     @UseExperimental(ExperimentalUnsignedTypes::class)
     constructor(authService: AuthService, name: String): this(authService, authService.registerClient(name, Random.nextULong().toString(16)))
 
-    fun validateAuthInfo(authInfo: AuthInfo, scope: AuthScope) {
+    protected fun validateAuthInfo(authInfo: AuthInfo, scope: AuthScope) {
         authService.validateAuthInfo(this, authInfo, scope)
     }
 }

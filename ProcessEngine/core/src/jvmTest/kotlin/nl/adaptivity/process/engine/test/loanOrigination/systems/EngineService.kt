@@ -20,10 +20,11 @@ import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthInfo
 import nl.adaptivity.process.engine.test.loanOrigination.auth.IdSecretAuthInfo
 import nl.adaptivity.process.engine.test.loanOrigination.auth.Service
+import nl.adaptivity.process.engine.test.loanOrigination.auth.ServiceImpl
 
 class EngineService(
     private val engineData: ProcessEngineDataAccess,
     authService: AuthService,
     serviceAuth: IdSecretAuthInfo
-                   ) : Service(authService, serviceAuth) {
+                   ) : ServiceImpl(authService, serviceAuth) {
 }

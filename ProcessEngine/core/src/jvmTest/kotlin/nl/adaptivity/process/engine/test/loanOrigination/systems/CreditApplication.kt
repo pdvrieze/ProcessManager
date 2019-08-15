@@ -19,6 +19,7 @@ package nl.adaptivity.process.engine.test.loanOrigination.systems
 import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthInfo
 import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthorizationCode
 import nl.adaptivity.process.engine.test.loanOrigination.auth.Service
+import nl.adaptivity.process.engine.test.loanOrigination.auth.ServiceImpl
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CreditReport
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanApplication
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanEvaluation
@@ -26,7 +27,7 @@ import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanEvaluatio
 class CreditApplication(
     authService: AuthService,
     val customerInformationFile: CustomerInformationFile
-                       ): Service(authService, "Credit_Application") {
+                       ): ServiceImpl(authService, "Credit_Application") {
     fun evaluateLoan(authInfo: AuthInfo, delegateAuthorization:AuthorizationCode, application: LoanApplication, creditReport: CreditReport): LoanEvaluation {
         val cifServiceAuth = authService.getAuthToken(serviceAuth, delegateAuthorization)
         val customer = customerInformationFile.getCustomerData(cifServiceAuth, application.customerId)!!

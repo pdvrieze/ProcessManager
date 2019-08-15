@@ -19,14 +19,11 @@ package nl.adaptivity.process.engine.test.loanOrigination.systems
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
-import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthToken
-import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthorizationCode
-import nl.adaptivity.process.engine.test.loanOrigination.auth.IdSecretAuthInfo
-import nl.adaptivity.process.engine.test.loanOrigination.auth.Service
+import nl.adaptivity.process.engine.test.loanOrigination.auth.*
 import java.lang.IllegalStateException
 import java.security.Principal
 
-class TaskList(authService:AuthService, clientAuth: IdSecretAuthInfo, val principal: Principal): Service(authService, clientAuth) {
+class TaskList(authService:AuthService, clientAuth: IdSecretAuthInfo, val principal: Principal): ServiceImpl(authService, clientAuth) {
     private val tokens = mutableListOf<AuthToken>()
 
     var taskIdentityToken: AuthToken? = null

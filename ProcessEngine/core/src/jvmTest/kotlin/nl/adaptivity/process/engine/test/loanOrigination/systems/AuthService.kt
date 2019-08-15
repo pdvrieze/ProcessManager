@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
 import net.devrieze.util.Handle
+import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
@@ -28,9 +29,11 @@ import kotlin.random.Random
 import kotlin.random.nextUInt
 import kotlin.random.nextULong
 
-class AuthService(val logger: Logger) {
+class AuthService(val logger: Logger): Service {
     @UseExperimental(ExperimentalUnsignedTypes::class)
     val authServiceId = "AuthService:${Random.nextUInt().toString(16)}"
+    override val serviceId: String
+        get() = authServiceId
 
     private val registeredClients = mutableMapOf<String, ClientInfo>()
     private val authorizationCodes= mutableMapOf<AuthorizationCode, AuthToken>()
@@ -65,9 +68,13 @@ class AuthService(val logger: Logger) {
     private fun validateAuthTokenPermission(serviceId: String, authToken: AuthToken, scope: AuthScope) {
         if(authToken !in activeTokens) throw AuthorizationException("Token not active: $authToken")
 //        val tokenPermissions = tokenPermissions.get(authToken.tokenValue) ?:emptyList<Permission>()
-        val hasPermission = authToken.serviceId==serviceId && authToken.scope.includes(scope)
-        if (!hasPermission) {
-            throw AuthorizationException("No permission found for token $authToken to $serviceId.$scope")
+        val hasPermissionDirectPermission = authToken.serviceId==serviceId && authToken.scope.includes(scope)
+        if (!hasPermissionDirectPermission) {
+            val additionalPermissions = tokenPermissions[authToken.tokenValue]?: emptyList<Permission>()
+            val hasExtPermission = additionalPermissions.any { it.serviceId==serviceId && it.scope.includes(scope) }
+            if (!hasExtPermission) {
+                throw AuthorizationException("No permission found for token $authToken to $serviceId.$scope")
+            }
         }
         logger.log(Level.INFO, "validateTokenPermissions(clientId = $serviceId, token = $authToken, scope = $scope)")
     }
@@ -92,13 +99,46 @@ class AuthService(val logger: Logger) {
         service: Service,
         scope: AuthScope
                                ): AuthorizationCode {
-        val serviceId = service.serviceId
-        internalValidateAuthInfo(auth, LoanPermissions.GRANT_PERMISSION.context(serviceId))
+        return createAuthorizationCodeImpl(auth, clientId, nodeInstanceHandle, service, scope)
+    }
+
+    /**
+     * Create an authorization code for a client to access the service with given scope
+     * @param auth Authorization for this action
+     * @param clientId The client that is being authorized
+     * @param nodeInstanceHandle The node instance related to this authorization
+     * @param service The service being authorized
+     * @param scope The scope being authorized
+     */
+    fun createAuthorizationCode(
+        auth: AuthInfo,
+        clientId: String,
+        service: Service,
+        scope: AuthScope
+                               ): AuthorizationCode {
+        val nodeInstanceHandle = auth.getNodeInstanceHandle()
+        return createAuthorizationCodeImpl(auth, clientId, nodeInstanceHandle, service, scope)
+    }
+
+    private fun AuthInfo.getNodeInstanceHandle(): Handle<SecureObject<ProcessNodeInstance<*>>> = when(this) {
+        is AuthToken -> nodeInstanceHandle
+        else -> getInvalidHandle()
+    }
+
+    private fun createAuthorizationCodeImpl(
+        auth: AuthInfo,
+        clientId: String,
+        nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>,
+        service: Service,
+        scope: AuthScope
+                                           ): AuthorizationCode {
+        internalValidateAuthInfo(auth, LoanPermissions.GRANT_PERMISSION.context(service.serviceId))
 
         val clientPrincipal = clientFromId(clientId)
-        val token = AuthToken(clientPrincipal, nodeInstanceHandle, Random.nextString(), serviceId, scope)
+        val token = AuthToken(clientPrincipal, nodeInstanceHandle, Random.nextString(), service.serviceId, scope)
         val authorizationCode = AuthorizationCode(Random.nextString())
         authorizationCodes[authorizationCode] = token
+        activeTokens.add(token)
         logger.log(Level.INFO, "createAuthorizationCode(code = ${authorizationCode.code}, token = $token)")
         return authorizationCode
     }
@@ -113,11 +153,12 @@ class AuthService(val logger: Logger) {
         val token =
             authorizationCodes.get(authorizationCode) ?: throw AuthorizationException("authorization code invalid")
 
+        if(token !in activeTokens) throw AuthorizationException("Authorization code expired")
+
         if(token.principal!=clientAuth.principal) throw AuthorizationException("Invalid client for authentication code")
 
         logger.log(Level.INFO, "authTokenFromAuthorization(authorization = $authorizationCode) = $token")
         authorizationCodes.remove(authorizationCode)
-        activeTokens.add(token)
         return token
     }
 
@@ -151,6 +192,11 @@ class AuthService(val logger: Logger) {
             activeTokens.add(it)
             logger.log(Level.INFO, "getAuthTokenDirect($taskIdentityToken) = $it")
         }
+    }
+
+    fun grantPermission(auth: AuthInfo, authorizationCode: AuthorizationCode, service: Service, scope: AuthScope) {
+        val authToken = authorizationCodes[authorizationCode] ?: throw AuthorizationException("Invalid authorization code")
+        grantPermission(auth, authToken, service, scope)
     }
 
     fun grantPermission(auth: AuthInfo, taskIdToken: AuthToken, service: Service, scope: AuthScope) {

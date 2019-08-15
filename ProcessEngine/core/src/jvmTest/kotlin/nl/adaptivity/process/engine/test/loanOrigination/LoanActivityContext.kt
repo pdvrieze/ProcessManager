@@ -18,10 +18,7 @@ package nl.adaptivity.process.engine.test.loanOrigination
 
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ActivityInstanceContext
-import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthScope
-import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthToken
-import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
-import nl.adaptivity.process.engine.test.loanOrigination.auth.Service
+import nl.adaptivity.process.engine.test.loanOrigination.auth.*
 import nl.adaptivity.process.engine.test.loanOrigination.systems.TaskList
 import nl.adaptivity.util.security.Principal
 import java.util.*
@@ -30,7 +27,7 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
     override var owner: Principal = baseContext.owner
         private set
 
-    private val pendingPermissions = ArrayDeque<(AuthToken)->Unit>()
+    private val pendingPermissions = ArrayDeque<PendingPermission>()
 
     fun acceptActivity(principal: SimplePrincipal) {
         if (::taskList.isInitialized) {
@@ -44,7 +41,7 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
         val hNodeInstance = handle
         val taskListToEngineAuthToken = with (processContext) {
             authService.createAuthorizationCode(
-                engineService.serviceAuth,
+                engineServiceAuth,
                 taskList.serviceId,
                 hNodeInstance,
                 engineService,
@@ -55,8 +52,24 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
         val taskIdentityToken = taskList.registerToken(taskListToEngineAuthToken)
         while(pendingPermissions.isNotEmpty()) {
             val pendingPermission = pendingPermissions.removeFirst()
-            pendingPermission(taskIdentityToken)
+            processContext.authService.grantPermission(engineServiceAuth, taskIdentityToken, pendingPermission.service, pendingPermission.scope)
         }
+    }
+
+    fun serviceTask(): AuthorizationCode {
+        if (::taskList.isInitialized) {
+            throw UnsupportedOperationException("Attempting to mark as service task an activity that has already been marked for users")
+        }
+        val serviceAuthorization = with(processContext) {
+            authService.createAuthorizationCode(engineServiceAuth, generalClientService.serviceId, this@LoanActivityContext.handle, authService, LoanPermissions.IDENTIFY)
+        }
+        val tokenForAuthz = serviceAuthorization
+        while(pendingPermissions.isNotEmpty()) {
+            val pendingPermission = pendingPermissions.removeFirst()
+            processContext.authService.grantPermission(engineServiceAuth, serviceAuthorization, pendingPermission.service, pendingPermission.scope)
+        }
+
+        return serviceAuthorization
     }
 
     /**
@@ -64,11 +77,12 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
      *      and in acceptActivity.
      */
     fun registerTaskPermission(service: Service, scope: AuthScope) {
-        pendingPermissions.add { taskIdToken ->
-            processContext.authService.grantPermission(processContext.loanContextFactory.engineClientAuth, taskIdToken, service, scope)
-        }
+        pendingPermissions.add(PendingPermission(null, service, scope))
     }
 
     lateinit var taskList: TaskList
 
+    private val engineServiceAuth: IdSecretAuthInfo get() = processContext.loanContextFactory.engineClientAuth
+
+    private class PendingPermission(val clientId: String? = null, val service: Service, val scope: AuthScope)
 }

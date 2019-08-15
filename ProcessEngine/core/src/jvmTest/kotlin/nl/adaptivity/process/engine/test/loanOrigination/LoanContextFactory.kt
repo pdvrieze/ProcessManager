@@ -43,9 +43,11 @@ class LoanContextFactory(authLogger: Logger): ProcessContextFactory<LoanActivity
     val outputManagementSystem = OutputManagementSystem(authService)
     val accountManagementSystem = AccountManagementSystem(authService)
     val creditBureau = CreditBureau(authService)
-    val creditApplication =
-        CreditApplication(authService, customerFile)
+    val creditApplication = CreditApplication(authService, customerFile)
     val pricingEngine = PricingEngine(authService)
+    val generalClientService =
+        GeneralClientService(authService)
+
     private val taskLists = mutableMapOf<Principal, TaskList>()
     private val taskListClientAuth =
         IdSecretAuthInfo(SimplePrincipal("TaskList:${Random.nextString()}"))
@@ -86,3 +88,4 @@ class LoanContextFactory(authLogger: Logger): ProcessContextFactory<LoanActivity
         return taskLists.getOrPut(principal) { TaskList(authService, taskListClientAuth, principal) }
     }
 }
+

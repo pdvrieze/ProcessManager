@@ -21,6 +21,7 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.ProcessInstanceContext
+import nl.adaptivity.process.engine.test.loanOrigination.auth.IdSecretAuthInfo
 import nl.adaptivity.process.engine.test.loanOrigination.systems.EngineService
 
 class LoanProcessContext(
@@ -36,5 +37,7 @@ class LoanProcessContext(
     val creditApplication get() = loanContextFactory.creditApplication
     val pricingEngine get() = loanContextFactory.pricingEngine
     val authService get() = loanContextFactory.authService
+    val generalClientService get() = loanContextFactory.generalClientService
     val engineService = EngineService(engineData, loanContextFactory.authService, loanContextFactory.engineClientAuth)
+
 }
