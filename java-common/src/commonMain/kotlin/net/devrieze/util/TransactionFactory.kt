@@ -19,7 +19,7 @@ package net.devrieze.util
 /**
  * Created by pdvrieze on 18/08/15.
  */
-interface TransactionFactory<T : Transaction> {
+interface TransactionFactory<out T : Transaction> {
 
     fun startTransaction(): T
 

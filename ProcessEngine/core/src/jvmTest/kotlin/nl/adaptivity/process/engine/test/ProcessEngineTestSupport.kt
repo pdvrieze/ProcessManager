@@ -25,6 +25,7 @@ import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.dropStack
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.MemTransactionedHandleMap
+import nl.adaptivity.process.StubTransactionFactory
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.ProcessInstance.*
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
@@ -44,7 +45,11 @@ import kotlin.collections.ArrayList
 
 open class ProcessEngineTestSupport(): BaseProcessEngineTestSupport<ActivityInstanceContext>(ProcessContextFactory.DEFAULT)
 
+typealias ProcessEngineFactory<A> = (StubMessageService, ProcessTransactionFactory<StubProcessTransaction>, ProcessContextFactory<A>)->ProcessEngine<StubProcessTransaction, A>
+
 open class BaseProcessEngineTestSupport<A : ActivityInstanceContext>(val contextFactory: ProcessContextFactory<A>) {
+    val processEngineFactory: ProcessEngineFactory<A> = Companion::defaultEngineFactory
+
     protected lateinit var processEngine: ProcessEngine<StubProcessTransaction, A>
     private val localEndpoint = EndpointDescriptorImpl(QName.valueOf("processEngine"),
                                                        "processEngine",
@@ -170,15 +175,7 @@ open class BaseProcessEngineTestSupport<A : ActivityInstanceContext>(val context
         //                                            cache(new MemProcessModelMap(), 1),
         //                                            cache(new MemTransactionedHandleMap<>(), 1),
         //                                            cache(new MemTransactionedHandleMap<>(), 2));
-
-        processEngine = ProcessEngine.newTestInstance(
-            stubMessageService,
-            stubTransactionFactory,
-            cacheModels<Any>(MemProcessModelMap(), 3),
-            cacheInstances(MemTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>(), 1),
-            cacheNodes<Any>(MemTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction>(PNI_SET_HANDLE), 2), true, Logger.getAnonymousLogger(),
-            contextFactory
-                                                     )
+        processEngine = processEngineFactory(stubMessageService, stubTransactionFactory, contextFactory)
     }
 
     fun assertEqualsXml(expected: String?, actual: String?) {
@@ -195,6 +192,17 @@ open class BaseProcessEngineTestSupport<A : ActivityInstanceContext>(val context
     }
 
     companion object {
+
+        private fun <A: ActivityInstanceContext> defaultEngineFactory(messageService: StubMessageService, transactionFactory: ProcessTransactionFactory<StubProcessTransaction>, contextFactory: ProcessContextFactory<A>): ProcessEngine<StubProcessTransaction, A> {
+            return ProcessEngine.newTestInstance(
+                messageService,
+                transactionFactory,
+                cacheModels<Any>(MemProcessModelMap(), 3),
+                cacheInstances(MemTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>(), 1),
+                cacheNodes<Any>(MemTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction>(PNI_SET_HANDLE), 2), true, Logger.getAnonymousLogger(),
+                contextFactory
+                                         )
+        }
 
         internal val PNI_SET_HANDLE = fun(transaction: StubProcessTransaction, pni: SecureObject<ProcessNodeInstance<*>>, handle: Handle<SecureObject<ProcessNodeInstance<*>>>): SecureObject<ProcessNodeInstance<*>>? {
             if (pni.withPermission().handle == handle) {

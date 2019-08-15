@@ -17,12 +17,13 @@
 package nl.adaptivity.process
 
 import net.devrieze.util.Transaction
+import net.devrieze.util.TransactionFactory
 
 
 /**
  * Created by pdvrieze on 09/12/15.
  */
-class StubTransactionFactory : net.devrieze.util.TransactionFactory<StubTransaction> {
+class StubTransactionFactory : TransactionFactory<StubTransaction> {
 
   private val transaction = StubTransaction()
 
