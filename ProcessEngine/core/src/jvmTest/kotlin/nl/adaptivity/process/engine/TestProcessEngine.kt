@@ -133,55 +133,64 @@ class TestProcessEngine: ProcessEngineTestSupport() {
     @Throws(Exception::class)
     fun testExecuteSingleActivity() {
         val model = getProcessModel("testModel1.xml")
-        val transaction = processEngine.startTransaction()
-        val engineData = transaction.writableEngineData
-        val modelHandle = processEngine.addProcessModel(transaction, model, modelOwnerPrincipal)
+        testRawEngine { processEngine ->
+            val transaction = processEngine.startTransaction()
+            val engineData = transaction.writableEngineData
+            val modelHandle = processEngine.addProcessModel(transaction, model, modelOwnerPrincipal)
 
-        val instanceHandle = processEngine.startProcess(transaction, modelOwnerPrincipal, modelHandle, "testInstance1", UUID.randomUUID(), null)
+            val instanceHandle = processEngine.startProcess(
+                transaction,
+                modelOwnerPrincipal,
+                modelHandle,
+                "testInstance1",
+                UUID.randomUUID(),
+                null
+                                                           )
 
-        assertEquals(1, stubMessageService._messages.size)
-        assertEquals(1L, stubMessageService.getMessageNode(0).handleValue)
+            assertEquals(1, stubMessageService._messages.size)
+            assertEquals(1L, stubMessageService.getMessageNode(0).handleValue)
 
-        val expected = getXml("testModel1_task1.xml")!!
+            val expected = getXml("testModel1_task1.xml")!!
 
-        val receivedChars = serializeToXmlCharArray(stubMessageService._messages[0].base)
+            val receivedChars = serializeToXmlCharArray(stubMessageService._messages[0].base)
 
-        assertEqualsXml(expected, receivedChars)
+            assertEqualsXml(expected, receivedChars)
 
-        if(true) {
-            val processInstance = transaction.getInstance(instanceHandle).assertIsStarted()
+            if (true) {
+                val processInstance = transaction.getInstance(instanceHandle).assertIsStarted()
 
-            assertEquals(1, processInstance.active.size)
+                assertEquals(1, processInstance.active.size)
 
-            processInstance.child(transaction, "start").assertComplete().let { start ->
-                processInstance.assertFinished(start)
-                assertTrue(start.node is ExecutableStartNode)
-            }
-
-            processInstance.assertCompleted() // no completions
-
-            val taskNode = stubMessageService.messageNode(transaction, 0)
-            taskNode.assertAcknowledged()
-            processInstance.assertActive(taskNode)
-            processInstance.update(engineData) {
-                updateChild(taskNode) {
-                    finishTask(engineData)
-                    assertComplete()
+                processInstance.child(transaction, "start").assertComplete().let { start ->
+                    processInstance.assertFinished(start)
+                    assertTrue(start.node is ExecutableStartNode)
                 }
+
+                processInstance.assertCompleted() // no completions
+
+                val taskNode = stubMessageService.messageNode(transaction, 0)
+                taskNode.assertAcknowledged()
+                processInstance.assertActive(taskNode)
+                processInstance.update(engineData) {
+                    updateChild(taskNode) {
+                        finishTask(engineData)
+                        assertComplete()
+                    }
+                }
+                // process the queue as the we are going around the engine.
+                processEngine.processTickleQueue(transaction)
             }
-            // process the queue as the we are going around the engine.
-            processEngine.processTickleQueue(transaction)
-        }
 
-        if(true) {
-            val processInstance = transaction.getInstance(instanceHandle).assertIsFinished()
-            val start = processInstance.child(transaction, "start")
-            val ac = processInstance.child(transaction, "ac2")
-            val end = processInstance.child(transaction, "end")
-            processInstance.assertActive()
-            processInstance.assertFinished(start, ac)
-            processInstance.assertCompleted(end)
+            if (true) {
+                val processInstance = transaction.getInstance(instanceHandle).assertIsFinished()
+                val start = processInstance.child(transaction, "start")
+                val ac = processInstance.child(transaction, "ac2")
+                val end = processInstance.child(transaction, "end")
+                processInstance.assertActive()
+                processInstance.assertFinished(start, ac)
+                processInstance.assertCompleted(end)
 
+            }
         }
     }
 
@@ -193,7 +202,7 @@ class TestProcessEngine: ProcessEngineTestSupport() {
             val ac = activity { id="ac"; predecessor=start.identifier; condition=ExecutableCondition.FALSE }
             val end = endNode { id="end"; predecessor=ac }
         }
-        testProcess(model) { transaction, model, instanceHandle ->
+        testProcess(model) { processEngine, transaction, model, instanceHandle ->
             transaction.readableEngineData.instance(instanceHandle).withPermission().let { instance ->
                 val start = instance.child(transaction, "start")
                 val ac = instance.child(transaction, "ac").apply { assertState(NodeInstanceState.Skipped) }
@@ -212,7 +221,7 @@ class TestProcessEngine: ProcessEngineTestSupport() {
             val ac = activity { id="ac"; predecessor=start.identifier; condition("true()") }
             val end = endNode { id="end"; predecessor=ac }
         }
-        testProcess(model) { transaction, model, instanceHandle ->
+        testProcess(model) { processEngine, transaction, model, instanceHandle ->
             transaction.readableEngineData.instance(instanceHandle).withPermission().let { instance ->
                 val start = instance.child(transaction, "start")
                 val ac = instance.child(transaction, "ac").assertAcknowledged()
@@ -225,7 +234,7 @@ class TestProcessEngine: ProcessEngineTestSupport() {
 
     @Test
     fun testSplitJoin1() {
-        testProcess(simpleSplitModel) { protoTransaction, model, instanceHandle ->
+        testProcess(simpleSplitModel) { processEngine, protoTransaction, model, instanceHandle ->
             val transaction = protoTransaction as StubProcessTransaction
             val engineData = transaction.writableEngineData
             run {
@@ -327,79 +336,105 @@ class TestProcessEngine: ProcessEngineTestSupport() {
     @Throws(Exception::class)
     fun testGetDataFromTask() {
         val model = getProcessModel("testModel2.xml")
-        val transaction = processEngine.startTransaction()
-        val engineData = transaction.writableEngineData
-        val modelHandle = processEngine.addProcessModel(transaction, model, modelOwnerPrincipal)
+        testRawEngine { processEngine ->
+            val transaction = processEngine.startTransaction()
+            val engineData = transaction.writableEngineData
+            val modelHandle = processEngine.addProcessModel(transaction, model, modelOwnerPrincipal)
 
-        val instanceHandle = processEngine.startProcess(transaction, modelOwnerPrincipal, modelHandle, "testInstance1", UUID.randomUUID(), null)
+            val instanceHandle = processEngine.startProcess(
+                transaction,
+                modelOwnerPrincipal,
+                modelHandle,
+                "testInstance1",
+                UUID.randomUUID(),
+                null
+                                                           )
 
-        assertEquals(1, stubMessageService._messages.size)
+            assertEquals(1, stubMessageService._messages.size)
 
-        assertEqualsXml(getXml("testModel2_task1.xml")!!, serializeToXmlCharArray(stubMessageService
-                                                                                      ._messages[0].base))
+            assertEqualsXml(
+                getXml("testModel2_task1.xml")!!, serializeToXmlCharArray(
+                    stubMessageService
+                        ._messages[0].base
+                                                                         )
+                           )
 
-        var ac1: ProcessNodeInstance<*> = processEngine.getNodeInstance(transaction, stubMessageService.getMessageNode(0), modelOwnerPrincipal) ?: throw AssertionError("Message node not found")// This should be 0 as it's the first activity
+            var ac1: ProcessNodeInstance<*> =
+                processEngine.getNodeInstance(transaction, stubMessageService.getMessageNode(0), modelOwnerPrincipal)
+                    ?: throw AssertionError("Message node not found")// This should be 0 as it's the first activity
 
-        ac1.node.results.let { r ->
-            assertArrayEquals(CharArray(0), r[0].content)
-            assertEquals("name", r[0].getName())
-            assertEquals("user", r[1].getName())
-            assertEquals("/umh:result/umh:value[@name='user']/text()", r[0].getPath())
-            assertEquals(null, r[1].getPath())
+            ac1.node.results.let { r ->
+                assertArrayEquals(CharArray(0), r[0].content)
+                assertEquals("name", r[0].getName())
+                assertEquals("user", r[1].getName())
+                assertEquals("/umh:result/umh:value[@name='user']/text()", r[0].getPath())
+                assertEquals(null, r[1].getPath())
 
-            assertEquals(listOf(XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")),
-                         r[0].originalNSContext.sortedBy { it.prefix })
-            if (r[1].originalNSContext.count()==1) {
                 assertEquals(listOf(XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")),
-                             r[1].originalNSContext.toList())
-            } else {
-                assertEquals(listOf(XmlEvent.NamespaceImpl("", "http://adaptivity.nl/ProcessEngine/"),
-                                    XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")),
-                             r[1].originalNSContext.sortedBy { it.prefix })
+                             r[0].originalNSContext.sortedBy { it.prefix })
+                if (r[1].originalNSContext.count() == 1) {
+                    assertEquals(
+                        listOf(XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")),
+                        r[1].originalNSContext.toList()
+                                )
+                } else {
+                    assertEquals(listOf(
+                        XmlEvent.NamespaceImpl("", "http://adaptivity.nl/ProcessEngine/"),
+                        XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")
+                                       ),
+                                 r[1].originalNSContext.sortedBy { it.prefix })
 
-            }
+                }
 
 
-            val result2ExpectedContent = """|
+                val result2ExpectedContent = """|
                 |      <user xmlns="" xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity">
                 |        <fullname>
                 |          <jbi:value xpath="/umh:result/umh:value[@name='user']/text()"/>
                 |        </fullname>
                 |      </user>
                 |    """.trimMargin("|")
-            assertEquals(result2ExpectedContent, String(r[1].content!!))
+                assertEquals(result2ExpectedContent, String(r[1].content!!))
+            }
+
+            stubMessageService.clear() // (Process the message)
+            assertEquals(0, ac1.results.size)
+            ac1 = processEngine.finishTask(
+                transaction,
+                ac1.handle, getDocument("testModel2_response1.xml").toFragment(), modelOwnerPrincipal
+                                          )
+            assertEquals(NodeInstanceState.Complete, ac1.state)
+            ac1 = processEngine.getNodeInstance(
+                transaction,
+                ac1.handle, modelOwnerPrincipal
+                                               ) ?: throw AssertionError("Node ${ac1.handle} not found")
+            assertEquals(2, ac1.results.size)
+            val result1 = ac1.results[0]
+            val result2 = ac1.results[1]
+            assertEquals("name", result1.name)
+            assertEquals("Paul", result1.content.contentString)
+            assertEquals("user", result2.name)
+
+            result2.content.contentString.let { actual ->
+                val expected = "<user xmlns=''><fullname>Paul</fullname></user>"
+                assertEqualsXml(expected, actual)
+            }
+            assertEquals(1, stubMessageService._messages.size)
+            assertEquals(
+                2L,
+                stubMessageService.getMessageNode(0).handleValue
+                        ) //We should have a new message with the new task (with the data)
+            val ac2 =
+                processEngine.getNodeInstance(transaction, stubMessageService.getMessageNode(0), modelOwnerPrincipal)
+
+            val ac2Defines = ac2!!.getDefines(engineData)
+            assertEquals(1, ac2Defines.size)
+
+
+            val define = ac2Defines[0]
+            assertEquals("mylabel", define.name)
+            assertEquals("Hi Paul. Welcome!", define.content.contentString)
         }
-
-        stubMessageService.clear() // (Process the message)
-        assertEquals(0, ac1.results.size)
-        ac1 = processEngine.finishTask(transaction,
-                                       ac1.handle, getDocument("testModel2_response1.xml").toFragment(), modelOwnerPrincipal)
-        assertEquals(NodeInstanceState.Complete, ac1.state)
-        ac1 = processEngine.getNodeInstance(transaction,
-                                            ac1.handle, modelOwnerPrincipal) ?: throw AssertionError("Node ${ac1.handle} not found")
-        assertEquals(2, ac1.results.size)
-        val result1 = ac1.results[0]
-        val result2 = ac1.results[1]
-        assertEquals("name", result1.name)
-        assertEquals("Paul", result1.content.contentString)
-        assertEquals("user", result2.name)
-
-        result2.content.contentString.let { actual ->
-            val expected = "<user xmlns=''><fullname>Paul</fullname></user>"
-            assertEqualsXml(expected, actual)
-        }
-        assertEquals(1, stubMessageService._messages.size)
-        assertEquals(2L, stubMessageService.getMessageNode(0).handleValue) //We should have a new message with the new task (with the data)
-        val ac2 = processEngine.getNodeInstance(transaction, stubMessageService.getMessageNode(0), modelOwnerPrincipal)
-
-        val ac2Defines = ac2!!.getDefines(engineData)
-        assertEquals(1, ac2Defines.size)
-
-
-        val define = ac2Defines[0]
-        assertEquals("mylabel", define.name)
-        assertEquals("Hi Paul. Welcome!", define.content.contentString)
-
     }
 
     private val simpleSplitModel: ExecutableProcessModel get() {

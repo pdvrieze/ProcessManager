@@ -21,7 +21,8 @@ import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.get
-import nl.adaptivity.process.engine.test.BaseProcessEngineTestSupport
+import nl.adaptivity.process.engine.test.ProcessEngineFactory
+import nl.adaptivity.process.engine.test.ProcessEngineTestSupport
 import nl.adaptivity.process.engine.test.loanOrigination.auth.*
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions.*
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.*
@@ -38,8 +39,7 @@ import java.security.Principal
 import java.util.*
 import java.util.logging.Logger
 
-class TestLoanOrigination :
-    BaseProcessEngineTestSupport<LoanActivityContext>(LoanContextFactory(Logger.getLogger(TestLoanOrigination::class.java.name))) {
+class TestLoanOrigination : ProcessEngineTestSupport() {
 
     @Test
     fun testCreateModel() {
@@ -49,8 +49,9 @@ class TestLoanOrigination :
     @Test
     fun testRunModel() {
         val model = ExecutableProcessModel(Model1(modelOwnerPrincipal).configurationBuilder)
-
-        testProcess(model) { tr, model, hinstance ->
+        val logger = Logger.getLogger(TestLoanOrigination::class.java.name)
+        val pef: ProcessEngineFactory<LoanActivityContext> = { messageService, transactionFactory -> defaultEngineFactory(messageService, transactionFactory, LoanContextFactory(logger))}
+        testProcess(pef, model) { processEngine, tr, model, hinstance ->
             val instance = tr[hinstance]
             assertEquals(ProcessInstance.State.FINISHED, instance.state)
             val creditReport = instance.outputs.singleOrNull { it.name == "creditReport" }

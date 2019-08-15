@@ -25,7 +25,6 @@ import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.dropStack
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.MemTransactionedHandleMap
-import nl.adaptivity.process.StubTransactionFactory
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.ProcessInstance.*
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
@@ -43,14 +42,9 @@ import java.util.*
 import java.util.logging.Logger
 import kotlin.collections.ArrayList
 
-open class ProcessEngineTestSupport(): BaseProcessEngineTestSupport<ActivityInstanceContext>(ProcessContextFactory.DEFAULT)
+typealias ProcessEngineFactory<A> = (StubMessageService, ProcessTransactionFactory<StubProcessTransaction>)->ProcessEngine<StubProcessTransaction, A>
 
-typealias ProcessEngineFactory<A> = (StubMessageService, ProcessTransactionFactory<StubProcessTransaction>, ProcessContextFactory<A>)->ProcessEngine<StubProcessTransaction, A>
-
-open class BaseProcessEngineTestSupport<A : ActivityInstanceContext>(val contextFactory: ProcessContextFactory<A>) {
-    val processEngineFactory: ProcessEngineFactory<A> = Companion::defaultEngineFactory
-
-    protected lateinit var processEngine: ProcessEngine<StubProcessTransaction, A>
+open class ProcessEngineTestSupport {
     private val localEndpoint = EndpointDescriptorImpl(QName.valueOf("processEngine"),
                                                        "processEngine",
                                                        URI.create("http://localhost/"))
@@ -69,14 +63,31 @@ open class BaseProcessEngineTestSupport<A : ActivityInstanceContext>(val context
     private val ProcessInstance.sortedCompleted
         get() = completedEndnodes.sortedBy { it.handleValue }
 
-    protected inline fun <R> testProcess(model: ExecutableProcessModel, payload: CompactFragment? = null, body: (ProcessTransaction, ExecutableProcessModel, HProcessInstance) -> R): R {
+    protected inline fun <R> testProcess(model: ExecutableProcessModel, payload: CompactFragment? = null, body: (ProcessEngine<StubProcessTransaction, ActivityInstanceContext>, ProcessTransaction, ExecutableProcessModel, HProcessInstance) -> R): R {
+        val processEngine = defaultEngineFactory(stubMessageService, stubTransactionFactory, ProcessContextFactory)
         processEngine.startTransaction().use { transaction ->
 
             val modelHandle = processEngine.addProcessModel(transaction, model, modelOwnerPrincipal)
             val instanceHandle = processEngine.startProcess(transaction, modelOwnerPrincipal, modelHandle, "testInstance", UUID.randomUUID(), payload)
 
-            return body(transaction, transaction.readableEngineData.processModel(modelHandle).mustExist(modelHandle).withPermission(), instanceHandle)
+            return body(processEngine, transaction, transaction.readableEngineData.processModel(modelHandle).mustExist(modelHandle).withPermission(), instanceHandle)
         }
+    }
+
+    protected inline fun <AIC: ActivityInstanceContext, R> testProcess(processEngineFactory: ProcessEngineFactory<AIC>, model: ExecutableProcessModel, payload: CompactFragment? = null, body: (ProcessEngine<StubProcessTransaction, AIC>, ProcessTransaction, ExecutableProcessModel, HProcessInstance) -> R): R {
+        val processEngine = processEngineFactory(stubMessageService, stubTransactionFactory)
+        processEngine.startTransaction().use { transaction ->
+
+            val modelHandle = processEngine.addProcessModel(transaction, model, modelOwnerPrincipal)
+            val instanceHandle = processEngine.startProcess(transaction, modelOwnerPrincipal, modelHandle, "testInstance", UUID.randomUUID(), payload)
+
+            return body(processEngine, transaction, transaction.readableEngineData.processModel(modelHandle).mustExist(modelHandle).withPermission(), instanceHandle)
+        }
+    }
+
+    protected inline fun <R> testRawEngine(action: (ProcessEngine<StubProcessTransaction, ActivityInstanceContext>)-> R): R {
+        val processEngine = defaultEngineFactory(stubMessageService, stubTransactionFactory, ProcessContextFactory)
+        return action(processEngine)
     }
 
     protected fun ProcessTransaction.getInstance(instanceHandle: HProcessInstance): ProcessInstance {
@@ -170,12 +181,6 @@ open class BaseProcessEngineTestSupport<A : ActivityInstanceContext>(val context
     @BeforeEach
     fun beforeTest() {
         stubMessageService.clear()
-        //    DelegateProcessEngineData<StubProcessTransaction> engineData =
-        //            new DelegateProcessEngineData<>(mStubTransactionFactory,
-        //                                            cache(new MemProcessModelMap(), 1),
-        //                                            cache(new MemTransactionedHandleMap<>(), 1),
-        //                                            cache(new MemTransactionedHandleMap<>(), 2));
-        processEngine = processEngineFactory(stubMessageService, stubTransactionFactory, contextFactory)
     }
 
     fun assertEqualsXml(expected: String?, actual: String?) {
@@ -193,7 +198,7 @@ open class BaseProcessEngineTestSupport<A : ActivityInstanceContext>(val context
 
     companion object {
 
-        private fun <A: ActivityInstanceContext> defaultEngineFactory(messageService: StubMessageService, transactionFactory: ProcessTransactionFactory<StubProcessTransaction>, contextFactory: ProcessContextFactory<A>): ProcessEngine<StubProcessTransaction, A> {
+        fun <A: ActivityInstanceContext> defaultEngineFactory(messageService: StubMessageService, transactionFactory: ProcessTransactionFactory<StubProcessTransaction>, contextFactory: ProcessContextFactory<A>): ProcessEngine<StubProcessTransaction, A> {
             return ProcessEngine.newTestInstance(
                 messageService,
                 transactionFactory,
