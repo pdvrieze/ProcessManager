@@ -24,9 +24,11 @@ import java.lang.IllegalStateException
 import java.security.Principal
 
 class TaskList(authService:AuthService, clientAuth: IdSecretAuthInfo, val principal: Principal): ServiceImpl(authService, clientAuth) {
+    val nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>? get() = taskIdentityToken?.nodeInstanceHandle
+
     private val tokens = mutableListOf<AuthToken>()
 
-    var taskIdentityToken: AuthToken? = null
+    private var taskIdentityToken: AuthToken? = null
         private set
 
     fun registerToken(authorizationCode: AuthorizationCode): AuthToken {
@@ -46,5 +48,18 @@ class TaskList(authService:AuthService, clientAuth: IdSecretAuthInfo, val princi
         }
         taskIdentityToken = null
         tokens.removeIf { it.nodeInstanceHandle == nodeInstanceHandle }
+    }
+
+    fun contextImpl(): Context = ContextImpl()
+
+    interface Context {
+        fun loginToService(user: Principal, service: Service, scope: AuthScope): AuthToken
+    }
+
+    private inner class ContextImpl: Context {
+        override fun loginToService(user: Principal, service: Service, scope: AuthScope): AuthToken {
+            return authService.getAuthTokenDirect(user, taskIdentityToken!!, service, scope)
+        }
+
     }
 }

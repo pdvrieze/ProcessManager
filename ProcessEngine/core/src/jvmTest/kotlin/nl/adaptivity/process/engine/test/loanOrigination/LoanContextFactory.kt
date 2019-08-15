@@ -31,7 +31,7 @@ import java.util.logging.Logger
 import kotlin.random.Random
 import kotlin.random.nextUInt
 
-class LoanContextFactory(authLogger: Logger): ProcessContextFactory<LoanActivityContext> {
+class LoanContextFactory(authLogger: Logger) : ProcessContextFactory<LoanActivityContext> {
     @UseExperimental(ExperimentalUnsignedTypes::class)
     val engineClientAuth: IdSecretAuthInfo =
         IdSecretAuthInfo(SimplePrincipal("ProcessEngine:${Random.nextUInt().toString(16)}"))
@@ -60,7 +60,8 @@ class LoanContextFactory(authLogger: Logger): ProcessContextFactory<LoanActivity
                                            ): LoanActivityContext {
 
         val instanceHandle = processNodeInstance.processContext.handle
-        val processContext = processContexts.getOrPut(instanceHandle) { LoanProcessContext(engineDataAccess,this, instanceHandle) }
+        val processContext =
+            processContexts.getOrPut(instanceHandle) { LoanProcessContext(engineDataAccess, this, instanceHandle) }
         return LoanActivityContext(processContext, processNodeInstance)
     }
 
@@ -77,7 +78,7 @@ class LoanContextFactory(authLogger: Logger): ProcessContextFactory<LoanActivity
                                       ) {
         val nodeInstanceHandle = processNodeInstance.handle
         for (taskList in taskLists.values) {
-            if(taskList.taskIdentityToken?.nodeInstanceHandle == nodeInstanceHandle) {
+            if (taskList.nodeInstanceHandle == nodeInstanceHandle) {
                 taskList.finishTask(nodeInstanceHandle)
             }
         }

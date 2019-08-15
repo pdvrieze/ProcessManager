@@ -29,7 +29,13 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
 
     private val pendingPermissions = ArrayDeque<PendingPermission>()
 
-    fun acceptActivity(principal: SimplePrincipal) {
+    inline fun <R> acceptActivity(principal: SimplePrincipal, action: TaskList.Context.(AuthToken) -> R): R {
+        val authToken = acceptActivityImpl(principal)
+        return taskList.contextImpl().action(authToken)
+    }
+
+    @PublishedApi
+    internal fun acceptActivityImpl(principal: SimplePrincipal): AuthToken {
         if (::taskList.isInitialized) {
             if (taskList.principal != principal) {
                 throw UnsupportedOperationException("Attempting to change the user for an activity after it has already been set")
@@ -39,7 +45,7 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
             owner = principal
         }
         val hNodeInstance = handle
-        val taskListToEngineAuthToken = with (processContext) {
+        val taskListToEngineAuthToken = with(processContext) {
             authService.createAuthorizationCode(
                 engineServiceAuth,
                 taskList.serviceId,
@@ -50,10 +56,16 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
         }
 
         val taskIdentityToken = taskList.registerToken(taskListToEngineAuthToken)
-        while(pendingPermissions.isNotEmpty()) {
+        while (pendingPermissions.isNotEmpty()) {
             val pendingPermission = pendingPermissions.removeFirst()
-            processContext.authService.grantPermission(engineServiceAuth, taskIdentityToken, pendingPermission.service, pendingPermission.scope)
+            processContext.authService.grantPermission(
+                engineServiceAuth,
+                taskIdentityToken,
+                pendingPermission.service,
+                pendingPermission.scope
+                                                      )
         }
+        return taskIdentityToken
     }
 
     fun serviceTask(): AuthorizationCode {

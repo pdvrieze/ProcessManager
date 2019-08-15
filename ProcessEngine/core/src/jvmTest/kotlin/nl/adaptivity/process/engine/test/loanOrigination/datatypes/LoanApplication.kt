@@ -24,7 +24,7 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 @XmlSerialName("myLoanApplication", "", "")
 data class LoanApplication(
     val customerId: String,
-    val amount: Int,
+    val amount: Double,
     @XmlSerialName("collateral", "", "")
     val collateral: List<CustomerCollateral>
                           )

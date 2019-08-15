@@ -16,18 +16,20 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
-import nl.adaptivity.process.engine.test.loanOrigination.auth.Service
+import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthInfo
+import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.auth.ServiceImpl
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanProductBundle
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.PricedLoanProductBundle
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanEvaluation
-import java.util.*
-import kotlin.random.Random
 
 class PricingEngine(authService: AuthService): ServiceImpl(authService, "Pricing_Engine") {
 
-    fun priceLoan(chosenProduct: LoanProductBundle, loanEval: LoanEvaluation): PricedLoanProductBundle {
-        return chosenProduct.withPrice(loanEval.customerId, 0.05)
+    fun priceLoan(authInfo: AuthInfo, chosenProduct: LoanProductBundle, loanEval: LoanEvaluation):
+        PricedLoanProductBundle {
+        validateAuthInfo(authInfo, LoanPermissions.PRICE_LOAN.context(loanEval.application.amount))
+
+        return chosenProduct.withPrice(loanEval.customerId, loanEval.application.amount, 0.05)
     }
 
 }

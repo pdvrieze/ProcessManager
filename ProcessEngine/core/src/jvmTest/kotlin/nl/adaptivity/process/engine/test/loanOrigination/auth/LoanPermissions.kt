@@ -20,8 +20,25 @@ import net.devrieze.util.Handle
 import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanApplication
 
 sealed class LoanPermissions : AuthScope {
+    object PRICE_LOAN: LoanPermissions() {
+        fun context(amount: Double): ExtScope<Double> {
+            return contextImpl(amount)
+        }
+    }
+    object PRINT_OFFER: LoanPermissions()
+    object SIGN_LOAN: LoanPermissions() {
+        fun context(customerId: String, offerAmount: Double): AuthScope {
+            return contextImpl(customerId)
+        }
+
+        override fun includes(scope: AuthScope): Boolean = when (scope) {
+            is ExtScope<*> -> scope.scope == this
+            else -> scope == this
+        }
+    }
     object INVALIDATE_ACTIVITY: LoanPermissions() {
         fun context(hNodeInstance: Handle<SecureObject<ProcessNodeInstance<*>>>) =
             UPDATE_ACTIVITY_STATE.contextImpl(hNodeInstance)
@@ -34,7 +51,8 @@ sealed class LoanPermissions : AuthScope {
         }
     }
     object EVALUATE_LOAN: LoanPermissions() {
-        fun context(customerId: String): AuthScope = QUERY_CUSTOMER_DATA.contextImpl(customerId)
+        fun context(application: LoanApplication): AuthScope = context(application.customerId, application.amount)
+        fun context(customerId: String, amount: Double): AuthScope = contextImpl(customerId)
     }
     object CREATE_CUSTOMER: LoanPermissions()
     object QUERY_CUSTOMER_DATA: LoanPermissions() {
@@ -73,6 +91,10 @@ sealed class LoanPermissions : AuthScope {
                             override val description: String
                                 get() = "GRANT_PERMISSION($serviceId.${childScope.description})"
                         }
+    }
+
+    object OPEN_ACCOUNT: LoanPermissions() {
+        fun context(customerId: String): AuthScope = QUERY_CUSTOMER_DATA.contextImpl(customerId)
     }
 
 

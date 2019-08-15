@@ -22,10 +22,10 @@ import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.get
 import nl.adaptivity.process.engine.test.BaseProcessEngineTestSupport
-import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthInfo
-import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthorizationException
-import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
+import nl.adaptivity.process.engine.test.loanOrigination.auth.*
+import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions.*
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.*
+import nl.adaptivity.process.engine.test.loanOrigination.systems.TaskList
 import nl.adaptivity.process.processModel.configurableModel.ConfigurableProcessModel
 import nl.adaptivity.process.processModel.configurableModel.endNode
 import nl.adaptivity.process.processModel.configurableModel.output
@@ -66,6 +66,8 @@ class TestLoanOrigination :
 }
 
 private val clerk1 = SimplePrincipal("preprocessing clerk 1")
+private val postProcClerk = SimplePrincipal("postprocessing clerk 2")
+private val customer = SimplePrincipal("Customer")
 
 @UseExperimental(ImplicitReflectionSerializer::class)
 private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProcessNode>(
@@ -76,25 +78,21 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
 
     val start by startNode
     val inputCustomerMasterData by runnableActivity<Unit, LoanCustomer>(start) {
-        ctx.registerTaskPermission(customerFile, LoanPermissions.CREATE_CUSTOMER)
-        ctx.acceptActivity(clerk1)
+        registerTaskPermission(customerFile, CREATE_CUSTOMER)
+        ctx.acceptActivity(clerk1) { taskIdentityToken ->
 
-        val customerFileAuthToken = authService.getAuthTokenDirect(
-            clerk1,
-            ctx.taskList.taskIdentityToken!!,
-            customerFile,
-            LoanPermissions.CREATE_CUSTOMER
-                                                                  )
+            val customerFileAuthToken = loginToService(clerk1, customerFile, CREATE_CUSTOMER)
 
-        val newData = CustomerData(
-            "cust123456",
-            "taxId234",
-            "passport345",
-            "John Doe",
-            "10 Downing Street"
-                                  )
-        customerFile.enterCustomerData(customerFileAuthToken, newData)
-        LoanCustomer(newData.customerId)
+            val newData = CustomerData(
+                "cust123456",
+                "taxId234",
+                "passport345",
+                "John Doe",
+                "10 Downing Street"
+                                      )
+            customerFile.enterCustomerData(customerFileAuthToken, newData)
+            LoanCustomer(newData.customerId)
+        }
     }
     val createLoanRequest by configureRunnableActivity<LoanCustomer, LoanApplication>(
         inputCustomerMasterData,
@@ -105,7 +103,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
             // TODO this would normally require some application access
             LoanApplication(
                 it.customerId,
-                10000,
+                10000.0,
                 listOf(CustomerCollateral("house", "100000", "residential"))
                            )
         }
@@ -129,8 +127,8 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
             null, "customerId"
                                                ) { customer ->
 
-            ctx.registerTaskPermission(customerFile, LoanPermissions.QUERY_CUSTOMER_DATA.context(customer.customerId))
-            ctx.registerTaskPermission(creditBureau, LoanPermissions.GET_CREDIT_REPORT.context("taxId234"))
+            ctx.registerTaskPermission(customerFile, QUERY_CUSTOMER_DATA.context(customer.customerId))
+            ctx.registerTaskPermission(creditBureau, GET_CREDIT_REPORT.context("taxId234"))
             generalClientService.runWithAuthorization(ctx.serviceTask()) { taskIdentityToken ->
 
                 assertForbidden {
@@ -138,7 +136,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
                         clerk1,
                         taskIdentityToken,
                         customerFile,
-                        LoanPermissions.CREATE_CUSTOMER
+                        CREATE_CUSTOMER
                                                   )
                 }
                 assertForbidden {
@@ -146,13 +144,13 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
                         clerk1,
                         taskIdentityToken,
                         customerFile,
-                        LoanPermissions.QUERY_CUSTOMER_DATA
+                        QUERY_CUSTOMER_DATA
                                                   )
                 }
 
                 val custInfoAuthToken = getServiceToken(
                     customerFile,
-                    LoanPermissions.QUERY_CUSTOMER_DATA.context(customer.customerId)
+                    QUERY_CUSTOMER_DATA.context(customer.customerId)
                                                        )
 
 
@@ -164,7 +162,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
                         automatedService,
                         taskIdentityToken,
                         creditBureau,
-                        LoanPermissions.CREATE_CUSTOMER
+                        CREATE_CUSTOMER
                                                   )
                 }
                 assertForbidden {
@@ -172,7 +170,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
                         automatedService,
                         taskIdentityToken,
                         creditBureau,
-                        LoanPermissions.GET_CREDIT_REPORT
+                        GET_CREDIT_REPORT
                                                   )
                 }
                 assertForbidden {
@@ -180,13 +178,10 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
                         automatedService,
                         taskIdentityToken,
                         creditBureau,
-                        LoanPermissions.GET_CREDIT_REPORT.context("taxId5")
+                        GET_CREDIT_REPORT.context("taxId5")
                                                   )
                 }
-                val creditAuthToken = getServiceToken(
-                    creditBureau,
-                    LoanPermissions.GET_CREDIT_REPORT.context(customerData.taxId)
-                                                     )
+                val creditAuthToken = getServiceToken(creditBureau, GET_CREDIT_REPORT.context(customerData.taxId))
 
 
                 assertForbidden { creditBureau.getCreditReport(custInfoAuthToken, customerData) }
@@ -205,15 +200,13 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
             }
 
             action = { (application, creditReport) ->
-                ctx.registerTaskPermission(
-                    creditApplication,
-                    LoanPermissions.EVALUATE_LOAN.context(application.customerId)
-                                          )
-                // TODO overly broad permission
-                ctx.registerTaskPermission(
+                registerTaskPermission(creditApplication, EVALUATE_LOAN.context(application))
+
+                registerTaskPermission(
                     authService,
-                    LoanPermissions.GRANT_PERMISSION.context(customerFile, LoanPermissions.QUERY_CUSTOMER_DATA.context(application.customerId))
-                                          )
+                    GRANT_PERMISSION.context(customerFile, QUERY_CUSTOMER_DATA.context(application.customerId))
+                                      )
+
                 generalClientService.runWithAuthorization(ctx.serviceTask()) { taskIdToken ->
 
 
@@ -221,13 +214,13 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
                         taskIdToken,
                         creditApplication.serviceId,
                         customerFile,
-                        LoanPermissions.QUERY_CUSTOMER_DATA.context(application.customerId)
+                        QUERY_CUSTOMER_DATA.context(application.customerId)
                                                                                    )
 
                     val authToken = getServiceToken(
                         creditApplication,
-                        LoanPermissions.EVALUATE_LOAN.context(application.customerId)
-                                                                  )
+                        EVALUATE_LOAN.context(application.customerId, application.amount)
+                                                   )
                     creditApplication.evaluateLoan(authToken, delegateAuthorization, application, creditReport)
                 }
             }
@@ -269,7 +262,10 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
             }
 
             action = { (loanEval, chosenProduct) ->
-                pricingEngine.priceLoan(chosenProduct, loanEval)
+                registerTaskPermission(pricingEngine, PRICE_LOAN.context(loanEval.application.amount))
+                acceptActivity(postProcClerk) { taskIdToken ->
+                    pricingEngine.priceLoan(taskIdToken, chosenProduct, loanEval)
+                }
             }
         }
         val approveOffer by runnableActivity(
@@ -292,7 +288,10 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
         PricedLoanProductBundle.serializer(),
         offerPricedLoan
                                       ) { approvedOffer ->
-        outputManagementSystem.registerAndPrintOffer(approvedOffer)
+        registerTaskPermission(outputManagementSystem, PRINT_OFFER)
+        acceptActivity(postProcClerk) { taskIdAuth ->
+            outputManagementSystem.registerAndPrintOffer(taskIdAuth, approvedOffer)
+        }
     }
     val customerSignsContract by runnableActivity(
         printOffer,
@@ -300,15 +299,20 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
         Offer.serializer(),
         printOffer
                                                  ) { offer ->
-        offer.signCustomer("Signed by 'John Doe'")
+        acceptActivity(customer) {
+            offer.signCustomer("Signed by 'John Doe'")
+        }
     }
     val bankSignsContract by runnableActivity(
         customerSignsContract,
         Contract.serializer(),
         Offer.serializer(),
         customerSignsContract
-                                             ) {
-        outputManagementSystem.signAndRegisterContract(it, "Signed by 'the bank manager'")
+                                             ) { offer ->
+        registerTaskPermission(outputManagementSystem, SIGN_LOAN.context(offer.customerId, Double.NaN))
+        acceptActivity(postProcClerk) { taskIdentityToken ->
+            outputManagementSystem.signAndRegisterContract(taskIdentityToken, offer, "Signed by 'the bank manager'")
+        }
     }
     val openAccount by runnableActivity(
         bankSignsContract,
@@ -316,7 +320,11 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
         Contract.serializer(),
         bankSignsContract
                                        ) { contract ->
-        accountManagementSystem.openAccountFor(AuthInfo(), contract)
+        registerTaskPermission(accountManagementSystem, OPEN_ACCOUNT.context(contract.customerId))
+        acceptActivity(postProcClerk) { taskIdentityToken ->
+
+            accountManagementSystem.openAccountFor(taskIdentityToken, contract)
+        }
     }
     val end by endNode(openAccount)
 
@@ -338,6 +346,13 @@ private inline val ActivityInstanceContext.creditApplication get() = ctx.process
 private inline val ActivityInstanceContext.pricingEngine get() = ctx.processContext.pricingEngine
 private inline val ActivityInstanceContext.authService get() = ctx.processContext.authService
 private inline val ActivityInstanceContext.generalClientService get() = ctx.processContext.generalClientService
+private inline val ActivityInstanceContext.taskList get() = ctx.taskList
+//private inline val ActivityInstanceContext.taskIdentityToken get() = ctx.taskList.taskIdentityToken!!
+
+private inline fun ActivityInstanceContext.registerTaskPermission(service: Service, scope: AuthScope) =
+    ctx.registerTaskPermission(service, scope)
+private inline fun <R> ActivityInstanceContext.acceptActivity(principal: SimplePrincipal, action: TaskList.Context.(AuthToken) -> R): R =
+    ctx.acceptActivity(principal, action)
 
 const val ASSERTFORBIDDENENABLED = false
 

@@ -20,14 +20,15 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 open class LoanProductBundle(val name: String, val id: String) {
-    fun withPrice(customerId: String, price: Double): PricedLoanProductBundle {
+    fun withPrice(customerId: String, amount: Double, price: Double): PricedLoanProductBundle {
         return PricedLoanProductBundle(
             name,
             id,
             customerId,
+            amount,
             price,
             false
-                                                                                                  )
+                                      )
     }
 
 }
@@ -37,11 +38,14 @@ class PricedLoanProductBundle : LoanProductBundle {
     val customerId: String
     val price: Double
     val approvedOffer: Boolean
+    val amount: Double
 
-    constructor(name: String, id: String, customerId: String, price: Double, approvedOffer: Boolean) : super(name, id) {
+    constructor(name: String, id: String, customerId: String, amount: Double, price: Double, approvedOffer: Boolean)
+        : super(name, id) {
         this.customerId = customerId
         this.price = price
         this.approvedOffer = approvedOffer
+        this.amount = amount
     }
 
     fun approve(): PricedLoanProductBundle {
@@ -49,9 +53,10 @@ class PricedLoanProductBundle : LoanProductBundle {
             name,
             id,
             customerId,
+            amount,
             price,
             true
-                                                                                                  )
+                                      )
     }
 }
 
