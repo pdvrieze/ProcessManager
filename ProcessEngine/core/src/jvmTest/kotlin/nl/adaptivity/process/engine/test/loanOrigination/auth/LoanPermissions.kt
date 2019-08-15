@@ -83,14 +83,19 @@ sealed class LoanPermissions : AuthScope {
             private val serviceId: String,
             private val childScope: AuthScope
                           ) : AuthScope {
-                            override fun includes(scope: AuthScope): Boolean = when(scope){
-                                is ContextScope -> serviceId == scope.serviceId && childScope.includes(scope.childScope)
-                                else -> false
-                            }
 
-                            override val description: String
-                                get() = "GRANT_PERMISSION($serviceId.${childScope.description})"
-                        }
+            override fun includes(scope: AuthScope): Boolean = when (scope) {
+                is ContextScope -> serviceId == scope.serviceId && childScope.includes(scope.childScope)
+                else            -> false
+            }
+
+            override val description: String
+                get() = "GRANT_PERMISSION($serviceId.${childScope.description})"
+
+            override fun toString(): String {
+                return description
+            }
+        }
     }
 
     object OPEN_ACCOUNT: LoanPermissions() {

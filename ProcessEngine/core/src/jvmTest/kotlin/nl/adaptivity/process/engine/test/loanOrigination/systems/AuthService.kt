@@ -67,21 +67,22 @@ class AuthService(val logger: Logger): Service {
 
     private fun validateAuthTokenPermission(serviceId: String, authToken: AuthToken, scope: AuthScope) {
         if(authToken !in activeTokens) throw AuthorizationException("Token not active: $authToken")
+        if(authToken.serviceId != serviceId) throw AuthorizationException("The token is not for the expected service")
 //        val tokenPermissions = tokenPermissions.get(authToken.tokenValue) ?:emptyList<Permission>()
         val hasPermissionDirectPermission = authToken.serviceId==serviceId && authToken.scope.includes(scope)
         if (!hasPermissionDirectPermission) {
             val additionalPermissions = tokenPermissions[authToken.tokenValue]?: emptyList<Permission>()
-            val hasExtPermission = additionalPermissions.any { it.serviceId==serviceId && it.scope.includes(scope) }
+            val hasExtPermission = additionalPermissions.any { it.scope.includes(scope) }
             if (!hasExtPermission) {
-                throw AuthorizationException("No permission found for token $authToken to $serviceId.$scope")
+                throw AuthorizationException("No permission found for token $authToken to $serviceId.${scope.description}")
             }
         }
-        logger.log(Level.INFO, "validateTokenPermissions(clientId = $serviceId, token = $authToken, scope = $scope)")
+        logger.log(Level.INFO, "validateTokenPermissions(clientId = $serviceId, token = $authToken, scope = ${scope.description})")
     }
 
     private fun validateUserPermission(serviceId: String, authInfo: IdSecretAuthInfo, scope: AuthScope) {
         if (serviceId!= authServiceId) throw AuthorizationException("Only authService allows password auth")
-        logger.log(Level.INFO, "validateUserPermissions(clientId = $serviceId, authInfo = $authInfo, scope = $scope)")
+        logger.log(Level.INFO, "validateUserPermissions(clientId = $serviceId, authInfo = $authInfo, scope = ${scope.description})")
     }
 
     /**
@@ -182,12 +183,16 @@ class AuthService(val logger: Logger): Service {
         internalValidateAuthInfo(taskIdentityToken, LoanPermissions.IDENTIFY)
         // Assume the principal has been logged in validly
         if (principal!=taskIdentityToken.principal) throw AuthorizationException("Mismatch between task identity user and task user $principal <> ${taskIdentityToken.principal}")
+        internalValidateAuthInfo(taskIdentityToken, LoanPermissions.GRANT_PERMISSION.context(service, scope))
+
+/*
         val tokenPermissions = tokenPermissions.get(taskIdentityToken.tokenValue) ?:emptyList<Permission>()
         val hasPermission = tokenPermissions.any { it.serviceId == serviceId && it.scope.includes(scope) }
         if (!hasPermission) {
             throw AuthorizationException("No permissions available for $taskIdentityToken to $serviceId.$scope")
 
         }
+*/
         // TODO look up permissions for taskIdentityToken
 
         return AuthToken(principal, taskIdentityToken.nodeInstanceHandle, Random.nextString(), serviceId, scope).also {
@@ -204,10 +209,11 @@ class AuthService(val logger: Logger): Service {
     fun grantPermission(auth: AuthInfo, taskIdToken: AuthToken, service: Service, scope: AuthScope) {
         val serviceId = service.serviceId
         internalValidateAuthInfo(auth, LoanPermissions.GRANT_PERMISSION.context(service, scope))
+        if (taskIdToken.serviceId != serviceId) throw AuthorizationException("Cannot grant permission for a token for one service to work againsta another service")
         assert(taskIdToken in activeTokens)
         val tokenPermissionList = tokenPermissions.getOrPut(taskIdToken.tokenValue) { mutableListOf() }
         logger.log(Level.INFO, "grantPermission(token = ${taskIdToken.tokenValue}, serviceId = $serviceId, scope = $scope)")
-        tokenPermissionList.add(Permission(serviceId, scope))
+        tokenPermissionList.add(Permission(scope))
     }
 
     fun invalidateActivityTokens(auth: AuthInfo, hNodeInstance: Handle<SecureObject<ProcessNodeInstance<*>>>) {
@@ -231,7 +237,11 @@ class AuthService(val logger: Logger): Service {
     }
 
 
-    private data class Permission(val serviceId: String, val scope: AuthScope)
+    private data class Permission(val scope: AuthScope) {
+        override fun toString(): String {
+            return "Permission(${scope.description})"
+        }
+    }
 
 }
 

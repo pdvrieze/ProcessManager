@@ -30,6 +30,6 @@ class AuthToken(
     val scope: AuthScope
                ): AuthInfo() {
     override fun toString(): String {
-        return "AuthToken($tokenValue - $principal[act=${nodeInstanceHandle.handleValue}] -> $serviceId.$scope )"
+        return "AuthToken($tokenValue - $principal[act=${nodeInstanceHandle.handleValue}] -> $serviceId.${scope.description})"
     }
 }

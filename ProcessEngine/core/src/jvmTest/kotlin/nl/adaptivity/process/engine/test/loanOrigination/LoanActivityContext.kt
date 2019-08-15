@@ -29,13 +29,13 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
 
     private val pendingPermissions = ArrayDeque<PendingPermission>()
 
-    inline fun <R> acceptActivity(principal: SimplePrincipal, action: TaskList.Context.(AuthToken) -> R): R {
-        val authToken = acceptActivityImpl(principal)
-        return taskList.contextImpl().action(authToken)
+    inline fun <R> acceptActivity(principal: SimplePrincipal, action: TaskList.Context.() -> R): R {
+        acceptActivityImpl(principal)
+        return taskList.contextImpl().action()
     }
 
     @PublishedApi
-    internal fun acceptActivityImpl(principal: SimplePrincipal): AuthToken {
+    internal fun acceptActivityImpl(principal: SimplePrincipal) {
         if (::taskList.isInitialized) {
             if (taskList.principal != principal) {
                 throw UnsupportedOperationException("Attempting to change the user for an activity after it has already been set")
@@ -61,11 +61,9 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
             processContext.authService.grantPermission(
                 engineServiceAuth,
                 taskIdentityToken,
-                pendingPermission.service,
-                pendingPermission.scope
-                                                      )
+                processContext.authService,
+                LoanPermissions.GRANT_PERMISSION.context(pendingPermission.service, pendingPermission.scope))
         }
-        return taskIdentityToken
     }
 
     fun serviceTask(): AuthorizationCode {
@@ -78,7 +76,7 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
         val tokenForAuthz = serviceAuthorization
         while(pendingPermissions.isNotEmpty()) {
             val pendingPermission = pendingPermissions.removeFirst()
-            processContext.authService.grantPermission(engineServiceAuth, serviceAuthorization, pendingPermission.service, pendingPermission.scope)
+            processContext.authService.grantPermission(engineServiceAuth, serviceAuthorization, processContext.authService, LoanPermissions.GRANT_PERMISSION.context(pendingPermission.service, pendingPermission.scope))
         }
 
         return serviceAuthorization

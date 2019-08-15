@@ -23,7 +23,7 @@ interface AuthScope {
      */
     fun includes(scope: AuthScope): Boolean
 
-    val description: String
+    val description: String get() = toString()
 }
 
 fun AuthScope(description: String) = object : AuthScope {
