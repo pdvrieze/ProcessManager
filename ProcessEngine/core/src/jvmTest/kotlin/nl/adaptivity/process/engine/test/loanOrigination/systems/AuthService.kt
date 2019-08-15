@@ -132,7 +132,7 @@ class AuthService(val logger: Logger): Service {
         service: Service,
         scope: AuthScope
                                            ): AuthorizationCode {
-        internalValidateAuthInfo(auth, LoanPermissions.GRANT_PERMISSION.context(service.serviceId))
+        internalValidateAuthInfo(auth, LoanPermissions.GRANT_PERMISSION.context(service, scope))
 
         val clientPrincipal = clientFromId(clientId)
         val token = AuthToken(clientPrincipal, nodeInstanceHandle, Random.nextString(), service.serviceId, scope)
@@ -174,9 +174,11 @@ class AuthService(val logger: Logger): Service {
     fun getAuthTokenDirect(
         principal: Principal,
         taskIdentityToken: AuthToken,
-        serviceId: String,
+        service: Service,
         scope: AuthScope
                           ): AuthToken {
+        // TODO principal should be authorized
+        val serviceId = service.serviceId
         internalValidateAuthInfo(taskIdentityToken, LoanPermissions.IDENTIFY)
         // Assume the principal has been logged in validly
         if (principal!=taskIdentityToken.principal) throw AuthorizationException("Mismatch between task identity user and task user $principal <> ${taskIdentityToken.principal}")
@@ -201,7 +203,7 @@ class AuthService(val logger: Logger): Service {
 
     fun grantPermission(auth: AuthInfo, taskIdToken: AuthToken, service: Service, scope: AuthScope) {
         val serviceId = service.serviceId
-        internalValidateAuthInfo(auth, LoanPermissions.GRANT_PERMISSION.context(serviceId))
+        internalValidateAuthInfo(auth, LoanPermissions.GRANT_PERMISSION.context(service, scope))
         assert(taskIdToken in activeTokens)
         val tokenPermissionList = tokenPermissions.getOrPut(taskIdToken.tokenValue) { mutableListOf() }
         logger.log(Level.INFO, "grantPermission(token = ${taskIdToken.tokenValue}, serviceId = $serviceId, scope = $scope)")

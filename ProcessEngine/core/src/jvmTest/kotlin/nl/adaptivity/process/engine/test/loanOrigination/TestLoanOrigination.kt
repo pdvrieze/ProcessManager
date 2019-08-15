@@ -38,7 +38,8 @@ import java.security.Principal
 import java.util.*
 import java.util.logging.Logger
 
-class TestLoanOrigination : BaseProcessEngineTestSupport<LoanActivityContext>(LoanContextFactory(Logger.getLogger(TestLoanOrigination::class.java.name))) {
+class TestLoanOrigination :
+    BaseProcessEngineTestSupport<LoanActivityContext>(LoanContextFactory(Logger.getLogger(TestLoanOrigination::class.java.name))) {
 
     @Test
     fun testCreateModel() {
@@ -78,7 +79,12 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
         ctx.registerTaskPermission(customerFile, LoanPermissions.CREATE_CUSTOMER)
         ctx.acceptActivity(clerk1)
 
-        val customerFileAuthToken = authService.getAuthTokenDirect(clerk1, ctx.taskList.taskIdentityToken!!, customerFile.serviceId, LoanPermissions.CREATE_CUSTOMER)
+        val customerFileAuthToken = authService.getAuthTokenDirect(
+            clerk1,
+            ctx.taskList.taskIdentityToken!!,
+            customerFile,
+            LoanPermissions.CREATE_CUSTOMER
+                                                                  )
 
         val newData = CustomerData(
             "cust123456",
@@ -86,7 +92,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
             "passport345",
             "John Doe",
             "10 Downing Street"
-                                                                                             )
+                                  )
         customerFile.enterCustomerData(customerFileAuthToken, newData)
         LoanCustomer(newData.customerId)
     }
@@ -101,7 +107,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
                 it.customerId,
                 10000,
                 listOf(CustomerCollateral("house", "100000", "residential"))
-                                                                                       )
+                           )
         }
     }
     val evaluateCredit by object : ConfigurableCompositeActivity(createLoanRequest) {
@@ -131,7 +137,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
                     authService.getAuthTokenDirect(
                         clerk1,
                         taskIdentityToken,
-                        customerFile.serviceId,
+                        customerFile,
                         LoanPermissions.CREATE_CUSTOMER
                                                   )
                 }
@@ -139,17 +145,15 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
                     authService.getAuthTokenDirect(
                         clerk1,
                         taskIdentityToken,
-                        customerFile.serviceId,
+                        customerFile,
                         LoanPermissions.QUERY_CUSTOMER_DATA
                                                   )
                 }
 
-                val custInfoAuthToken = authService.getAuthTokenDirect(
-                    automatedService,
-                    taskIdentityToken,
-                    customerFile.serviceId,
+                val custInfoAuthToken = getServiceToken(
+                    customerFile,
                     LoanPermissions.QUERY_CUSTOMER_DATA.context(customer.customerId)
-                                                                      )
+                                                       )
 
 
                 val customerData: CustomerData = customerFile.getCustomerData(custInfoAuthToken, customer.customerId)
@@ -159,7 +163,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
                     authService.getAuthTokenDirect(
                         automatedService,
                         taskIdentityToken,
-                        creditBureau.serviceId,
+                        creditBureau,
                         LoanPermissions.CREATE_CUSTOMER
                                                   )
                 }
@@ -167,7 +171,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
                     authService.getAuthTokenDirect(
                         automatedService,
                         taskIdentityToken,
-                        creditBureau.serviceId,
+                        creditBureau,
                         LoanPermissions.GET_CREDIT_REPORT
                                                   )
                 }
@@ -175,16 +179,14 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
                     authService.getAuthTokenDirect(
                         automatedService,
                         taskIdentityToken,
-                        creditBureau.serviceId,
+                        creditBureau,
                         LoanPermissions.GET_CREDIT_REPORT.context("taxId5")
                                                   )
                 }
-                val creditAuthToken = authService.getAuthTokenDirect(
-                    automatedService,
-                    taskIdentityToken,
-                    creditBureau.serviceId,
+                val creditAuthToken = getServiceToken(
+                    creditBureau,
                     LoanPermissions.GET_CREDIT_REPORT.context(customerData.taxId)
-                                                                    )
+                                                     )
 
 
                 assertForbidden { creditBureau.getCreditReport(custInfoAuthToken, customerData) }
@@ -195,7 +197,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
         val getLoanEvaluation by configureRunnableActivity<Pair<LoanApplication, CreditReport>, LoanEvaluation>(
             getCreditReport,
             LoanEvaluation.serializer()
-                                                                                                                                                                           ) {
+                                                                                                               ) {
             val apIn = defineInput("application", null, "loanApplication", LoanApplication.serializer())
             val credIn = defineInput("creditReport", getCreditReport, CreditReport.serializer())
             inputCombiner = InputCombiner {
@@ -203,9 +205,15 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
             }
 
             action = { (application, creditReport) ->
-                ctx.registerTaskPermission(creditApplication, LoanPermissions.EVALUATE_LOAN.context(application.customerId))
+                ctx.registerTaskPermission(
+                    creditApplication,
+                    LoanPermissions.EVALUATE_LOAN.context(application.customerId)
+                                          )
                 // TODO overly broad permission
-                ctx.registerTaskPermission(authService, LoanPermissions.GRANT_PERMISSION.context(customerFile.serviceId))
+                ctx.registerTaskPermission(
+                    authService,
+                    LoanPermissions.GRANT_PERMISSION.context(customerFile, LoanPermissions.QUERY_CUSTOMER_DATA.context(application.customerId))
+                                          )
                 generalClientService.runWithAuthorization(ctx.serviceTask()) { taskIdToken ->
 
 
@@ -214,12 +222,10 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
                         creditApplication.serviceId,
                         customerFile,
                         LoanPermissions.QUERY_CUSTOMER_DATA.context(application.customerId)
-                                                                                       )
+                                                                                   )
 
-                    val authToken = authService.getAuthTokenDirect(
-                        automatedService,
-                        taskIdToken,
-                        creditApplication.serviceId,
+                    val authToken = getServiceToken(
+                        creditApplication,
                         LoanPermissions.EVALUATE_LOAN.context(application.customerId)
                                                                   )
                     creditApplication.evaluateLoan(authToken, delegateAuthorization, application, creditReport)
@@ -242,14 +248,18 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
                                                 ) { loanEvaluation ->
         LoanProductBundle("simpleLoan", "simpleLoan2019.a")
     }
-    val offerPricedLoan by object: ConfigurableCompositeActivity(chooseBundledProduct) {
+    val offerPricedLoan by object : ConfigurableCompositeActivity(chooseBundledProduct) {
 
         init {
             input("loanEval", this@Model1.evaluateCredit, "loanEvaluation")
             input("chosenProduct", this@Model1.chooseBundledProduct)
         }
+
         val start by startNode
-        val priceBundledProduct by configureRunnableActivity<PricingInput, PricedLoanProductBundle>(start, PricedLoanProductBundle.serializer()) {
+        val priceBundledProduct by configureRunnableActivity<PricingInput, PricedLoanProductBundle>(
+            start,
+            PricedLoanProductBundle.serializer()
+                                                                                                   ) {
 
             val loanEval = defineInput("loanEval", null, "loanEval", LoanEvaluation.serializer())
             val productInput = defineInput("prod", null, "chosenProduct", LoanProductBundle.serializer())
@@ -262,7 +272,12 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
                 pricingEngine.priceLoan(chosenProduct, loanEval)
             }
         }
-        val approveOffer by runnableActivity(priceBundledProduct, PricedLoanProductBundle.serializer(), PricedLoanProductBundle.serializer(), priceBundledProduct) { draftOffer ->
+        val approveOffer by runnableActivity(
+            priceBundledProduct,
+            PricedLoanProductBundle.serializer(),
+            PricedLoanProductBundle.serializer(),
+            priceBundledProduct
+                                            ) { draftOffer ->
             draftOffer.approve()
         }
         val end by endNode(approveOffer)
@@ -271,16 +286,36 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
             output("approvedOffer", approveOffer)
         }
     }
-    val printOffer by runnableActivity(offerPricedLoan, Offer.serializer(), PricedLoanProductBundle.serializer(), offerPricedLoan) { approvedOffer ->
+    val printOffer by runnableActivity(
+        offerPricedLoan,
+        Offer.serializer(),
+        PricedLoanProductBundle.serializer(),
+        offerPricedLoan
+                                      ) { approvedOffer ->
         outputManagementSystem.registerAndPrintOffer(approvedOffer)
     }
-    val customerSignsContract by runnableActivity(printOffer, Offer.serializer(), Offer.serializer(), printOffer) { offer ->
+    val customerSignsContract by runnableActivity(
+        printOffer,
+        Offer.serializer(),
+        Offer.serializer(),
+        printOffer
+                                                 ) { offer ->
         offer.signCustomer("Signed by 'John Doe'")
     }
-    val bankSignsContract by runnableActivity(customerSignsContract, Contract.serializer(), Offer.serializer(), customerSignsContract) {
+    val bankSignsContract by runnableActivity(
+        customerSignsContract,
+        Contract.serializer(),
+        Offer.serializer(),
+        customerSignsContract
+                                             ) {
         outputManagementSystem.signAndRegisterContract(it, "Signed by 'the bank manager'")
     }
-    val openAccount by runnableActivity(bankSignsContract, BankAccountNumber.serializer(), Contract.serializer(), bankSignsContract) { contract ->
+    val openAccount by runnableActivity(
+        bankSignsContract,
+        BankAccountNumber.serializer(),
+        Contract.serializer(),
+        bankSignsContract
+                                       ) { contract ->
         accountManagementSystem.openAccountFor(AuthInfo(), contract)
     }
     val end by endNode(openAccount)
@@ -291,6 +326,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
         output("accountNumber", openAccount)
     }
 }
+
 private data class PricingInput(val loanEvaluation: LoanEvaluation, val chosenProduct: LoanProductBundle)
 
 private inline val ActivityInstanceContext.ctx: LoanActivityContext get() = this as LoanActivityContext
@@ -305,6 +341,6 @@ private inline val ActivityInstanceContext.generalClientService get() = ctx.proc
 
 const val ASSERTFORBIDDENENABLED = false
 
-inline fun assertForbidden(noinline action: ()-> Unit) {
-    if(ASSERTFORBIDDENENABLED) Assertions.assertThrows(AuthorizationException::class.java, action)
+inline fun assertForbidden(noinline action: () -> Unit) {
+    if (ASSERTFORBIDDENENABLED) Assertions.assertThrows(AuthorizationException::class.java, action)
 }

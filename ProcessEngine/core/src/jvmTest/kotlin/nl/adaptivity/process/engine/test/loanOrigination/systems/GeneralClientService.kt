@@ -16,26 +16,42 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
-import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthToken
-import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthorizationCode
-import nl.adaptivity.process.engine.test.loanOrigination.auth.ServiceImpl
+import nl.adaptivity.process.engine.test.loanOrigination.auth.*
 import java.security.Principal
 
 class GeneralClientService(authService: AuthService) : ServiceImpl(authService, "<automated>") {
-    fun <R> runWithAuthorization(authorizationCode: AuthorizationCode, action: ClientServiceContext.(AuthToken) -> R): R {
+    fun <R> runWithAuthorization(
+        authorizationCode: AuthorizationCode,
+        action: ClientServiceContext.(AuthToken) -> R
+                                ): R {
         val authToken = authService.getAuthToken(serviceAuth, authorizationCode)
-        return contextImpl.action(authToken)
+        return ContextImpl(authToken).action(authToken)
         // Perhaps explicitly release the token.
     }
 
     val auth get() = serviceAuth
 
-    private val contextImpl = object: ClientServiceContext {
+    private inner class ContextImpl(private val authToken: AuthToken) : ClientServiceContext {
         override val automatedService: Principal
             get() = auth.principal
+
+        /**
+         * Get a token that provides access to the given service. It is expected that permission for this
+         * has been granted.
+         */
+        override fun getServiceToken(service: Service, scope: AuthScope): AuthToken {
+            return authService.getAuthTokenDirect(
+                automatedService,
+                authToken,
+                service,
+                scope
+                                                 )
+
+        }
     }
 }
 
 interface ClientServiceContext {
     val automatedService: Principal
+    fun getServiceToken(service: Service, scope: AuthScope): AuthToken
 }

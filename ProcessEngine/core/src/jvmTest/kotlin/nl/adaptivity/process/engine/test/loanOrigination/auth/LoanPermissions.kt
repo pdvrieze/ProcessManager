@@ -16,37 +16,76 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.auth
 
-enum class LoanPermissions : AuthScope {
-    INVALIDATE_ACTIVITY {
+import net.devrieze.util.Handle
+import net.devrieze.util.getInvalidHandle
+import net.devrieze.util.security.SecureObject
+import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+
+sealed class LoanPermissions : AuthScope {
+    object INVALIDATE_ACTIVITY: LoanPermissions() {
+        fun context(hNodeInstance: Handle<SecureObject<ProcessNodeInstance<*>>>) =
+            UPDATE_ACTIVITY_STATE.contextImpl(hNodeInstance)
+
         override fun includes(scope: AuthScope): Boolean {
             return when (scope) {
-                is ExtScope -> scope.extraData != "-1"
-                else        -> scope == this
+                is ExtScope<*> -> getInvalidHandle<Any>() != scope.extraData
+                else              -> scope == this
             }
         }
-    },
-    EVALUATE_LOAN,
-    CREATE_CUSTOMER,
-    QUERY_CUSTOMER_DATA,
-    UPDATE_CUSTOMER_DATA,
-    UPDATE_ACTIVITY_STATE,
-    GET_CREDIT_REPORT,
-    /** Identify the user as themselves */
-    IDENTIFY,
-    /** Create a token that allows a "user" to editify as task */
-    CREATE_TASK_IDENTITY,
-    GRANT_PERMISSION
-    ;
+    }
+    object EVALUATE_LOAN: LoanPermissions() {
+        fun context(customerId: String): AuthScope = QUERY_CUSTOMER_DATA.contextImpl(customerId)
+    }
+    object CREATE_CUSTOMER: LoanPermissions()
+    object QUERY_CUSTOMER_DATA: LoanPermissions() {
+        fun context(customerId: String): AuthScope = contextImpl(customerId)
+    }
 
-    fun context(contextData: Any): AuthScope {
-        return ExtScope(this, contextData.toString())
+    object UPDATE_CUSTOMER_DATA: LoanPermissions()
+    object UPDATE_ACTIVITY_STATE: LoanPermissions() {
+
+        fun context(hNodeInstance: Handle<SecureObject<ProcessNodeInstance<*>>>) =
+            contextImpl(hNodeInstance)
+
+    }
+    object GET_CREDIT_REPORT: LoanPermissions() {
+        fun context(taxId: String) = contextImpl(taxId)
+    }
+    /** Identify the user as themselves */
+    object IDENTIFY: LoanPermissions()
+    /** Create a token that allows a "user" to editify as task */
+    object CREATE_TASK_IDENTITY: LoanPermissions()
+    object GRANT_PERMISSION: LoanPermissions() {
+        fun context(service: Service, childScope: AuthScope): AuthScope {
+            val serviceId = service.serviceId
+            return ContextScope(serviceId, childScope)
+        }
+
+        class ContextScope(
+            private val serviceId: String,
+            private val childScope: AuthScope
+                          ) : AuthScope {
+                            override fun includes(scope: AuthScope): Boolean = when(scope){
+                                is ContextScope -> serviceId == scope.serviceId && childScope.includes(scope.childScope)
+                                else -> false
+                            }
+
+                            override val description: String
+                                get() = "GRANT_PERMISSION($serviceId.${childScope.description})"
+                        }
+    }
+
+
+    protected fun <V> contextImpl(contextData: V): ExtScope<V> {
+        return ExtScope(this, contextData)
     }
 
     override fun includes(scope: AuthScope): Boolean {
         return this == scope
     }
 
+
     override val description: String
-        get() = name
+        get() = javaClass.simpleName.substringAfterLast('.')
 }
 

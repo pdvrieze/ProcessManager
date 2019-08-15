@@ -16,11 +16,15 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.auth
 
-data class ExtScope(val scope: AuthScope, val extraData: String) :
+data class ExtScope<V>(val scope: AuthScope, val extraData: V) :
     AuthScope {
     override val description: String get() = toString()
 
     override fun includes(scope: AuthScope): Boolean {
-        return scope is ExtScope && this.scope.includes(scope.scope) && extraData == scope.extraData
+        return scope is ExtScope<*> && this.scope.includes(scope.scope) && extraData == scope.extraData
+    }
+
+    override fun toString(): String {
+        return "${scope.description}($extraData)"
     }
 }
