@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination
 
-import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.test.loanOrigination.auth.*
 import nl.adaptivity.process.engine.test.loanOrigination.systems.Browser
@@ -52,7 +51,7 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
                 taskList.serviceId,
                 hNodeInstance,
                 engineService,
-                LoanPermissions.UPDATE_ACTIVITY_STATE.context(hNodeInstance)
+                LoanPermissions.UPDATE_ACTIVITY_STATE.invoke(hNodeInstance)
                                                )
         }
 
@@ -63,7 +62,7 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
                 engineServiceAuth,
                 taskIdentityToken,
                 processContext.authService,
-                LoanPermissions.GRANT_PERMISSION.context(pendingPermission.service, pendingPermission.scope))
+                LoanPermissions.GRANT_PERMISSION.invoke(pendingPermission.service, pendingPermission.scope))
         }
         browser.addToken(taskIdentityToken)
     }
@@ -78,7 +77,7 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
         val tokenForAuthz = serviceAuthorization
         while(pendingPermissions.isNotEmpty()) {
             val pendingPermission = pendingPermissions.removeFirst()
-            processContext.authService.grantPermission(engineServiceAuth, serviceAuthorization, processContext.authService, LoanPermissions.GRANT_PERMISSION.context(pendingPermission.service, pendingPermission.scope))
+            processContext.authService.grantPermission(engineServiceAuth, serviceAuthorization, processContext.authService, LoanPermissions.GRANT_PERMISSION.invoke(pendingPermission.service, pendingPermission.scope))
         }
 
         return serviceAuthorization

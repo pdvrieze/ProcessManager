@@ -30,7 +30,7 @@ class CustomerInformationFile(authService: AuthService): ServiceImpl(authService
 
     fun getCustomerData(authToken: AuthToken, customerId: String): CustomerData? {
         // TODO make this customer specific and add an identifyCustomer function that only requires less data
-        validateAuthInfo(authToken, LoanPermissions.QUERY_CUSTOMER_DATA.context(customerId))
+        validateAuthInfo(authToken, LoanPermissions.QUERY_CUSTOMER_DATA(customerId))
         return customerData[customerId]
     }
 }

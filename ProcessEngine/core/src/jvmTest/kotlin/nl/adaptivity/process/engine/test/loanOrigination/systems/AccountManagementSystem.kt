@@ -17,16 +17,13 @@
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthInfo
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
-import nl.adaptivity.process.engine.test.loanOrigination.auth.Service
 import nl.adaptivity.process.engine.test.loanOrigination.auth.ServiceImpl
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.*
-import java.util.*
-import kotlin.random.Random
 
 class AccountManagementSystem(authService: AuthService): ServiceImpl(authService, "Account_Management_System") {
 
     fun openAccountFor(authInfo: AuthInfo, contract: Contract): BankAccountNumber {
-        validateAuthInfo(authInfo, LoanPermissions.OPEN_ACCOUNT.context(contract.customerId))
+        validateAuthInfo(authInfo, LoanPermissions.OPEN_ACCOUNT(contract.customerId))
 
         // check contract
         return BankAccountNumber("123456")

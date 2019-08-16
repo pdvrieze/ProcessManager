@@ -34,6 +34,7 @@ class LoanProcessContext(
                         ) : ProcessInstanceContext {
 
     val customerData get()= loanContextFactory.customerData
+    val signingService get()= loanContextFactory.signingService
 
     val customerFile get() = loanContextFactory.customerFile
     val outputManagementSystem get() = loanContextFactory.outputManagementSystem

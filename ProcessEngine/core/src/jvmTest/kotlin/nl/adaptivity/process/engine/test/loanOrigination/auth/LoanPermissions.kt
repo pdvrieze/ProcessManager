@@ -23,6 +23,7 @@ import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanApplication
 
 sealed class LoanPermissions : PermissionScope {
+    object SIGN: LoanPermissions(), UseAuthScope
     object PRICE_LOAN : LoanPermissions() {
         fun context(customerId: String, amount: Double): UseAuthScope {
             return MonetaryUseScope(PRICE_LOAN, customerId, amount)
@@ -30,6 +31,10 @@ sealed class LoanPermissions : PermissionScope {
 
         fun restrictTo(maxAmount: Double): PermissionScope {
             return MonetaryRestrictionPermissionScope(PRICE_LOAN, maxAmount = maxAmount)
+        }
+
+        fun restrictTo(customerId: String, maxAmount: Double = Double.NaN): PermissionScope {
+            return MonetaryRestrictionPermissionScope(PRICE_LOAN, customerId, maxAmount)
         }
     }
 
@@ -64,26 +69,26 @@ sealed class LoanPermissions : PermissionScope {
     object EVALUATE_LOAN : LoanPermissions() {
         fun context(application: LoanApplication) = context(application.customerId, application.amount)
         fun context(customerId: String, amount: Double) = MonetaryUseScope(EVALUATE_LOAN, customerId, amount)
-        fun restrictTo(customerId: String?=null, maxAmount: Double=Double.NaN): PermissionScope {
+        operator fun invoke(customerId: String?=null, maxAmount: Double=Double.NaN): PermissionScope {
             return MonetaryRestrictionPermissionScope(EVALUATE_LOAN, customerId, maxAmount)
         }
     }
 
     object CREATE_CUSTOMER : LoanPermissions(), UseAuthScope
     object QUERY_CUSTOMER_DATA : LoanPermissions() {
-        fun context(customerId: String) = contextImpl(customerId)
+        operator fun invoke(customerId: String) = contextImpl(customerId)
     }
 
     object UPDATE_CUSTOMER_DATA : LoanPermissions(), UseAuthScope
     object UPDATE_ACTIVITY_STATE : LoanPermissions() {
 
-        fun context(hNodeInstance: Handle<SecureObject<ProcessNodeInstance<*>>>) =
+        operator fun invoke(hNodeInstance: Handle<SecureObject<ProcessNodeInstance<*>>>) =
             contextImpl(hNodeInstance)
 
     }
 
     object GET_CREDIT_REPORT : LoanPermissions() {
-        fun context(taxId: String) = contextImpl(taxId)
+        operator fun invoke(taxId: String) = contextImpl(taxId)
     }
 
     /** Identify the user as themselves */
@@ -93,7 +98,7 @@ sealed class LoanPermissions : PermissionScope {
     object CREATE_TASK_IDENTITY : LoanPermissions(), UseAuthScope
 
     object GRANT_PERMISSION : LoanPermissions() {
-        fun context(service: Service, childScope: PermissionScope): ContextScope {
+        operator fun invoke(service: Service, childScope: PermissionScope): ContextScope {
             val serviceId = service.serviceId
             return ContextScope(serviceId, childScope)
         }
@@ -161,7 +166,7 @@ sealed class LoanPermissions : PermissionScope {
     }
 
     object OPEN_ACCOUNT : LoanPermissions() {
-        fun context(customerId: String) = contextImpl(customerId)
+        operator fun invoke(customerId: String) = contextImpl(customerId)
     }
 
 

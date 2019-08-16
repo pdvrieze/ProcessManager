@@ -16,23 +16,20 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
-import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthInfo
+import kotlinx.serialization.Serializable
+import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthToken
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.auth.ServiceImpl
-import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CreditReport
-import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
+import java.security.Principal
 
-class CreditBureau(authService: AuthService): ServiceImpl(authService, "CreditBureau") {
+class SigningService(authService: AuthService): ServiceImpl(authService, "SigningService") {
 
-    fun getCreditReport(authInfo: AuthInfo, customerData: CustomerData): CreditReport {
-        validateAuthInfo(authInfo, LoanPermissions.GET_CREDIT_REPORT(customerData.taxId))
-
-        val creditRating = 400
-        return CreditReport(
-            "${customerData.name} (rating $creditRating) is approved for loans up to 20000",
-            creditRating,
-            20000
-                                                                                      )
+    fun <V> signDocument(authInfo: AuthToken, document: V): SignedDocument<V> {
+        validateAuthInfo(authInfo, LoanPermissions.SIGN)
+        return SignedDocument(authInfo.principal.name, authInfo.nodeInstanceHandle.handleValue, document)
     }
 
 }
+
+@Serializable
+class SignedDocument<V>(val signedBy: String, val nodeInstanceHandle: Long, val document: V)

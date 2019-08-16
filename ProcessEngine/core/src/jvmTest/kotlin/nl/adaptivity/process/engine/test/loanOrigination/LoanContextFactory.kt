@@ -46,8 +46,9 @@ class LoanContextFactory(authLogger: Logger) : ProcessContextFactory<LoanActivit
     val creditBureau = CreditBureau(authService)
     val creditApplication = CreditApplication(authService, customerFile)
     val pricingEngine = PricingEngine(authService)
-    val generalClientService =
-        GeneralClientService(authService)
+    val generalClientService = GeneralClientService(authService)
+    val signingService = SigningService(authService)
+
 
     private val taskLists = mutableMapOf<Principal, TaskList>()
     private val taskListClientAuth = IdSecretAuthInfo(SimplePrincipal("TaskList:${Random.nextString()}"))
@@ -59,6 +60,11 @@ class LoanContextFactory(authLogger: Logger) : ProcessContextFactory<LoanActivit
         "John Doe",
         "10 Downing Street"
                                    )
+
+    val clerk1 = Browser(SimplePrincipal("preprocessing clerk 1"))
+    val postProcClerk = Browser(SimplePrincipal("postprocessing clerk 2"))
+    val customer = Browser(SimplePrincipal(customerData.name))
+
 
 
     override fun newActivityInstanceContext(
@@ -96,10 +102,6 @@ class LoanContextFactory(authLogger: Logger) : ProcessContextFactory<LoanActivit
         return taskLists.getOrPut(principal) { TaskList(authService, taskListClientAuth, principal) }
     }
 
-
-    val clerk1 = Browser(SimplePrincipal("preprocessing clerk 1"))
-    val postProcClerk = Browser(SimplePrincipal("postprocessing clerk 2"))
-    val customer = Browser(SimplePrincipal("Customer"))
 
 }
 

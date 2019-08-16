@@ -133,7 +133,7 @@ class AuthService(val logger: Logger): Service {
         service: Service,
         scope: PermissionScope
                                            ): AuthorizationCode {
-        internalValidateAuthInfo(auth, LoanPermissions.GRANT_PERMISSION.context(service, scope))
+        internalValidateAuthInfo(auth, LoanPermissions.GRANT_PERMISSION(service, scope))
 
         val clientPrincipal = clientFromId(clientId)
         val token = AuthToken(clientPrincipal, nodeInstanceHandle, Random.nextString(), service.serviceId, scope)
@@ -190,7 +190,7 @@ class AuthService(val logger: Logger): Service {
             .map { it.scope }
             .filterIsInstance<LoanPermissions.GRANT_PERMISSION.ContextScope>()
             .filter { it.serviceId == serviceId }
-            .ifEmpty { throw AuthorizationException("The token $taskIdentityToken has no permission to create delegate tokens") }
+            .ifEmpty { throw AuthorizationException("The token $taskIdentityToken has no permission to create delegate tokens for ${service.serviceId}.${scope.description}") }
             .map { it.childScope }
             .reduce<PermissionScope?, PermissionScope>{ l, r -> l?.union(r)}
             ?:  throw AuthorizationException("The token $taskIdentityToken permissions cancel to nothing")
@@ -226,7 +226,7 @@ class AuthService(val logger: Logger): Service {
 
     fun grantPermission(auth: AuthInfo, taskIdToken: AuthToken, service: Service, scope: PermissionScope) {
         val serviceId = service.serviceId
-        internalValidateAuthInfo(auth, LoanPermissions.GRANT_PERMISSION.context(service, scope))
+        internalValidateAuthInfo(auth, LoanPermissions.GRANT_PERMISSION.invoke(service, scope))
         if (taskIdToken.serviceId != serviceId) throw AuthorizationException("Cannot grant permission for a token for one service to work againsta another service")
         assert(taskIdToken in activeTokens)
         val tokenPermissionList = tokenPermissions.getOrPut(taskIdToken.tokenValue) { mutableListOf() }
