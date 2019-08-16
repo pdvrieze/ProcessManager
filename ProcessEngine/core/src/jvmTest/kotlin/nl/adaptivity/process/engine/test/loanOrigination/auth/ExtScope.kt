@@ -16,36 +16,48 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.auth
 
-import java.lang.IllegalArgumentException
-
-data class ExtScope<V>(val scope: AuthScope, val extraData: V) :
+data class ExtScope<V>(val scope: LoanPermissions, val extraData: V) :
     PermissionScope, UseAuthScope {
     override val description: String get() = toString()
 
     override fun includes(useScope: UseAuthScope): Boolean {
-        if (useScope !is ExtScope<*>) return false
-        val myScope = this.scope
-        if (myScope !is PermissionScope) return false
-        val requestedSubScope = useScope.scope
-        if (requestedSubScope !is UseAuthScope) throw IllegalArgumentException("the passed scope's subscope cannot be used on use site")
-        return myScope.includes(requestedSubScope) && extraData == useScope.extraData
+        return this == useScope
     }
 
     override fun intersect(otherScope: PermissionScope): PermissionScope? = when {
-        otherScope is ExtScope<*> && includes(otherScope) -> otherScope
-        else                                              -> null
+        this == otherScope                                             -> this
+        otherScope is ExtScope<*> && extraData == otherScope.extraData -> {
+            val effectiveScope = scope.intersect(otherScope.scope) as? LoanPermissions
+            effectiveScope?.let { ExtScope(it, extraData) }
+        }
+        else                                                           -> null
     }
 
     override fun union(otherScope: PermissionScope): PermissionScope = when {
-        otherScope is ExtScope<*> &&
-            scope == otherScope.scope &&
-            extraData == otherScope.extraData -> this
-
-        else                                  -> UnionPermissionScope(listOf(this, otherScope))
+        this == otherScope -> this
+        else               -> UnionPermissionScope(listOf(this, otherScope))
     }
 
     override fun toString(): String {
         return "${scope.description}($extraData)"
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as ExtScope<*>
+
+        if (scope != other.scope) return false
+        if (extraData != other.extraData) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = scope.hashCode()
+        result = 31 * result + (extraData?.hashCode() ?: 0)
+        return result
     }
 }
 

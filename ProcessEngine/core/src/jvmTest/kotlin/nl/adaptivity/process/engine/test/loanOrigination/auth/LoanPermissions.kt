@@ -22,7 +22,7 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanApplication
 
-sealed class LoanPermissions : UseAuthScope, PermissionScope {
+sealed class LoanPermissions : PermissionScope {
     object PRICE_LOAN : LoanPermissions() {
         fun context(customerId: String, amount: Double): UseAuthScope {
             return MonetaryUseScope(PRICE_LOAN, customerId, amount)
@@ -33,7 +33,7 @@ sealed class LoanPermissions : UseAuthScope, PermissionScope {
         }
     }
 
-    object PRINT_OFFER : LoanPermissions()
+    object PRINT_OFFER : LoanPermissions(), UseAuthScope
     object SIGN_LOAN : LoanPermissions() {
         fun context(customerId: String, offerAmount: Double): UseAuthScope {
             return MonetaryUseScope(SIGN_LOAN, customerId, offerAmount)
@@ -44,8 +44,8 @@ sealed class LoanPermissions : UseAuthScope, PermissionScope {
         }
 
         override fun includes(useScope: UseAuthScope): Boolean = when (useScope) {
-            is ExtScope<*>    -> useScope.scope == this
-            else              -> useScope == this
+            is ExtScope<*> -> useScope.scope == this
+            else           -> false
         }
     }
 
@@ -55,8 +55,8 @@ sealed class LoanPermissions : UseAuthScope, PermissionScope {
 
         override fun includes(useScope: UseAuthScope): Boolean {
             return when (useScope) {
-                is ExtScope<*>    -> getInvalidHandle<Any>() != useScope.extraData
-                else              -> useScope == this
+                is ExtScope<*> -> getInvalidHandle<Any>() != useScope.extraData
+                else           -> false
             }
         }
     }
@@ -69,12 +69,12 @@ sealed class LoanPermissions : UseAuthScope, PermissionScope {
         }
     }
 
-    object CREATE_CUSTOMER : LoanPermissions()
+    object CREATE_CUSTOMER : LoanPermissions(), UseAuthScope
     object QUERY_CUSTOMER_DATA : LoanPermissions() {
         fun context(customerId: String) = contextImpl(customerId)
     }
 
-    object UPDATE_CUSTOMER_DATA : LoanPermissions()
+    object UPDATE_CUSTOMER_DATA : LoanPermissions(), UseAuthScope
     object UPDATE_ACTIVITY_STATE : LoanPermissions() {
 
         fun context(hNodeInstance: Handle<SecureObject<ProcessNodeInstance<*>>>) =
@@ -87,10 +87,10 @@ sealed class LoanPermissions : UseAuthScope, PermissionScope {
     }
 
     /** Identify the user as themselves */
-    object IDENTIFY : LoanPermissions()
+    object IDENTIFY : LoanPermissions(), UseAuthScope
 
     /** Create a token that allows a "user" to editify as task */
-    object CREATE_TASK_IDENTITY : LoanPermissions()
+    object CREATE_TASK_IDENTITY : LoanPermissions(), UseAuthScope
 
     object GRANT_PERMISSION : LoanPermissions() {
         fun context(service: Service, childScope: PermissionScope): ContextScope {
