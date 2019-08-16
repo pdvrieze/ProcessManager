@@ -16,9 +16,9 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
+import nl.adaptivity.process.engine.test.loanOrigination.Random
 import nl.adaptivity.process.engine.test.loanOrigination.auth.*
 import java.security.Principal
-import kotlin.random.Random
 
 class Browser private constructor(val auth: IdSecretAuthInfo) {
     val user get() = auth.principal

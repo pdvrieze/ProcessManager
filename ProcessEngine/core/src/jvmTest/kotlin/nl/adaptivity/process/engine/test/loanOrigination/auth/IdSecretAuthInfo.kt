@@ -16,9 +16,9 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.auth
 
+import nl.adaptivity.process.engine.test.loanOrigination.Random
 import nl.adaptivity.process.engine.test.loanOrigination.systems.nextString
 import java.security.Principal
-import kotlin.random.Random
 
 data class IdSecretAuthInfo(val principal: Principal, val secret: String = Random.nextString()): AuthInfo() {
     override fun toString(): String {

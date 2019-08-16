@@ -21,11 +21,11 @@ import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.test.loanOrigination.Random
 import nl.adaptivity.process.engine.test.loanOrigination.auth.*
 import java.security.Principal
 import java.util.logging.Level
 import java.util.logging.Logger
-import kotlin.random.Random
 import kotlin.random.nextUInt
 import kotlin.random.nextULong
 
@@ -103,7 +103,8 @@ class AuthService(
 
     private fun validateUserPermission(serviceId: String, authInfo: IdSecretAuthInfo, scope: UseAuthScope) {
         if (serviceId!= authServiceId) throw AuthorizationException("Only authService allows password auth")
-        doLog(authInfo, "validateUserPermissions(clientId = $serviceId, authInfo = $authInfo, scope = ${scope.description})")
+        val source = Throwable().stackTrace[2].toString()
+        doLog(authInfo, "validateUserPermissions(clientId = $serviceId, authInfo = $authInfo, scope = ${scope.description}) from $source")
     }
 
     /**
@@ -273,7 +274,7 @@ class AuthService(
         while (it.hasNext()) {
             val token = it.next()
             if (token.nodeInstanceHandle==hNodeInstance) {
-                doLog(auth, "invalidateActivityTokens($hNodeInstance, $it)")
+                doLog(auth, "invalidateActivityTokens($hNodeInstance, $token)")
                 it.remove()
                 tokenPermissions.remove(token.tokenValue)
             }
@@ -313,4 +314,4 @@ class AuthService(
 }
 
 @UseExperimental(ExperimentalUnsignedTypes::class)
-fun Random.nextString() = nextULong().toString(16)
+fun kotlin.random.Random.nextString() = nextULong().toString(16)

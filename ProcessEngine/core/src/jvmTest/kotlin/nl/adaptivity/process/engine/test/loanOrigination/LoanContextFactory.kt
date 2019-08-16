@@ -31,7 +31,6 @@ import nl.adaptivity.process.engine.test.loanOrigination.systems.CreditApplicati
 import nl.adaptivity.process.engine.test.loanOrigination.systems.*
 import java.security.Principal
 import java.util.logging.Logger
-import kotlin.random.Random
 import kotlin.random.nextUInt
 
 class LoanContextFactory(authLogger: Logger) : ProcessContextFactory<LoanActivityContext> {

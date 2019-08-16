@@ -374,3 +374,5 @@ const val ASSERTFORBIDDENENABLED = false
 inline fun assertForbidden(noinline action: () -> Unit) {
     if (ASSERTFORBIDDENENABLED) Assertions.assertThrows(AuthorizationException::class.java, action)
 }
+
+val Random = kotlin.random.Random(1234)

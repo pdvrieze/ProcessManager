@@ -24,7 +24,6 @@ import nl.adaptivity.process.engine.test.loanOrigination.datatypes.PricedLoanPro
 import java.util.*
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.*
 import java.lang.IllegalArgumentException
-import kotlin.random.Random
 
 class OutputManagementSystem(authService: AuthService): ServiceImpl(authService, "Output_Manamgent_System") {
 
