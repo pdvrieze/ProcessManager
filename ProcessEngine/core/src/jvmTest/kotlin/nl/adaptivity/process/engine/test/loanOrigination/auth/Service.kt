@@ -25,7 +25,7 @@ interface Service {
     val serviceId: String
 }
 
-open class ServiceImpl(val authService: AuthService, protected val serviceAuth: IdSecretAuthInfo) : Service {
+open class ServiceImpl(protected val authService: AuthService, protected val serviceAuth: IdSecretAuthInfo) : Service {
 
     override val serviceId: String get() = serviceAuth.principal.name
 

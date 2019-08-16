@@ -163,10 +163,10 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
             generalClientService.runWithAuthorization(ctx.serviceTask()) { tknTID ->
 
                 assertForbidden {
-                    authService.getAuthTokenDirect(clerk1.user, tknTID, customerFile, CREATE_CUSTOMER)
+                    authService.getAuthTokenDirect(tknTID, customerFile, CREATE_CUSTOMER)
                 }
                 assertForbidden {
-                    authService.getAuthTokenDirect(clerk1.user, tknTID, customerFile, QUERY_CUSTOMER_DATA)
+                    authService.getAuthTokenDirect(tknTID, customerFile, QUERY_CUSTOMER_DATA)
                 }
 
                 val custInfoAuthToken = getServiceToken(customerFile, QUERY_CUSTOMER_DATA.invoke(customer.customerId))
@@ -175,14 +175,14 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
                     ?: throw NullPointerException("Missing customer data")
 
                 assertForbidden {
-                    authService.getAuthTokenDirect(automatedService, tknTID, creditBureau, CREATE_CUSTOMER)
+                    authService.getAuthTokenDirect(tknTID, creditBureau, CREATE_CUSTOMER)
                 }
 
                 assertForbidden {
-                    authService.getAuthTokenDirect(automatedService, tknTID, creditBureau, GET_CREDIT_REPORT)
+                    authService.getAuthTokenDirect(tknTID, creditBureau, GET_CREDIT_REPORT)
                 }
                 assertForbidden {
-                    authService.getAuthTokenDirect(automatedService, tknTID, creditBureau, GET_CREDIT_REPORT.invoke("taxId5"))
+                    authService.getAuthTokenDirect(tknTID, creditBureau, GET_CREDIT_REPORT.invoke("taxId5"))
                 }
                 val creditAuthToken = getServiceToken(creditBureau, GET_CREDIT_REPORT.invoke(customerData.taxId))
 

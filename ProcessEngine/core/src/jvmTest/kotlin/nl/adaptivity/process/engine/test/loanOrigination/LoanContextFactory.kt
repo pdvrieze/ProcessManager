@@ -23,7 +23,9 @@ import nl.adaptivity.process.engine.ProcessContextFactory
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.test.loanOrigination.auth.IdSecretAuthInfo
+import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
 import nl.adaptivity.process.engine.test.loanOrigination.systems.CreditApplication
 import nl.adaptivity.process.engine.test.loanOrigination.systems.*
@@ -33,13 +35,16 @@ import kotlin.random.Random
 import kotlin.random.nextUInt
 
 class LoanContextFactory(authLogger: Logger) : ProcessContextFactory<LoanActivityContext> {
+    private val nodes = mutableMapOf<Handle<SecureObject<ProcessNodeInstance<*>>>, String>()
+
+
     @UseExperimental(ExperimentalUnsignedTypes::class)
     val engineClientAuth: IdSecretAuthInfo =
         IdSecretAuthInfo(SimplePrincipal("ProcessEngine:${Random.nextUInt().toString(16)}"))
     val engineClientId get() = engineClientAuth.principal.name
 
     private val processContexts = mutableMapOf<Handle<SecureObject<ProcessInstance>>, LoanProcessContext>()
-    val authService = AuthService(authLogger)
+    val authService = AuthService(authLogger, nodes)
     val customerFile = CustomerInformationFile(authService)
     val outputManagementSystem = OutputManagementSystem(authService)
     val accountManagementSystem = AccountManagementSystem(authService)
@@ -61,20 +66,17 @@ class LoanContextFactory(authLogger: Logger) : ProcessContextFactory<LoanActivit
         "10 Downing Street"
                                    )
 
-    val clerk1 = Browser(SimplePrincipal("preprocessing clerk 1"))
-    val postProcClerk = Browser(SimplePrincipal("postprocessing clerk 2"))
-    val customer = Browser(SimplePrincipal(customerData.name))
-
-
+    val clerk1 = Browser(authService, SimplePrincipal("preprocessing clerk 1"))
+    val postProcClerk = Browser(authService, SimplePrincipal("postprocessing clerk 2"))
+    val customer = Browser(authService, SimplePrincipal(customerData.name))
 
     override fun newActivityInstanceContext(
         engineDataAccess: ProcessEngineDataAccess,
         processNodeInstance: IProcessNodeInstance
                                            ): LoanActivityContext {
-
         val instanceHandle = processNodeInstance.processContext.handle
-        val processContext =
-            processContexts.getOrPut(instanceHandle) { LoanProcessContext(engineDataAccess, this, instanceHandle) }
+        nodes[processNodeInstance.handle] = processNodeInstance.node.id
+        val processContext = processContexts.getOrPut(instanceHandle) { LoanProcessContext(engineDataAccess, this, instanceHandle) }
         return LoanActivityContext(processContext, processNodeInstance)
     }
 
@@ -91,15 +93,17 @@ class LoanContextFactory(authLogger: Logger) : ProcessContextFactory<LoanActivit
                                       ) {
         val nodeInstanceHandle = processNodeInstance.handle
         for (taskList in taskLists.values) {
-            if (taskList.nodeInstanceHandle == nodeInstanceHandle) {
-                taskList.finishTask(nodeInstanceHandle)
-            }
+            taskList.finishTask(nodeInstanceHandle)
         }
         authService.invalidateActivityTokens(engineClientAuth, processNodeInstance.handle)
     }
 
-    fun taskList(principal: Principal): TaskList {
-        return taskLists.getOrPut(principal) { TaskList(authService, taskListClientAuth, principal) }
+    fun taskList(engineService: EngineService, principal: Principal): TaskList {
+        return taskLists.getOrPut(principal) {
+            val t = TaskList(authService, engineService, taskListClientAuth, principal)
+            authService.registerGlobalPermission(principal, t, LoanPermissions.ACCEPT_TASK)
+            t
+        }
     }
 
 

@@ -41,7 +41,6 @@ class GeneralClientService(authService: AuthService) : ServiceImpl(authService, 
          */
         override fun getServiceToken(service: Service, scope: PermissionScope): AuthToken {
             return authService.getAuthTokenDirect(
-                automatedService,
                 authToken,
                 service,
                 scope

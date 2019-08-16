@@ -19,34 +19,23 @@ package nl.adaptivity.process.engine.test.loanOrigination.systems
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.test.loanOrigination.LoanActivityContext
 import nl.adaptivity.process.engine.test.loanOrigination.auth.*
 import java.lang.IllegalStateException
 import java.security.Principal
+import java.util.*
 
-class TaskList(authService:AuthService, clientAuth: IdSecretAuthInfo, val principal: Principal): ServiceImpl(authService, clientAuth) {
-    val nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>? get() = taskIdentityToken?.nodeInstanceHandle
+class TaskList(authService:AuthService, private val engineService: EngineService, clientAuth: IdSecretAuthInfo, val principal: Principal): ServiceImpl(authService, clientAuth) {
+//    val nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>? get() = activityAccessToken?.nodeInstanceHandle
 
     private val tokens = mutableListOf<AuthToken>()
 
-    private var taskIdentityToken: AuthToken? = null
-        private set
-
-    fun registerToken(authorizationCode: AuthorizationCode): AuthToken {
-        assert(taskIdentityToken == null)
+    fun registerToken(authorizationCode: AuthorizationCode) {
         val token = authService.getAuthToken(serviceAuth, authorizationCode)
         tokens.add(token)
-
-
-        return authService.createTaskIdentityToken(serviceAuth, token.nodeInstanceHandle, principal).also {
-            taskIdentityToken = it
-        }
     }
 
     fun finishTask(nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>) {
-        if(nodeInstanceHandle!=taskIdentityToken?.nodeInstanceHandle) {
-            throw IllegalStateException("task identity token is not for active task")
-        }
-        taskIdentityToken = null
         tokens.removeIf { it.nodeInstanceHandle == nodeInstanceHandle }
     }
 
@@ -63,4 +52,44 @@ class TaskList(authService:AuthService, clientAuth: IdSecretAuthInfo, val princi
         }
 
     }
+
+    fun acceptActivity(
+        authToken: AuthToken,
+        principal: Principal,
+        pendingPermissions: ArrayDeque<LoanActivityContext.PendingPermission>,
+        processNodeInstance: Handle<SecureObject<ProcessNodeInstance<*>>>
+                      ): AuthorizationCode {
+        validateAuthInfo(authToken, LoanPermissions.ACCEPT_TASK)
+        val activityAccessToken = tokens.single { it.nodeInstanceHandle == processNodeInstance }
+        val userAuthorization = engineService.acceptActivity(activityAccessToken, processNodeInstance, principal, pendingPermissions)
+
+        return userAuthorization
+
+/*
+        val hNodeInstance = handle
+        val taskListToEngineAuthToken = with(Unit) {
+            authService.createAuthorizationCode(
+                engineServiceAuth,
+                serviceId,
+                hNodeInstance,
+                engineService,
+                LoanPermissions.UPDATE_ACTIVITY_STATE.invoke(hNodeInstance)
+                                               )
+        }
+
+        val taskIdentityToken = registerToken(taskListToEngineAuthToken)
+        while (pendingPermissions.isNotEmpty()) {
+            val pendingPermission = pendingPermissions.removeFirst()
+            processContext.authService.grantPermission(
+                engineServiceAuth,
+                taskIdentityToken,
+                processContext.authService,
+                LoanPermissions.GRANT_PERMISSION.invoke(pendingPermission.service, pendingPermission.scope))
+        }
+        browser.addToken(taskIdentityToken)
+*/
+
+    }
+
+
 }

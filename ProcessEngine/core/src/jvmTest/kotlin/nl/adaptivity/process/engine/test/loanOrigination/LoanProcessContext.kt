@@ -18,12 +18,9 @@ package nl.adaptivity.process.engine.test.loanOrigination
 
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
-import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.ProcessInstanceContext
-import nl.adaptivity.process.engine.test.loanOrigination.auth.IdSecretAuthInfo
-import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
 import nl.adaptivity.process.engine.test.loanOrigination.systems.EngineService
 import java.security.Principal
 
@@ -50,5 +47,5 @@ class LoanProcessContext(
     val postProcClerk get() = loanContextFactory.postProcClerk
     val customer get() = loanContextFactory.customer
 
-    fun taskList(principal: Principal) = loanContextFactory.taskList(principal)
+    fun taskList(principal: Principal) = loanContextFactory.taskList(engineService, principal)
 }

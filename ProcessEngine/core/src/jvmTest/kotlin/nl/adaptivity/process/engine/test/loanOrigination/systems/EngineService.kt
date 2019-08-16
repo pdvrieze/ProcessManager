@@ -16,15 +16,62 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
+import net.devrieze.util.Handle
+import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
-import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthInfo
-import nl.adaptivity.process.engine.test.loanOrigination.auth.IdSecretAuthInfo
-import nl.adaptivity.process.engine.test.loanOrigination.auth.Service
-import nl.adaptivity.process.engine.test.loanOrigination.auth.ServiceImpl
+import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.test.loanOrigination.LoanActivityContext
+import nl.adaptivity.process.engine.test.loanOrigination.auth.*
+import java.security.Principal
+import java.util.*
 
 class EngineService(
     private val engineData: ProcessEngineDataAccess,
     authService: AuthService,
     serviceAuth: IdSecretAuthInfo
                    ) : ServiceImpl(authService, serviceAuth) {
+    /**
+     * Accept the activity and return an authorization code for the user to identify itself with in relation to
+     * the activity.
+     */
+    fun acceptActivity(
+        authToken: AuthToken,
+        nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>,
+        principal: Principal,
+        pendingPermissions: ArrayDeque<LoanActivityContext.PendingPermission>
+                      ): AuthorizationCode {
+        validateAuthInfo(authToken, LoanPermissions.ACCEPT_TASK(nodeInstanceHandle)) // TODO mark correct expected permission
+        if (nodeInstanceHandle!= authToken.nodeInstanceHandle) throw IllegalArgumentException("Mismatch with node instances")
+        // Should register owner.
+//        val taskAuthorizationCode = authService.createAuthorizationCode(serviceAuth, authToken.principal.name, authToken.nodeInstanceHandle, this)
+        return authService.createAuthorizationCode(serviceAuth, principal.name, authToken.nodeInstanceHandle, authService, LoanPermissions.IDENTIFY).also { authorizationCode ->
+
+            // Also use the result to register permissions for it
+            while (pendingPermissions.isNotEmpty()) {
+                val pendingPermission = pendingPermissions.removeFirst()
+                authService.grantPermission(
+                    serviceAuth,
+                    authorizationCode,
+                    authService,
+                    LoanPermissions.GRANT_PERMISSION.invoke(pendingPermission.service, pendingPermission.scope))
+            }
+
+        }
+    }
+
+
+    fun registerActivityToTaskList(taskList: TaskList, pniHandle: Handle<SecureObject<ProcessNodeInstance<*>>>) {
+        val permissions = listOf(LoanPermissions.UPDATE_ACTIVITY_STATE(pniHandle),
+                                 LoanPermissions.ACCEPT_TASK(pniHandle))
+        val taskListToEngineAuthToken = authService.createAuthorizationCode(
+            serviceAuth,
+            taskList.serviceId,
+            pniHandle,
+            this,
+            UnionPermissionScope(permissions)
+                                                                       )
+
+        taskList.registerToken(taskListToEngineAuthToken)
+    }
+
 }

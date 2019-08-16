@@ -18,12 +18,24 @@ package nl.adaptivity.process.engine.test.loanOrigination.systems
 
 import nl.adaptivity.process.engine.test.loanOrigination.auth.*
 import java.security.Principal
+import kotlin.random.Random
 
-class Browser(val user: Principal) {
+class Browser private constructor(val auth: IdSecretAuthInfo) {
+    val user get() = auth.principal
+    private val tokens=mutableListOf<AuthToken>()
+
+    constructor(authService: AuthService, user: Principal): this(authService.registerClient(user, Random.nextString())) {
+        tokens.add(authService.loginDirect(auth))
+    }
+
     fun addToken(authToken: AuthToken) {
         // Remove previous token for the service
-        tokens.removeIf { it.serviceId == authToken.serviceId }
+        tokens.removeIf { it.serviceId == authToken.serviceId && it.nodeInstanceHandle == authToken.nodeInstanceHandle }
         tokens.add(authToken)
+    }
+
+    fun addToken(authService: AuthService, authorizationCode: AuthorizationCode) {
+        addToken(authService.getAuthToken(auth, authorizationCode))
     }
 
     fun loginToService(service: ServiceImpl): AuthToken {
@@ -31,10 +43,9 @@ class Browser(val user: Principal) {
     }
 
     fun loginToService(authService: AuthService, service: ServiceImpl): AuthToken {
+        tokens.removeIf { authService.isTokenInvalid(it) }
         val token = tokens.lastOrNull { it.scope == LoanPermissions.IDENTIFY && it.serviceId == authService.serviceId }
             ?: throw AuthorizationException("Not logged in to authorization service")
-        return authService.getAuthTokenDirect(user, token, service, ANYSCOPE)
+        return authService.getAuthTokenDirect(token, service, ANYSCOPE)
     }
-
-    private val tokens=mutableListOf<AuthToken>()
 }

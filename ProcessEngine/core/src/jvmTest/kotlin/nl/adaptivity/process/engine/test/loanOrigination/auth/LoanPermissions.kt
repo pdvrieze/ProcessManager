@@ -24,6 +24,10 @@ import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanApplicati
 
 sealed class LoanPermissions : PermissionScope {
     object SIGN: LoanPermissions(), UseAuthScope
+    object ACCEPT_TASK: LoanPermissions(), UseAuthScope {
+        operator fun invoke(hNodeInstance: Handle<SecureObject<ProcessNodeInstance<*>>>) =
+            contextImpl(hNodeInstance)
+    }
     object PRICE_LOAN : LoanPermissions() {
         fun context(customerId: String, amount: Double): UseAuthScope {
             return MonetaryUseScope(PRICE_LOAN, customerId, amount)

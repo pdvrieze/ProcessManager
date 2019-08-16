@@ -20,7 +20,7 @@ import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.test.loanOrigination.auth.*
 import nl.adaptivity.process.engine.test.loanOrigination.systems.Browser
 import nl.adaptivity.process.engine.test.loanOrigination.systems.TaskList
-import nl.adaptivity.util.security.Principal
+import java.security.Principal
 import java.util.*
 
 class LoanActivityContext(override val processContext:LoanProcessContext, private val baseContext: ActivityInstanceContext): ActivityInstanceContext by baseContext {
@@ -30,32 +30,22 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
     private val pendingPermissions = ArrayDeque<PendingPermission>()
 
     inline fun <R> acceptBrowserActivity(browser: Browser, action: TaskList.Context.() -> R): R {
-        acceptActivityImpl(browser)
+        acceptActivityImpl(browser) // This will initialise the task list and then delegate to it
         return taskList.contextImpl(browser).action()
     }
 
     @PublishedApi
     internal fun acceptActivityImpl(browser: Browser) {
-        if (::taskList.isInitialized) {
-            if (taskList.principal != browser.user) {
-                throw UnsupportedOperationException("Attempting to change the user for an activity after it has already been set")
-            }
-        } else {
-            taskList = processContext.taskList(browser.user)
-            owner = browser.user
-        }
-        val hNodeInstance = handle
-        val taskListToEngineAuthToken = with(processContext) {
-            authService.createAuthorizationCode(
-                engineServiceAuth,
-                taskList.serviceId,
-                hNodeInstance,
-                engineService,
-                LoanPermissions.UPDATE_ACTIVITY_STATE.invoke(hNodeInstance)
-                                               )
-        }
+        ensureTaskList(browser)
+        processContext.engineService.registerActivityToTaskList(taskList, handle)
 
-        val taskIdentityToken = taskList.registerToken(taskListToEngineAuthToken)
+        val authorizationCode= taskList.acceptActivity(browser.loginToService(taskList), browser.user, pendingPermissions, handle)
+        browser.addToken(processContext.authService, authorizationCode)
+
+
+/*
+
+        val hNodeInstance = handle
         while (pendingPermissions.isNotEmpty()) {
             val pendingPermission = pendingPermissions.removeFirst()
             processContext.authService.grantPermission(
@@ -65,6 +55,19 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
                 LoanPermissions.GRANT_PERMISSION.invoke(pendingPermission.service, pendingPermission.scope))
         }
         browser.addToken(taskIdentityToken)
+*/
+    }
+
+    private fun ensureTaskList(browser: Browser) {
+        val taskUser = browser.user
+        if (::taskList.isInitialized) {
+            if (taskList.principal != taskUser) {
+                throw UnsupportedOperationException("Attempting to change the user for an activity after it has already been set")
+            }
+        } else {
+            taskList = processContext.taskList(taskUser)
+            owner = taskUser
+        }
     }
 
     fun serviceTask(): AuthorizationCode {
@@ -91,9 +94,13 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
         pendingPermissions.add(PendingPermission(null, service, scope))
     }
 
+    fun registerActivityToTaskList() {
+        processContext.engineService.registerActivityToTaskList(this.taskList, handle)
+    }
+
     lateinit var taskList: TaskList
 
     private val engineServiceAuth: IdSecretAuthInfo get() = processContext.loanContextFactory.engineClientAuth
 
-    private class PendingPermission(val clientId: String? = null, val service: Service, val scope: PermissionScope)
+    class PendingPermission(val clientId: String? = null, val service: Service, val scope: PermissionScope)
 }
