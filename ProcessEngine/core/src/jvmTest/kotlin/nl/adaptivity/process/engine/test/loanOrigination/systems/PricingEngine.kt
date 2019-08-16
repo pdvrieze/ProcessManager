@@ -27,7 +27,7 @@ class PricingEngine(authService: AuthService): ServiceImpl(authService, "Pricing
 
     fun priceLoan(authInfo: AuthInfo, chosenProduct: LoanProductBundle, loanEval: LoanEvaluation):
         PricedLoanProductBundle {
-        validateAuthInfo(authInfo, LoanPermissions.PRICE_LOAN.context(loanEval.application.amount))
+        validateAuthInfo(authInfo, LoanPermissions.PRICE_LOAN.context(loanEval.customerId, loanEval.application.amount))
 
         return chosenProduct.withPrice(loanEval.customerId, loanEval.application.amount, 0.05)
     }

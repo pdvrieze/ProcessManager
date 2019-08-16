@@ -16,15 +16,36 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.auth
 
+import java.lang.IllegalArgumentException
+
 data class ExtScope<V>(val scope: AuthScope, val extraData: V) :
-    AuthScope {
+    PermissionScope, UseAuthScope {
     override val description: String get() = toString()
 
-    override fun includes(scope: AuthScope): Boolean {
-        return scope is ExtScope<*> && this.scope.includes(scope.scope) && extraData == scope.extraData
+    override fun includes(useScope: UseAuthScope): Boolean {
+        if (useScope !is ExtScope<*>) return false
+        val myScope = this.scope
+        if (myScope !is PermissionScope) return false
+        val requestedSubScope = useScope.scope
+        if (requestedSubScope !is UseAuthScope) throw IllegalArgumentException("the passed scope's subscope cannot be used on use site")
+        return myScope.includes(requestedSubScope) && extraData == useScope.extraData
+    }
+
+    override fun intersect(otherScope: PermissionScope): PermissionScope? = when {
+        otherScope is ExtScope<*> && includes(otherScope) -> otherScope
+        else                                              -> null
+    }
+
+    override fun union(otherScope: PermissionScope): PermissionScope = when {
+        otherScope is ExtScope<*> &&
+            scope == otherScope.scope &&
+            extraData == otherScope.extraData -> this
+
+        else                                  -> UnionPermissionScope(listOf(this, otherScope))
     }
 
     override fun toString(): String {
         return "${scope.description}($extraData)"
     }
 }
+

@@ -32,7 +32,7 @@ open class ServiceImpl(val authService: AuthService, protected val serviceAuth: 
     @UseExperimental(ExperimentalUnsignedTypes::class)
     constructor(authService: AuthService, name: String): this(authService, authService.registerClient(name, Random.nextULong().toString(16)))
 
-    protected fun validateAuthInfo(authInfo: AuthInfo, scope: AuthScope) {
+    protected fun validateAuthInfo(authInfo: AuthInfo, scope: UseAuthScope) {
         authService.validateAuthInfo(this, authInfo, scope)
     }
 

@@ -22,7 +22,6 @@ import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.test.loanOrigination.auth.*
-import java.lang.UnsupportedOperationException
 import java.security.Principal
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -48,7 +47,7 @@ class AuthService(val logger: Logger): Service {
      * @param authInfo The authentication information being used
      * @param scope The scope of the access requested
      */
-    fun validateAuthInfo(service: Service, authInfo: AuthInfo, scope: AuthScope) {
+    fun validateAuthInfo(service: Service, authInfo: AuthInfo, scope: UseAuthScope) {
         val serviceId = service.serviceId
         when(authInfo) {
             is IdSecretAuthInfo -> validateUserPermission(serviceId, authInfo, scope)
@@ -57,7 +56,7 @@ class AuthService(val logger: Logger): Service {
         }
     }
 
-    private fun internalValidateAuthInfo(authInfo: AuthInfo, scope: AuthScope) {
+    private fun internalValidateAuthInfo(authInfo: AuthInfo, scope: UseAuthScope) {
         when(authInfo) {
             is IdSecretAuthInfo -> validateUserPermission(authServiceId, authInfo, scope)
             is AuthToken -> validateAuthTokenPermission(authServiceId, authInfo, scope)
@@ -66,7 +65,7 @@ class AuthService(val logger: Logger): Service {
 
     }
 
-    private fun validateAuthTokenPermission(serviceId: String, authToken: AuthToken, scope: AuthScope) {
+    private fun validateAuthTokenPermission(serviceId: String, authToken: AuthToken, scope: UseAuthScope) {
         if(authToken !in activeTokens) throw AuthorizationException("Token not active: $authToken")
         if(authToken.serviceId != serviceId) throw AuthorizationException("The token is not for the expected service")
 //        val tokenPermissions = tokenPermissions.get(authToken.tokenValue) ?:emptyList<Permission>()
@@ -81,7 +80,7 @@ class AuthService(val logger: Logger): Service {
         logger.log(Level.INFO, "validateTokenPermissions(clientId = $serviceId, token = $authToken, scope = ${scope.description})")
     }
 
-    private fun validateUserPermission(serviceId: String, authInfo: IdSecretAuthInfo, scope: AuthScope) {
+    private fun validateUserPermission(serviceId: String, authInfo: IdSecretAuthInfo, scope: UseAuthScope) {
         if (serviceId!= authServiceId) throw AuthorizationException("Only authService allows password auth")
         logger.log(Level.INFO, "validateUserPermissions(clientId = $serviceId, authInfo = $authInfo, scope = ${scope.description})")
     }
@@ -99,7 +98,7 @@ class AuthService(val logger: Logger): Service {
         clientId: String,
         nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>,
         service: Service,
-        scope: AuthScope
+        scope: PermissionScope
                                ): AuthorizationCode {
         return createAuthorizationCodeImpl(auth, clientId, nodeInstanceHandle, service, scope)
     }
@@ -116,7 +115,7 @@ class AuthService(val logger: Logger): Service {
         auth: AuthInfo,
         clientId: String,
         service: Service,
-        scope: AuthScope
+        scope: PermissionScope
                                ): AuthorizationCode {
         val nodeInstanceHandle = auth.getNodeInstanceHandle()
         return createAuthorizationCodeImpl(auth, clientId, nodeInstanceHandle, service, scope)
@@ -132,7 +131,7 @@ class AuthService(val logger: Logger): Service {
         clientId: String,
         nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>,
         service: Service,
-        scope: AuthScope
+        scope: PermissionScope
                                            ): AuthorizationCode {
         internalValidateAuthInfo(auth, LoanPermissions.GRANT_PERMISSION.context(service, scope))
 
@@ -177,29 +176,31 @@ class AuthService(val logger: Logger): Service {
         principal: Principal,
         taskIdentityToken: AuthToken,
         service: Service,
-        scope: AuthScope
+        scope: PermissionScope
                           ): AuthToken {
         // TODO principal should be authorized
         val serviceId = service.serviceId
         internalValidateAuthInfo(taskIdentityToken, LoanPermissions.IDENTIFY)
         // Assume the principal has been logged in validly
         if (principal!=taskIdentityToken.principal) throw AuthorizationException("Mismatch between task identity user and task user $principal <> ${taskIdentityToken.principal}")
-        val effectiveScope: AuthScope
+        val effectiveScope: PermissionScope
+        val registeredPermissions = (tokenPermissions[taskIdentityToken.tokenValue]
+            ?.asSequence()
+            ?: emptySequence())
+            .map { it.scope }
+            .filterIsInstance<LoanPermissions.GRANT_PERMISSION.ContextScope>()
+            .filter { it.serviceId == serviceId }
+            .ifEmpty { throw AuthorizationException("The token $taskIdentityToken has no permission to create delegate tokens") }
+            .map { it.childScope }
+            .reduce<PermissionScope?, PermissionScope>{ l, r -> l?.union(r)}
+            ?:  throw AuthorizationException("The token $taskIdentityToken permissions cancel to nothing")
+
         if(scope==ANYSCOPE) {
-            val scopes = (tokenPermissions[taskIdentityToken.tokenValue]
-                ?.asSequence()
-                ?: emptySequence())
-                .map { it.scope }
-                .filterIsInstance<LoanPermissions.GRANT_PERMISSION.ContextScope>()
-                .filter { it.serviceId == serviceId }
-                .ifEmpty { throw AuthorizationException("The token $taskIdentityToken has no permission to create delegate tokens") }
-                .map { it.childScope }
-                .toList()
-            if (scopes.size!=1) throw UnsupportedOperationException("Multiple authorizations in a single scope are not yet supported")
-            effectiveScope = scopes.single()
+            effectiveScope = registeredPermissions
         } else {
-            effectiveScope = scope
-            internalValidateAuthInfo(taskIdentityToken, LoanPermissions.GRANT_PERMISSION.context(service, scope))
+            val intersection = registeredPermissions.intersect(scope)
+            if (intersection!=scope) throw AuthorizationException("The requested permission $scope is not contained within $registeredPermissions")
+            effectiveScope = intersection
         }
 
 /*
@@ -218,12 +219,12 @@ class AuthService(val logger: Logger): Service {
         }
     }
 
-    fun grantPermission(auth: AuthInfo, authorizationCode: AuthorizationCode, service: Service, scope: AuthScope) {
+    fun grantPermission(auth: AuthInfo, authorizationCode: AuthorizationCode, service: Service, scope: PermissionScope) {
         val authToken = authorizationCodes[authorizationCode] ?: throw AuthorizationException("Invalid authorization code")
         grantPermission(auth, authToken, service, scope)
     }
 
-    fun grantPermission(auth: AuthInfo, taskIdToken: AuthToken, service: Service, scope: AuthScope) {
+    fun grantPermission(auth: AuthInfo, taskIdToken: AuthToken, service: Service, scope: PermissionScope) {
         val serviceId = service.serviceId
         internalValidateAuthInfo(auth, LoanPermissions.GRANT_PERMISSION.context(service, scope))
         if (taskIdToken.serviceId != serviceId) throw AuthorizationException("Cannot grant permission for a token for one service to work againsta another service")
@@ -254,7 +255,7 @@ class AuthService(val logger: Logger): Service {
     }
 
 
-    private data class Permission(val scope: AuthScope) {
+    private data class Permission(val scope: PermissionScope) {
         override fun toString(): String {
             return "Permission(${scope.description})"
         }

@@ -165,7 +165,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
             }
 
             action = { (application, creditReport) ->
-                registerTaskPermission(creditApplication, EVALUATE_LOAN.context(application))
+                registerTaskPermission(creditApplication, EVALUATE_LOAN.restrictTo(application.customerId))
                 registerTaskPermission(authService, GRANT_PERMISSION.context(customerFile, QUERY_CUSTOMER_DATA.context(application.customerId)))
 
                 generalClientService.runWithAuthorization(ctx.serviceTask()) { taskIdToken ->
@@ -180,7 +180,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
 
                     val authToken = getServiceToken(
                         creditApplication,
-                        EVALUATE_LOAN.context(application.customerId, application.amount)
+                        EVALUATE_LOAN.restrictTo(application.customerId, application.amount)
                                                    )
                     creditApplication.evaluateLoan(authToken, delegateAuthorization, application, creditReport)
                 }
@@ -224,7 +224,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
             }
 
             action = { (loanEval, chosenProduct) ->
-                registerTaskPermission(pricingEngine, PRICE_LOAN.context(loanEval.application.amount))
+                registerTaskPermission(pricingEngine, PRICE_LOAN.restrictTo(Double.NaN))
 
                 acceptBrowserActivity(postProcClerk) {
                     val pricingEngineLoginToken = loginToService(pricingEngine)
@@ -276,7 +276,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
         Offer.serializer(),
         customerSignsContract
                                              ) { offer ->
-        registerTaskPermission(outputManagementSystem, SIGN_LOAN.context(offer.customerId, Double.NaN))
+        registerTaskPermission(outputManagementSystem, SIGN_LOAN.restrictTo(offer.customerId, Double.NaN))
 
         acceptBrowserActivity(postProcClerk) {
 
@@ -323,7 +323,7 @@ private inline val ActivityInstanceContext.postProcClerk get() = ctx.processCont
 private inline val ActivityInstanceContext.customer get() = ctx.processContext.customer
 
 
-private fun ActivityInstanceContext.registerTaskPermission(service: Service, scope: AuthScope) =
+private fun ActivityInstanceContext.registerTaskPermission(service: Service, scope: PermissionScope) =
     ctx.registerTaskPermission(service, scope)
 private inline fun <R> ActivityInstanceContext.acceptBrowserActivity(browser: Browser, action: TaskList.Context.() -> R): R =
     ctx.acceptBrowserActivity(browser, action)

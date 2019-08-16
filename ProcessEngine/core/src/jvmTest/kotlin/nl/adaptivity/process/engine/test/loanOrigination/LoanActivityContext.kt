@@ -88,7 +88,7 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
      * TODO Function that registers permissions for the task. This should be done based upon task definition
      *      and in acceptActivity.
      */
-    fun registerTaskPermission(service: Service, scope: AuthScope) {
+    fun registerTaskPermission(service: Service, scope: PermissionScope) {
         pendingPermissions.add(PendingPermission(null, service, scope))
     }
 
@@ -96,5 +96,5 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
 
     private val engineServiceAuth: IdSecretAuthInfo get() = processContext.loanContextFactory.engineClientAuth
 
-    private class PendingPermission(val clientId: String? = null, val service: Service, val scope: AuthScope)
+    private class PendingPermission(val clientId: String? = null, val service: Service, val scope: PermissionScope)
 }

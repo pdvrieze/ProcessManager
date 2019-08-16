@@ -27,7 +27,7 @@ class AuthToken(
     val nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>,
     val tokenValue: String,
     val serviceId: String,
-    val scope: AuthScope
+    val scope: PermissionScope
                ): AuthInfo() {
     override fun toString(): String {
         return "AuthToken($tokenValue - $principal[act=${nodeInstanceHandle.handleValue}] -> $serviceId.${scope.description})"

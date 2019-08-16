@@ -39,7 +39,7 @@ class GeneralClientService(authService: AuthService) : ServiceImpl(authService, 
          * Get a token that provides access to the given service. It is expected that permission for this
          * has been granted.
          */
-        override fun getServiceToken(service: Service, scope: AuthScope): AuthToken {
+        override fun getServiceToken(service: Service, scope: PermissionScope): AuthToken {
             return authService.getAuthTokenDirect(
                 automatedService,
                 authToken,
@@ -53,5 +53,5 @@ class GeneralClientService(authService: AuthService) : ServiceImpl(authService, 
 
 interface ClientServiceContext {
     val automatedService: Principal
-    fun getServiceToken(service: Service, scope: AuthScope): AuthToken
+    fun getServiceToken(service: Service, scope: PermissionScope): AuthToken
 }
