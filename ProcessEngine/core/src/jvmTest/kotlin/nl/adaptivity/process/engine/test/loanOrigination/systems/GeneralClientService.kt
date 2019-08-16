@@ -29,6 +29,8 @@ class GeneralClientService(authService: AuthService) : ServiceImpl(authService, 
         // Perhaps explicitly release the token.
     }
 
+    override fun getServiceState(): String = ""
+
     val auth get() = serviceAuth
 
     private inner class ContextImpl(private val authToken: AuthToken) : ClientServiceContext {
@@ -40,11 +42,8 @@ class GeneralClientService(authService: AuthService) : ServiceImpl(authService, 
          * has been granted.
          */
         override fun getServiceToken(service: Service, scope: PermissionScope): AuthToken {
-            return authService.getAuthTokenDirect(
-                authToken,
-                service,
-                scope
-                                                 )
+            logMe(service, scope)
+            return authService.getAuthTokenDirect(authToken, service, scope)
 
         }
     }

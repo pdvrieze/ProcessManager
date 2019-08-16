@@ -24,7 +24,10 @@ import java.security.Principal
 
 class SigningService(authService: AuthService): ServiceImpl(authService, "SigningService") {
 
+    override fun getServiceState(): String = ""
+
     fun <V> signDocument(authInfo: AuthToken, document: V): SignedDocument<V> {
+        logMe(document)
         validateAuthInfo(authInfo, LoanPermissions.SIGN)
         return SignedDocument(authInfo.principal.name, authInfo.nodeInstanceHandle.handleValue, document)
     }

@@ -25,7 +25,11 @@ class CreditApplication(
     authService: AuthService,
     val customerInformationFile: CustomerInformationFile
                        ): ServiceImpl(authService, "Credit_Application") {
+
+    override fun getServiceState(): String = ""
+
     fun evaluateLoan(authInfo: AuthInfo, delegateAuthorization:AuthorizationCode, application: LoanApplication, creditReport: CreditReport): LoanEvaluation {
+        logMe(application)
         validateAuthInfo(authInfo, LoanPermissions.EVALUATE_LOAN.context(application.customerId, application.amount))
 
         val cifServiceAuth = authService.getAuthToken(serviceAuth, delegateAuthorization)

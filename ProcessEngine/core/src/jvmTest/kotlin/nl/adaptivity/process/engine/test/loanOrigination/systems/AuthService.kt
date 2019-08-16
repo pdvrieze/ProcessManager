@@ -45,7 +45,7 @@ class AuthService(
 
     private val tokenPermissions = mutableMapOf<String, MutableList<Permission>>()
 
-    private fun doLog(authInfo: AuthInfo, message: String) {
+    private inline fun doLog(authInfo: AuthInfo, message: String) {
         if (authInfo is AuthToken) {
             val processNodeInstance = authInfo.nodeInstanceHandle
             val nodeId = nodeLookup[processNodeInstance] ?: "<unknown node>"
@@ -55,6 +55,10 @@ class AuthService(
         } else {
             logger.log(Level.INFO, "[GLOBAL>${authInfo}] - $message")
         }
+    }
+
+    inline fun doLog(message: String) {
+        logger.log(Level.INFO, "[UNAUTH] - $message")
     }
 
     /**
@@ -103,7 +107,7 @@ class AuthService(
 
     private fun validateUserPermission(serviceId: String, authInfo: IdSecretAuthInfo, scope: UseAuthScope) {
         if (serviceId!= authServiceId) throw AuthorizationException("Only authService allows password auth")
-        val source = Throwable().stackTrace[2].toString()
+        val source = Throwable().stackTrace[2].let { "${it.className.substringAfterLast('.')}.${it.methodName}" }
         doLog(authInfo, "validateUserPermissions(clientId = $serviceId, authInfo = $authInfo, scope = ${scope.description}) from $source")
     }
 
@@ -288,6 +292,7 @@ class AuthService(
 
     @UseExperimental(ExperimentalUnsignedTypes::class)
     fun registerClient(user: Principal, secret: String, name: String = user.name): IdSecretAuthInfo {
+        doLog("registerClient($user)")
         val clientId = user.name
         if (registeredClients[clientId]!=null) return registerClient(name, secret)
         registeredClients[clientId] = ClientInfo(clientId, name, secret)
@@ -311,6 +316,9 @@ class AuthService(
         }
     }
 
+    override fun toString(): String {
+        return "AuthService"
+    }
 }
 
 @UseExperimental(ExperimentalUnsignedTypes::class)

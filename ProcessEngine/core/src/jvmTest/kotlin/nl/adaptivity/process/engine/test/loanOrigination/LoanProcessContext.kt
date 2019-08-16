@@ -47,5 +47,7 @@ class LoanProcessContext(
     val postProcClerk get() = loanContextFactory.postProcClerk
     val customer get() = loanContextFactory.customer
 
+    val log get() = loanContextFactory.log
+
     fun taskList(principal: Principal) = loanContextFactory.taskList(engineService, principal)
 }

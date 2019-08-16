@@ -27,6 +27,8 @@ import java.lang.IllegalArgumentException
 
 class OutputManagementSystem(authService: AuthService): ServiceImpl(authService, "Output_Manamgent_System") {
 
+    override fun getServiceState(): String = ""
+
     private val _contracts = mutableMapOf<UUID, Contract>()
     val contracts: Map<UUID, Contract> get() = _contracts
 
@@ -34,6 +36,7 @@ class OutputManagementSystem(authService: AuthService): ServiceImpl(authService,
     val offers: Map<UUID, PricedLoanProductBundle> get() = _offers
 
     fun registerAndPrintOffer(authInfo: AuthInfo, approvedOffer: PricedLoanProductBundle): Offer {
+        logMe(approvedOffer)
         validateAuthInfo(authInfo, LoanPermissions.PRINT_OFFER)
         val offerUuid = UUID.randomUUID()
         _offers.put(offerUuid, approvedOffer)
@@ -41,6 +44,7 @@ class OutputManagementSystem(authService: AuthService): ServiceImpl(authService,
     }
 
     fun signAndRegisterContract(authInfo: AuthInfo, offer: Offer, signature: String): Contract {
+        logMe(offer, signature)
         val offerAmount = _offers[UUID.fromString(offer.id)]?.amount ?: throw IllegalArgumentException("Offer not registered")
         validateAuthInfo(authInfo, LoanPermissions.SIGN_LOAN.context(offer.customerId, offerAmount))
 

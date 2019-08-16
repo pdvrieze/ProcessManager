@@ -22,7 +22,11 @@ import nl.adaptivity.process.engine.test.loanOrigination.datatypes.*
 
 class AccountManagementSystem(authService: AuthService): ServiceImpl(authService, "Account_Management_System") {
 
+    override fun getServiceState(): String = ""
+
     fun openAccountFor(authInfo: AuthInfo, contract: Contract): BankAccountNumber {
+        logMe(authInfo, contract)
+
         validateAuthInfo(authInfo, LoanPermissions.OPEN_ACCOUNT(contract.customerId))
 
         // check contract

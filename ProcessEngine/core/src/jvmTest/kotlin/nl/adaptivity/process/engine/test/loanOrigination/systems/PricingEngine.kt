@@ -25,8 +25,12 @@ import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanEvaluatio
 
 class PricingEngine(authService: AuthService): ServiceImpl(authService, "Pricing_Engine") {
 
+    override fun getServiceState(): String = ""
+
     fun priceLoan(authInfo: AuthInfo, chosenProduct: LoanProductBundle, loanEval: LoanEvaluation):
         PricedLoanProductBundle {
+        logMe(chosenProduct)
+
         validateAuthInfo(authInfo, LoanPermissions.PRICE_LOAN.context(loanEval.customerId, loanEval.application.amount))
 
         return chosenProduct.withPrice(loanEval.customerId, loanEval.application.amount, 0.05)

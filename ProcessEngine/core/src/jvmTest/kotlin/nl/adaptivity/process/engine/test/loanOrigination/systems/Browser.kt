@@ -19,16 +19,19 @@ package nl.adaptivity.process.engine.test.loanOrigination.systems
 import nl.adaptivity.process.engine.test.loanOrigination.Random
 import nl.adaptivity.process.engine.test.loanOrigination.auth.*
 import java.security.Principal
+import java.util.logging.Level
+import java.util.logging.Logger
 
-class Browser private constructor(val auth: IdSecretAuthInfo) {
+class Browser private constructor(val logger: Logger, val auth: IdSecretAuthInfo) {
     val user get() = auth.principal
     private val tokens=mutableListOf<AuthToken>()
 
-    constructor(authService: AuthService, user: Principal): this(authService.registerClient(user, Random.nextString())) {
+    constructor(authService: AuthService, user: Principal): this(authService.logger, authService.registerClient(user, Random.nextString())) {
         tokens.add(authService.loginDirect(auth))
     }
 
     fun addToken(authToken: AuthToken) {
+        logger.log(Level.INFO, "Browser(${user.name}).addToken($authToken)")
         // Remove previous token for the service
         tokens.removeIf { it.serviceId == authToken.serviceId && it.nodeInstanceHandle == authToken.nodeInstanceHandle }
         tokens.add(authToken)
@@ -43,6 +46,7 @@ class Browser private constructor(val auth: IdSecretAuthInfo) {
     }
 
     fun loginToService(authService: AuthService, service: ServiceImpl): AuthToken {
+        authService.logger.log(Level.INFO, "Browser(${user.name}).loginToService(${service.serviceId})")
         tokens.removeIf { authService.isTokenInvalid(it) }
         val token = tokens.lastOrNull { it.scope == LoanPermissions.IDENTIFY && it.serviceId == authService.serviceId }
             ?: throw AuthorizationException("Not logged in to authorization service")

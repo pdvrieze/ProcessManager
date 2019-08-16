@@ -24,7 +24,10 @@ import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
 
 class CreditBureau(authService: AuthService): ServiceImpl(authService, "CreditBureau") {
 
+    override fun getServiceState(): String = ""
+
     fun getCreditReport(authInfo: AuthInfo, customerData: CustomerData): CreditReport {
+        logMe()
         validateAuthInfo(authInfo, LoanPermissions.GET_CREDIT_REPORT(customerData.taxId))
 
         val creditRating = 400

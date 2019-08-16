@@ -30,10 +30,11 @@ import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
 import nl.adaptivity.process.engine.test.loanOrigination.systems.CreditApplication
 import nl.adaptivity.process.engine.test.loanOrigination.systems.*
 import java.security.Principal
+import java.util.logging.Level
 import java.util.logging.Logger
 import kotlin.random.nextUInt
 
-class LoanContextFactory(authLogger: Logger) : ProcessContextFactory<LoanActivityContext> {
+class LoanContextFactory(val log: Logger) : ProcessContextFactory<LoanActivityContext> {
     private val nodes = mutableMapOf<Handle<SecureObject<ProcessNodeInstance<*>>>, String>()
 
 
@@ -43,7 +44,7 @@ class LoanContextFactory(authLogger: Logger) : ProcessContextFactory<LoanActivit
     val engineClientId get() = engineClientAuth.principal.name
 
     private val processContexts = mutableMapOf<Handle<SecureObject<ProcessInstance>>, LoanProcessContext>()
-    val authService = AuthService(authLogger, nodes)
+    val authService = AuthService(log, nodes)
     val customerFile = CustomerInformationFile(authService)
     val outputManagementSystem = OutputManagementSystem(authService)
     val accountManagementSystem = AccountManagementSystem(authService)
@@ -99,6 +100,7 @@ class LoanContextFactory(authLogger: Logger) : ProcessContextFactory<LoanActivit
 
     fun taskList(engineService: EngineService, principal: Principal): TaskList {
         return taskLists.getOrPut(principal) {
+            log.log(Level.INFO, "Creating tasklist for ${principal.name}")
             val t = TaskList(authService, engineService, taskListClientAuth, principal)
             authService.registerGlobalPermission(principal, t, LoanPermissions.ACCEPT_TASK)
             t

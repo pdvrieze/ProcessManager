@@ -23,12 +23,16 @@ class CustomerInformationFile(authService: AuthService): ServiceImpl(authService
 
     private val customerData = mutableMapOf<String, CustomerData>()
 
+    override fun getServiceState(): String = ""
+
     fun enterCustomerData(authToken: AuthToken, data: CustomerData) {
+        logMe()
         validateAuthInfo(authToken, LoanPermissions.CREATE_CUSTOMER)
         customerData[data.customerId] = data
     }
 
     fun getCustomerData(authToken: AuthToken, customerId: String): CustomerData? {
+        logMe(customerId)
         // TODO make this customer specific and add an identifyCustomer function that only requires less data
         validateAuthInfo(authToken, LoanPermissions.QUERY_CUSTOMER_DATA(customerId))
         return customerData[customerId]

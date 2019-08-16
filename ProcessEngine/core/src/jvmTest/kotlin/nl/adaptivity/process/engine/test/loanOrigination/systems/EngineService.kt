@@ -30,6 +30,9 @@ class EngineService(
     authService: AuthService,
     serviceAuth: IdSecretAuthInfo
                    ) : ServiceImpl(authService, serviceAuth) {
+
+    override fun getServiceState(): String = ""
+
     /**
      * Accept the activity and return an authorization code for the user to identify itself with in relation to
      * the activity.
@@ -40,6 +43,7 @@ class EngineService(
         principal: Principal,
         pendingPermissions: ArrayDeque<LoanActivityContext.PendingPermission>
                       ): AuthorizationCode {
+        logMe(nodeInstanceHandle, principal)
         validateAuthInfo(authToken, LoanPermissions.ACCEPT_TASK(nodeInstanceHandle)) // TODO mark correct expected permission
         if (nodeInstanceHandle!= authToken.nodeInstanceHandle) throw IllegalArgumentException("Mismatch with node instances")
         // Should register owner.
@@ -61,6 +65,8 @@ class EngineService(
 
 
     fun registerActivityToTaskList(taskList: TaskList, pniHandle: Handle<SecureObject<ProcessNodeInstance<*>>>) {
+        logMe(pniHandle)
+
         val permissions = listOf(LoanPermissions.UPDATE_ACTIVITY_STATE(pniHandle),
                                  LoanPermissions.ACCEPT_TASK(pniHandle))
         val taskListToEngineAuthToken = authService.createAuthorizationCode(
