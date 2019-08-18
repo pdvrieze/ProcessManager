@@ -205,11 +205,11 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
 
             action = { (application, creditReport) ->
                 registerTaskPermission(creditApplication, EVALUATE_LOAN(application.customerId))
-                registerTaskPermission(authService, GRANT_PERMISSION(customerFile, QUERY_CUSTOMER_DATA(application.customerId)))
+                registerTaskPermission(authService, GRANT_PERMISSION.restrictTo(customerFile, QUERY_CUSTOMER_DATA(application.customerId)))
 
                 generalClientService.runWithAuthorization(ctx.serviceTask()) { taskIdToken ->
 
-                    val delegatePermissionToken = getServiceToken(authService, GRANT_PERMISSION(customerFile, QUERY_CUSTOMER_DATA.invoke(application.customerId)))
+                    val delegatePermissionToken = getServiceToken(authService, GRANT_PERMISSION.restrictTo(creditApplication.serviceId, customerFile, QUERY_CUSTOMER_DATA.invoke(application.customerId)))
                     val delegateAuthorization = authService.createAuthorizationCode(
                         delegatePermissionToken,
                         creditApplication.serviceId,

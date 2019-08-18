@@ -80,7 +80,7 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
         val tokenForAuthz = serviceAuthorization
         while(pendingPermissions.isNotEmpty()) {
             val pendingPermission = pendingPermissions.removeFirst()
-            processContext.authService.grantPermission(engineServiceAuth, serviceAuthorization, processContext.authService, LoanPermissions.GRANT_PERMISSION.invoke(pendingPermission.service, pendingPermission.scope))
+            processContext.authService.grantPermission(engineServiceAuth, serviceAuthorization, processContext.authService, LoanPermissions.GRANT_PERMISSION.restrictTo(pendingPermission.service, pendingPermission.scope))
         }
 
         return serviceAuthorization

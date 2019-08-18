@@ -25,12 +25,15 @@ data class ExtScope<V>(val scope: LoanPermissions, val extraData: V) :
     }
 
     override fun intersect(otherScope: PermissionScope): PermissionScope? = when {
-        this == otherScope                                             -> this
-        otherScope is ExtScope<*> && extraData == otherScope.extraData -> {
+        this == otherScope || otherScope == scope -> this
+
+        otherScope is ExtScope<*>
+            && extraData == otherScope.extraData  -> {
             val effectiveScope = scope.intersect(otherScope.scope) as? LoanPermissions
             effectiveScope?.let { ExtScope(it, extraData) }
         }
-        else                                                           -> null
+
+        else                                      -> null
     }
 
     override fun union(otherScope: PermissionScope): PermissionScope = when {

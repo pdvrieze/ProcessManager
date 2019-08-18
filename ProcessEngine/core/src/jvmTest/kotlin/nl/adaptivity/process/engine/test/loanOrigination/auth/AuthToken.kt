@@ -23,12 +23,12 @@ import java.security.Principal
 import java.util.*
 
 class AuthToken(
-    val principal: Principal,
+    principal: Principal,
     val nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>,
     val tokenValue: String,
     val serviceId: String,
     val scope: PermissionScope
-               ): AuthInfo() {
+               ): AuthInfo(principal) {
     override fun toString(): String {
         return "AuthToken($tokenValue - $principal[act=${nodeInstanceHandle.handleValue}] -> $serviceId.${scope.description})"
     }

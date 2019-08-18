@@ -25,7 +25,7 @@ import java.lang.IllegalStateException
 import java.security.Principal
 import java.util.*
 
-class TaskList(authService:AuthService, private val engineService: EngineService, clientAuth: IdSecretAuthInfo, val principal: Principal): ServiceImpl(authService, clientAuth) {
+class TaskList constructor(authService:AuthService, private val engineService: EngineService, clientAuth: IdSecretAuthInfo, val principal: Principal): ServiceImpl(authService, clientAuth) {
 //    val nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>? get() = activityAccessToken?.nodeInstanceHandle
 
     override fun getServiceState(): String = principal.name

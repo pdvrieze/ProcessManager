@@ -105,10 +105,21 @@ class AuthService(
         doLog(authToken, "validateTokenPermissions(clientId = $serviceId, token = $authToken, scope = ${useScope.description})")
     }
 
-    private fun validateUserPermission(serviceId: String, authInfo: IdSecretAuthInfo, scope: UseAuthScope) {
+    private fun validateUserPermission(serviceId: String, authInfo: IdSecretAuthInfo, useScope: UseAuthScope) {
         if (serviceId!= authServiceId) throw AuthorizationException("Only authService allows password auth")
+        if (registeredClients[authInfo.principal.name]?.secret != authInfo.secret) {
+            throw AuthorizationException("Password mismatch for client ${authInfo.principal} (${registeredClients[authInfo.principal.name]?.secret} != ${authInfo.secret})")
+        }
+
         val source = Throwable().stackTrace[2].let { "${it.className.substringAfterLast('.')}.${it.methodName}" }
-        doLog(authInfo, "validateUserPermissions(clientId = $serviceId, authInfo = $authInfo, scope = ${scope.description}) from $source")
+        doLog(authInfo, "validateUserPermissions(clientId = $serviceId, authInfo = $authInfo, scope = ${useScope.description}) from $source")
+        if (useScope!=LoanPermissions.IDENTIFY) { // Identify by password is always allowed
+            val hasGlobalPerms =
+                globalPermissions.get(authInfo.principal)?.get(serviceId)?.any { it.includes(useScope) } ?: false
+            if (!hasGlobalPerms) {
+                throw AuthorizationException("No permission found for user ${authInfo.principal} to $serviceId.${useScope.description}")
+            }
+        }
     }
 
     /**
@@ -159,7 +170,7 @@ class AuthService(
         service: Service,
         scope: PermissionScope
                                            ): AuthorizationCode {
-        internalValidateAuthInfo(auth, LoanPermissions.GRANT_PERMISSION(service, scope))
+        internalValidateAuthInfo(auth, LoanPermissions.GRANT_PERMISSION.context(clientId, service, scope))
 
         val clientPrincipal = clientFromId(clientId)
         val token = AuthToken(clientPrincipal, nodeInstanceHandle, Random.nextString(), service.serviceId, scope)
@@ -211,7 +222,7 @@ class AuthService(
             .map { it.scope }
             .filterIsInstance<LoanPermissions.GRANT_PERMISSION.ContextScope>()
             .filter { it.serviceId == serviceId }
-            .map { it.childScope }
+            .map { it.childScope ?: ANYSCOPE }
             .plus(userPermissions.asSequence())
             .ifEmpty {
 /*
@@ -264,7 +275,8 @@ class AuthService(
 
     fun grantPermission(auth: AuthInfo, taskIdToken: AuthToken, service: Service, scope: PermissionScope) {
         val serviceId = service.serviceId
-        internalValidateAuthInfo(auth, LoanPermissions.GRANT_PERMISSION.invoke(service, scope))
+        val clientId = auth.principal.name
+        internalValidateAuthInfo(auth, LoanPermissions.GRANT_PERMISSION.context(clientId, service, scope))
         if (taskIdToken.serviceId != serviceId) throw AuthorizationException("Cannot grant permission for a token for one service to work againsta another service")
         assert(taskIdToken in activeTokens)
         val tokenPermissionList = tokenPermissions.getOrPut(taskIdToken.tokenValue) { mutableListOf() }

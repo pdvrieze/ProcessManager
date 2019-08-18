@@ -57,7 +57,7 @@ class EngineService(
                     serviceAuth,
                     authorizationCode,
                     authService,
-                    LoanPermissions.GRANT_PERMISSION.invoke(pendingPermission.service, pendingPermission.scope))
+                    LoanPermissions.GRANT_PERMISSION.restrictTo(principal.name, pendingPermission.service, pendingPermission.scope))
             }
 
         }

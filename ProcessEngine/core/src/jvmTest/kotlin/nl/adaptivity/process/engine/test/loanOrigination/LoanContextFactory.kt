@@ -37,14 +37,17 @@ import kotlin.random.nextUInt
 class LoanContextFactory(val log: Logger) : ProcessContextFactory<LoanActivityContext> {
     private val nodes = mutableMapOf<Handle<SecureObject<ProcessNodeInstance<*>>>, String>()
 
+    val authService = AuthService(log, nodes)
 
     @UseExperimental(ExperimentalUnsignedTypes::class)
-    val engineClientAuth: IdSecretAuthInfo =
-        IdSecretAuthInfo(SimplePrincipal("ProcessEngine:${Random.nextUInt().toString(16)}"))
+    val engineClientAuth: IdSecretAuthInfo = authService.registerClient("ProcessEngine", Random.nextString()).also {
+        authService.registerGlobalPermission(it.principal, authService, LoanPermissions.UPDATE_ACTIVITY_STATE)
+        authService.registerGlobalPermission(it.principal, authService, LoanPermissions.GRANT_PERMISSION)
+    }
+
     val engineClientId get() = engineClientAuth.principal.name
 
     private val processContexts = mutableMapOf<Handle<SecureObject<ProcessInstance>>, LoanProcessContext>()
-    val authService = AuthService(log, nodes)
     val customerFile = CustomerInformationFile(authService)
     val outputManagementSystem = OutputManagementSystem(authService)
     val accountManagementSystem = AccountManagementSystem(authService)
@@ -56,7 +59,7 @@ class LoanContextFactory(val log: Logger) : ProcessContextFactory<LoanActivityCo
 
 
     private val taskLists = mutableMapOf<Principal, TaskList>()
-    private val taskListClientAuth = IdSecretAuthInfo(SimplePrincipal("TaskList:${Random.nextString()}"))
+    private val taskListClientAuth = authService.registerClient("TaskList", Random.nextString())
 
     val customerData = CustomerData(
         "cust123456",

@@ -20,7 +20,7 @@ import nl.adaptivity.process.engine.test.loanOrigination.Random
 import nl.adaptivity.process.engine.test.loanOrigination.systems.nextString
 import java.security.Principal
 
-data class IdSecretAuthInfo(val principal: Principal, val secret: String = Random.nextString()): AuthInfo() {
+class IdSecretAuthInfo(principal: Principal, val secret: String = Random.nextString()): AuthInfo(principal) {
     override fun toString(): String {
         return "PW(${principal.name})=$secret"
     }

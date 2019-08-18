@@ -210,6 +210,8 @@ TaskList(postprocessing clerk 2).finishTask(H:6)
 [GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:6, AuthToken(60d0a77f9674004c - postprocessing clerk 2[act=6] -> AuthService:fd8ffe3a.IDENTIFY))
 [GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:6, AuthToken(74e0292bbd205efb - postprocessing clerk 2[act=6] -> Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))
 [GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:6, AuthToken(fd80699911600cb1 - postprocessing clerk 2[act=6] -> SigningService:d4dc9a73.SIGN))
+
+
 [GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.IDENTIFY)) from AuthService.createAuthorizationCodeImpl
 [GLOBAL>ProcessEngine:149244ff] - createAuthorizationCode(code = df18fb8e32d17c29, token = AuthToken(a1ba716df03ae50 - <automated>:8f861f11[act=7] -> AuthService:fd8ffe3a.IDENTIFY))
 [GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.GRANT_PERMISSION(Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))) from AuthService.grantPermission
