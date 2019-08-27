@@ -56,7 +56,8 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
         get() = super.predecessors
 
     @Transient
-    final override val conditions: Map<Identifier, Condition?>
+    final override var conditions: Map<Identifier, Condition?> = emptyMap()
+        private set
 
     @Required
     @Serializable(with = ConditionStringSerializer::class)

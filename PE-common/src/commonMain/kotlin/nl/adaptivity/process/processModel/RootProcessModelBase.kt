@@ -73,7 +73,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
         get() = _childModels
 
     @Transient
-    private val _childModels: IdentifyableSet<ChildProcessModelBase<NodeT>>
+    private var _childModels: IdentifyableSet<ChildProcessModelBase<NodeT>> = IdentifyableSet.processNodeSet()
 
     @SerialName("nodes")
     @Serializable(IdentifiableSetSerializer::class)

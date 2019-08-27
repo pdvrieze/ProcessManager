@@ -27,7 +27,10 @@ import nl.adaptivity.xmlutil.writeAttribute
 abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
 
     @Transient
+    private var _childModel: ChildProcessModel<ProcessNode>? = null
+
     override val childModel: ChildProcessModel<ProcessNode>
+        get() = _childModel!!
 
     constructor(
         builder: CompositeActivity.ModelBuilder,
@@ -35,7 +38,7 @@ abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
         otherNodes: Iterable<ProcessNode.Builder>
                ) :
         super(builder, buildHelper.newOwner, otherNodes) {
-        childModel = buildHelper.childModel(builder)
+        _childModel = buildHelper.childModel(builder)
     }
 
     constructor(
@@ -43,7 +46,7 @@ abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
         buildHelper: ProcessModel.BuildHelper<*, *, *, *>,
         otherNodes: Iterable<ProcessNode.Builder>
                ) : super(builder, buildHelper.newOwner, otherNodes) {
-        childModel = buildHelper.childModel(
+        _childModel = buildHelper.childModel(
             builder.childId ?: throw IllegalProcessModelException("Missing childId for reference")
                                            )
     }

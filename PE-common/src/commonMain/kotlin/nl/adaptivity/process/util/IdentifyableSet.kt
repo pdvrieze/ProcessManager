@@ -520,7 +520,7 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
                     if (elements.isNotEmpty()) {
                         throw IllegalArgumentException("More elements than allowed")
                     }
-                    return IdentifyableSet.empty<V>()
+                    return empty<V>()
                 }
                 1    -> {
                     run {
@@ -545,23 +545,20 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
                     if (it.hasNext()) {
                         throw IllegalArgumentException("More elements than allowed")
                     }
-                    return IdentifyableSet.empty<V>()
+                    return empty()
                 }
                 1    -> {
-                    run {
-                        if (it.hasNext()) {
-                            try {
-                                return singleton(it.next())
-                            } finally {
-                                if (it.hasNext()) {
-                                    throw IllegalArgumentException("More elements than allowed")
-                                }
+                    if (it.hasNext()) {
+                        try {
+                            return singleton(it.next())
+                        } finally {
+                            if (it.hasNext()) {
+                                throw IllegalArgumentException("More elements than allowed")
                             }
-                        } else {
-                            return singleton()
                         }
+                    } else {
+                        return singleton()
                     }
-                    return processNodeSet(elements)
                 }
                 else -> return processNodeSet(elements)
             }

@@ -38,30 +38,6 @@ import kotlin.jvm.JvmField
 abstract class ChildProcessModelBase<NodeT : ProcessNode> :
     ProcessModelBase<NodeT>, ChildProcessModel<NodeT> {
 
-    @Suppress("LeakingThis")
-    constructor(
-        builder: ChildProcessModel.Builder,
-        buildHelper: ProcessModel.BuildHelper<NodeT, ProcessModel<NodeT>, *, *>
-               ) :
-        super(builder, buildHelper.pedantic) {
-        modelNodes = buildNodes(builder, buildHelper.withOwner(this))
-        val newOwner: ProcessModel<NodeT> = buildHelper.newOwner
-        rootModel = newOwner?.rootModel
-            ?: throw IllegalProcessModelException("Childmodels must have roots")
-        this.id = builder.childId
-    }
-
-    /* Invalid constructor purely for serialization */
-    @Suppress("UNCHECKED_CAST", "LeakingThis")
-    protected constructor() : super(emptyList(), emptyList()) {
-        modelNodes = IdentifyableSet.processNodeSet()
-        rootModel = XmlProcessModel(RootProcessModelBase.Builder()) as RootProcessModel<NodeT>
-        id = null
-        if (id == null) {// stupid if to make the compiler not complain about uninitialised values
-            throw UnsupportedOperationException("Actually invoking this constructor is invalid")
-        }
-    }
-
     @SerialName("nodes")
     @XmlPolyChildren(
         arrayOf(
@@ -81,10 +57,36 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
     override val modelNodes: IdentifyableSet<NodeT>
 
     @Transient
+    private var _rootModel: RootProcessModel<NodeT> = XmlProcessModel(RootProcessModelBase.Builder()) as RootProcessModel<NodeT>
+
     override val rootModel: RootProcessModel<NodeT>
+        get() = _rootModel
 
     @SerialName("id")
     override val id: String?
+
+    @Suppress("LeakingThis")
+    constructor(
+        builder: ChildProcessModel.Builder,
+        buildHelper: ProcessModel.BuildHelper<NodeT, ProcessModel<NodeT>, *, *>
+               ) :
+        super(builder, buildHelper.pedantic) {
+        modelNodes = buildNodes(builder, buildHelper.withOwner(this))
+        val newOwner: ProcessModel<NodeT> = buildHelper.newOwner
+        _rootModel = newOwner.rootModel
+        this.id = builder.childId
+    }
+
+    /* Invalid constructor purely for serialization */
+    @Suppress("UNCHECKED_CAST", "LeakingThis")
+    protected constructor() : super(emptyList(), emptyList()) {
+        modelNodes = IdentifyableSet.processNodeSet()
+        _rootModel = XmlProcessModel(RootProcessModelBase.Builder()) as RootProcessModel<NodeT>
+        id = null
+        if (id == null) {// stupid if to make the compiler not complain about uninitialised values
+            throw UnsupportedOperationException("Actually invoking this constructor is invalid")
+        }
+    }
 
 
     override abstract fun builder(rootBuilder: RootProcessModel.Builder): ModelBuilder

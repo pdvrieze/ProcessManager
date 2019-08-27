@@ -98,9 +98,7 @@ class ActivityResponse<T : Any?> : XmlSerializable, SimpleXmlDeserializable {
         this._returnValue = returnValue
     }
 
-    private constructor() {
-        _returnValue = null
-    }
+    private constructor()
 
     @Suppress("MemberVisibilityCanBePrivate")
     @SerialName("taskState")
@@ -108,7 +106,7 @@ class ActivityResponse<T : Any?> : XmlSerializable, SimpleXmlDeserializable {
         private set
 
     @Transient
-    private var _returnValue: T?
+    private var _returnValue: T? = null
 
     /**
      * The actual return value.
@@ -124,7 +122,7 @@ class ActivityResponse<T : Any?> : XmlSerializable, SimpleXmlDeserializable {
      * @return The embedded return type.
      */
     @Transient
-    lateinit var returnType: Class<T>
+    var returnType: Class<T> = Nothing::class as Class<T>
         private set
 
 

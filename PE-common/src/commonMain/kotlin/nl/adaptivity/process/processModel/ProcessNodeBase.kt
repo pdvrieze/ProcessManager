@@ -36,42 +36,38 @@ import nl.adaptivity.xmlutil.serialization.XmlDefault
 abstract class ProcessNodeBase : ProcessNode {
 
     @Transient
-    private val _ownerModel: ProcessModel<ProcessNode>?
+    private var _ownerModel: ProcessModel<ProcessNode>? = null
 
     //    @Optional
     @XmlDefault("false")
     final override val isMultiInstance: Boolean
 
     @Transient
-    private val _predecessors: MutableIdentifyableSet<Identified>
+    private var _predecessors: MutableIdentifyableSet<Identified> = IdentifyableSet.processNodeSet()
 
-    @Transient
     override val predecessors: IdentifyableSet<Identified>
         get() = _predecessors
 
 
     @Transient
-    private val _successors: MutableIdentifyableSet<Identified>
+    private var _successors: MutableIdentifyableSet<Identified> = IdentifyableSet.processNodeSet()
 
-    @Transient
     override val successors: IdentifyableSet<Identified>
         get() = _successors
 
     //    @Optional
     @SerialName("x")
     @XmlDefault("NaN")
-    internal val _x: Double
+    private val _x: Double
 
-    @Transient
     override val x: Double
         get() = _x
 
     //    @Optional
     @SerialName("y")
     @XmlDefault("NaN")
-    internal val _y: Double
+    private val _y: Double
 
-    @Transient
     override val y: Double
         get() = _y
 
@@ -84,11 +80,9 @@ abstract class ProcessNodeBase : ProcessNode {
     @Transient
     private var _hashCode = 0
 
-    @Transient
     override val ownerModel: ProcessModel<ProcessNode>?
         get() = _ownerModel
 
-    @Transient
     override val idBase: String
         get() = "id"
 
@@ -96,12 +90,9 @@ abstract class ProcessNodeBase : ProcessNode {
 
     final override val label: String?
 
-
-    @Transient
     override val maxSuccessorCount: Int
         get() = Int.MAX_VALUE
 
-    @Transient
     override val maxPredecessorCount: Int
         get() = 1
 

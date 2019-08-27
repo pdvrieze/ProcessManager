@@ -196,9 +196,6 @@ abstract class ProcessModelBase<NodeT : ProcessNode> :
             this.nodes = nodes.toMutableList()
             this.imports = imports.toMutableList()
             this.exports = exports.toMutableList()
-            this.node = object : ArrayAccess<String, ProcessNode.Builder> {
-                override operator fun get(key: String) = this@Builder.nodes.firstOrNull { it.id == key }
-            }
         }
 
         constructor() : this(nodes = emptyList())
@@ -239,7 +236,10 @@ abstract class ProcessModelBase<NodeT : ProcessNode> :
         final override val exports: MutableList<IXmlDefineType>
 
         @Transient
-        val node: ArrayAccess<String, ProcessNode.Builder>
+        val node: ArrayAccess<String, ProcessNode.Builder> = object : ArrayAccess<String, ProcessNode.Builder> {
+            private val outer = this@Builder
+            override operator fun get(key: String) = outer.nodes.firstOrNull { it.id == key }
+        }
 
         constructor(base: ProcessModel<*>) :
             this(
