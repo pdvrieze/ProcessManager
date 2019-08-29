@@ -1,3 +1,6 @@
+import versions.kotlin_version
+import versions.kotlinx_html_version
+
 /*
  * Copyright (c) 2017.
  *
@@ -14,17 +17,24 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-apply plugin: 'kotlin-platform-js'
+plugins {
+    kotlin("js")
+}
+base {
+    version = "1.1.0"
+    description = "A library with generic support classes for javascript"
+}
 
-sourceCompatibility = myJavaVersion
-targetCompatibility = myJavaVersion
-
-version = '1.1.0'
-description = 'A library with generic support classes for javascript'
-
+kotlin {
+    target {
+        browser()
+    }
+}
 
 dependencies {
-    compile "org.jetbrains.kotlin:kotlin-stdlib-common:$kotlin_version"
-    compile "org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version"
-    compile "org.jetbrains.kotlinx:kotlinx-html-js:$kotlinx_html_version"
+    implementation(kotlin("stdlib"))
+//    implementation("org.jetbrains.kotlin:kotlin-stdlib-common:$kotlin_version")
+//    implementation("org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version")
+    implementation("org.jetbrains.kotlinx:kotlinx-html-js:$kotlinx_html_version")
 }
+
