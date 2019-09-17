@@ -19,7 +19,10 @@ package nl.adaptivity.process.processModel
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.modules.serializersModule
 import net.devrieze.util.collection.replaceBy
+import nl.adaptivity.process.processModel.serialization.PublicForSerialization
 import nl.adaptivity.process.util.*
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.multiplatform.name
@@ -33,6 +36,7 @@ import nl.adaptivity.xmlutil.serialization.XmlDefault
  * Created by pdvrieze on 23/11/15.
  */
 @Serializable
+@UseExperimental(PublicForSerialization::class)
 abstract class ProcessNodeBase : ProcessNode {
 
     @Transient
@@ -56,17 +60,19 @@ abstract class ProcessNodeBase : ProcessNode {
         get() = _successors
 
     //    @Optional
+    @PublicForSerialization
     @SerialName("x")
     @XmlDefault("NaN")
-    private val _x: Double
+    internal val _x: Double
 
     override val x: Double
         get() = _x
 
     //    @Optional
+    @PublicForSerialization
     @SerialName("y")
     @XmlDefault("NaN")
-    private val _y: Double
+    internal val _y: Double
 
     override val y: Double
         get() = _y
@@ -258,6 +264,11 @@ abstract class ProcessNodeBase : ProcessNode {
     companion object {
 
         const val ATTR_PREDECESSOR = "predecessor"
+
+        val serialModule = SerializersModule {
+            polymorphic(IXmlResultType::class, XmlResultType::class, XmlResultType.serializer())
+            polymorphic(IXmlDefineType::class, XmlDefineType::class, XmlDefineType.serializer())
+        }
 
         private fun toIdentifiers(
             maxSize: Int,

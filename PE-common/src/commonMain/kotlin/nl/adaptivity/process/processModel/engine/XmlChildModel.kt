@@ -46,6 +46,7 @@ class XmlChildModel : ChildProcessModelBase<XmlProcessNode>, ChildProcessModel<X
         return ModelBuilder(rootBuilder, this)
     }
 
+    @UseExperimental(InternalSerializationApi::class)
     @Serializer(forClass = XmlChildModel::class)
     companion object : ChildProcessModelBase.BaseSerializer<XmlChildModel>(), GeneratedSerializer<XmlChildModel> {
 

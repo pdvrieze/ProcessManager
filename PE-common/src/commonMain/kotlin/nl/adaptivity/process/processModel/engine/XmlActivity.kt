@@ -17,6 +17,8 @@
 package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.*
+import kotlinx.serialization.internal.GeneratedSerializer
+import kotlinx.serialization.internal.SerialClassDescImpl
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
@@ -131,8 +133,17 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
         else               -> visitor.visitActivity(compositeActivity = this)
     }
 
+    @UseExperimental(InternalSerializationApi::class)
     @Serializer(forClass = XmlActivity::class)
-    companion object : KSerializer<XmlActivity> {
+    companion object : KSerializer<XmlActivity>, GeneratedSerializer<XmlActivity> {
+
+        init {
+            // Some nasty hack as somehow initialisation is broken.
+            val d = descriptor as SerialClassDescImpl
+            for (childSerializer in childSerializers()) {
+                d.pushDescriptor(childSerializer.descriptor)
+            }
+        }
 
         override fun deserialize(decoder: Decoder): XmlActivity {
             throw UnsupportedOperationException("This can only done in the correct context")

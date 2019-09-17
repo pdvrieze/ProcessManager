@@ -22,6 +22,8 @@ import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.modules.EmptyModule
+import kotlinx.serialization.modules.SerialModule
 import net.devrieze.util.readString
 import nl.adaptivity.process.engine.impl.dom.toDocumentFragment
 import nl.adaptivity.process.engine.processModel.applyData
@@ -38,7 +40,6 @@ import org.junit.jupiter.api.assertThrows
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 import org.w3c.dom.Text
-import org.xml.sax.InputSource
 import org.xml.sax.SAXException
 import org.xml.sax.SAXParseException
 import org.xmlunit.builder.DiffBuilder
@@ -184,7 +185,7 @@ class TestProcessData {
         assertTrue(apply2.item(0) is Text)
         assertEquals("Paul", apply2.item(0).textContent)
 
-        val apply3 = pathExpression.evaluate(testData, XPathConstants.NODE) as Node
+        val apply3 = pathExpression.evaluate(testData.toDocumentFragment(), XPathConstants.NODE) as Node
         assertNotNull(apply3)
         assertTrue(apply3 is Text)
         assertEquals("Paul", apply3.textContent)
@@ -309,7 +310,12 @@ class TestProcessData {
     @Throws(Exception::class)
     fun testXmlStreamingRoundTripProcessModel1() {
 
-        testRoundTrip(getDocument("testModel2.xml"), XmlProcessModel::class, XmlProcessModel.serializer()) { model ->
+        testRoundTrip(
+            getDocument("testModel2.xml"),
+            XmlProcessModel::class,
+            XmlProcessModel.serializer(),
+            XmlProcessModel.serialModule
+                     ) { model ->
             val ac1 = model.getNode("ac1") as Activity
             assertEquals("ac1", ac1.name)
             assertEquals("start", ac1.predecessor?.id)
@@ -803,7 +809,7 @@ class TestProcessData {
                 "</pe:processModel>\n"
 
 
-        testRoundTrip(xml, XmlProcessModel::class, XmlProcessModel.serializer(), true)
+        testRoundTrip(xml, XmlProcessModel::class, XmlProcessModel.serializer(), true, ProcessNodeBase.serialModule)
     }
 
     @Test()
@@ -910,6 +916,7 @@ class TestProcessData {
         fun <T : XmlSerializable> testRoundTrip(
             reader: InputStream, target: KClass<out T>,
             serializer: KSerializer<T>,
+            serialModule: SerialModule,
             factoryOpt: XmlDeserializerFactory<T>? = null,
             testObject: (T) -> Unit = {}
                                                ): String {
@@ -929,6 +936,7 @@ class TestProcessData {
 
             return testRoundTripCombined(
                 expected, streamReaderFactory, target, serializer = serializer,
+                serialModule = serialModule,
                 factoryOpt = factoryOpt,
                 testObject = testObject
                                         )
@@ -941,12 +949,14 @@ class TestProcessData {
         fun <T : XmlSerializable> testRoundTrip(
             xml: String, target: KClass<out T>,
             serializer: KSerializer<T>,
+            serialModule: SerialModule,
             factoryOpt: XmlDeserializerFactory<out T>? = null,
             testObject: (T) -> Unit = {}
                                                ): String {
             return testRoundTripCombined(
                 xml, { XmlStreaming.newReader(StringReader(xml)) }, target,
                 serializer = serializer,
+                serialModule = serialModule,
                 factoryOpt = factoryOpt,
                 testObject = testObject
                                         )
@@ -960,12 +970,14 @@ class TestProcessData {
         fun <T : Any> testRoundTrip(
             xml: String, target: KClass<out T>,
             serializer: KSerializer<T>,
+            serialModule: SerialModule = EmptyModule,
             repairNamespaces: Boolean = false,
             omitXmlDecl: Boolean = true,
             testObject: (T) -> Unit = {}
                                    ): String {
             return testRoundTripCombined(
                 xml, { XmlStreaming.newReader(StringReader(xml)) }, target, serializer = serializer,
+                serialModule = serialModule,
                 repairNamespaces = repairNamespaces,
                 omitXmlDecl = omitXmlDecl,
                 testObject = testObject
@@ -980,12 +992,14 @@ class TestProcessData {
             xml: String, target: KClass<out T>,
             serializer: KSerializer<T>,
             @Suppress("UNUSED_PARAMETER") ignoreNs: Boolean,
+            serialModule: SerialModule = EmptyModule,
             factoryOpt: XmlDeserializerFactory<T>? = null,
             testObject: (T) -> Unit = {}
                                                ): String {
             return testRoundTripCombined(
                 xml, { XmlStreaming.newReader(StringReader(xml)) }, target,
                 serializer = serializer,
+                serialModule = serialModule,
                 factoryOpt = factoryOpt,
                 testObject = testObject
                                         )
@@ -1000,12 +1014,14 @@ class TestProcessData {
             xml: String, target: KClass<out T>,
             serializer: KSerializer<T>,
             @Suppress("UNUSED_PARAMETER") ignoreNs: Boolean,
+            serialModule: SerialModule,
             repairNamespaces: Boolean = false,
             omitXmlDecl: Boolean = true,
             testObject: (T) -> Unit = {}
                                    ): String {
             return testRoundTripCombined(
                 xml, { XmlStreaming.newReader(StringReader(xml)) }, target, serializer,
+                serialModule,
                 repairNamespaces = repairNamespaces,
                 omitXmlDecl = omitXmlDecl,
                 testObject = testObject
@@ -1017,13 +1033,22 @@ class TestProcessData {
             readerFactory: () -> XmlReader,
             target: KClass<out T>,
             serializer: KSerializer<T>,
+            serialModule: SerialModule,
             repairNamespaces: Boolean = false,
             omitXmlDecl: Boolean = true,
             factoryOpt: XmlDeserializerFactory<out T>? = null,
             noinline testObject: (T) -> Unit = {}
                                                           ): String {
             val new = if (target.java.getAnnotation(Serializable::class.java) == null) null else
-                testRoundTripSer(expected, readerFactory(), serializer, repairNamespaces, omitXmlDecl, testObject)
+                testRoundTripSer(
+                    expected,
+                    readerFactory(),
+                    serializer,
+                    serialModule,
+                    repairNamespaces,
+                    omitXmlDecl,
+                    testObject
+                                )
 
             val old = if (XmlSerializable::class.java.isAssignableFrom(target.java)) {
                 val serializableTarget = target.java.asSubclass(XmlSerializable::class.java)
@@ -1071,12 +1096,18 @@ class TestProcessData {
             expected: String,
             reader: XmlReader,
             target: KSerializer<T>,
+            serialModule: SerialModule,
             repairNamespaces: Boolean = false,
             omitXmlDecl: Boolean = true,
             testObject: (T) -> Unit = {}
                                               ): String {
             assertNotNull(reader)
-            val xml = XML(repairNamespaces = repairNamespaces, omitXmlDecl = omitXmlDecl, indent = 4)
+            val xml = XML(serialModule) {
+                this.repairNamespaces = repairNamespaces
+                this.omitXmlDecl = omitXmlDecl
+                this.indent = 4
+                this.autoPolymorphic = true
+            }
             val obj = xml.parse(target, reader)
             testObject(obj)
 

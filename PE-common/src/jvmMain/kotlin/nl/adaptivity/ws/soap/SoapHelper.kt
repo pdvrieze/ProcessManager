@@ -365,8 +365,9 @@ object SoapHelper {
         return processResponse(resultType, context, useSiteAnnotations, env)
     }
 
+    // public for testing.
     @Throws(XmlException::class)
-    internal fun unmarshalWrapper(reader: XmlReader): LinkedHashMap<String, Node> {
+    fun unmarshalWrapper(reader: XmlReader): LinkedHashMap<String, Node> {
         reader.skipPreamble()
         reader.require(EventType.START_ELEMENT, null, null)
         val params = LinkedHashMap<String, Node>()

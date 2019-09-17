@@ -440,6 +440,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
             }
         }
 
+        @UseExperimental(InternalSerializationApi::class)
         @Serializer(Builder::class)
         companion object : BaseSerializer<Builder>(),
                            GeneratedSerializer<Builder> {

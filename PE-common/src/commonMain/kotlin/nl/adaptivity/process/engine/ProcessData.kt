@@ -19,6 +19,7 @@ package nl.adaptivity.process.engine
 import kotlinx.serialization.*
 import kotlinx.serialization.internal.NullableSerializer
 import kotlinx.serialization.internal.StringSerializer
+import kotlinx.serialization.internal.nullable
 import net.devrieze.util.Named
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.serialutil.decodeElements
@@ -101,7 +102,7 @@ constructor(
                     when (i) {
                         KInput.READ_ALL -> throw UnsupportedOperationException()
                         0               -> name =
-                            decodeNullableSerializableElement(descriptor, 0, NullableSerializer(StringSerializer))
+                            decodeNullableSerializableElement(descriptor, 0, StringSerializer.nullable)
                         1               -> content = when (this) {
                             is XML.XmlInput -> this.input.siblingsToFragment()
                             else            -> decodeSerializableElement(descriptor, 1, ICompactFragmentSerializer)
