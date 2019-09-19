@@ -1,4 +1,5 @@
 # Register clients to auth service
+[UNAUTH] - registerClient(ProcessEngine:fd8ffe3a)
 [UNAUTH] - registerClient(Customer_Information_File:e1baf537)
 [UNAUTH] - registerClient(Output_Manamgent_System:e655d173)
 [UNAUTH] - registerClient(Account_Management_System:3298b915)
@@ -7,27 +8,28 @@
 [UNAUTH] - registerClient(Pricing_Engine:5682af11)
 [UNAUTH] - registerClient(<automated>:8f861f11)
 [UNAUTH] - registerClient(SigningService:d4dc9a73)
+[UNAUTH] - registerClient(TaskList:96f3e56)
 
 
 # Log in preprocessing clerk on browser object
 [UNAUTH] - registerClient(preprocessing clerk 1)
-[GLOBAL>preprocessing clerk 1] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(preprocessing clerk 1)=8ead4c37c46b6524, scope = IDENTIFY) from AuthService.loginDirect
-[<unknown node>:-1>preprocessing clerk 1] - loginDirect(PW(preprocessing clerk 1)=8ead4c37c46b6524) = AuthToken(df6db7b9083ba669 - preprocessing clerk 1[act=-1] -> AuthService:fd8ffe3a.IDENTIFY)
+[GLOBAL>preprocessing clerk 1] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(preprocessing clerk 1)=7fe1df308ead4c38, scope = IDENTIFY) from AuthService.loginDirect
+[<unknown node>:-1>preprocessing clerk 1] - loginDirect(PW(preprocessing clerk 1)=7fe1df308ead4c38) = AuthToken(c46b6523df6db7b9 - preprocessing clerk 1[act=-1] -> AuthService:149244ff.IDENTIFY)
 
 # Log in clerk 2 on browser object
 [UNAUTH] - registerClient(postprocessing clerk 2)
-[GLOBAL>postprocessing clerk 2] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(postprocessing clerk 2)=ffb7a0e2dd12b151, scope = IDENTIFY) from AuthService.loginDirect
-[<unknown node>:-1>postprocessing clerk 2] - loginDirect(PW(postprocessing clerk 2)=ffb7a0e2dd12b151) = AuthToken(63f088624766ce9f - postprocessing clerk 2[act=-1] -> AuthService:fd8ffe3a.IDENTIFY)
+[GLOBAL>postprocessing clerk 2] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(postprocessing clerk 2)=83ba668ffb7a0e3, scope = IDENTIFY) from AuthService.loginDirect
+[<unknown node>:-1>postprocessing clerk 2] - loginDirect(PW(postprocessing clerk 2)=83ba668ffb7a0e3) = AuthToken(dd12b15163f08862 - postprocessing clerk 2[act=-1] -> AuthService:149244ff.IDENTIFY)
 
 # Log in customer on browser object
 [UNAUTH] - registerClient(John Doe)
-[GLOBAL>John Doe] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(John Doe)=1c282f6bc507ffa1, scope = IDENTIFY) from AuthService.loginDirect
-[<unknown node>:-1>John Doe] - loginDirect(PW(John Doe)=1c282f6bc507ffa1) = AuthToken(deeb152ca0bd97ba - John Doe[act=-1] -> AuthService:fd8ffe3a.IDENTIFY)
+[GLOBAL>John Doe] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(John Doe)=4766ce9f1c282f6c, scope = IDENTIFY) from AuthService.loginDirect
+[<unknown node>:-1>John Doe] - loginDirect(PW(John Doe)=4766ce9f1c282f6c) = AuthToken(c507ffa0deeb152d - John Doe[act=-1] -> AuthService:149244ff.IDENTIFY)
 
 ---------------------------------------
 
 # Process Engine notifies auth service of completion of start node.
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:0)) from AuthService.invalidateActivityTokens
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:0)) from AuthService.invalidateActivityTokens
 
 ---------------------------------------
 
@@ -37,441 +39,439 @@ Creating tasklist for preprocessing clerk 1
 
 # Process engine create an authorization code that allows the task list (associated to clerk 1) to update activity state and accept the task
 EngineService.registerActivityToTaskList(H:1)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:1) && ACCEPT_TASK(H:1)))) from AuthService.createAuthorizationCodeImpl
-[GLOBAL>ProcessEngine:149244ff] - createAuthorizationCode(code = 4bfdda9eefb092c1, token = AuthToken(8a647108daf354c6 - TaskList:66c860fcded2df95[act=1] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:1) && ACCEPT_TASK(H:1))))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(TaskList:96f3e56.ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:1) && ACCEPT_TASK(H:1)))) from AuthService.createAuthorizationCodeImpl
+[GLOBAL>ProcessEngine:fd8ffe3a] - createAuthorizationCode(code = daf354c64bfdda9f, token = AuthToken(a0bd97b98a647109 - TaskList:96f3e56[act=1] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:1) && ACCEPT_TASK(H:1))))
 
 # The task list converts the authorization code into an authentication code
-TaskList(preprocessing clerk 1).registerToken(AuthorizationCode(code=4bfdda9eefb092c1))
-[GLOBAL>TaskList:66c860fcded2df95] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(TaskList:66c860fcded2df95)=96f3e567fe1df31, scope = IDENTIFY) from AuthService.getAuthToken
-[GLOBAL>TaskList:66c860fcded2df95] - authTokenFromAuthorization(authorization = AuthorizationCode(code=4bfdda9eefb092c1)) = AuthToken(8a647108daf354c6 - TaskList:66c860fcded2df95[act=1] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:1) && ACCEPT_TASK(H:1)))
+TaskList(preprocessing clerk 1).registerToken(AuthorizationCode(code=daf354c64bfdda9f))
+[GLOBAL>TaskList:96f3e56] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(TaskList:96f3e56)=66c860fcded2df95, scope = IDENTIFY) from AuthService.getAuthToken
+[GLOBAL>TaskList:96f3e56] - authTokenFromAuthorization(authorization = AuthorizationCode(code=daf354c64bfdda9f)) = AuthToken(a0bd97b98a647109 - TaskList:96f3e56[act=1] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:1) && ACCEPT_TASK(H:1)))
 
 # The preprocessing clerk gets a token against the task list.
-Browser(preprocessing clerk 1).loginToService(TaskList:66c860fcded2df95)
-[<unknown node>:-1>preprocessing clerk 1] - validateTokenPermissions(clientId = AuthService:fd8ffe3a, token = AuthToken(df6db7b9083ba669 - preprocessing clerk 1[act=-1] -> AuthService:fd8ffe3a.IDENTIFY), scope = IDENTIFY)
-[<unknown node>:-1>preprocessing clerk 1] - getAuthTokenDirect(AuthToken(df6db7b9083ba669 - preprocessing clerk 1[act=-1] -> AuthService:fd8ffe3a.IDENTIFY)) = AuthToken(f6f3a83f5b0dc0c6 - preprocessing clerk 1[act=-1] -> TaskList:66c860fcded2df95.ACCEPT_TASK)
+Browser(preprocessing clerk 1).loginToService(TaskList:96f3e56)
+[<unknown node>:-1>preprocessing clerk 1] - validateTokenPermissions(clientId = AuthService:149244ff, token = AuthToken(c46b6523df6db7b9 - preprocessing clerk 1[act=-1] -> AuthService:149244ff.IDENTIFY), scope = IDENTIFY)
+[<unknown node>:-1>preprocessing clerk 1] - getAuthTokenDirect(AuthToken(c46b6523df6db7b9 - preprocessing clerk 1[act=-1] -> AuthService:149244ff.IDENTIFY)) = AuthToken(efb092c0f6f3a83f - preprocessing clerk 1[act=-1] -> TaskList:96f3e56.ACCEPT_TASK)
 
 # The preprocessing clerk accepts the task
 TaskList(preprocessing clerk 1).acceptActivity(H:1, preprocessing clerk 1)
-[<unknown node>:-1>preprocessing clerk 1] - validateTokenPermissions(clientId = TaskList:66c860fcded2df95, token = AuthToken(f6f3a83f5b0dc0c6 - preprocessing clerk 1[act=-1] -> TaskList:66c860fcded2df95.ACCEPT_TASK), scope = ACCEPT_TASK)
+[<unknown node>:-1>preprocessing clerk 1] - validateTokenPermissions(clientId = TaskList:96f3e56, token = AuthToken(efb092c0f6f3a83f - preprocessing clerk 1[act=-1] -> TaskList:96f3e56.ACCEPT_TASK), scope = ACCEPT_TASK)
 
 # The task list accepts the task
 EngineService.acceptActivity(H:1, preprocessing clerk 1)
-[inputCustomerMasterData:1>TaskList:66c860fcded2df95] - validateTokenPermissions(clientId = ProcessEngine:149244ff, token = AuthToken(8a647108daf354c6 - TaskList:66c860fcded2df95[act=1] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:1) && ACCEPT_TASK(H:1))), scope = ACCEPT_TASK(H:1))
+[inputCustomerMasterData:1>TaskList:96f3e56] - validateTokenPermissions(clientId = ProcessEngine:fd8ffe3a, token = AuthToken(a0bd97b98a647109 - TaskList:96f3e56[act=1] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:1) && ACCEPT_TASK(H:1))), scope = ACCEPT_TASK(H:1))
 
     # The process engine creates an authorization code for clerk1 that associates the browser with the task
-    [GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.IDENTIFY)) from AuthService.createAuthorizationCodeImpl
-    [GLOBAL>ProcessEngine:149244ff] - createAuthorizationCode(code = d593a718a9915d46, token = AuthToken(e4f424b32a9c5483 - preprocessing clerk 1[act=1] -> AuthService:fd8ffe3a.IDENTIFY))
+    [GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(preprocessing clerk 1.AuthService:149244ff.IDENTIFY)) from AuthService.createAuthorizationCodeImpl
+    [GLOBAL>ProcessEngine:fd8ffe3a] - createAuthorizationCode(code = 2a9c5482d593a719, token = AuthToken(5b0dc0c5e4f424b3 - preprocessing clerk 1[act=1] -> AuthService:149244ff.IDENTIFY))
 
     # The process engine grants permission to the token for clerk1 to query customer data
-    [GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.GRANT_PERMISSION(Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA))) from AuthService.grantPermission
-    [GLOBAL>ProcessEngine:149244ff] - grantPermission(token = e4f424b32a9c5483, serviceId = AuthService:fd8ffe3a, scope = GRANT_PERMISSION(Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA))
+    [GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(ProcessEngine:fd8ffe3a.AuthService:149244ff.GRANT_PERMISSION(preprocessing clerk 1.Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA))) from AuthService.grantPermission
+    [GLOBAL>ProcessEngine:fd8ffe3a] - grantPermission(token = 5b0dc0c5e4f424b3, serviceId = AuthService:149244ff, scope = GRANT_PERMISSION(preprocessing clerk 1.Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA))
 
     # The process engine grants permission to the token for clerk1 to create a customer
-    [GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.GRANT_PERMISSION(Customer_Information_File:e1baf537.CREATE_CUSTOMER))) from AuthService.grantPermission
-    [GLOBAL>ProcessEngine:149244ff] - grantPermission(token = e4f424b32a9c5483, serviceId = AuthService:fd8ffe3a, scope = GRANT_PERMISSION(Customer_Information_File:e1baf537.CREATE_CUSTOMER))
+    [GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(ProcessEngine:fd8ffe3a.AuthService:149244ff.GRANT_PERMISSION(preprocessing clerk 1.Customer_Information_File:e1baf537.CREATE_CUSTOMER))) from AuthService.grantPermission
+    [GLOBAL>ProcessEngine:fd8ffe3a] - grantPermission(token = 5b0dc0c5e4f424b3, serviceId = AuthService:149244ff, scope = GRANT_PERMISSION(preprocessing clerk 1.Customer_Information_File:e1baf537.CREATE_CUSTOMER))
 
     # The process engine grants permission to the token for clerk1 to update customer data
-    [GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.GRANT_PERMISSION(Customer_Information_File:e1baf537.UPDATE_CUSTOMER_DATA))) from AuthService.grantPermission
-    [GLOBAL>ProcessEngine:149244ff] - grantPermission(token = e4f424b32a9c5483, serviceId = AuthService:fd8ffe3a, scope = GRANT_PERMISSION(Customer_Information_File:e1baf537.UPDATE_CUSTOMER_DATA))
+    [GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(ProcessEngine:fd8ffe3a.AuthService:149244ff.GRANT_PERMISSION(preprocessing clerk 1.Customer_Information_File:e1baf537.UPDATE_CUSTOMER_DATA))) from AuthService.grantPermission
+    [GLOBAL>ProcessEngine:fd8ffe3a] - grantPermission(token = 5b0dc0c5e4f424b3, serviceId = AuthService:149244ff, scope = GRANT_PERMISSION(preprocessing clerk 1.Customer_Information_File:e1baf537.UPDATE_CUSTOMER_DATA))
 
 # The preprocessing clerk turns in the authorization code for an authToken identifying itself against the auth service
-[GLOBAL>preprocessing clerk 1] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(preprocessing clerk 1)=8ead4c37c46b6524, scope = IDENTIFY) from AuthService.getAuthToken
-[GLOBAL>preprocessing clerk 1] - authTokenFromAuthorization(authorization = AuthorizationCode(code=d593a718a9915d46)) = AuthToken(e4f424b32a9c5483 - preprocessing clerk 1[act=1] -> AuthService:fd8ffe3a.IDENTIFY)
-Browser(preprocessing clerk 1).addToken(AuthToken(e4f424b32a9c5483 - preprocessing clerk 1[act=1] -> AuthService:fd8ffe3a.IDENTIFY))
+[GLOBAL>preprocessing clerk 1] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(preprocessing clerk 1)=7fe1df308ead4c38, scope = IDENTIFY) from AuthService.getAuthToken
+[GLOBAL>preprocessing clerk 1] - authTokenFromAuthorization(authorization = AuthorizationCode(code=2a9c5482d593a719)) = AuthToken(5b0dc0c5e4f424b3 - preprocessing clerk 1[act=1] -> AuthService:149244ff.IDENTIFY)
+Browser(preprocessing clerk 1).addToken(AuthToken(5b0dc0c5e4f424b3 - preprocessing clerk 1[act=1] -> AuthService:149244ff.IDENTIFY))
 
 
 # Clerk 1 logs in to the customer information file (with automatic permissions)
 TaskList(preprocessing clerk 1).loginToService(Customer_Information_File:e1baf537)
-Browser(preprocessing clerk 1).loginToService(nl.adaptivity.process.engine.test.loanOrigination.systems.AuthService@595e237a, nl.adaptivity.process.engine.test.loanOrigination.systems.CustomerInformationFile@18bb9045)
-[inputCustomerMasterData:1>preprocessing clerk 1] - validateTokenPermissions(clientId = AuthService:fd8ffe3a, token = AuthToken(e4f424b32a9c5483 - preprocessing clerk 1[act=1] -> AuthService:fd8ffe3a.IDENTIFY), scope = IDENTIFY)
-[inputCustomerMasterData:1>preprocessing clerk 1] - getAuthTokenDirect(AuthToken(e4f424b32a9c5483 - preprocessing clerk 1[act=1] -> AuthService:fd8ffe3a.IDENTIFY)) = AuthToken(1cabe83bd8136c8a - preprocessing clerk 1[act=1] -> Customer_Information_File:e1baf537.(QUERY_CUSTOMER_DATA && CREATE_CUSTOMER && UPDATE_CUSTOMER_DATA))
+Browser(preprocessing clerk 1).loginToService(Customer_Information_File:e1baf537)
+[inputCustomerMasterData:1>preprocessing clerk 1] - validateTokenPermissions(clientId = AuthService:149244ff, token = AuthToken(5b0dc0c5e4f424b3 - preprocessing clerk 1[act=1] -> AuthService:149244ff.IDENTIFY), scope = IDENTIFY)
+[inputCustomerMasterData:1>preprocessing clerk 1] - getAuthTokenDirect(AuthToken(5b0dc0c5e4f424b3 - preprocessing clerk 1[act=1] -> AuthService:149244ff.IDENTIFY)) = AuthToken(a9915d461cabe83c - preprocessing clerk 1[act=1] -> Customer_Information_File:e1baf537.(QUERY_CUSTOMER_DATA && CREATE_CUSTOMER && UPDATE_CUSTOMER_DATA))
 
 # Clerk 1 creates a customer on the customer information file
 CustomerInformationFile.enterCustomerData()
-[inputCustomerMasterData:1>preprocessing clerk 1] - validateTokenPermissions(clientId = Customer_Information_File:e1baf537, token = AuthToken(1cabe83bd8136c8a - preprocessing clerk 1[act=1] -> Customer_Information_File:e1baf537.(QUERY_CUSTOMER_DATA && CREATE_CUSTOMER && UPDATE_CUSTOMER_DATA)), scope = CREATE_CUSTOMER)
+[inputCustomerMasterData:1>preprocessing clerk 1] - validateTokenPermissions(clientId = Customer_Information_File:e1baf537, token = AuthToken(a9915d461cabe83c - preprocessing clerk 1[act=1] -> Customer_Information_File:e1baf537.(QUERY_CUSTOMER_DATA && CREATE_CUSTOMER && UPDATE_CUSTOMER_DATA)), scope = CREATE_CUSTOMER)
 
 # The process engine informs the authorization service the task is finished
 TaskList(preprocessing clerk 1).finishTask(H:1)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:1)) from AuthService.invalidateActivityTokens
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:1, AuthToken(8a647108daf354c6 - TaskList:66c860fcded2df95[act=1] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:1) && ACCEPT_TASK(H:1))))
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:1, AuthToken(e4f424b32a9c5483 - preprocessing clerk 1[act=1] -> AuthService:fd8ffe3a.IDENTIFY))
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:1, AuthToken(1cabe83bd8136c8a - preprocessing clerk 1[act=1] -> Customer_Information_File:e1baf537.(QUERY_CUSTOMER_DATA && CREATE_CUSTOMER && UPDATE_CUSTOMER_DATA)))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:1)) from AuthService.invalidateActivityTokens
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:1, AuthToken(a0bd97b98a647109 - TaskList:96f3e56[act=1] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:1) && ACCEPT_TASK(H:1))))
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:1, AuthToken(5b0dc0c5e4f424b3 - preprocessing clerk 1[act=1] -> AuthService:149244ff.IDENTIFY))
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:1, AuthToken(a9915d461cabe83c - preprocessing clerk 1[act=1] -> Customer_Information_File:e1baf537.(QUERY_CUSTOMER_DATA && CREATE_CUSTOMER && UPDATE_CUSTOMER_DATA)))
 
 ---------------------------------------
 
 # The process engine creates an authorization code allowing the task list to update state (and accept tasks)
 EngineService.registerActivityToTaskList(H:2)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:2) && ACCEPT_TASK(H:2)))) from AuthService.createAuthorizationCodeImpl
-[GLOBAL>ProcessEngine:149244ff] - createAuthorizationCode(code = 1b093e7abbe07dbd, token = AuthToken(e89a9c1e94379f80 - TaskList:66c860fcded2df95[act=2] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:2) && ACCEPT_TASK(H:2))))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(TaskList:96f3e56.ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:2) && ACCEPT_TASK(H:2)))) from AuthService.createAuthorizationCodeImpl
+[GLOBAL>ProcessEngine:fd8ffe3a] - createAuthorizationCode(code = 94379f801b093e7b, token = AuthToken(d8136c89e89a9c1f - TaskList:96f3e56[act=2] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:2) && ACCEPT_TASK(H:2))))
 
 # The task list turns in the authorization code to an authToken
-TaskList(preprocessing clerk 1).registerToken(AuthorizationCode(code=1b093e7abbe07dbd))
-[GLOBAL>TaskList:66c860fcded2df95] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(TaskList:66c860fcded2df95)=96f3e567fe1df31, scope = IDENTIFY) from AuthService.getAuthToken
-[GLOBAL>TaskList:66c860fcded2df95] - authTokenFromAuthorization(authorization = AuthorizationCode(code=1b093e7abbe07dbd)) = AuthToken(e89a9c1e94379f80 - TaskList:66c860fcded2df95[act=2] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:2) && ACCEPT_TASK(H:2)))
+TaskList(preprocessing clerk 1).registerToken(AuthorizationCode(code=94379f801b093e7b))
+[GLOBAL>TaskList:96f3e56] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(TaskList:96f3e56)=66c860fcded2df95, scope = IDENTIFY) from AuthService.getAuthToken
+[GLOBAL>TaskList:96f3e56] - authTokenFromAuthorization(authorization = AuthorizationCode(code=94379f801b093e7b)) = AuthToken(d8136c89e89a9c1f - TaskList:96f3e56[act=2] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:2) && ACCEPT_TASK(H:2)))
 
 # clerk 1 logs in to task list
-Browser(preprocessing clerk 1).loginToService(TaskList:66c860fcded2df95)
-[<unknown node>:-1>preprocessing clerk 1] - validateTokenPermissions(clientId = AuthService:fd8ffe3a, token = AuthToken(df6db7b9083ba669 - preprocessing clerk 1[act=-1] -> AuthService:fd8ffe3a.IDENTIFY), scope = IDENTIFY)
-[<unknown node>:-1>preprocessing clerk 1] - getAuthTokenDirect(AuthToken(df6db7b9083ba669 - preprocessing clerk 1[act=-1] -> AuthService:fd8ffe3a.IDENTIFY)) = AuthToken(b864a33e9c13c2b - preprocessing clerk 1[act=-1] -> TaskList:66c860fcded2df95.ACCEPT_TASK)
+Browser(preprocessing clerk 1).loginToService(TaskList:96f3e56)
+[<unknown node>:-1>preprocessing clerk 1] - validateTokenPermissions(clientId = AuthService:149244ff, token = AuthToken(c46b6523df6db7b9 - preprocessing clerk 1[act=-1] -> AuthService:149244ff.IDENTIFY), scope = IDENTIFY)
+[<unknown node>:-1>preprocessing clerk 1] - getAuthTokenDirect(AuthToken(c46b6523df6db7b9 - preprocessing clerk 1[act=-1] -> AuthService:149244ff.IDENTIFY)) = AuthToken(bbe07dbd0b864a34 - preprocessing clerk 1[act=-1] -> TaskList:96f3e56.ACCEPT_TASK)
 
 # clerk 1 accepts activity 2
 TaskList(preprocessing clerk 1).acceptActivity(H:2, preprocessing clerk 1)
-[<unknown node>:-1>preprocessing clerk 1] - validateTokenPermissions(clientId = TaskList:66c860fcded2df95, token = AuthToken(b864a33e9c13c2b - preprocessing clerk 1[act=-1] -> TaskList:66c860fcded2df95.ACCEPT_TASK), scope = ACCEPT_TASK)
+[<unknown node>:-1>preprocessing clerk 1] - validateTokenPermissions(clientId = TaskList:96f3e56, token = AuthToken(bbe07dbd0b864a34 - preprocessing clerk 1[act=-1] -> TaskList:96f3e56.ACCEPT_TASK), scope = ACCEPT_TASK)
 
 # Task list forwards accepting of activity
 EngineService.acceptActivity(H:2, preprocessing clerk 1)
-[createLoanRequest:2>TaskList:66c860fcded2df95] - validateTokenPermissions(clientId = ProcessEngine:149244ff, token = AuthToken(e89a9c1e94379f80 - TaskList:66c860fcded2df95[act=2] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:2) && ACCEPT_TASK(H:2))), scope = ACCEPT_TASK(H:2))
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.IDENTIFY)) from AuthService.createAuthorizationCodeImpl
-[GLOBAL>ProcessEngine:149244ff] - createAuthorizationCode(code = 6ab4767707fda261, token = AuthToken(5a5712a91008182d - preprocessing clerk 1[act=2] -> AuthService:fd8ffe3a.IDENTIFY))
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.GRANT_PERMISSION(Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))) from AuthService.grantPermission
-[GLOBAL>ProcessEngine:149244ff] - grantPermission(token = 5a5712a91008182d, serviceId = AuthService:fd8ffe3a, scope = GRANT_PERMISSION(Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))
-[GLOBAL>preprocessing clerk 1] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(preprocessing clerk 1)=8ead4c37c46b6524, scope = IDENTIFY) from AuthService.getAuthToken
-[GLOBAL>preprocessing clerk 1] - authTokenFromAuthorization(authorization = AuthorizationCode(code=6ab4767707fda261)) = AuthToken(5a5712a91008182d - preprocessing clerk 1[act=2] -> AuthService:fd8ffe3a.IDENTIFY)
-Browser(preprocessing clerk 1).addToken(AuthToken(5a5712a91008182d - preprocessing clerk 1[act=2] -> AuthService:fd8ffe3a.IDENTIFY))
+[createLoanRequest:2>TaskList:96f3e56] - validateTokenPermissions(clientId = ProcessEngine:fd8ffe3a, token = AuthToken(d8136c89e89a9c1f - TaskList:96f3e56[act=2] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:2) && ACCEPT_TASK(H:2))), scope = ACCEPT_TASK(H:2))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(preprocessing clerk 1.AuthService:149244ff.IDENTIFY)) from AuthService.createAuthorizationCodeImpl
+[GLOBAL>ProcessEngine:fd8ffe3a] - createAuthorizationCode(code = 1008182d6ab47677, token = AuthToken(e9c13c2b5a5712a9 - preprocessing clerk 1[act=2] -> AuthService:149244ff.IDENTIFY))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(ProcessEngine:fd8ffe3a.AuthService:149244ff.GRANT_PERMISSION(preprocessing clerk 1.Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))) from AuthService.grantPermission
+[GLOBAL>ProcessEngine:fd8ffe3a] - grantPermission(token = e9c13c2b5a5712a9, serviceId = AuthService:149244ff, scope = GRANT_PERMISSION(preprocessing clerk 1.Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))
+[GLOBAL>preprocessing clerk 1] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(preprocessing clerk 1)=7fe1df308ead4c38, scope = IDENTIFY) from AuthService.getAuthToken
+[GLOBAL>preprocessing clerk 1] - authTokenFromAuthorization(authorization = AuthorizationCode(code=1008182d6ab47677)) = AuthToken(e9c13c2b5a5712a9 - preprocessing clerk 1[act=2] -> AuthService:149244ff.IDENTIFY)
+Browser(preprocessing clerk 1).addToken(AuthToken(e9c13c2b5a5712a9 - preprocessing clerk 1[act=2] -> AuthService:149244ff.IDENTIFY))
 TaskList(preprocessing clerk 1).finishTask(H:2)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:2)) from AuthService.invalidateActivityTokens
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:2, AuthToken(e89a9c1e94379f80 - TaskList:66c860fcded2df95[act=2] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:2) && ACCEPT_TASK(H:2))))
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:2, AuthToken(5a5712a91008182d - preprocessing clerk 1[act=2] -> AuthService:fd8ffe3a.IDENTIFY))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:2)) from AuthService.invalidateActivityTokens
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:2, AuthToken(d8136c89e89a9c1f - TaskList:96f3e56[act=2] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:2) && ACCEPT_TASK(H:2))))
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:2, AuthToken(e9c13c2b5a5712a9 - preprocessing clerk 1[act=2] -> AuthService:149244ff.IDENTIFY))
 TaskList(preprocessing clerk 1).finishTask(H:4)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:4)) from AuthService.invalidateActivityTokens
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:4)) from AuthService.invalidateActivityTokens
 Creating tasklist for John Doe
 EngineService.registerActivityToTaskList(H:5)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:5) && ACCEPT_TASK(H:5)))) from AuthService.createAuthorizationCodeImpl
-[GLOBAL>ProcessEngine:149244ff] - createAuthorizationCode(code = 1c1ee829350e9e6, token = AuthToken(385d187da779a9f4 - TaskList:66c860fcded2df95[act=5] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:5) && ACCEPT_TASK(H:5))))
-TaskList(John Doe).registerToken(AuthorizationCode(code=1c1ee829350e9e6))
-[GLOBAL>TaskList:66c860fcded2df95] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(TaskList:66c860fcded2df95)=96f3e567fe1df31, scope = IDENTIFY) from AuthService.getAuthToken
-[GLOBAL>TaskList:66c860fcded2df95] - authTokenFromAuthorization(authorization = AuthorizationCode(code=1c1ee829350e9e6)) = AuthToken(385d187da779a9f4 - TaskList:66c860fcded2df95[act=5] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:5) && ACCEPT_TASK(H:5)))
-Browser(John Doe).loginToService(TaskList:66c860fcded2df95)
-[<unknown node>:-1>John Doe] - validateTokenPermissions(clientId = AuthService:fd8ffe3a, token = AuthToken(deeb152ca0bd97ba - John Doe[act=-1] -> AuthService:fd8ffe3a.IDENTIFY), scope = IDENTIFY)
-[<unknown node>:-1>John Doe] - getAuthTokenDirect(AuthToken(deeb152ca0bd97ba - John Doe[act=-1] -> AuthService:fd8ffe3a.IDENTIFY)) = AuthToken(9c352b71453f500a - John Doe[act=-1] -> TaskList:66c860fcded2df95.ACCEPT_TASK)
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(TaskList:96f3e56.ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:5) && ACCEPT_TASK(H:5)))) from AuthService.createAuthorizationCodeImpl
+[GLOBAL>ProcessEngine:fd8ffe3a] - createAuthorizationCode(code = a779a9f401c1ee83, token = AuthToken(7fda261385d187e - TaskList:96f3e56[act=5] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:5) && ACCEPT_TASK(H:5))))
+TaskList(John Doe).registerToken(AuthorizationCode(code=a779a9f401c1ee83))
+[GLOBAL>TaskList:96f3e56] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(TaskList:96f3e56)=66c860fcded2df95, scope = IDENTIFY) from AuthService.getAuthToken
+[GLOBAL>TaskList:96f3e56] - authTokenFromAuthorization(authorization = AuthorizationCode(code=a779a9f401c1ee83)) = AuthToken(7fda261385d187e - TaskList:96f3e56[act=5] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:5) && ACCEPT_TASK(H:5)))
+Browser(John Doe).loginToService(TaskList:96f3e56)
+[<unknown node>:-1>John Doe] - validateTokenPermissions(clientId = AuthService:149244ff, token = AuthToken(c507ffa0deeb152d - John Doe[act=-1] -> AuthService:149244ff.IDENTIFY), scope = IDENTIFY)
+[<unknown node>:-1>John Doe] - getAuthTokenDirect(AuthToken(c507ffa0deeb152d - John Doe[act=-1] -> AuthService:149244ff.IDENTIFY)) = AuthToken(9350e9e59c352b71 - John Doe[act=-1] -> TaskList:96f3e56.ACCEPT_TASK)
 TaskList(John Doe).acceptActivity(H:5, John Doe)
-[<unknown node>:-1>John Doe] - validateTokenPermissions(clientId = TaskList:66c860fcded2df95, token = AuthToken(9c352b71453f500a - John Doe[act=-1] -> TaskList:66c860fcded2df95.ACCEPT_TASK), scope = ACCEPT_TASK)
+[<unknown node>:-1>John Doe] - validateTokenPermissions(clientId = TaskList:96f3e56, token = AuthToken(9350e9e59c352b71 - John Doe[act=-1] -> TaskList:96f3e56.ACCEPT_TASK), scope = ACCEPT_TASK)
 EngineService.acceptActivity(H:5, John Doe)
-[getCustomerApproval:5>TaskList:66c860fcded2df95] - validateTokenPermissions(clientId = ProcessEngine:149244ff, token = AuthToken(385d187da779a9f4 - TaskList:66c860fcded2df95[act=5] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:5) && ACCEPT_TASK(H:5))), scope = ACCEPT_TASK(H:5))
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.IDENTIFY)) from AuthService.createAuthorizationCodeImpl
-[GLOBAL>ProcessEngine:149244ff] - createAuthorizationCode(code = 27818a5aa6540c0f, token = AuthToken(fa7d0a36c6bf63fc - John Doe[act=5] -> AuthService:fd8ffe3a.IDENTIFY))
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.GRANT_PERMISSION(SigningService:d4dc9a73.SIGN))) from AuthService.grantPermission
-[GLOBAL>ProcessEngine:149244ff] - grantPermission(token = fa7d0a36c6bf63fc, serviceId = AuthService:fd8ffe3a, scope = GRANT_PERMISSION(SigningService:d4dc9a73.SIGN))
-[GLOBAL>John Doe] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(John Doe)=1c282f6bc507ffa1, scope = IDENTIFY) from AuthService.getAuthToken
-[GLOBAL>John Doe] - authTokenFromAuthorization(authorization = AuthorizationCode(code=27818a5aa6540c0f)) = AuthToken(fa7d0a36c6bf63fc - John Doe[act=5] -> AuthService:fd8ffe3a.IDENTIFY)
-Browser(John Doe).addToken(AuthToken(fa7d0a36c6bf63fc - John Doe[act=5] -> AuthService:fd8ffe3a.IDENTIFY))
+[getCustomerApproval:5>TaskList:96f3e56] - validateTokenPermissions(clientId = ProcessEngine:fd8ffe3a, token = AuthToken(7fda261385d187e - TaskList:96f3e56[act=5] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:5) && ACCEPT_TASK(H:5))), scope = ACCEPT_TASK(H:5))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(John Doe.AuthService:149244ff.IDENTIFY)) from AuthService.createAuthorizationCodeImpl
+[GLOBAL>ProcessEngine:fd8ffe3a] - createAuthorizationCode(code = c6bf63fc27818a5b, token = AuthToken(453f5009fa7d0a37 - John Doe[act=5] -> AuthService:149244ff.IDENTIFY))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(ProcessEngine:fd8ffe3a.AuthService:149244ff.GRANT_PERMISSION(John Doe.SigningService:d4dc9a73.SIGN))) from AuthService.grantPermission
+[GLOBAL>ProcessEngine:fd8ffe3a] - grantPermission(token = 453f5009fa7d0a37, serviceId = AuthService:149244ff, scope = GRANT_PERMISSION(John Doe.SigningService:d4dc9a73.SIGN))
+[GLOBAL>John Doe] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(John Doe)=4766ce9f1c282f6c, scope = IDENTIFY) from AuthService.getAuthToken
+[GLOBAL>John Doe] - authTokenFromAuthorization(authorization = AuthorizationCode(code=c6bf63fc27818a5b)) = AuthToken(453f5009fa7d0a37 - John Doe[act=5] -> AuthService:149244ff.IDENTIFY)
+Browser(John Doe).addToken(AuthToken(453f5009fa7d0a37 - John Doe[act=5] -> AuthService:149244ff.IDENTIFY))
 TaskList(John Doe).loginToService(SigningService:d4dc9a73)
 Browser(John Doe).loginToService(SigningService:d4dc9a73)
-[getCustomerApproval:5>John Doe] - validateTokenPermissions(clientId = AuthService:fd8ffe3a, token = AuthToken(fa7d0a36c6bf63fc - John Doe[act=5] -> AuthService:fd8ffe3a.IDENTIFY), scope = IDENTIFY)
-[getCustomerApproval:5>John Doe] - getAuthTokenDirect(AuthToken(fa7d0a36c6bf63fc - John Doe[act=5] -> AuthService:fd8ffe3a.IDENTIFY)) = AuthToken(6a6cf22e4f8d7ffb - John Doe[act=5] -> SigningService:d4dc9a73.SIGN)
+[getCustomerApproval:5>John Doe] - validateTokenPermissions(clientId = AuthService:149244ff, token = AuthToken(453f5009fa7d0a37 - John Doe[act=5] -> AuthService:149244ff.IDENTIFY), scope = IDENTIFY)
+[getCustomerApproval:5>John Doe] - getAuthTokenDirect(AuthToken(453f5009fa7d0a37 - John Doe[act=5] -> AuthService:149244ff.IDENTIFY)) = AuthToken(a6540c0f6a6cf22e - John Doe[act=5] -> SigningService:d4dc9a73.SIGN)
 SigningService.signDocument(Approval(isApproved=true))
-[getCustomerApproval:5>John Doe] - validateTokenPermissions(clientId = SigningService:d4dc9a73, token = AuthToken(6a6cf22e4f8d7ffb - John Doe[act=5] -> SigningService:d4dc9a73.SIGN), scope = SIGN)
+[getCustomerApproval:5>John Doe] - validateTokenPermissions(clientId = SigningService:d4dc9a73, token = AuthToken(a6540c0f6a6cf22e - John Doe[act=5] -> SigningService:d4dc9a73.SIGN), scope = SIGN)
 TaskList(preprocessing clerk 1).finishTask(H:5)
 TaskList(John Doe).finishTask(H:5)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:5)) from AuthService.invalidateActivityTokens
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:5, AuthToken(385d187da779a9f4 - TaskList:66c860fcded2df95[act=5] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:5) && ACCEPT_TASK(H:5))))
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:5, AuthToken(fa7d0a36c6bf63fc - John Doe[act=5] -> AuthService:fd8ffe3a.IDENTIFY))
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:5, AuthToken(6a6cf22e4f8d7ffb - John Doe[act=5] -> SigningService:d4dc9a73.SIGN))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:5)) from AuthService.invalidateActivityTokens
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:5, AuthToken(7fda261385d187e - TaskList:96f3e56[act=5] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:5) && ACCEPT_TASK(H:5))))
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:5, AuthToken(453f5009fa7d0a37 - John Doe[act=5] -> AuthService:149244ff.IDENTIFY))
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:5, AuthToken(a6540c0f6a6cf22e - John Doe[act=5] -> SigningService:d4dc9a73.SIGN))
 Creating tasklist for postprocessing clerk 2
 EngineService.registerActivityToTaskList(H:6)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:6) && ACCEPT_TASK(H:6)))) from AuthService.createAuthorizationCodeImpl
-[GLOBAL>ProcessEngine:149244ff] - createAuthorizationCode(code = 115ca9a8732e1a83, token = AuthToken(a22d2fb81bd8ca4a - TaskList:66c860fcded2df95[act=6] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:6) && ACCEPT_TASK(H:6))))
-TaskList(postprocessing clerk 2).registerToken(AuthorizationCode(code=115ca9a8732e1a83))
-[GLOBAL>TaskList:66c860fcded2df95] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(TaskList:66c860fcded2df95)=96f3e567fe1df31, scope = IDENTIFY) from AuthService.getAuthToken
-[GLOBAL>TaskList:66c860fcded2df95] - authTokenFromAuthorization(authorization = AuthorizationCode(code=115ca9a8732e1a83)) = AuthToken(a22d2fb81bd8ca4a - TaskList:66c860fcded2df95[act=6] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:6) && ACCEPT_TASK(H:6)))
-Browser(postprocessing clerk 2).loginToService(TaskList:66c860fcded2df95)
-[<unknown node>:-1>postprocessing clerk 2] - validateTokenPermissions(clientId = AuthService:fd8ffe3a, token = AuthToken(63f088624766ce9f - postprocessing clerk 2[act=-1] -> AuthService:fd8ffe3a.IDENTIFY), scope = IDENTIFY)
-[<unknown node>:-1>postprocessing clerk 2] - getAuthTokenDirect(AuthToken(63f088624766ce9f - postprocessing clerk 2[act=-1] -> AuthService:fd8ffe3a.IDENTIFY)) = AuthToken(74928f2fb079036f - postprocessing clerk 2[act=-1] -> TaskList:66c860fcded2df95.ACCEPT_TASK)
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(TaskList:96f3e56.ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:6) && ACCEPT_TASK(H:6)))) from AuthService.createAuthorizationCodeImpl
+[GLOBAL>ProcessEngine:fd8ffe3a] - createAuthorizationCode(code = 1bd8ca4a115ca9a8, token = AuthToken(4f8d7ffaa22d2fb8 - TaskList:96f3e56[act=6] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:6) && ACCEPT_TASK(H:6))))
+TaskList(postprocessing clerk 2).registerToken(AuthorizationCode(code=1bd8ca4a115ca9a8))
+[GLOBAL>TaskList:96f3e56] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(TaskList:96f3e56)=66c860fcded2df95, scope = IDENTIFY) from AuthService.getAuthToken
+[GLOBAL>TaskList:96f3e56] - authTokenFromAuthorization(authorization = AuthorizationCode(code=1bd8ca4a115ca9a8)) = AuthToken(4f8d7ffaa22d2fb8 - TaskList:96f3e56[act=6] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:6) && ACCEPT_TASK(H:6)))
+Browser(postprocessing clerk 2).loginToService(TaskList:96f3e56)
+[<unknown node>:-1>postprocessing clerk 2] - validateTokenPermissions(clientId = AuthService:149244ff, token = AuthToken(dd12b15163f08862 - postprocessing clerk 2[act=-1] -> AuthService:149244ff.IDENTIFY), scope = IDENTIFY)
+[<unknown node>:-1>postprocessing clerk 2] - getAuthTokenDirect(AuthToken(dd12b15163f08862 - postprocessing clerk 2[act=-1] -> AuthService:149244ff.IDENTIFY)) = AuthToken(732e1a8374928f30 - postprocessing clerk 2[act=-1] -> TaskList:96f3e56.ACCEPT_TASK)
 TaskList(postprocessing clerk 2).acceptActivity(H:6, postprocessing clerk 2)
-[<unknown node>:-1>postprocessing clerk 2] - validateTokenPermissions(clientId = TaskList:66c860fcded2df95, token = AuthToken(74928f2fb079036f - postprocessing clerk 2[act=-1] -> TaskList:66c860fcded2df95.ACCEPT_TASK), scope = ACCEPT_TASK)
+[<unknown node>:-1>postprocessing clerk 2] - validateTokenPermissions(clientId = TaskList:96f3e56, token = AuthToken(732e1a8374928f30 - postprocessing clerk 2[act=-1] -> TaskList:96f3e56.ACCEPT_TASK), scope = ACCEPT_TASK)
 EngineService.acceptActivity(H:6, postprocessing clerk 2)
-[verifyCustomerApproval:6>TaskList:66c860fcded2df95] - validateTokenPermissions(clientId = ProcessEngine:149244ff, token = AuthToken(a22d2fb81bd8ca4a - TaskList:66c860fcded2df95[act=6] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:6) && ACCEPT_TASK(H:6))), scope = ACCEPT_TASK(H:6))
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.IDENTIFY)) from AuthService.createAuthorizationCodeImpl
-[GLOBAL>ProcessEngine:149244ff] - createAuthorizationCode(code = 40579d8e5d79ef0c, token = AuthToken(60d0a77f9674004c - postprocessing clerk 2[act=6] -> AuthService:fd8ffe3a.IDENTIFY))
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.GRANT_PERMISSION(Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))) from AuthService.grantPermission
-[GLOBAL>ProcessEngine:149244ff] - grantPermission(token = 60d0a77f9674004c, serviceId = AuthService:fd8ffe3a, scope = GRANT_PERMISSION(Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.GRANT_PERMISSION(SigningService:d4dc9a73.SIGN))) from AuthService.grantPermission
-[GLOBAL>ProcessEngine:149244ff] - grantPermission(token = 60d0a77f9674004c, serviceId = AuthService:fd8ffe3a, scope = GRANT_PERMISSION(SigningService:d4dc9a73.SIGN))
-[GLOBAL>postprocessing clerk 2] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(postprocessing clerk 2)=ffb7a0e2dd12b151, scope = IDENTIFY) from AuthService.getAuthToken
-[GLOBAL>postprocessing clerk 2] - authTokenFromAuthorization(authorization = AuthorizationCode(code=40579d8e5d79ef0c)) = AuthToken(60d0a77f9674004c - postprocessing clerk 2[act=6] -> AuthService:fd8ffe3a.IDENTIFY)
-Browser(postprocessing clerk 2).addToken(AuthToken(60d0a77f9674004c - postprocessing clerk 2[act=6] -> AuthService:fd8ffe3a.IDENTIFY))
+[verifyCustomerApproval:6>TaskList:96f3e56] - validateTokenPermissions(clientId = ProcessEngine:fd8ffe3a, token = AuthToken(4f8d7ffaa22d2fb8 - TaskList:96f3e56[act=6] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:6) && ACCEPT_TASK(H:6))), scope = ACCEPT_TASK(H:6))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(postprocessing clerk 2.AuthService:149244ff.IDENTIFY)) from AuthService.createAuthorizationCodeImpl
+[GLOBAL>ProcessEngine:fd8ffe3a] - createAuthorizationCode(code = 9674004c40579d8e, token = AuthToken(b079036f60d0a780 - postprocessing clerk 2[act=6] -> AuthService:149244ff.IDENTIFY))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(ProcessEngine:fd8ffe3a.AuthService:149244ff.GRANT_PERMISSION(postprocessing clerk 2.Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))) from AuthService.grantPermission
+[GLOBAL>ProcessEngine:fd8ffe3a] - grantPermission(token = b079036f60d0a780, serviceId = AuthService:149244ff, scope = GRANT_PERMISSION(postprocessing clerk 2.Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(ProcessEngine:fd8ffe3a.AuthService:149244ff.GRANT_PERMISSION(postprocessing clerk 2.SigningService:d4dc9a73.SIGN))) from AuthService.grantPermission
+[GLOBAL>ProcessEngine:fd8ffe3a] - grantPermission(token = b079036f60d0a780, serviceId = AuthService:149244ff, scope = GRANT_PERMISSION(postprocessing clerk 2.SigningService:d4dc9a73.SIGN))
+[GLOBAL>postprocessing clerk 2] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(postprocessing clerk 2)=83ba668ffb7a0e3, scope = IDENTIFY) from AuthService.getAuthToken
+[GLOBAL>postprocessing clerk 2] - authTokenFromAuthorization(authorization = AuthorizationCode(code=9674004c40579d8e)) = AuthToken(b079036f60d0a780 - postprocessing clerk 2[act=6] -> AuthService:149244ff.IDENTIFY)
+Browser(postprocessing clerk 2).addToken(AuthToken(b079036f60d0a780 - postprocessing clerk 2[act=6] -> AuthService:149244ff.IDENTIFY))
 TaskList(postprocessing clerk 2).loginToService(Customer_Information_File:e1baf537)
 Browser(postprocessing clerk 2).loginToService(Customer_Information_File:e1baf537)
-[verifyCustomerApproval:6>postprocessing clerk 2] - validateTokenPermissions(clientId = AuthService:fd8ffe3a, token = AuthToken(60d0a77f9674004c - postprocessing clerk 2[act=6] -> AuthService:fd8ffe3a.IDENTIFY), scope = IDENTIFY)
-[verifyCustomerApproval:6>postprocessing clerk 2] - getAuthTokenDirect(AuthToken(60d0a77f9674004c - postprocessing clerk 2[act=6] -> AuthService:fd8ffe3a.IDENTIFY)) = AuthToken(74e0292bbd205efb - postprocessing clerk 2[act=6] -> Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456))
+[verifyCustomerApproval:6>postprocessing clerk 2] - validateTokenPermissions(clientId = AuthService:149244ff, token = AuthToken(b079036f60d0a780 - postprocessing clerk 2[act=6] -> AuthService:149244ff.IDENTIFY), scope = IDENTIFY)
+[verifyCustomerApproval:6>postprocessing clerk 2] - getAuthTokenDirect(AuthToken(b079036f60d0a780 - postprocessing clerk 2[act=6] -> AuthService:149244ff.IDENTIFY)) = AuthToken(5d79ef0c74e0292c - postprocessing clerk 2[act=6] -> Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456))
 CustomerInformationFile.getCustomerData(cust123456)
-[verifyCustomerApproval:6>postprocessing clerk 2] - validateTokenPermissions(clientId = Customer_Information_File:e1baf537, token = AuthToken(74e0292bbd205efb - postprocessing clerk 2[act=6] -> Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)), scope = QUERY_CUSTOMER_DATA(cust123456))
+[verifyCustomerApproval:6>postprocessing clerk 2] - validateTokenPermissions(clientId = Customer_Information_File:e1baf537, token = AuthToken(5d79ef0c74e0292c - postprocessing clerk 2[act=6] -> Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)), scope = QUERY_CUSTOMER_DATA(cust123456))
 TaskList(postprocessing clerk 2).loginToService(SigningService:d4dc9a73)
 Browser(postprocessing clerk 2).loginToService(SigningService:d4dc9a73)
-[verifyCustomerApproval:6>postprocessing clerk 2] - validateTokenPermissions(clientId = AuthService:fd8ffe3a, token = AuthToken(60d0a77f9674004c - postprocessing clerk 2[act=6] -> AuthService:fd8ffe3a.IDENTIFY), scope = IDENTIFY)
-[verifyCustomerApproval:6>postprocessing clerk 2] - getAuthTokenDirect(AuthToken(60d0a77f9674004c - postprocessing clerk 2[act=6] -> AuthService:fd8ffe3a.IDENTIFY)) = AuthToken(fd80699911600cb1 - postprocessing clerk 2[act=6] -> SigningService:d4dc9a73.SIGN)
-SigningService.signDocument(nl.adaptivity.process.engine.test.loanOrigination.systems.SignedDocument@1f8658bc)
-[verifyCustomerApproval:6>postprocessing clerk 2] - validateTokenPermissions(clientId = SigningService:d4dc9a73, token = AuthToken(fd80699911600cb1 - postprocessing clerk 2[act=6] -> SigningService:d4dc9a73.SIGN), scope = SIGN)
+[verifyCustomerApproval:6>postprocessing clerk 2] - validateTokenPermissions(clientId = AuthService:149244ff, token = AuthToken(b079036f60d0a780 - postprocessing clerk 2[act=6] -> AuthService:149244ff.IDENTIFY), scope = IDENTIFY)
+[verifyCustomerApproval:6>postprocessing clerk 2] - getAuthTokenDirect(AuthToken(b079036f60d0a780 - postprocessing clerk 2[act=6] -> AuthService:149244ff.IDENTIFY)) = AuthToken(bd205efafd806999 - postprocessing clerk 2[act=6] -> SigningService:d4dc9a73.SIGN)
+SigningService.signDocument(nl.adaptivity.process.engine.test.loanOrigination.systems.SignedDocument@5ac8c863)
+[verifyCustomerApproval:6>postprocessing clerk 2] - validateTokenPermissions(clientId = SigningService:d4dc9a73, token = AuthToken(bd205efafd806999 - postprocessing clerk 2[act=6] -> SigningService:d4dc9a73.SIGN), scope = SIGN)
 TaskList(preprocessing clerk 1).finishTask(H:6)
 TaskList(John Doe).finishTask(H:6)
 TaskList(postprocessing clerk 2).finishTask(H:6)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:6)) from AuthService.invalidateActivityTokens
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:6, AuthToken(a22d2fb81bd8ca4a - TaskList:66c860fcded2df95[act=6] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:6) && ACCEPT_TASK(H:6))))
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:6, AuthToken(60d0a77f9674004c - postprocessing clerk 2[act=6] -> AuthService:fd8ffe3a.IDENTIFY))
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:6, AuthToken(74e0292bbd205efb - postprocessing clerk 2[act=6] -> Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:6, AuthToken(fd80699911600cb1 - postprocessing clerk 2[act=6] -> SigningService:d4dc9a73.SIGN))
-
-
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.IDENTIFY)) from AuthService.createAuthorizationCodeImpl
-[GLOBAL>ProcessEngine:149244ff] - createAuthorizationCode(code = df18fb8e32d17c29, token = AuthToken(a1ba716df03ae50 - <automated>:8f861f11[act=7] -> AuthService:fd8ffe3a.IDENTIFY))
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.GRANT_PERMISSION(Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))) from AuthService.grantPermission
-[GLOBAL>ProcessEngine:149244ff] - grantPermission(token = a1ba716df03ae50, serviceId = AuthService:fd8ffe3a, scope = GRANT_PERMISSION(Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.GRANT_PERMISSION(CreditBureau:b782b438.GET_CREDIT_REPORT(taxId234)))) from AuthService.grantPermission
-[GLOBAL>ProcessEngine:149244ff] - grantPermission(token = a1ba716df03ae50, serviceId = AuthService:fd8ffe3a, scope = GRANT_PERMISSION(CreditBureau:b782b438.GET_CREDIT_REPORT(taxId234)))
-[GLOBAL><automated>:8f861f11] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(<automated>:8f861f11)=a3974a5c6f1ed296, scope = IDENTIFY) from AuthService.getAuthToken
-[GLOBAL><automated>:8f861f11] - authTokenFromAuthorization(authorization = AuthorizationCode(code=df18fb8e32d17c29)) = AuthToken(a1ba716df03ae50 - <automated>:8f861f11[act=7] -> AuthService:fd8ffe3a.IDENTIFY)
-GeneralClientService.getServiceToken(nl.adaptivity.process.engine.test.loanOrigination.systems.CustomerInformationFile@17fcd6cf, QUERY_CUSTOMER_DATA(cust123456))
-[getCreditReport:7><automated>:8f861f11] - validateTokenPermissions(clientId = AuthService:fd8ffe3a, token = AuthToken(a1ba716df03ae50 - <automated>:8f861f11[act=7] -> AuthService:fd8ffe3a.IDENTIFY), scope = IDENTIFY)
-[getCreditReport:7><automated>:8f861f11] - getAuthTokenDirect(AuthToken(a1ba716df03ae50 - <automated>:8f861f11[act=7] -> AuthService:fd8ffe3a.IDENTIFY)) = AuthToken(cbf000f24ae3430e - <automated>:8f861f11[act=7] -> Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:6)) from AuthService.invalidateActivityTokens
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:6, AuthToken(4f8d7ffaa22d2fb8 - TaskList:96f3e56[act=6] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:6) && ACCEPT_TASK(H:6))))
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:6, AuthToken(b079036f60d0a780 - postprocessing clerk 2[act=6] -> AuthService:149244ff.IDENTIFY))
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:6, AuthToken(5d79ef0c74e0292c - postprocessing clerk 2[act=6] -> Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:6, AuthToken(bd205efafd806999 - postprocessing clerk 2[act=6] -> SigningService:d4dc9a73.SIGN))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(<automated>:8f861f11.AuthService:149244ff.IDENTIFY)) from AuthService.createAuthorizationCodeImpl
+[GLOBAL>ProcessEngine:fd8ffe3a] - createAuthorizationCode(code = df03ae4fdf18fb8e, token = AuthToken(11600cb10a1ba717 - <automated>:8f861f11[act=7] -> AuthService:149244ff.IDENTIFY))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(ProcessEngine:fd8ffe3a.AuthService:149244ff.GRANT_PERMISSION(<anyClient>.Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))) from AuthService.grantPermission
+[GLOBAL>ProcessEngine:fd8ffe3a] - grantPermission(token = 11600cb10a1ba717, serviceId = AuthService:149244ff, scope = GRANT_PERMISSION(<anyClient>.Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(ProcessEngine:fd8ffe3a.AuthService:149244ff.GRANT_PERMISSION(<anyClient>.CreditBureau:b782b438.GET_CREDIT_REPORT(taxId234)))) from AuthService.grantPermission
+[GLOBAL>ProcessEngine:fd8ffe3a] - grantPermission(token = 11600cb10a1ba717, serviceId = AuthService:149244ff, scope = GRANT_PERMISSION(<anyClient>.CreditBureau:b782b438.GET_CREDIT_REPORT(taxId234)))
+[GLOBAL><automated>:8f861f11] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(<automated>:8f861f11)=a3974a5c6f1ed296, scope = IDENTIFY) from AuthService.getAuthToken
+[GLOBAL><automated>:8f861f11] - authTokenFromAuthorization(authorization = AuthorizationCode(code=df03ae4fdf18fb8e)) = AuthToken(11600cb10a1ba717 - <automated>:8f861f11[act=7] -> AuthService:149244ff.IDENTIFY)
+GeneralClientService.getServiceToken(nl.adaptivity.process.engine.test.loanOrigination.systems.CustomerInformationFile@3751c0d5, QUERY_CUSTOMER_DATA(cust123456))
+[getCreditReport:7><automated>:8f861f11] - validateTokenPermissions(clientId = AuthService:149244ff, token = AuthToken(11600cb10a1ba717 - <automated>:8f861f11[act=7] -> AuthService:149244ff.IDENTIFY), scope = IDENTIFY)
+[getCreditReport:7><automated>:8f861f11] - getAuthTokenDirect(AuthToken(11600cb10a1ba717 - <automated>:8f861f11[act=7] -> AuthService:149244ff.IDENTIFY)) = AuthToken(32d17c28cbf000f2 - <automated>:8f861f11[act=7] -> Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456))
 CustomerInformationFile.getCustomerData(cust123456)
-[getCreditReport:7><automated>:8f861f11] - validateTokenPermissions(clientId = Customer_Information_File:e1baf537, token = AuthToken(cbf000f24ae3430e - <automated>:8f861f11[act=7] -> Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)), scope = QUERY_CUSTOMER_DATA(cust123456))
-GeneralClientService.getServiceToken(nl.adaptivity.process.engine.test.loanOrigination.systems.CreditBureau@545ca462, GET_CREDIT_REPORT(taxId234))
-[getCreditReport:7><automated>:8f861f11] - validateTokenPermissions(clientId = AuthService:fd8ffe3a, token = AuthToken(a1ba716df03ae50 - <automated>:8f861f11[act=7] -> AuthService:fd8ffe3a.IDENTIFY), scope = IDENTIFY)
-[getCreditReport:7><automated>:8f861f11] - getAuthTokenDirect(AuthToken(a1ba716df03ae50 - <automated>:8f861f11[act=7] -> AuthService:fd8ffe3a.IDENTIFY)) = AuthToken(9910c877187be0d - <automated>:8f861f11[act=7] -> CreditBureau:b782b438.GET_CREDIT_REPORT(taxId234))
+[getCreditReport:7><automated>:8f861f11] - validateTokenPermissions(clientId = Customer_Information_File:e1baf537, token = AuthToken(32d17c28cbf000f2 - <automated>:8f861f11[act=7] -> Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)), scope = QUERY_CUSTOMER_DATA(cust123456))
+GeneralClientService.getServiceToken(nl.adaptivity.process.engine.test.loanOrigination.systems.CreditBureau@4279b754, GET_CREDIT_REPORT(taxId234))
+[getCreditReport:7><automated>:8f861f11] - validateTokenPermissions(clientId = AuthService:149244ff, token = AuthToken(11600cb10a1ba717 - <automated>:8f861f11[act=7] -> AuthService:149244ff.IDENTIFY), scope = IDENTIFY)
+[getCreditReport:7><automated>:8f861f11] - getAuthTokenDirect(AuthToken(11600cb10a1ba717 - <automated>:8f861f11[act=7] -> AuthService:149244ff.IDENTIFY)) = AuthToken(4ae3430e09910c87 - <automated>:8f861f11[act=7] -> CreditBureau:b782b438.GET_CREDIT_REPORT(taxId234))
 CreditBureau.getCreditReport()
-[getCreditReport:7><automated>:8f861f11] - validateTokenPermissions(clientId = CreditBureau:b782b438, token = AuthToken(9910c877187be0d - <automated>:8f861f11[act=7] -> CreditBureau:b782b438.GET_CREDIT_REPORT(taxId234)), scope = GET_CREDIT_REPORT(taxId234))
+[getCreditReport:7><automated>:8f861f11] - validateTokenPermissions(clientId = CreditBureau:b782b438, token = AuthToken(4ae3430e09910c87 - <automated>:8f861f11[act=7] -> CreditBureau:b782b438.GET_CREDIT_REPORT(taxId234)), scope = GET_CREDIT_REPORT(taxId234))
 TaskList(preprocessing clerk 1).finishTask(H:7)
 TaskList(John Doe).finishTask(H:7)
 TaskList(postprocessing clerk 2).finishTask(H:7)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:7)) from AuthService.invalidateActivityTokens
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:7, AuthToken(a1ba716df03ae50 - <automated>:8f861f11[act=7] -> AuthService:fd8ffe3a.IDENTIFY))
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:7, AuthToken(cbf000f24ae3430e - <automated>:8f861f11[act=7] -> Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:7, AuthToken(9910c877187be0d - <automated>:8f861f11[act=7] -> CreditBureau:b782b438.GET_CREDIT_REPORT(taxId234)))
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.IDENTIFY)) from AuthService.createAuthorizationCodeImpl
-[GLOBAL>ProcessEngine:149244ff] - createAuthorizationCode(code = 14a24c241602f45b, token = AuthToken(e277a18d410b3c04 - <automated>:8f861f11[act=8] -> AuthService:fd8ffe3a.IDENTIFY))
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.GRANT_PERMISSION(Credit_Application:9965ca2d.EVALUATE_LOAN(cust123456)))) from AuthService.grantPermission
-[GLOBAL>ProcessEngine:149244ff] - grantPermission(token = e277a18d410b3c04, serviceId = AuthService:fd8ffe3a, scope = GRANT_PERMISSION(Credit_Application:9965ca2d.EVALUATE_LOAN(cust123456)))
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.GRANT_PERMISSION(AuthService:fd8ffe3a.GRANT_PERMISSION(Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456))))) from AuthService.grantPermission
-[GLOBAL>ProcessEngine:149244ff] - grantPermission(token = e277a18d410b3c04, serviceId = AuthService:fd8ffe3a, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.GRANT_PERMISSION(Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456))))
-[GLOBAL><automated>:8f861f11] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(<automated>:8f861f11)=a3974a5c6f1ed296, scope = IDENTIFY) from AuthService.getAuthToken
-[GLOBAL><automated>:8f861f11] - authTokenFromAuthorization(authorization = AuthorizationCode(code=14a24c241602f45b)) = AuthToken(e277a18d410b3c04 - <automated>:8f861f11[act=8] -> AuthService:fd8ffe3a.IDENTIFY)
-GeneralClientService.getServiceToken(AuthService, GRANT_PERMISSION(Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))
-[getLoanEvaluation:8><automated>:8f861f11] - validateTokenPermissions(clientId = AuthService:fd8ffe3a, token = AuthToken(e277a18d410b3c04 - <automated>:8f861f11[act=8] -> AuthService:fd8ffe3a.IDENTIFY), scope = IDENTIFY)
-[getLoanEvaluation:8><automated>:8f861f11] - getAuthTokenDirect(AuthToken(e277a18d410b3c04 - <automated>:8f861f11[act=8] -> AuthService:fd8ffe3a.IDENTIFY)) = AuthToken(b0ccb65f4b56efb3 - <automated>:8f861f11[act=8] -> AuthService:fd8ffe3a.GRANT_PERMISSION(Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))
-[getLoanEvaluation:8><automated>:8f861f11] - validateTokenPermissions(clientId = AuthService:fd8ffe3a, token = AuthToken(b0ccb65f4b56efb3 - <automated>:8f861f11[act=8] -> AuthService:fd8ffe3a.GRANT_PERMISSION(Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456))), scope = GRANT_PERMISSION(Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))
-[getLoanEvaluation:8><automated>:8f861f11] - createAuthorizationCode(code = 15832a7a845115d6, token = AuthToken(6c6f1a1ee3234b6f - Credit_Application:9965ca2d[act=8] -> Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))
-GeneralClientService.getServiceToken(nl.adaptivity.process.engine.test.loanOrigination.systems.CreditApplication@2b13f98d, EVALUATE_LOAN(cust123456, # <= 10000.0))
-[getLoanEvaluation:8><automated>:8f861f11] - validateTokenPermissions(clientId = AuthService:fd8ffe3a, token = AuthToken(e277a18d410b3c04 - <automated>:8f861f11[act=8] -> AuthService:fd8ffe3a.IDENTIFY), scope = IDENTIFY)
-[getLoanEvaluation:8><automated>:8f861f11] - getAuthTokenDirect(AuthToken(e277a18d410b3c04 - <automated>:8f861f11[act=8] -> AuthService:fd8ffe3a.IDENTIFY)) = AuthToken(812f50c64376f205 - <automated>:8f861f11[act=8] -> Credit_Application:9965ca2d.EVALUATE_LOAN(cust123456, # <= 10000.0))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:7)) from AuthService.invalidateActivityTokens
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:7, AuthToken(11600cb10a1ba717 - <automated>:8f861f11[act=7] -> AuthService:149244ff.IDENTIFY))
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:7, AuthToken(32d17c28cbf000f2 - <automated>:8f861f11[act=7] -> Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:7, AuthToken(4ae3430e09910c87 - <automated>:8f861f11[act=7] -> CreditBureau:b782b438.GET_CREDIT_REPORT(taxId234)))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(<automated>:8f861f11.AuthService:149244ff.IDENTIFY)) from AuthService.createAuthorizationCodeImpl
+[GLOBAL>ProcessEngine:fd8ffe3a] - createAuthorizationCode(code = 410b3c0414a24c24, token = AuthToken(7187be0ce277a18d - <automated>:8f861f11[act=8] -> AuthService:149244ff.IDENTIFY))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(ProcessEngine:fd8ffe3a.AuthService:149244ff.GRANT_PERMISSION(<anyClient>.Credit_Application:9965ca2d.EVALUATE_LOAN(cust123456)))) from AuthService.grantPermission
+[GLOBAL>ProcessEngine:fd8ffe3a] - grantPermission(token = 7187be0ce277a18d, serviceId = AuthService:149244ff, scope = GRANT_PERMISSION(<anyClient>.Credit_Application:9965ca2d.EVALUATE_LOAN(cust123456)))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(ProcessEngine:fd8ffe3a.AuthService:149244ff.GRANT_PERMISSION(<anyClient>.AuthService:149244ff.GRANT_PERMISSION(<anyClient>.Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456))))) from AuthService.grantPermission
+[GLOBAL>ProcessEngine:fd8ffe3a] - grantPermission(token = 7187be0ce277a18d, serviceId = AuthService:149244ff, scope = GRANT_PERMISSION(<anyClient>.AuthService:149244ff.GRANT_PERMISSION(<anyClient>.Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456))))
+[GLOBAL><automated>:8f861f11] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(<automated>:8f861f11)=a3974a5c6f1ed296, scope = IDENTIFY) from AuthService.getAuthToken
+[GLOBAL><automated>:8f861f11] - authTokenFromAuthorization(authorization = AuthorizationCode(code=410b3c0414a24c24)) = AuthToken(7187be0ce277a18d - <automated>:8f861f11[act=8] -> AuthService:149244ff.IDENTIFY)
+GeneralClientService.getServiceToken(AuthService, GRANT_PERMISSION(Credit_Application:9965ca2d.Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))
+[getLoanEvaluation:8><automated>:8f861f11] - validateTokenPermissions(clientId = AuthService:149244ff, token = AuthToken(7187be0ce277a18d - <automated>:8f861f11[act=8] -> AuthService:149244ff.IDENTIFY), scope = IDENTIFY)
+[getLoanEvaluation:8><automated>:8f861f11] - getAuthTokenDirect(AuthToken(7187be0ce277a18d - <automated>:8f861f11[act=8] -> AuthService:149244ff.IDENTIFY)) = AuthToken(1602f45ab0ccb65f - <automated>:8f861f11[act=8] -> AuthService:149244ff.GRANT_PERMISSION(Credit_Application:9965ca2d.Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))
+[getLoanEvaluation:8><automated>:8f861f11] - validateTokenPermissions(clientId = AuthService:149244ff, token = AuthToken(1602f45ab0ccb65f - <automated>:8f861f11[act=8] -> AuthService:149244ff.GRANT_PERMISSION(Credit_Application:9965ca2d.Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456))), scope = GRANT_PERMISSION(Credit_Application:9965ca2d.Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))
+[getLoanEvaluation:8><automated>:8f861f11] - createAuthorizationCode(code = e3234b6f15832a7b, token = AuthToken(4b56efb36c6f1a1f - Credit_Application:9965ca2d[act=8] -> Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))
+GeneralClientService.getServiceToken(nl.adaptivity.process.engine.test.loanOrigination.systems.CreditApplication@37f1d77a, EVALUATE_LOAN(cust123456, # <= 10000.0))
+[getLoanEvaluation:8><automated>:8f861f11] - validateTokenPermissions(clientId = AuthService:149244ff, token = AuthToken(7187be0ce277a18d - <automated>:8f861f11[act=8] -> AuthService:149244ff.IDENTIFY), scope = IDENTIFY)
+[getLoanEvaluation:8><automated>:8f861f11] - getAuthTokenDirect(AuthToken(7187be0ce277a18d - <automated>:8f861f11[act=8] -> AuthService:149244ff.IDENTIFY)) = AuthToken(845115d5812f50c6 - <automated>:8f861f11[act=8] -> Credit_Application:9965ca2d.EVALUATE_LOAN(cust123456, # <= 10000.0))
 CreditApplication.evaluateLoan(LoanApplication(customerId=cust123456, amount=10000.0, collateral=[CustomerCollateral(type=house, value=100000, segment=residential)]))
-[getLoanEvaluation:8><automated>:8f861f11] - validateTokenPermissions(clientId = Credit_Application:9965ca2d, token = AuthToken(812f50c64376f205 - <automated>:8f861f11[act=8] -> Credit_Application:9965ca2d.EVALUATE_LOAN(cust123456, # <= 10000.0)), scope = nl.adaptivity.process.engine.test.loanOrigination.auth.MonetaryUseScope@9224d67e)
-[GLOBAL>Credit_Application:9965ca2d] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(Credit_Application:9965ca2d)=491492f9783c5061, scope = IDENTIFY) from AuthService.getAuthToken
-[GLOBAL>Credit_Application:9965ca2d] - authTokenFromAuthorization(authorization = AuthorizationCode(code=15832a7a845115d6)) = AuthToken(6c6f1a1ee3234b6f - Credit_Application:9965ca2d[act=8] -> Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456))
+[getLoanEvaluation:8><automated>:8f861f11] - validateTokenPermissions(clientId = Credit_Application:9965ca2d, token = AuthToken(845115d5812f50c6 - <automated>:8f861f11[act=8] -> Credit_Application:9965ca2d.EVALUATE_LOAN(cust123456, # <= 10000.0)), scope = nl.adaptivity.process.engine.test.loanOrigination.auth.MonetaryUseScope@82de3b6b)
+[GLOBAL>Credit_Application:9965ca2d] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(Credit_Application:9965ca2d)=491492f9783c5061, scope = IDENTIFY) from AuthService.getAuthToken
+[GLOBAL>Credit_Application:9965ca2d] - authTokenFromAuthorization(authorization = AuthorizationCode(code=e3234b6f15832a7b)) = AuthToken(4b56efb36c6f1a1f - Credit_Application:9965ca2d[act=8] -> Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456))
 CustomerInformationFile.getCustomerData(cust123456)
-[getLoanEvaluation:8>Credit_Application:9965ca2d] - validateTokenPermissions(clientId = Customer_Information_File:e1baf537, token = AuthToken(6c6f1a1ee3234b6f - Credit_Application:9965ca2d[act=8] -> Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)), scope = QUERY_CUSTOMER_DATA(cust123456))
+[getLoanEvaluation:8>Credit_Application:9965ca2d] - validateTokenPermissions(clientId = Customer_Information_File:e1baf537, token = AuthToken(4b56efb36c6f1a1f - Credit_Application:9965ca2d[act=8] -> Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)), scope = QUERY_CUSTOMER_DATA(cust123456))
 TaskList(preprocessing clerk 1).finishTask(H:8)
 TaskList(John Doe).finishTask(H:8)
 TaskList(postprocessing clerk 2).finishTask(H:8)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:8)) from AuthService.invalidateActivityTokens
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:8, AuthToken(e277a18d410b3c04 - <automated>:8f861f11[act=8] -> AuthService:fd8ffe3a.IDENTIFY))
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:8, AuthToken(b0ccb65f4b56efb3 - <automated>:8f861f11[act=8] -> AuthService:fd8ffe3a.GRANT_PERMISSION(Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456))))
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:8, AuthToken(6c6f1a1ee3234b6f - Credit_Application:9965ca2d[act=8] -> Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:8, AuthToken(812f50c64376f205 - <automated>:8f861f11[act=8] -> Credit_Application:9965ca2d.EVALUATE_LOAN(cust123456, # <= 10000.0)))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:8)) from AuthService.invalidateActivityTokens
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:8, AuthToken(7187be0ce277a18d - <automated>:8f861f11[act=8] -> AuthService:149244ff.IDENTIFY))
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:8, AuthToken(1602f45ab0ccb65f - <automated>:8f861f11[act=8] -> AuthService:149244ff.GRANT_PERMISSION(Credit_Application:9965ca2d.Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456))))
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:8, AuthToken(4b56efb36c6f1a1f - Credit_Application:9965ca2d[act=8] -> Customer_Information_File:e1baf537.QUERY_CUSTOMER_DATA(cust123456)))
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:8, AuthToken(845115d5812f50c6 - <automated>:8f861f11[act=8] -> Credit_Application:9965ca2d.EVALUATE_LOAN(cust123456, # <= 10000.0)))
 TaskList(preprocessing clerk 1).finishTask(H:9)
 TaskList(John Doe).finishTask(H:9)
 TaskList(postprocessing clerk 2).finishTask(H:9)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:9)) from AuthService.invalidateActivityTokens
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:9)) from AuthService.invalidateActivityTokens
 TaskList(preprocessing clerk 1).finishTask(H:3)
 TaskList(John Doe).finishTask(H:3)
 TaskList(postprocessing clerk 2).finishTask(H:3)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:3)) from AuthService.invalidateActivityTokens
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:3)) from AuthService.invalidateActivityTokens
 TaskList(preprocessing clerk 1).finishTask(H:10)
 TaskList(John Doe).finishTask(H:10)
 TaskList(postprocessing clerk 2).finishTask(H:10)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:10)) from AuthService.invalidateActivityTokens
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:10)) from AuthService.invalidateActivityTokens
 TaskList(preprocessing clerk 1).finishTask(H:12)
 TaskList(John Doe).finishTask(H:12)
 TaskList(postprocessing clerk 2).finishTask(H:12)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:12)) from AuthService.invalidateActivityTokens
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:12)) from AuthService.invalidateActivityTokens
 EngineService.registerActivityToTaskList(H:13)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:13) && ACCEPT_TASK(H:13)))) from AuthService.createAuthorizationCodeImpl
-[GLOBAL>ProcessEngine:149244ff] - createAuthorizationCode(code = abcee0fb7ffb0e9f, token = AuthToken(34698f13af30422 - TaskList:66c860fcded2df95[act=13] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:13) && ACCEPT_TASK(H:13))))
-TaskList(postprocessing clerk 2).registerToken(AuthorizationCode(code=abcee0fb7ffb0e9f))
-[GLOBAL>TaskList:66c860fcded2df95] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(TaskList:66c860fcded2df95)=96f3e567fe1df31, scope = IDENTIFY) from AuthService.getAuthToken
-[GLOBAL>TaskList:66c860fcded2df95] - authTokenFromAuthorization(authorization = AuthorizationCode(code=abcee0fb7ffb0e9f)) = AuthToken(34698f13af30422 - TaskList:66c860fcded2df95[act=13] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:13) && ACCEPT_TASK(H:13)))
-Browser(postprocessing clerk 2).loginToService(TaskList:66c860fcded2df95)
-[<unknown node>:-1>postprocessing clerk 2] - validateTokenPermissions(clientId = AuthService:fd8ffe3a, token = AuthToken(63f088624766ce9f - postprocessing clerk 2[act=-1] -> AuthService:fd8ffe3a.IDENTIFY), scope = IDENTIFY)
-[<unknown node>:-1>postprocessing clerk 2] - getAuthTokenDirect(AuthToken(63f088624766ce9f - postprocessing clerk 2[act=-1] -> AuthService:fd8ffe3a.IDENTIFY)) = AuthToken(f0d16244644de04c - postprocessing clerk 2[act=-1] -> TaskList:66c860fcded2df95.ACCEPT_TASK)
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(TaskList:96f3e56.ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:13) && ACCEPT_TASK(H:13)))) from AuthService.createAuthorizationCodeImpl
+[GLOBAL>ProcessEngine:fd8ffe3a] - createAuthorizationCode(code = 3af30421abcee0fb, token = AuthToken(4376f205034698f1 - TaskList:96f3e56[act=13] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:13) && ACCEPT_TASK(H:13))))
+TaskList(postprocessing clerk 2).registerToken(AuthorizationCode(code=3af30421abcee0fb))
+[GLOBAL>TaskList:96f3e56] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(TaskList:96f3e56)=66c860fcded2df95, scope = IDENTIFY) from AuthService.getAuthToken
+[GLOBAL>TaskList:96f3e56] - authTokenFromAuthorization(authorization = AuthorizationCode(code=3af30421abcee0fb)) = AuthToken(4376f205034698f1 - TaskList:96f3e56[act=13] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:13) && ACCEPT_TASK(H:13)))
+Browser(postprocessing clerk 2).loginToService(TaskList:96f3e56)
+[<unknown node>:-1>postprocessing clerk 2] - validateTokenPermissions(clientId = AuthService:149244ff, token = AuthToken(dd12b15163f08862 - postprocessing clerk 2[act=-1] -> AuthService:149244ff.IDENTIFY), scope = IDENTIFY)
+[<unknown node>:-1>postprocessing clerk 2] - getAuthTokenDirect(AuthToken(dd12b15163f08862 - postprocessing clerk 2[act=-1] -> AuthService:149244ff.IDENTIFY)) = AuthToken(7ffb0e9ef0d16244 - postprocessing clerk 2[act=-1] -> TaskList:96f3e56.ACCEPT_TASK)
 TaskList(postprocessing clerk 2).acceptActivity(H:13, postprocessing clerk 2)
-[<unknown node>:-1>postprocessing clerk 2] - validateTokenPermissions(clientId = TaskList:66c860fcded2df95, token = AuthToken(f0d16244644de04c - postprocessing clerk 2[act=-1] -> TaskList:66c860fcded2df95.ACCEPT_TASK), scope = ACCEPT_TASK)
+[<unknown node>:-1>postprocessing clerk 2] - validateTokenPermissions(clientId = TaskList:96f3e56, token = AuthToken(7ffb0e9ef0d16244 - postprocessing clerk 2[act=-1] -> TaskList:96f3e56.ACCEPT_TASK), scope = ACCEPT_TASK)
 EngineService.acceptActivity(H:13, postprocessing clerk 2)
-[priceBundledProduct:13>TaskList:66c860fcded2df95] - validateTokenPermissions(clientId = ProcessEngine:149244ff, token = AuthToken(34698f13af30422 - TaskList:66c860fcded2df95[act=13] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:13) && ACCEPT_TASK(H:13))), scope = ACCEPT_TASK(H:13))
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.IDENTIFY)) from AuthService.createAuthorizationCodeImpl
-[GLOBAL>ProcessEngine:149244ff] - createAuthorizationCode(code = 205bf375efe1097, token = AuthToken(2fce074b09dfc4c5 - postprocessing clerk 2[act=13] -> AuthService:fd8ffe3a.IDENTIFY))
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.GRANT_PERMISSION(Pricing_Engine:5682af11.PRICE_LOAN()))) from AuthService.grantPermission
-[GLOBAL>ProcessEngine:149244ff] - grantPermission(token = 2fce074b09dfc4c5, serviceId = AuthService:fd8ffe3a, scope = GRANT_PERMISSION(Pricing_Engine:5682af11.PRICE_LOAN()))
-[GLOBAL>postprocessing clerk 2] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(postprocessing clerk 2)=ffb7a0e2dd12b151, scope = IDENTIFY) from AuthService.getAuthToken
-[GLOBAL>postprocessing clerk 2] - authTokenFromAuthorization(authorization = AuthorizationCode(code=205bf375efe1097)) = AuthToken(2fce074b09dfc4c5 - postprocessing clerk 2[act=13] -> AuthService:fd8ffe3a.IDENTIFY)
-Browser(postprocessing clerk 2).addToken(AuthToken(2fce074b09dfc4c5 - postprocessing clerk 2[act=13] -> AuthService:fd8ffe3a.IDENTIFY))
+[priceBundledProduct:13>TaskList:96f3e56] - validateTokenPermissions(clientId = ProcessEngine:fd8ffe3a, token = AuthToken(4376f205034698f1 - TaskList:96f3e56[act=13] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:13) && ACCEPT_TASK(H:13))), scope = ACCEPT_TASK(H:13))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(postprocessing clerk 2.AuthService:149244ff.IDENTIFY)) from AuthService.createAuthorizationCodeImpl
+[GLOBAL>ProcessEngine:fd8ffe3a] - createAuthorizationCode(code = 9dfc4c50205bf37, token = AuthToken(644de04c2fce074b - postprocessing clerk 2[act=13] -> AuthService:149244ff.IDENTIFY))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(ProcessEngine:fd8ffe3a.AuthService:149244ff.GRANT_PERMISSION(postprocessing clerk 2.Pricing_Engine:5682af11.PRICE_LOAN()))) from AuthService.grantPermission
+[GLOBAL>ProcessEngine:fd8ffe3a] - grantPermission(token = 644de04c2fce074b, serviceId = AuthService:149244ff, scope = GRANT_PERMISSION(postprocessing clerk 2.Pricing_Engine:5682af11.PRICE_LOAN()))
+[GLOBAL>postprocessing clerk 2] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(postprocessing clerk 2)=83ba668ffb7a0e3, scope = IDENTIFY) from AuthService.getAuthToken
+[GLOBAL>postprocessing clerk 2] - authTokenFromAuthorization(authorization = AuthorizationCode(code=9dfc4c50205bf37)) = AuthToken(644de04c2fce074b - postprocessing clerk 2[act=13] -> AuthService:149244ff.IDENTIFY)
+Browser(postprocessing clerk 2).addToken(AuthToken(644de04c2fce074b - postprocessing clerk 2[act=13] -> AuthService:149244ff.IDENTIFY))
 TaskList(postprocessing clerk 2).loginToService(Pricing_Engine:5682af11)
 Browser(postprocessing clerk 2).loginToService(Pricing_Engine:5682af11)
-[priceBundledProduct:13>postprocessing clerk 2] - validateTokenPermissions(clientId = AuthService:fd8ffe3a, token = AuthToken(2fce074b09dfc4c5 - postprocessing clerk 2[act=13] -> AuthService:fd8ffe3a.IDENTIFY), scope = IDENTIFY)
-[priceBundledProduct:13>postprocessing clerk 2] - getAuthTokenDirect(AuthToken(2fce074b09dfc4c5 - postprocessing clerk 2[act=13] -> AuthService:fd8ffe3a.IDENTIFY)) = AuthToken(8082a4dcdd91f4a8 - postprocessing clerk 2[act=13] -> Pricing_Engine:5682af11.PRICE_LOAN())
-PricingEngine.priceLoan(nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanProductBundle@9c82496)
-[priceBundledProduct:13>postprocessing clerk 2] - validateTokenPermissions(clientId = Pricing_Engine:5682af11, token = AuthToken(8082a4dcdd91f4a8 - postprocessing clerk 2[act=13] -> Pricing_Engine:5682af11.PRICE_LOAN()), scope = nl.adaptivity.process.engine.test.loanOrigination.auth.MonetaryUseScope@98c37495)
+[priceBundledProduct:13>postprocessing clerk 2] - validateTokenPermissions(clientId = AuthService:149244ff, token = AuthToken(644de04c2fce074b - postprocessing clerk 2[act=13] -> AuthService:149244ff.IDENTIFY), scope = IDENTIFY)
+[priceBundledProduct:13>postprocessing clerk 2] - getAuthTokenDirect(AuthToken(644de04c2fce074b - postprocessing clerk 2[act=13] -> AuthService:149244ff.IDENTIFY)) = AuthToken(5efe10968082a4dd - postprocessing clerk 2[act=13] -> Pricing_Engine:5682af11.PRICE_LOAN())
+PricingEngine.priceLoan(nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanProductBundle@5c90bdc5)
+[priceBundledProduct:13>postprocessing clerk 2] - validateTokenPermissions(clientId = Pricing_Engine:5682af11, token = AuthToken(5efe10968082a4dd - postprocessing clerk 2[act=13] -> Pricing_Engine:5682af11.PRICE_LOAN()), scope = nl.adaptivity.process.engine.test.loanOrigination.auth.MonetaryUseScope@4f9754f9)
 TaskList(preprocessing clerk 1).finishTask(H:13)
 TaskList(John Doe).finishTask(H:13)
 TaskList(postprocessing clerk 2).finishTask(H:13)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:13)) from AuthService.invalidateActivityTokens
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:13, AuthToken(34698f13af30422 - TaskList:66c860fcded2df95[act=13] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:13) && ACCEPT_TASK(H:13))))
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:13, AuthToken(2fce074b09dfc4c5 - postprocessing clerk 2[act=13] -> AuthService:fd8ffe3a.IDENTIFY))
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:13, AuthToken(8082a4dcdd91f4a8 - postprocessing clerk 2[act=13] -> Pricing_Engine:5682af11.PRICE_LOAN()))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:13)) from AuthService.invalidateActivityTokens
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:13, AuthToken(4376f205034698f1 - TaskList:96f3e56[act=13] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:13) && ACCEPT_TASK(H:13))))
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:13, AuthToken(644de04c2fce074b - postprocessing clerk 2[act=13] -> AuthService:149244ff.IDENTIFY))
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:13, AuthToken(5efe10968082a4dd - postprocessing clerk 2[act=13] -> Pricing_Engine:5682af11.PRICE_LOAN()))
 EngineService.registerActivityToTaskList(H:14)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:14) && ACCEPT_TASK(H:14)))) from AuthService.createAuthorizationCodeImpl
-[GLOBAL>ProcessEngine:149244ff] - createAuthorizationCode(code = c7acb25555a573a7, token = AuthToken(4693ef87277b56b8 - TaskList:66c860fcded2df95[act=14] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:14) && ACCEPT_TASK(H:14))))
-TaskList(postprocessing clerk 2).registerToken(AuthorizationCode(code=c7acb25555a573a7))
-[GLOBAL>TaskList:66c860fcded2df95] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(TaskList:66c860fcded2df95)=96f3e567fe1df31, scope = IDENTIFY) from AuthService.getAuthToken
-[GLOBAL>TaskList:66c860fcded2df95] - authTokenFromAuthorization(authorization = AuthorizationCode(code=c7acb25555a573a7)) = AuthToken(4693ef87277b56b8 - TaskList:66c860fcded2df95[act=14] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:14) && ACCEPT_TASK(H:14)))
-Browser(postprocessing clerk 2).loginToService(TaskList:66c860fcded2df95)
-[<unknown node>:-1>postprocessing clerk 2] - validateTokenPermissions(clientId = AuthService:fd8ffe3a, token = AuthToken(63f088624766ce9f - postprocessing clerk 2[act=-1] -> AuthService:fd8ffe3a.IDENTIFY), scope = IDENTIFY)
-[<unknown node>:-1>postprocessing clerk 2] - getAuthTokenDirect(AuthToken(63f088624766ce9f - postprocessing clerk 2[act=-1] -> AuthService:fd8ffe3a.IDENTIFY)) = AuthToken(7b359b16f2cf8811 - postprocessing clerk 2[act=-1] -> TaskList:66c860fcded2df95.ACCEPT_TASK)
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(TaskList:96f3e56.ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:14) && ACCEPT_TASK(H:14)))) from AuthService.createAuthorizationCodeImpl
+[GLOBAL>ProcessEngine:fd8ffe3a] - createAuthorizationCode(code = 277b56b7c7acb255, token = AuthToken(dd91f4a84693ef87 - TaskList:96f3e56[act=14] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:14) && ACCEPT_TASK(H:14))))
+TaskList(postprocessing clerk 2).registerToken(AuthorizationCode(code=277b56b7c7acb255))
+[GLOBAL>TaskList:96f3e56] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(TaskList:96f3e56)=66c860fcded2df95, scope = IDENTIFY) from AuthService.getAuthToken
+[GLOBAL>TaskList:96f3e56] - authTokenFromAuthorization(authorization = AuthorizationCode(code=277b56b7c7acb255)) = AuthToken(dd91f4a84693ef87 - TaskList:96f3e56[act=14] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:14) && ACCEPT_TASK(H:14)))
+Browser(postprocessing clerk 2).loginToService(TaskList:96f3e56)
+[<unknown node>:-1>postprocessing clerk 2] - validateTokenPermissions(clientId = AuthService:149244ff, token = AuthToken(dd12b15163f08862 - postprocessing clerk 2[act=-1] -> AuthService:149244ff.IDENTIFY), scope = IDENTIFY)
+[<unknown node>:-1>postprocessing clerk 2] - getAuthTokenDirect(AuthToken(dd12b15163f08862 - postprocessing clerk 2[act=-1] -> AuthService:149244ff.IDENTIFY)) = AuthToken(55a573a77b359b17 - postprocessing clerk 2[act=-1] -> TaskList:96f3e56.ACCEPT_TASK)
 TaskList(postprocessing clerk 2).acceptActivity(H:14, postprocessing clerk 2)
-[<unknown node>:-1>postprocessing clerk 2] - validateTokenPermissions(clientId = TaskList:66c860fcded2df95, token = AuthToken(7b359b16f2cf8811 - postprocessing clerk 2[act=-1] -> TaskList:66c860fcded2df95.ACCEPT_TASK), scope = ACCEPT_TASK)
+[<unknown node>:-1>postprocessing clerk 2] - validateTokenPermissions(clientId = TaskList:96f3e56, token = AuthToken(55a573a77b359b17 - postprocessing clerk 2[act=-1] -> TaskList:96f3e56.ACCEPT_TASK), scope = ACCEPT_TASK)
 EngineService.acceptActivity(H:14, postprocessing clerk 2)
-[approveOffer:14>TaskList:66c860fcded2df95] - validateTokenPermissions(clientId = ProcessEngine:149244ff, token = AuthToken(4693ef87277b56b8 - TaskList:66c860fcded2df95[act=14] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:14) && ACCEPT_TASK(H:14))), scope = ACCEPT_TASK(H:14))
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.IDENTIFY)) from AuthService.createAuthorizationCodeImpl
-[GLOBAL>ProcessEngine:149244ff] - createAuthorizationCode(code = 775fa38002d37a6b, token = AuthToken(7ee66bdfcc0e1a69 - postprocessing clerk 2[act=14] -> AuthService:fd8ffe3a.IDENTIFY))
-[GLOBAL>postprocessing clerk 2] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(postprocessing clerk 2)=ffb7a0e2dd12b151, scope = IDENTIFY) from AuthService.getAuthToken
-[GLOBAL>postprocessing clerk 2] - authTokenFromAuthorization(authorization = AuthorizationCode(code=775fa38002d37a6b)) = AuthToken(7ee66bdfcc0e1a69 - postprocessing clerk 2[act=14] -> AuthService:fd8ffe3a.IDENTIFY)
-Browser(postprocessing clerk 2).addToken(AuthToken(7ee66bdfcc0e1a69 - postprocessing clerk 2[act=14] -> AuthService:fd8ffe3a.IDENTIFY))
+[approveOffer:14>TaskList:96f3e56] - validateTokenPermissions(clientId = ProcessEngine:fd8ffe3a, token = AuthToken(dd91f4a84693ef87 - TaskList:96f3e56[act=14] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:14) && ACCEPT_TASK(H:14))), scope = ACCEPT_TASK(H:14))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(postprocessing clerk 2.AuthService:149244ff.IDENTIFY)) from AuthService.createAuthorizationCodeImpl
+[GLOBAL>ProcessEngine:fd8ffe3a] - createAuthorizationCode(code = cc0e1a69775fa380, token = AuthToken(f2cf88117ee66be0 - postprocessing clerk 2[act=14] -> AuthService:149244ff.IDENTIFY))
+[GLOBAL>postprocessing clerk 2] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(postprocessing clerk 2)=83ba668ffb7a0e3, scope = IDENTIFY) from AuthService.getAuthToken
+[GLOBAL>postprocessing clerk 2] - authTokenFromAuthorization(authorization = AuthorizationCode(code=cc0e1a69775fa380)) = AuthToken(f2cf88117ee66be0 - postprocessing clerk 2[act=14] -> AuthService:149244ff.IDENTIFY)
+Browser(postprocessing clerk 2).addToken(AuthToken(f2cf88117ee66be0 - postprocessing clerk 2[act=14] -> AuthService:149244ff.IDENTIFY))
 TaskList(preprocessing clerk 1).finishTask(H:14)
 TaskList(John Doe).finishTask(H:14)
 TaskList(postprocessing clerk 2).finishTask(H:14)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:14)) from AuthService.invalidateActivityTokens
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:14, AuthToken(4693ef87277b56b8 - TaskList:66c860fcded2df95[act=14] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:14) && ACCEPT_TASK(H:14))))
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:14, AuthToken(7ee66bdfcc0e1a69 - postprocessing clerk 2[act=14] -> AuthService:fd8ffe3a.IDENTIFY))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:14)) from AuthService.invalidateActivityTokens
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:14, AuthToken(dd91f4a84693ef87 - TaskList:96f3e56[act=14] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:14) && ACCEPT_TASK(H:14))))
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:14, AuthToken(f2cf88117ee66be0 - postprocessing clerk 2[act=14] -> AuthService:149244ff.IDENTIFY))
 TaskList(preprocessing clerk 1).finishTask(H:15)
 TaskList(John Doe).finishTask(H:15)
 TaskList(postprocessing clerk 2).finishTask(H:15)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:15)) from AuthService.invalidateActivityTokens
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:15)) from AuthService.invalidateActivityTokens
 TaskList(preprocessing clerk 1).finishTask(H:11)
 TaskList(John Doe).finishTask(H:11)
 TaskList(postprocessing clerk 2).finishTask(H:11)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:11)) from AuthService.invalidateActivityTokens
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:11)) from AuthService.invalidateActivityTokens
 EngineService.registerActivityToTaskList(H:16)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:16) && ACCEPT_TASK(H:16)))) from AuthService.createAuthorizationCodeImpl
-[GLOBAL>ProcessEngine:149244ff] - createAuthorizationCode(code = 88b3bc35750e04dc, token = AuthToken(6af07ee9a83c3580 - TaskList:66c860fcded2df95[act=16] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:16) && ACCEPT_TASK(H:16))))
-TaskList(postprocessing clerk 2).registerToken(AuthorizationCode(code=88b3bc35750e04dc))
-[GLOBAL>TaskList:66c860fcded2df95] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(TaskList:66c860fcded2df95)=96f3e567fe1df31, scope = IDENTIFY) from AuthService.getAuthToken
-[GLOBAL>TaskList:66c860fcded2df95] - authTokenFromAuthorization(authorization = AuthorizationCode(code=88b3bc35750e04dc)) = AuthToken(6af07ee9a83c3580 - TaskList:66c860fcded2df95[act=16] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:16) && ACCEPT_TASK(H:16)))
-Browser(postprocessing clerk 2).loginToService(TaskList:66c860fcded2df95)
-[<unknown node>:-1>postprocessing clerk 2] - validateTokenPermissions(clientId = AuthService:fd8ffe3a, token = AuthToken(63f088624766ce9f - postprocessing clerk 2[act=-1] -> AuthService:fd8ffe3a.IDENTIFY), scope = IDENTIFY)
-[<unknown node>:-1>postprocessing clerk 2] - getAuthTokenDirect(AuthToken(63f088624766ce9f - postprocessing clerk 2[act=-1] -> AuthService:fd8ffe3a.IDENTIFY)) = AuthToken(3fe39b0f1166353e - postprocessing clerk 2[act=-1] -> TaskList:66c860fcded2df95.ACCEPT_TASK)
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(TaskList:96f3e56.ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:16) && ACCEPT_TASK(H:16)))) from AuthService.createAuthorizationCodeImpl
+[GLOBAL>ProcessEngine:fd8ffe3a] - createAuthorizationCode(code = a83c357f88b3bc35, token = AuthToken(2d37a6b6af07eea - TaskList:96f3e56[act=16] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:16) && ACCEPT_TASK(H:16))))
+TaskList(postprocessing clerk 2).registerToken(AuthorizationCode(code=a83c357f88b3bc35))
+[GLOBAL>TaskList:96f3e56] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(TaskList:96f3e56)=66c860fcded2df95, scope = IDENTIFY) from AuthService.getAuthToken
+[GLOBAL>TaskList:96f3e56] - authTokenFromAuthorization(authorization = AuthorizationCode(code=a83c357f88b3bc35)) = AuthToken(2d37a6b6af07eea - TaskList:96f3e56[act=16] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:16) && ACCEPT_TASK(H:16)))
+Browser(postprocessing clerk 2).loginToService(TaskList:96f3e56)
+[<unknown node>:-1>postprocessing clerk 2] - validateTokenPermissions(clientId = AuthService:149244ff, token = AuthToken(dd12b15163f08862 - postprocessing clerk 2[act=-1] -> AuthService:149244ff.IDENTIFY), scope = IDENTIFY)
+[<unknown node>:-1>postprocessing clerk 2] - getAuthTokenDirect(AuthToken(dd12b15163f08862 - postprocessing clerk 2[act=-1] -> AuthService:149244ff.IDENTIFY)) = AuthToken(750e04dc3fe39b0f - postprocessing clerk 2[act=-1] -> TaskList:96f3e56.ACCEPT_TASK)
 TaskList(postprocessing clerk 2).acceptActivity(H:16, postprocessing clerk 2)
-[<unknown node>:-1>postprocessing clerk 2] - validateTokenPermissions(clientId = TaskList:66c860fcded2df95, token = AuthToken(3fe39b0f1166353e - postprocessing clerk 2[act=-1] -> TaskList:66c860fcded2df95.ACCEPT_TASK), scope = ACCEPT_TASK)
+[<unknown node>:-1>postprocessing clerk 2] - validateTokenPermissions(clientId = TaskList:96f3e56, token = AuthToken(750e04dc3fe39b0f - postprocessing clerk 2[act=-1] -> TaskList:96f3e56.ACCEPT_TASK), scope = ACCEPT_TASK)
 EngineService.acceptActivity(H:16, postprocessing clerk 2)
-[printOffer:16>TaskList:66c860fcded2df95] - validateTokenPermissions(clientId = ProcessEngine:149244ff, token = AuthToken(6af07ee9a83c3580 - TaskList:66c860fcded2df95[act=16] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:16) && ACCEPT_TASK(H:16))), scope = ACCEPT_TASK(H:16))
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.IDENTIFY)) from AuthService.createAuthorizationCodeImpl
-[GLOBAL>ProcessEngine:149244ff] - createAuthorizationCode(code = e3c46af976f84ccc, token = AuthToken(63a5d0a1470d8e24 - postprocessing clerk 2[act=16] -> AuthService:fd8ffe3a.IDENTIFY))
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.GRANT_PERMISSION(Output_Manamgent_System:e655d173.PRINT_OFFER))) from AuthService.grantPermission
-[GLOBAL>ProcessEngine:149244ff] - grantPermission(token = 63a5d0a1470d8e24, serviceId = AuthService:fd8ffe3a, scope = GRANT_PERMISSION(Output_Manamgent_System:e655d173.PRINT_OFFER))
-[GLOBAL>postprocessing clerk 2] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(postprocessing clerk 2)=ffb7a0e2dd12b151, scope = IDENTIFY) from AuthService.getAuthToken
-[GLOBAL>postprocessing clerk 2] - authTokenFromAuthorization(authorization = AuthorizationCode(code=e3c46af976f84ccc)) = AuthToken(63a5d0a1470d8e24 - postprocessing clerk 2[act=16] -> AuthService:fd8ffe3a.IDENTIFY)
-Browser(postprocessing clerk 2).addToken(AuthToken(63a5d0a1470d8e24 - postprocessing clerk 2[act=16] -> AuthService:fd8ffe3a.IDENTIFY))
+[printOffer:16>TaskList:96f3e56] - validateTokenPermissions(clientId = ProcessEngine:fd8ffe3a, token = AuthToken(2d37a6b6af07eea - TaskList:96f3e56[act=16] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:16) && ACCEPT_TASK(H:16))), scope = ACCEPT_TASK(H:16))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(postprocessing clerk 2.AuthService:149244ff.IDENTIFY)) from AuthService.createAuthorizationCodeImpl
+[GLOBAL>ProcessEngine:fd8ffe3a] - createAuthorizationCode(code = 470d8e23e3c46af9, token = AuthToken(1166353e63a5d0a1 - postprocessing clerk 2[act=16] -> AuthService:149244ff.IDENTIFY))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(ProcessEngine:fd8ffe3a.AuthService:149244ff.GRANT_PERMISSION(postprocessing clerk 2.Output_Manamgent_System:e655d173.PRINT_OFFER))) from AuthService.grantPermission
+[GLOBAL>ProcessEngine:fd8ffe3a] - grantPermission(token = 1166353e63a5d0a1, serviceId = AuthService:149244ff, scope = GRANT_PERMISSION(postprocessing clerk 2.Output_Manamgent_System:e655d173.PRINT_OFFER))
+[GLOBAL>postprocessing clerk 2] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(postprocessing clerk 2)=83ba668ffb7a0e3, scope = IDENTIFY) from AuthService.getAuthToken
+[GLOBAL>postprocessing clerk 2] - authTokenFromAuthorization(authorization = AuthorizationCode(code=470d8e23e3c46af9)) = AuthToken(1166353e63a5d0a1 - postprocessing clerk 2[act=16] -> AuthService:149244ff.IDENTIFY)
+Browser(postprocessing clerk 2).addToken(AuthToken(1166353e63a5d0a1 - postprocessing clerk 2[act=16] -> AuthService:149244ff.IDENTIFY))
 TaskList(postprocessing clerk 2).loginToService(Output_Manamgent_System:e655d173)
 Browser(postprocessing clerk 2).loginToService(Output_Manamgent_System:e655d173)
-[printOffer:16>postprocessing clerk 2] - validateTokenPermissions(clientId = AuthService:fd8ffe3a, token = AuthToken(63a5d0a1470d8e24 - postprocessing clerk 2[act=16] -> AuthService:fd8ffe3a.IDENTIFY), scope = IDENTIFY)
-[printOffer:16>postprocessing clerk 2] - getAuthTokenDirect(AuthToken(63a5d0a1470d8e24 - postprocessing clerk 2[act=16] -> AuthService:fd8ffe3a.IDENTIFY)) = AuthToken(4914ea5edf340d9c - postprocessing clerk 2[act=16] -> Output_Manamgent_System:e655d173.PRINT_OFFER)
-OutputManagementSystem.registerAndPrintOffer(nl.adaptivity.process.engine.test.loanOrigination.datatypes.PricedLoanProductBundle@7d68b429)
-[printOffer:16>postprocessing clerk 2] - validateTokenPermissions(clientId = Output_Manamgent_System:e655d173, token = AuthToken(4914ea5edf340d9c - postprocessing clerk 2[act=16] -> Output_Manamgent_System:e655d173.PRINT_OFFER), scope = PRINT_OFFER)
+[printOffer:16>postprocessing clerk 2] - validateTokenPermissions(clientId = AuthService:149244ff, token = AuthToken(1166353e63a5d0a1 - postprocessing clerk 2[act=16] -> AuthService:149244ff.IDENTIFY), scope = IDENTIFY)
+[printOffer:16>postprocessing clerk 2] - getAuthTokenDirect(AuthToken(1166353e63a5d0a1 - postprocessing clerk 2[act=16] -> AuthService:149244ff.IDENTIFY)) = AuthToken(76f84ccc4914ea5f - postprocessing clerk 2[act=16] -> Output_Manamgent_System:e655d173.PRINT_OFFER)
+OutputManagementSystem.registerAndPrintOffer(nl.adaptivity.process.engine.test.loanOrigination.datatypes.PricedLoanProductBundle@4cc3f479)
+[printOffer:16>postprocessing clerk 2] - validateTokenPermissions(clientId = Output_Manamgent_System:e655d173, token = AuthToken(76f84ccc4914ea5f - postprocessing clerk 2[act=16] -> Output_Manamgent_System:e655d173.PRINT_OFFER), scope = PRINT_OFFER)
 TaskList(preprocessing clerk 1).finishTask(H:16)
 TaskList(John Doe).finishTask(H:16)
 TaskList(postprocessing clerk 2).finishTask(H:16)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:16)) from AuthService.invalidateActivityTokens
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:16, AuthToken(6af07ee9a83c3580 - TaskList:66c860fcded2df95[act=16] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:16) && ACCEPT_TASK(H:16))))
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:16, AuthToken(63a5d0a1470d8e24 - postprocessing clerk 2[act=16] -> AuthService:fd8ffe3a.IDENTIFY))
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:16, AuthToken(4914ea5edf340d9c - postprocessing clerk 2[act=16] -> Output_Manamgent_System:e655d173.PRINT_OFFER))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:16)) from AuthService.invalidateActivityTokens
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:16, AuthToken(2d37a6b6af07eea - TaskList:96f3e56[act=16] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:16) && ACCEPT_TASK(H:16))))
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:16, AuthToken(1166353e63a5d0a1 - postprocessing clerk 2[act=16] -> AuthService:149244ff.IDENTIFY))
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:16, AuthToken(76f84ccc4914ea5f - postprocessing clerk 2[act=16] -> Output_Manamgent_System:e655d173.PRINT_OFFER))
 EngineService.registerActivityToTaskList(H:17)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:17) && ACCEPT_TASK(H:17)))) from AuthService.createAuthorizationCodeImpl
-[GLOBAL>ProcessEngine:149244ff] - createAuthorizationCode(code = 19251b4bb16098d9, token = AuthToken(8a2c7a87e8dbe4da - TaskList:66c860fcded2df95[act=17] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:17) && ACCEPT_TASK(H:17))))
-TaskList(John Doe).registerToken(AuthorizationCode(code=19251b4bb16098d9))
-[GLOBAL>TaskList:66c860fcded2df95] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(TaskList:66c860fcded2df95)=96f3e567fe1df31, scope = IDENTIFY) from AuthService.getAuthToken
-[GLOBAL>TaskList:66c860fcded2df95] - authTokenFromAuthorization(authorization = AuthorizationCode(code=19251b4bb16098d9)) = AuthToken(8a2c7a87e8dbe4da - TaskList:66c860fcded2df95[act=17] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:17) && ACCEPT_TASK(H:17)))
-Browser(John Doe).loginToService(TaskList:66c860fcded2df95)
-[<unknown node>:-1>John Doe] - validateTokenPermissions(clientId = AuthService:fd8ffe3a, token = AuthToken(deeb152ca0bd97ba - John Doe[act=-1] -> AuthService:fd8ffe3a.IDENTIFY), scope = IDENTIFY)
-[<unknown node>:-1>John Doe] - getAuthTokenDirect(AuthToken(deeb152ca0bd97ba - John Doe[act=-1] -> AuthService:fd8ffe3a.IDENTIFY)) = AuthToken(56df7e8fa22b3220 - John Doe[act=-1] -> TaskList:66c860fcded2df95.ACCEPT_TASK)
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(TaskList:96f3e56.ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:17) && ACCEPT_TASK(H:17)))) from AuthService.createAuthorizationCodeImpl
+[GLOBAL>ProcessEngine:fd8ffe3a] - createAuthorizationCode(code = e8dbe4da19251b4c, token = AuthToken(df340d9b8a2c7a88 - TaskList:96f3e56[act=17] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:17) && ACCEPT_TASK(H:17))))
+TaskList(John Doe).registerToken(AuthorizationCode(code=e8dbe4da19251b4c))
+[GLOBAL>TaskList:96f3e56] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(TaskList:96f3e56)=66c860fcded2df95, scope = IDENTIFY) from AuthService.getAuthToken
+[GLOBAL>TaskList:96f3e56] - authTokenFromAuthorization(authorization = AuthorizationCode(code=e8dbe4da19251b4c)) = AuthToken(df340d9b8a2c7a88 - TaskList:96f3e56[act=17] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:17) && ACCEPT_TASK(H:17)))
+Browser(John Doe).loginToService(TaskList:96f3e56)
+[<unknown node>:-1>John Doe] - validateTokenPermissions(clientId = AuthService:149244ff, token = AuthToken(c507ffa0deeb152d - John Doe[act=-1] -> AuthService:149244ff.IDENTIFY), scope = IDENTIFY)
+[<unknown node>:-1>John Doe] - getAuthTokenDirect(AuthToken(c507ffa0deeb152d - John Doe[act=-1] -> AuthService:149244ff.IDENTIFY)) = AuthToken(b16098d956df7e90 - John Doe[act=-1] -> TaskList:96f3e56.ACCEPT_TASK)
 TaskList(John Doe).acceptActivity(H:17, John Doe)
-[<unknown node>:-1>John Doe] - validateTokenPermissions(clientId = TaskList:66c860fcded2df95, token = AuthToken(56df7e8fa22b3220 - John Doe[act=-1] -> TaskList:66c860fcded2df95.ACCEPT_TASK), scope = ACCEPT_TASK)
+[<unknown node>:-1>John Doe] - validateTokenPermissions(clientId = TaskList:96f3e56, token = AuthToken(b16098d956df7e90 - John Doe[act=-1] -> TaskList:96f3e56.ACCEPT_TASK), scope = ACCEPT_TASK)
 EngineService.acceptActivity(H:17, John Doe)
-[customerSignsContract:17>TaskList:66c860fcded2df95] - validateTokenPermissions(clientId = ProcessEngine:149244ff, token = AuthToken(8a2c7a87e8dbe4da - TaskList:66c860fcded2df95[act=17] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:17) && ACCEPT_TASK(H:17))), scope = ACCEPT_TASK(H:17))
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.IDENTIFY)) from AuthService.createAuthorizationCodeImpl
-[GLOBAL>ProcessEngine:149244ff] - createAuthorizationCode(code = 647e334273748f71, token = AuthToken(31b6ec01d53df99a - John Doe[act=17] -> AuthService:fd8ffe3a.IDENTIFY))
-[GLOBAL>John Doe] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(John Doe)=1c282f6bc507ffa1, scope = IDENTIFY) from AuthService.getAuthToken
-[GLOBAL>John Doe] - authTokenFromAuthorization(authorization = AuthorizationCode(code=647e334273748f71)) = AuthToken(31b6ec01d53df99a - John Doe[act=17] -> AuthService:fd8ffe3a.IDENTIFY)
-Browser(John Doe).addToken(AuthToken(31b6ec01d53df99a - John Doe[act=17] -> AuthService:fd8ffe3a.IDENTIFY))
+[customerSignsContract:17>TaskList:96f3e56] - validateTokenPermissions(clientId = ProcessEngine:fd8ffe3a, token = AuthToken(df340d9b8a2c7a88 - TaskList:96f3e56[act=17] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:17) && ACCEPT_TASK(H:17))), scope = ACCEPT_TASK(H:17))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(John Doe.AuthService:149244ff.IDENTIFY)) from AuthService.createAuthorizationCodeImpl
+[GLOBAL>ProcessEngine:fd8ffe3a] - createAuthorizationCode(code = d53df99a647e3342, token = AuthToken(a22b322031b6ec02 - John Doe[act=17] -> AuthService:149244ff.IDENTIFY))
+[GLOBAL>John Doe] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(John Doe)=4766ce9f1c282f6c, scope = IDENTIFY) from AuthService.getAuthToken
+[GLOBAL>John Doe] - authTokenFromAuthorization(authorization = AuthorizationCode(code=d53df99a647e3342)) = AuthToken(a22b322031b6ec02 - John Doe[act=17] -> AuthService:149244ff.IDENTIFY)
+Browser(John Doe).addToken(AuthToken(a22b322031b6ec02 - John Doe[act=17] -> AuthService:149244ff.IDENTIFY))
 TaskList(preprocessing clerk 1).finishTask(H:17)
 TaskList(John Doe).finishTask(H:17)
 TaskList(postprocessing clerk 2).finishTask(H:17)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:17)) from AuthService.invalidateActivityTokens
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:17, AuthToken(8a2c7a87e8dbe4da - TaskList:66c860fcded2df95[act=17] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:17) && ACCEPT_TASK(H:17))))
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:17, AuthToken(31b6ec01d53df99a - John Doe[act=17] -> AuthService:fd8ffe3a.IDENTIFY))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:17)) from AuthService.invalidateActivityTokens
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:17, AuthToken(df340d9b8a2c7a88 - TaskList:96f3e56[act=17] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:17) && ACCEPT_TASK(H:17))))
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:17, AuthToken(a22b322031b6ec02 - John Doe[act=17] -> AuthService:149244ff.IDENTIFY))
 EngineService.registerActivityToTaskList(H:18)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:18) && ACCEPT_TASK(H:18)))) from AuthService.createAuthorizationCodeImpl
-[GLOBAL>ProcessEngine:149244ff] - createAuthorizationCode(code = 7d12d81826f0b632, token = AuthToken(4fccac53926f72d5 - TaskList:66c860fcded2df95[act=18] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:18) && ACCEPT_TASK(H:18))))
-TaskList(postprocessing clerk 2).registerToken(AuthorizationCode(code=7d12d81826f0b632))
-[GLOBAL>TaskList:66c860fcded2df95] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(TaskList:66c860fcded2df95)=96f3e567fe1df31, scope = IDENTIFY) from AuthService.getAuthToken
-[GLOBAL>TaskList:66c860fcded2df95] - authTokenFromAuthorization(authorization = AuthorizationCode(code=7d12d81826f0b632)) = AuthToken(4fccac53926f72d5 - TaskList:66c860fcded2df95[act=18] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:18) && ACCEPT_TASK(H:18)))
-Browser(postprocessing clerk 2).loginToService(TaskList:66c860fcded2df95)
-[<unknown node>:-1>postprocessing clerk 2] - validateTokenPermissions(clientId = AuthService:fd8ffe3a, token = AuthToken(63f088624766ce9f - postprocessing clerk 2[act=-1] -> AuthService:fd8ffe3a.IDENTIFY), scope = IDENTIFY)
-[<unknown node>:-1>postprocessing clerk 2] - getAuthTokenDirect(AuthToken(63f088624766ce9f - postprocessing clerk 2[act=-1] -> AuthService:fd8ffe3a.IDENTIFY)) = AuthToken(a265152aa7e7e8bd - postprocessing clerk 2[act=-1] -> TaskList:66c860fcded2df95.ACCEPT_TASK)
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(TaskList:96f3e56.ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:18) && ACCEPT_TASK(H:18)))) from AuthService.createAuthorizationCodeImpl
+[GLOBAL>ProcessEngine:fd8ffe3a] - createAuthorizationCode(code = 926f72d57d12d818, token = AuthToken(73748f714fccac54 - TaskList:96f3e56[act=18] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:18) && ACCEPT_TASK(H:18))))
+TaskList(postprocessing clerk 2).registerToken(AuthorizationCode(code=926f72d57d12d818))
+[GLOBAL>TaskList:96f3e56] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(TaskList:96f3e56)=66c860fcded2df95, scope = IDENTIFY) from AuthService.getAuthToken
+[GLOBAL>TaskList:96f3e56] - authTokenFromAuthorization(authorization = AuthorizationCode(code=926f72d57d12d818)) = AuthToken(73748f714fccac54 - TaskList:96f3e56[act=18] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:18) && ACCEPT_TASK(H:18)))
+Browser(postprocessing clerk 2).loginToService(TaskList:96f3e56)
+[<unknown node>:-1>postprocessing clerk 2] - validateTokenPermissions(clientId = AuthService:149244ff, token = AuthToken(dd12b15163f08862 - postprocessing clerk 2[act=-1] -> AuthService:149244ff.IDENTIFY), scope = IDENTIFY)
+[<unknown node>:-1>postprocessing clerk 2] - getAuthTokenDirect(AuthToken(dd12b15163f08862 - postprocessing clerk 2[act=-1] -> AuthService:149244ff.IDENTIFY)) = AuthToken(26f0b631a265152b - postprocessing clerk 2[act=-1] -> TaskList:96f3e56.ACCEPT_TASK)
 TaskList(postprocessing clerk 2).acceptActivity(H:18, postprocessing clerk 2)
-[<unknown node>:-1>postprocessing clerk 2] - validateTokenPermissions(clientId = TaskList:66c860fcded2df95, token = AuthToken(a265152aa7e7e8bd - postprocessing clerk 2[act=-1] -> TaskList:66c860fcded2df95.ACCEPT_TASK), scope = ACCEPT_TASK)
+[<unknown node>:-1>postprocessing clerk 2] - validateTokenPermissions(clientId = TaskList:96f3e56, token = AuthToken(26f0b631a265152b - postprocessing clerk 2[act=-1] -> TaskList:96f3e56.ACCEPT_TASK), scope = ACCEPT_TASK)
 EngineService.acceptActivity(H:18, postprocessing clerk 2)
-[bankSignsContract:18>TaskList:66c860fcded2df95] - validateTokenPermissions(clientId = ProcessEngine:149244ff, token = AuthToken(4fccac53926f72d5 - TaskList:66c860fcded2df95[act=18] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:18) && ACCEPT_TASK(H:18))), scope = ACCEPT_TASK(H:18))
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.IDENTIFY)) from AuthService.createAuthorizationCodeImpl
-[GLOBAL>ProcessEngine:149244ff] - createAuthorizationCode(code = d4d76a4801be7934, token = AuthToken(83bcbe123d8d9229 - postprocessing clerk 2[act=18] -> AuthService:fd8ffe3a.IDENTIFY))
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.GRANT_PERMISSION(Output_Manamgent_System:e655d173.SIGN_LOAN(cust123456)))) from AuthService.grantPermission
-[GLOBAL>ProcessEngine:149244ff] - grantPermission(token = 83bcbe123d8d9229, serviceId = AuthService:fd8ffe3a, scope = GRANT_PERMISSION(Output_Manamgent_System:e655d173.SIGN_LOAN(cust123456)))
-[GLOBAL>postprocessing clerk 2] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(postprocessing clerk 2)=ffb7a0e2dd12b151, scope = IDENTIFY) from AuthService.getAuthToken
-[GLOBAL>postprocessing clerk 2] - authTokenFromAuthorization(authorization = AuthorizationCode(code=d4d76a4801be7934)) = AuthToken(83bcbe123d8d9229 - postprocessing clerk 2[act=18] -> AuthService:fd8ffe3a.IDENTIFY)
-Browser(postprocessing clerk 2).addToken(AuthToken(83bcbe123d8d9229 - postprocessing clerk 2[act=18] -> AuthService:fd8ffe3a.IDENTIFY))
+[bankSignsContract:18>TaskList:96f3e56] - validateTokenPermissions(clientId = ProcessEngine:fd8ffe3a, token = AuthToken(73748f714fccac54 - TaskList:96f3e56[act=18] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:18) && ACCEPT_TASK(H:18))), scope = ACCEPT_TASK(H:18))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(postprocessing clerk 2.AuthService:149244ff.IDENTIFY)) from AuthService.createAuthorizationCodeImpl
+[GLOBAL>ProcessEngine:fd8ffe3a] - createAuthorizationCode(code = 3d8d9228d4d76a48, token = AuthToken(a7e7e8bc83bcbe12 - postprocessing clerk 2[act=18] -> AuthService:149244ff.IDENTIFY))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(ProcessEngine:fd8ffe3a.AuthService:149244ff.GRANT_PERMISSION(postprocessing clerk 2.Output_Manamgent_System:e655d173.SIGN_LOAN(cust123456)))) from AuthService.grantPermission
+[GLOBAL>ProcessEngine:fd8ffe3a] - grantPermission(token = a7e7e8bc83bcbe12, serviceId = AuthService:149244ff, scope = GRANT_PERMISSION(postprocessing clerk 2.Output_Manamgent_System:e655d173.SIGN_LOAN(cust123456)))
+[GLOBAL>postprocessing clerk 2] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(postprocessing clerk 2)=83ba668ffb7a0e3, scope = IDENTIFY) from AuthService.getAuthToken
+[GLOBAL>postprocessing clerk 2] - authTokenFromAuthorization(authorization = AuthorizationCode(code=3d8d9228d4d76a48)) = AuthToken(a7e7e8bc83bcbe12 - postprocessing clerk 2[act=18] -> AuthService:149244ff.IDENTIFY)
+Browser(postprocessing clerk 2).addToken(AuthToken(a7e7e8bc83bcbe12 - postprocessing clerk 2[act=18] -> AuthService:149244ff.IDENTIFY))
 TaskList(postprocessing clerk 2).loginToService(Output_Manamgent_System:e655d173)
 Browser(postprocessing clerk 2).loginToService(Output_Manamgent_System:e655d173)
-[bankSignsContract:18>postprocessing clerk 2] - validateTokenPermissions(clientId = AuthService:fd8ffe3a, token = AuthToken(83bcbe123d8d9229 - postprocessing clerk 2[act=18] -> AuthService:fd8ffe3a.IDENTIFY), scope = IDENTIFY)
-[bankSignsContract:18>postprocessing clerk 2] - getAuthTokenDirect(AuthToken(83bcbe123d8d9229 - postprocessing clerk 2[act=18] -> AuthService:fd8ffe3a.IDENTIFY)) = AuthToken(ae639641a5001a0a - postprocessing clerk 2[act=18] -> Output_Manamgent_System:e655d173.SIGN_LOAN(cust123456))
-OutputManagementSystem.signAndRegisterContract(Offer(id=840b89ab-2e69-4394-b771-df708a9ed051, customerId=cust123456, customerSignature=Signed by 'John Doe'), Signed by 'the bank manager')
-[bankSignsContract:18>postprocessing clerk 2] - validateTokenPermissions(clientId = Output_Manamgent_System:e655d173, token = AuthToken(ae639641a5001a0a - postprocessing clerk 2[act=18] -> Output_Manamgent_System:e655d173.SIGN_LOAN(cust123456)), scope = nl.adaptivity.process.engine.test.loanOrigination.auth.MonetaryUseScope@d415732d)
+[bankSignsContract:18>postprocessing clerk 2] - validateTokenPermissions(clientId = AuthService:149244ff, token = AuthToken(a7e7e8bc83bcbe12 - postprocessing clerk 2[act=18] -> AuthService:149244ff.IDENTIFY), scope = IDENTIFY)
+[bankSignsContract:18>postprocessing clerk 2] - getAuthTokenDirect(AuthToken(a7e7e8bc83bcbe12 - postprocessing clerk 2[act=18] -> AuthService:149244ff.IDENTIFY)) = AuthToken(1be7933ae639642 - postprocessing clerk 2[act=18] -> Output_Manamgent_System:e655d173.SIGN_LOAN(cust123456))
+OutputManagementSystem.signAndRegisterContract(Offer(id=9466b1aa-d4e8-46f2-b1b5-9dbf066f6d5a, customerId=cust123456, customerSignature=Signed by 'John Doe'), Signed by 'the bank manager')
+[bankSignsContract:18>postprocessing clerk 2] - validateTokenPermissions(clientId = Output_Manamgent_System:e655d173, token = AuthToken(1be7933ae639642 - postprocessing clerk 2[act=18] -> Output_Manamgent_System:e655d173.SIGN_LOAN(cust123456)), scope = nl.adaptivity.process.engine.test.loanOrigination.auth.MonetaryUseScope@d8f81c12)
 TaskList(preprocessing clerk 1).finishTask(H:18)
 TaskList(John Doe).finishTask(H:18)
 TaskList(postprocessing clerk 2).finishTask(H:18)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:18)) from AuthService.invalidateActivityTokens
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:18, AuthToken(4fccac53926f72d5 - TaskList:66c860fcded2df95[act=18] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:18) && ACCEPT_TASK(H:18))))
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:18, AuthToken(83bcbe123d8d9229 - postprocessing clerk 2[act=18] -> AuthService:fd8ffe3a.IDENTIFY))
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:18, AuthToken(ae639641a5001a0a - postprocessing clerk 2[act=18] -> Output_Manamgent_System:e655d173.SIGN_LOAN(cust123456)))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:18)) from AuthService.invalidateActivityTokens
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:18, AuthToken(73748f714fccac54 - TaskList:96f3e56[act=18] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:18) && ACCEPT_TASK(H:18))))
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:18, AuthToken(a7e7e8bc83bcbe12 - postprocessing clerk 2[act=18] -> AuthService:149244ff.IDENTIFY))
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:18, AuthToken(1be7933ae639642 - postprocessing clerk 2[act=18] -> Output_Manamgent_System:e655d173.SIGN_LOAN(cust123456)))
 EngineService.registerActivityToTaskList(H:19)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:19) && ACCEPT_TASK(H:19)))) from AuthService.createAuthorizationCodeImpl
-[GLOBAL>ProcessEngine:149244ff] - createAuthorizationCode(code = c030a42993c5071f, token = AuthToken(3fa37ed69bb50390 - TaskList:66c860fcded2df95[act=19] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:19) && ACCEPT_TASK(H:19))))
-TaskList(postprocessing clerk 2).registerToken(AuthorizationCode(code=c030a42993c5071f))
-[GLOBAL>TaskList:66c860fcded2df95] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(TaskList:66c860fcded2df95)=96f3e567fe1df31, scope = IDENTIFY) from AuthService.getAuthToken
-[GLOBAL>TaskList:66c860fcded2df95] - authTokenFromAuthorization(authorization = AuthorizationCode(code=c030a42993c5071f)) = AuthToken(3fa37ed69bb50390 - TaskList:66c860fcded2df95[act=19] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:19) && ACCEPT_TASK(H:19)))
-Browser(postprocessing clerk 2).loginToService(TaskList:66c860fcded2df95)
-[<unknown node>:-1>postprocessing clerk 2] - validateTokenPermissions(clientId = AuthService:fd8ffe3a, token = AuthToken(63f088624766ce9f - postprocessing clerk 2[act=-1] -> AuthService:fd8ffe3a.IDENTIFY), scope = IDENTIFY)
-[<unknown node>:-1>postprocessing clerk 2] - getAuthTokenDirect(AuthToken(63f088624766ce9f - postprocessing clerk 2[act=-1] -> AuthService:fd8ffe3a.IDENTIFY)) = AuthToken(b4571076065631e3 - postprocessing clerk 2[act=-1] -> TaskList:66c860fcded2df95.ACCEPT_TASK)
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(TaskList:96f3e56.ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:19) && ACCEPT_TASK(H:19)))) from AuthService.createAuthorizationCodeImpl
+[GLOBAL>ProcessEngine:fd8ffe3a] - createAuthorizationCode(code = 9bb5038fc030a42a, token = AuthToken(a5001a0a3fa37ed7 - TaskList:96f3e56[act=19] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:19) && ACCEPT_TASK(H:19))))
+TaskList(postprocessing clerk 2).registerToken(AuthorizationCode(code=9bb5038fc030a42a))
+[GLOBAL>TaskList:96f3e56] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(TaskList:96f3e56)=66c860fcded2df95, scope = IDENTIFY) from AuthService.getAuthToken
+[GLOBAL>TaskList:96f3e56] - authTokenFromAuthorization(authorization = AuthorizationCode(code=9bb5038fc030a42a)) = AuthToken(a5001a0a3fa37ed7 - TaskList:96f3e56[act=19] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:19) && ACCEPT_TASK(H:19)))
+Browser(postprocessing clerk 2).loginToService(TaskList:96f3e56)
+[<unknown node>:-1>postprocessing clerk 2] - validateTokenPermissions(clientId = AuthService:149244ff, token = AuthToken(dd12b15163f08862 - postprocessing clerk 2[act=-1] -> AuthService:149244ff.IDENTIFY), scope = IDENTIFY)
+[<unknown node>:-1>postprocessing clerk 2] - getAuthTokenDirect(AuthToken(dd12b15163f08862 - postprocessing clerk 2[act=-1] -> AuthService:149244ff.IDENTIFY)) = AuthToken(93c5071eb4571076 - postprocessing clerk 2[act=-1] -> TaskList:96f3e56.ACCEPT_TASK)
 TaskList(postprocessing clerk 2).acceptActivity(H:19, postprocessing clerk 2)
-[<unknown node>:-1>postprocessing clerk 2] - validateTokenPermissions(clientId = TaskList:66c860fcded2df95, token = AuthToken(b4571076065631e3 - postprocessing clerk 2[act=-1] -> TaskList:66c860fcded2df95.ACCEPT_TASK), scope = ACCEPT_TASK)
+[<unknown node>:-1>postprocessing clerk 2] - validateTokenPermissions(clientId = TaskList:96f3e56, token = AuthToken(93c5071eb4571076 - postprocessing clerk 2[act=-1] -> TaskList:96f3e56.ACCEPT_TASK), scope = ACCEPT_TASK)
 EngineService.acceptActivity(H:19, postprocessing clerk 2)
-[openAccount:19>TaskList:66c860fcded2df95] - validateTokenPermissions(clientId = ProcessEngine:149244ff, token = AuthToken(3fa37ed69bb50390 - TaskList:66c860fcded2df95[act=19] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:19) && ACCEPT_TASK(H:19))), scope = ACCEPT_TASK(H:19))
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.IDENTIFY)) from AuthService.createAuthorizationCodeImpl
-[GLOBAL>ProcessEngine:149244ff] - createAuthorizationCode(code = ca5c2f671eaf2edc, token = AuthToken(cae968f92678ae57 - postprocessing clerk 2[act=19] -> AuthService:fd8ffe3a.IDENTIFY))
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = GRANT_PERMISSION(AuthService:fd8ffe3a.GRANT_PERMISSION(Account_Management_System:3298b915.OPEN_ACCOUNT(cust123456)))) from AuthService.grantPermission
-[GLOBAL>ProcessEngine:149244ff] - grantPermission(token = cae968f92678ae57, serviceId = AuthService:fd8ffe3a, scope = GRANT_PERMISSION(Account_Management_System:3298b915.OPEN_ACCOUNT(cust123456)))
-[GLOBAL>postprocessing clerk 2] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(postprocessing clerk 2)=ffb7a0e2dd12b151, scope = IDENTIFY) from AuthService.getAuthToken
-[GLOBAL>postprocessing clerk 2] - authTokenFromAuthorization(authorization = AuthorizationCode(code=ca5c2f671eaf2edc)) = AuthToken(cae968f92678ae57 - postprocessing clerk 2[act=19] -> AuthService:fd8ffe3a.IDENTIFY)
-Browser(postprocessing clerk 2).addToken(AuthToken(cae968f92678ae57 - postprocessing clerk 2[act=19] -> AuthService:fd8ffe3a.IDENTIFY))
+[openAccount:19>TaskList:96f3e56] - validateTokenPermissions(clientId = ProcessEngine:fd8ffe3a, token = AuthToken(a5001a0a3fa37ed7 - TaskList:96f3e56[act=19] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:19) && ACCEPT_TASK(H:19))), scope = ACCEPT_TASK(H:19))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(postprocessing clerk 2.AuthService:149244ff.IDENTIFY)) from AuthService.createAuthorizationCodeImpl
+[GLOBAL>ProcessEngine:fd8ffe3a] - createAuthorizationCode(code = 2678ae56ca5c2f67, token = AuthToken(65631e2cae968f9 - postprocessing clerk 2[act=19] -> AuthService:149244ff.IDENTIFY))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = GRANT_PERMISSION(ProcessEngine:fd8ffe3a.AuthService:149244ff.GRANT_PERMISSION(postprocessing clerk 2.Account_Management_System:3298b915.OPEN_ACCOUNT(cust123456)))) from AuthService.grantPermission
+[GLOBAL>ProcessEngine:fd8ffe3a] - grantPermission(token = 65631e2cae968f9, serviceId = AuthService:149244ff, scope = GRANT_PERMISSION(postprocessing clerk 2.Account_Management_System:3298b915.OPEN_ACCOUNT(cust123456)))
+[GLOBAL>postprocessing clerk 2] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(postprocessing clerk 2)=83ba668ffb7a0e3, scope = IDENTIFY) from AuthService.getAuthToken
+[GLOBAL>postprocessing clerk 2] - authTokenFromAuthorization(authorization = AuthorizationCode(code=2678ae56ca5c2f67)) = AuthToken(65631e2cae968f9 - postprocessing clerk 2[act=19] -> AuthService:149244ff.IDENTIFY)
+Browser(postprocessing clerk 2).addToken(AuthToken(65631e2cae968f9 - postprocessing clerk 2[act=19] -> AuthService:149244ff.IDENTIFY))
 TaskList(postprocessing clerk 2).loginToService(Account_Management_System:3298b915)
 Browser(postprocessing clerk 2).loginToService(Account_Management_System:3298b915)
-[openAccount:19>postprocessing clerk 2] - validateTokenPermissions(clientId = AuthService:fd8ffe3a, token = AuthToken(cae968f92678ae57 - postprocessing clerk 2[act=19] -> AuthService:fd8ffe3a.IDENTIFY), scope = IDENTIFY)
-[openAccount:19>postprocessing clerk 2] - getAuthTokenDirect(AuthToken(cae968f92678ae57 - postprocessing clerk 2[act=19] -> AuthService:fd8ffe3a.IDENTIFY)) = AuthToken(91e569335e588a27 - postprocessing clerk 2[act=19] -> Account_Management_System:3298b915.OPEN_ACCOUNT(cust123456))
-AccountManagementSystem.openAccountFor(AuthToken(91e569335e588a27 - postprocessing clerk 2[act=19] -> Account_Management_System:3298b915.OPEN_ACCOUNT(cust123456)), Contract(id=50f3acfa-584f-449b-894f-b35f325cde0e, offerId=840b89ab-2e69-4394-b771-df708a9ed051, customerId=cust123456, customerSignature=Signed by 'John Doe', bankSignature=Signed by 'the bank manager'))
-[openAccount:19>postprocessing clerk 2] - validateTokenPermissions(clientId = Account_Management_System:3298b915, token = AuthToken(91e569335e588a27 - postprocessing clerk 2[act=19] -> Account_Management_System:3298b915.OPEN_ACCOUNT(cust123456)), scope = OPEN_ACCOUNT(cust123456))
+[openAccount:19>postprocessing clerk 2] - validateTokenPermissions(clientId = AuthService:149244ff, token = AuthToken(65631e2cae968f9 - postprocessing clerk 2[act=19] -> AuthService:149244ff.IDENTIFY), scope = IDENTIFY)
+[openAccount:19>postprocessing clerk 2] - getAuthTokenDirect(AuthToken(65631e2cae968f9 - postprocessing clerk 2[act=19] -> AuthService:149244ff.IDENTIFY)) = AuthToken(1eaf2edb91e56933 - postprocessing clerk 2[act=19] -> Account_Management_System:3298b915.OPEN_ACCOUNT(cust123456))
+AccountManagementSystem.openAccountFor(AuthToken(1eaf2edb91e56933 - postprocessing clerk 2[act=19] -> Account_Management_System:3298b915.OPEN_ACCOUNT(cust123456)), Contract(id=724b66c9-f8b4-43f5-a144-022bbb94e959, offerId=9466b1aa-d4e8-46f2-b1b5-9dbf066f6d5a, customerId=cust123456, customerSignature=Signed by 'John Doe', bankSignature=Signed by 'the bank manager'))
+[openAccount:19>postprocessing clerk 2] - validateTokenPermissions(clientId = Account_Management_System:3298b915, token = AuthToken(1eaf2edb91e56933 - postprocessing clerk 2[act=19] -> Account_Management_System:3298b915.OPEN_ACCOUNT(cust123456)), scope = OPEN_ACCOUNT(cust123456))
 TaskList(preprocessing clerk 1).finishTask(H:19)
 TaskList(John Doe).finishTask(H:19)
 TaskList(postprocessing clerk 2).finishTask(H:19)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:19)) from AuthService.invalidateActivityTokens
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:19, AuthToken(3fa37ed69bb50390 - TaskList:66c860fcded2df95[act=19] -> ProcessEngine:149244ff.(UPDATE_ACTIVITY_STATE(H:19) && ACCEPT_TASK(H:19))))
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:19, AuthToken(cae968f92678ae57 - postprocessing clerk 2[act=19] -> AuthService:fd8ffe3a.IDENTIFY))
-[GLOBAL>ProcessEngine:149244ff] - invalidateActivityTokens(H:19, AuthToken(91e569335e588a27 - postprocessing clerk 2[act=19] -> Account_Management_System:3298b915.OPEN_ACCOUNT(cust123456)))
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:19)) from AuthService.invalidateActivityTokens
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:19, AuthToken(a5001a0a3fa37ed7 - TaskList:96f3e56[act=19] -> ProcessEngine:fd8ffe3a.(UPDATE_ACTIVITY_STATE(H:19) && ACCEPT_TASK(H:19))))
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:19, AuthToken(65631e2cae968f9 - postprocessing clerk 2[act=19] -> AuthService:149244ff.IDENTIFY))
+[GLOBAL>ProcessEngine:fd8ffe3a] - invalidateActivityTokens(H:19, AuthToken(1eaf2edb91e56933 - postprocessing clerk 2[act=19] -> Account_Management_System:3298b915.OPEN_ACCOUNT(cust123456)))
 TaskList(preprocessing clerk 1).finishTask(H:20)
 TaskList(John Doe).finishTask(H:20)
 TaskList(postprocessing clerk 2).finishTask(H:20)
-[GLOBAL>ProcessEngine:149244ff] - validateUserPermissions(clientId = AuthService:fd8ffe3a, authInfo = PW(ProcessEngine:149244ff)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:20)) from AuthService.invalidateActivityTokens
+[GLOBAL>ProcessEngine:fd8ffe3a] - validateUserPermissions(clientId = AuthService:149244ff, authInfo = PW(ProcessEngine:fd8ffe3a)=b052b4deed2f0b67, scope = UPDATE_ACTIVITY_STATE(H:20)) from AuthService.invalidateActivityTokens
