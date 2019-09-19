@@ -106,6 +106,7 @@ class LoanContextFactory(val log: Logger) : ProcessContextFactory<LoanActivityCo
             log.log(Level.INFO, "Creating tasklist for ${principal.name}")
             val t = TaskList(authService, engineService, taskListClientAuth, principal)
             authService.registerGlobalPermission(principal, t, LoanPermissions.ACCEPT_TASK)
+            authService.registerGlobalPermission(SimplePrincipal(engineService.serviceId), t, LoanPermissions.POST_TASK)
             t
         }
     }

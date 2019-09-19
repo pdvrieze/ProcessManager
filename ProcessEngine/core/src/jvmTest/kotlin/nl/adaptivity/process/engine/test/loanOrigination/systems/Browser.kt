@@ -27,7 +27,7 @@ class Browser private constructor(val logger: Logger, val auth: IdSecretAuthInfo
     private val tokens=mutableListOf<AuthToken>()
 
     constructor(authService: AuthService, user: Principal): this(authService.logger, authService.registerClient(user, Random.nextString())) {
-        tokens.add(authService.loginDirect(auth))
+        addToken(authService.loginDirect(auth))
     }
 
     fun addToken(authToken: AuthToken) {

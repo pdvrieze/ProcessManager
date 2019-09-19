@@ -27,6 +27,7 @@ interface Service {
 }
 
 abstract class ServiceImpl(protected val authService: AuthService, protected val serviceAuth: IdSecretAuthInfo) : Service {
+    private val tokens=mutableListOf<AuthToken>()
 
     override val serviceId: String get() = serviceAuth.principal.name
 
@@ -41,6 +42,16 @@ abstract class ServiceImpl(protected val authService: AuthService, protected val
 
     fun loginBrowser(browser: Browser): AuthToken {
         return browser.loginToService(authService, this)
+    }
+
+    fun authTokenForService(service: Service, scope: PermissionScope = ANYSCOPE): AuthToken {
+        logMe(service.serviceId, scope)
+
+        tokens.removeIf { authService.isTokenInvalid(it) }
+
+        tokens.lastOrNull { it.serviceId == service.serviceId }?.let { return it }
+
+        return authService.getAuthTokenDirect(serviceAuth, service, ANYSCOPE).also { tokens.add(it) }
     }
 
     fun logMe(vararg params: Any?) {

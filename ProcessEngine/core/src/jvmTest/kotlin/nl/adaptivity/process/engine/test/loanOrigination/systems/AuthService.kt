@@ -209,20 +209,25 @@ class AuthService(
         return token
     }
 
-    fun getAuthTokenDirect(identityToken: AuthToken, service: Service, reqScope: PermissionScope): AuthToken {
+    fun getAuthTokenDirect(identityToken: AuthInfo, service: Service, reqScope: PermissionScope): AuthToken {
         // TODO principal should be authorized
         val serviceId = service.serviceId
         internalValidateAuthInfo(identityToken, LoanPermissions.IDENTIFY)
         val userPermissions = globalPermissions.get(identityToken.principal)?.get(serviceId) ?: emptyList<PermissionScope>()
 
         val effectiveScope: PermissionScope
-        val registeredPermissions = (tokenPermissions[identityToken.tokenValue]
-            ?.asSequence()
-            ?: emptySequence())
-            .map { it.scope }
-            .filterIsInstance<LoanPermissions.GRANT_PERMISSION.ContextScope>()
-            .filter { it.serviceId == serviceId }
-            .map { it.childScope ?: ANYSCOPE }
+        val tokenAssociatedPermissions = if (identityToken is AuthToken) {
+            (tokenPermissions[identityToken.tokenValue]
+                ?.asSequence()
+                ?: emptySequence())
+                .map { it.scope }
+                .filterIsInstance<LoanPermissions.GRANT_PERMISSION.ContextScope>()
+                .filter { it.serviceId == serviceId }
+                .map { it.childScope ?: ANYSCOPE }
+        } else {
+            emptySequence()
+        }
+        val registeredPermissions = tokenAssociatedPermissions
             .plus(userPermissions.asSequence())
             .ifEmpty {
 /*
@@ -254,7 +259,9 @@ class AuthService(
 */
         // TODO look up permissions for taskIdentityToken
 
-        return AuthToken(identityToken.principal, identityToken.nodeInstanceHandle, Random.nextString(), serviceId, effectiveScope).also {
+        val nodeInstanceHandle = (identityToken as? AuthToken)?.nodeInstanceHandle ?: getInvalidHandle()
+
+        return AuthToken(identityToken.principal, nodeInstanceHandle, Random.nextString(), serviceId, effectiveScope).also {
             activeTokens.add(it)
             doLog(identityToken, "getAuthTokenDirect($identityToken) = $it")
         }

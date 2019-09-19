@@ -23,6 +23,7 @@ import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanApplication
 
 sealed class LoanPermissions : PermissionScope {
+    object POST_TASK: LoanPermissions(), UseAuthScope
     object SIGN : LoanPermissions(), UseAuthScope
     object ACCEPT_TASK : LoanPermissions(), UseAuthScope {
         operator fun invoke(hNodeInstance: Handle<SecureObject<ProcessNodeInstance<*>>>) =

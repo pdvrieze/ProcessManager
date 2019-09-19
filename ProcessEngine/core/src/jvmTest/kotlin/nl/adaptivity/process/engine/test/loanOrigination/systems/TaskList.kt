@@ -32,8 +32,9 @@ class TaskList constructor(authService:AuthService, private val engineService: E
 
     private val tokens = mutableListOf<AuthToken>()
 
-    fun registerToken(authorizationCode: AuthorizationCode) {
+    fun registerToken(authInfo: AuthToken, authorizationCode: AuthorizationCode) {
         logMe(authorizationCode)
+        validateAuthInfo(authInfo, LoanPermissions.POST_TASK)
         val token = authService.getAuthToken(serviceAuth, authorizationCode)
         tokens.add(token)
     }

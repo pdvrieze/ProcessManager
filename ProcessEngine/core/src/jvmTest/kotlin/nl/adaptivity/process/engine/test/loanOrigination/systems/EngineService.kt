@@ -77,7 +77,9 @@ class EngineService(
             UnionPermissionScope(permissions)
                                                                        )
 
-        taskList.registerToken(taskListToEngineAuthToken)
+        val taskListAuth = authTokenForService(taskList)
+
+        taskList.registerToken(taskListAuth, taskListToEngineAuthToken)
     }
 
 }
