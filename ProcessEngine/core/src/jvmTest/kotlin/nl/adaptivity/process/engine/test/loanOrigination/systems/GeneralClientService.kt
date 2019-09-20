@@ -42,7 +42,7 @@ class GeneralClientService(authService: AuthService) : ServiceImpl(authService, 
          * has been granted.
          */
         override fun getServiceToken(service: Service, scope: PermissionScope): AuthToken {
-            logMe(service, scope)
+            logMe(service.serviceId, scope)
             return authService.getAuthTokenDirect(authToken, service, scope)
 
         }

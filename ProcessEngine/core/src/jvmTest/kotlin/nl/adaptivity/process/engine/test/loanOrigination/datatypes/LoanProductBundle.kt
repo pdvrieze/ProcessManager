@@ -31,6 +31,10 @@ open class LoanProductBundle(val name: String, val id: String) {
                                       )
     }
 
+    override fun toString(): String {
+        return "LoanProductBundle(name='$name', id='$id')"
+    }
+
 }
 
 @Serializable
@@ -51,6 +55,11 @@ class PricedLoanProductBundle : LoanProductBundle {
     fun approve(): PricedLoanProductBundle {
         return PricedLoanProductBundle(name, id, customerId, amount, price, true)
     }
+
+    override fun toString(): String {
+        return "PricedLoanProductBundle(name='$name', id='$id', customerId='$customerId', price=$price, approvedOffer=$approvedOffer, amount=$amount)"
+    }
+
 }
 
 

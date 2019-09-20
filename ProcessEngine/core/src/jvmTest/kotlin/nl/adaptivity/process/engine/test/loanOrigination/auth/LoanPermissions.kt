@@ -371,6 +371,11 @@ class MonetaryUseScope(val scope: LoanPermissions, val customerId: String, val a
         result = 31 * result + amount.hashCode()
         return result
     }
+
+    override fun toString(): String {
+        return "MonetaryUseScope(scope=$scope, customerId='$customerId', amount=$amount)"
+    }
+
 }
 
 class MonetaryRestrictionPermissionScope(

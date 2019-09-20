@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination
 
-import net.devrieze.util.*
+import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ProcessContextFactory
@@ -27,12 +27,10 @@ import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.test.loanOrigination.auth.IdSecretAuthInfo
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
-import nl.adaptivity.process.engine.test.loanOrigination.systems.CreditApplication
 import nl.adaptivity.process.engine.test.loanOrigination.systems.*
 import java.security.Principal
 import java.util.logging.Level
 import java.util.logging.Logger
-import kotlin.random.nextUInt
 
 class LoanContextFactory(val log: Logger) : ProcessContextFactory<LoanActivityContext> {
     private val nodes = mutableMapOf<Handle<SecureObject<ProcessNodeInstance<*>>>, String>()
@@ -41,8 +39,8 @@ class LoanContextFactory(val log: Logger) : ProcessContextFactory<LoanActivityCo
 
     @UseExperimental(ExperimentalUnsignedTypes::class)
     val engineClientAuth: IdSecretAuthInfo = authService.registerClient("ProcessEngine", Random.nextString()).also {
-        authService.registerGlobalPermission(it.principal, authService, LoanPermissions.UPDATE_ACTIVITY_STATE)
-        authService.registerGlobalPermission(it.principal, authService, LoanPermissions.GRANT_PERMISSION)
+        authService.registerGlobalPermission(null, it.principal, authService, LoanPermissions.UPDATE_ACTIVITY_STATE)
+        authService.registerGlobalPermission(null, it.principal, authService, LoanPermissions.GRANT_PERMISSION)
     }
 
     val engineClientId get() = engineClientAuth.principal.name
@@ -105,8 +103,9 @@ class LoanContextFactory(val log: Logger) : ProcessContextFactory<LoanActivityCo
         return taskLists.getOrPut(principal) {
             log.log(Level.INFO, "Creating tasklist for ${principal.name}")
             val t = TaskList(authService, engineService, taskListClientAuth, principal)
-            authService.registerGlobalPermission(principal, t, LoanPermissions.ACCEPT_TASK)
-            authService.registerGlobalPermission(SimplePrincipal(engineService.serviceId), t, LoanPermissions.POST_TASK)
+            val auth = engineClientAuth
+            authService.registerGlobalPermission(auth, principal, t, LoanPermissions.ACCEPT_TASK)
+            authService.registerGlobalPermission(auth, SimplePrincipal(engineService.serviceId), t, LoanPermissions.POST_TASK)
             t
         }
     }

@@ -45,15 +45,16 @@ class AuthService(
 
     private val tokenPermissions = mutableMapOf<String, MutableList<Permission>>()
 
-    private inline fun doLog(authInfo: AuthInfo, message: String) {
-        if (authInfo is AuthToken) {
-            val processNodeInstance = authInfo.nodeInstanceHandle
-            val nodeId = nodeLookup[processNodeInstance] ?: "<unknown node>"
-            logger.log(Level.INFO, "[$nodeId:${processNodeInstance.handleValue}>${authInfo.principal.name}] - $message")
-        } else if (authInfo is IdSecretAuthInfo){
-            logger.log(Level.INFO, "[GLOBAL>${authInfo.principal.name}] - $message")
-        } else {
-            logger.log(Level.INFO, "[GLOBAL>${authInfo}] - $message")
+    private inline fun doLog(authInfo: AuthInfo?, message: String) {
+        when (authInfo) {
+            is AuthToken        -> {
+                val processNodeInstance = authInfo.nodeInstanceHandle
+                val nodeId = nodeLookup[processNodeInstance] ?: "<unknown node>"
+                logger.log(Level.INFO, "[$nodeId:${processNodeInstance.handleValue}>${authInfo.principal.name}] - $message")
+            }
+            is IdSecretAuthInfo -> logger.log(Level.INFO, "[GLOBAL>${authInfo.principal.name}] - $message")
+            null                -> logger.log(Level.INFO, "[UNAUTH] - $message")
+            else                -> logger.log(Level.INFO, "[GLOBAL>${authInfo}] - $message")
         }
     }
 
@@ -306,7 +307,7 @@ class AuthService(
 
     fun registerClient(name: String, secret: String): IdSecretAuthInfo {
         val clientId = "$name:${Random.nextUInt().toString(16)}"
-        return registerClient(SimplePrincipal(clientId), secret, name)
+        return registerClient(clientFromId(clientId), secret, name)
     }
 
     @UseExperimental(ExperimentalUnsignedTypes::class)
@@ -322,7 +323,12 @@ class AuthService(
         return token !in activeTokens
     }
 
-    fun registerGlobalPermission(principal: Principal, service: Service, scope: PermissionScope) {
+    fun registerGlobalPermission(authInfo: AuthInfo?, principal: Principal, service: Service, scope: PermissionScope) {
+        doLog(authInfo, "registerGlobalPermissions($authInfo, $principal, ${service.serviceId}, $scope)")
+        if (authInfo!=null) {
+            val clientId = authInfo.principal.name
+            internalValidateAuthInfo(authInfo, LoanPermissions.GRANT_PERMISSION.context(clientId, service, scope))
+        }
         globalPermissions.getOrPut(principal) { mutableMapOf()}
             .getOrPut(service.serviceId) { mutableListOf()}
             .add(scope)
