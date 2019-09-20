@@ -22,8 +22,10 @@ import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.get
 import nl.adaptivity.process.engine.test.ProcessEngineFactory
 import nl.adaptivity.process.engine.test.ProcessEngineTestSupport
-import nl.adaptivity.process.engine.test.loanOrigination.auth.*
+import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthorizationException
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions.*
+import nl.adaptivity.process.engine.test.loanOrigination.auth.PermissionScope
+import nl.adaptivity.process.engine.test.loanOrigination.auth.Service
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.*
 import nl.adaptivity.process.engine.test.loanOrigination.systems.Browser
 import nl.adaptivity.process.engine.test.loanOrigination.systems.SignedDocument
@@ -205,11 +207,11 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
 
             action = { (application, creditReport) ->
                 registerTaskPermission(creditApplication, EVALUATE_LOAN(application.customerId))
-                registerTaskPermission(authService, GRANT_PERMISSION.restrictTo(customerFile, QUERY_CUSTOMER_DATA(application.customerId)))
+                registerTaskPermission(authService, GRANT_ACTIVITY_PERMISSION.restrictTo(handle, customerFile, QUERY_CUSTOMER_DATA(application.customerId)))
 
                 generalClientService.runWithAuthorization(ctx.serviceTask()) { taskIdToken ->
 
-                    val delegatePermissionToken = getServiceToken(authService, GRANT_PERMISSION.restrictTo(creditApplication.serviceId, customerFile, QUERY_CUSTOMER_DATA.invoke(application.customerId)))
+                    val delegatePermissionToken = getServiceToken(authService, GRANT_ACTIVITY_PERMISSION.restrictTo(handle, creditApplication.serviceId, customerFile, QUERY_CUSTOMER_DATA.invoke(application.customerId)))
                     val delegateAuthorization = authService.createAuthorizationCode(
                         delegatePermissionToken,
                         creditApplication.serviceId,

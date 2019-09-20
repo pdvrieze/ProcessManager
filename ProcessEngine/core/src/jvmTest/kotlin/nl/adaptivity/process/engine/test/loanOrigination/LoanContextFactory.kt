@@ -40,7 +40,7 @@ class LoanContextFactory(val log: Logger) : ProcessContextFactory<LoanActivityCo
     @UseExperimental(ExperimentalUnsignedTypes::class)
     val engineClientAuth: IdSecretAuthInfo = authService.registerClient("ProcessEngine", Random.nextString()).also {
         authService.registerGlobalPermission(null, it.principal, authService, LoanPermissions.UPDATE_ACTIVITY_STATE)
-        authService.registerGlobalPermission(null, it.principal, authService, LoanPermissions.GRANT_PERMISSION)
+        authService.registerGlobalPermission(null, it.principal, authService, LoanPermissions.GRANT_GLOBAL_PERMISSION)
     }
 
     val engineClientId get() = engineClientAuth.principal.name

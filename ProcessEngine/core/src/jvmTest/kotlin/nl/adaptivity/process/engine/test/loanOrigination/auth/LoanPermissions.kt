@@ -113,7 +113,7 @@ sealed class LoanPermissions : PermissionScope {
     object CREATE_TASK_IDENTITY : LoanPermissions(), UseAuthScope
 
 
-    object GRANT_PERMISSION : LoanPermissions() {
+    object GRANT_GLOBAL_PERMISSION : LoanPermissions() {
         fun context(
             clientId: String,
             service: Service,
@@ -139,6 +139,7 @@ sealed class LoanPermissions : PermissionScope {
 
         override fun includes(useScope: UseAuthScope): Boolean {
             if (useScope is ContextScope) return true
+            if (useScope is GRANT_ACTIVITY_PERMISSION.ContextScope) return true
             return super.includes(useScope)
         }
 
@@ -155,18 +156,33 @@ sealed class LoanPermissions : PermissionScope {
         data class ContextScope(val clientId: String?, val serviceId: String?, val childScope: PermissionScope? = null) :
             UseAuthScope, PermissionScope {
             override fun includes(useScope: UseAuthScope): Boolean = when {
+                useScope is GRANT_ACTIVITY_PERMISSION.ContextScope &&
+                    useScope.childScope!=null &&
+                    (clientId == null || clientId == useScope.clientId) &&
+                    (serviceId == null || serviceId != useScope.serviceId) &&
+                    (childScope == null || childScope.intersect(useScope.childScope) == useScope.childScope)
+                                   -> true
+
                 useScope !is ContextScope ||
                     useScope.childScope == null ||
                     clientId != null && clientId != useScope.clientId ||
                     serviceId != null && serviceId != useScope.serviceId
                                    -> false
+
                 childScope == null -> true
+
                 else               -> childScope.intersect(useScope.childScope) == useScope.childScope
             }
 
+            fun toActivityPermission(taskHandle: PNIHandle): PermissionScope {
+                return GRANT_ACTIVITY_PERMISSION.restrictTo(taskHandle, clientId, serviceId, childScope)
+            }
+
             override fun intersect(otherScope: PermissionScope): PermissionScope? {
-                if (otherScope == GRANT_PERMISSION) return this
-                else if (otherScope !is ContextScope) return  null
+                if (otherScope == GRANT_GLOBAL_PERMISSION) return this
+                else if (otherScope is GRANT_ACTIVITY_PERMISSION.ContextScope) {
+                    return toActivityPermission(otherScope.taskInstanceHandle).intersect(otherScope)
+                } else if (otherScope !is ContextScope) return  null
 
                 val effectiveClient = when {
                     clientId == null -> otherScope.clientId
@@ -191,7 +207,7 @@ sealed class LoanPermissions : PermissionScope {
             }
 
             override fun union(otherScope: PermissionScope): PermissionScope {
-                if (otherScope == GRANT_PERMISSION) return otherScope
+                if (otherScope == GRANT_GLOBAL_PERMISSION) return otherScope
                 else if (otherScope !is ContextScope) return UnionPermissionScope(listOf(this, otherScope))
 
                 val effectiveClient = when {
@@ -216,7 +232,7 @@ sealed class LoanPermissions : PermissionScope {
             }
 
             override val description: String
-                get() = "GRANT_PERMISSION(${clientId?:"<anyClient>"}.${serviceId?:"<anyService>"}.${childScope?.description?:"*"})"
+                get() = "GRANT_GLOBAL_PERMISSION(${clientId?:"<anyClient>"}.${serviceId?:"<anyService>"}.${childScope?.description?:"*"})"
 
             override fun toString(): String {
                 return description
@@ -246,56 +262,134 @@ sealed class LoanPermissions : PermissionScope {
         }
     }
 
-
-    object GRANT_PERMISSION_OLD : LoanPermissions() {
-        operator fun invoke(service: Service, childScope: PermissionScope): ContextScope {
-            val serviceId = service.serviceId
-            return ContextScope(serviceId, childScope)
+    object GRANT_ACTIVITY_PERMISSION : LoanPermissions() {
+        fun context(
+            taskHandle: PNIHandle,
+            clientId: String,
+            service: Service,
+            scope: PermissionScope
+                   ): UseAuthScope {
+            return ContextScope(taskHandle, clientId, service.serviceId, scope)
         }
 
-        class ContextScope(
-            val serviceId: String,
-            val childScope: PermissionScope
-                          ) : PermissionScope, UseAuthScope {
+        fun restrictTo(
+            taskHandle: PNIHandle,
+            clientId: String? = null,
+            service: Service? = null,
+            scope: PermissionScope? = null
+                      ): PermissionScope {
+            return ContextScope(taskHandle, clientId, service?.serviceId, scope)
+        }
 
-            override fun includes(useScope: UseAuthScope): Boolean = when (useScope) {
-                is ContextScope -> {
-                    val childScope = childScope
-                    val reqChildScope = useScope.childScope
+        fun restrictTo(
+            taskHandle: PNIHandle,
+            clientId: String? = null,
+            serviceId: String? = null,
+            scope: PermissionScope? = null
+                      ): PermissionScope {
+            return ContextScope(taskHandle, clientId, serviceId, scope)
+        }
 
-                    when {
-                        serviceId != useScope.serviceId -> false
-                        childScope == reqChildScope     -> true
-                        reqChildScope is UseAuthScope   -> childScope.includes(reqChildScope)
-                        else                            -> false
-                    }
-                }
-                else            -> false
+        fun restrictTo(
+            taskHandle: PNIHandle,
+            service: Service? = null,
+            scope: PermissionScope? = null
+                      ): PermissionScope {
+            return ContextScope(taskHandle, null, service?.serviceId, scope)
+        }
+
+        override fun includes(useScope: UseAuthScope): Boolean {
+            if (useScope is ContextScope) return true
+            return super.includes(useScope)
+        }
+
+        override fun intersect(otherScope: PermissionScope): PermissionScope? {
+            if (otherScope is ContextScope) return otherScope
+            return super.intersect(otherScope)
+        }
+
+        override fun union(otherScope: PermissionScope): PermissionScope {
+            if (otherScope is ContextScope) return this
+            return super.union(otherScope)
+        }
+
+        data class ContextScope(val taskInstanceHandle: PNIHandle, val clientId: String?, val serviceId: String?, val childScope: PermissionScope? = null) :
+            UseAuthScope, PermissionScope {
+
+            init {
+                assert(taskInstanceHandle.isValid)
+            }
+
+            override fun includes(useScope: UseAuthScope): Boolean = when {
+                useScope !is ContextScope ||
+                    useScope.childScope == null ||
+                    !useScope.taskInstanceHandle.isValid ||
+                    useScope.taskInstanceHandle != taskInstanceHandle ||
+                    clientId != null && clientId != useScope.clientId ||
+                    serviceId != null && serviceId != useScope.serviceId
+                                   -> false
+                childScope == null -> true
+                else               -> childScope.intersect(useScope.childScope) == useScope.childScope
             }
 
             override fun intersect(otherScope: PermissionScope): PermissionScope? {
-                return when {
-                    otherScope !is ContextScope       -> null
-                    serviceId != otherScope.serviceId -> null
+                if (otherScope == GRANT_ACTIVITY_PERMISSION) return this
+                else if (otherScope is GRANT_GLOBAL_PERMISSION.ContextScope) {
+                    return intersect(otherScope.toActivityPermission(taskInstanceHandle))
+                } else if (otherScope !is ContextScope ||
+                    taskInstanceHandle!=otherScope.taskInstanceHandle) return null
 
-                    else                              -> childScope.intersect(otherScope.childScope)?.let {
-                        ContextScope(
-                            serviceId,
-                            it
-                                    )
-                    }
+                val effectiveClient = when {
+                    clientId == null -> otherScope.clientId
+                    otherScope.clientId == null -> otherScope.clientId
+                    clientId == otherScope.clientId -> clientId
+                    else -> return null
                 }
+
+                val effectiveService = when {
+                    serviceId == null               -> otherScope.serviceId
+                    otherScope.serviceId == null      -> otherScope.serviceId
+                    serviceId == otherScope.serviceId -> serviceId
+                    else                            -> return null
+                }
+
+                val effectiveScope = when {
+                    childScope == null       -> otherScope.childScope
+                    otherScope.childScope == null -> otherScope.childScope
+                    else                     -> childScope.intersect(otherScope.childScope) ?: return null
+                }
+                return ContextScope(taskInstanceHandle, effectiveClient, effectiveService, effectiveScope)
             }
 
             override fun union(otherScope: PermissionScope): PermissionScope {
-                if (otherScope !is ContextScope ||
-                    serviceId != otherScope.serviceId
-                ) return UnionPermissionScope(listOf(this, otherScope))
-                return ContextScope(serviceId, childScope.union(otherScope.childScope))
+                if (otherScope == GRANT_ACTIVITY_PERMISSION) return otherScope
+                else if (otherScope !is ContextScope ||
+                        taskInstanceHandle != otherScope.taskInstanceHandle
+                    ) return UnionPermissionScope(listOf(this, otherScope))
+
+                val effectiveClient = when {
+                    clientId == null || otherScope.clientId==null -> null
+                    clientId == otherScope.clientId -> clientId
+                    else -> return UnionPermissionScope(listOf(this, otherScope))
+                }
+
+                val effectiveService = when {
+                    serviceId == null               -> null
+                    otherScope.serviceId == null      -> null
+                    serviceId == otherScope.serviceId -> serviceId
+                    else                            -> return UnionPermissionScope(listOf(this, otherScope))
+                }
+
+                val effectiveScope = when {
+                    childScope == null       -> otherScope.childScope
+                    otherScope.childScope == null -> otherScope.childScope
+                    else                     -> childScope.union(otherScope.childScope)
+                }
+                return ContextScope(taskInstanceHandle, effectiveClient, effectiveService, effectiveScope)
             }
 
             override val description: String
-                get() = "GRANT_PERMISSION($serviceId.${childScope.description})"
+                get() = "GRANT_ACTIVITY_PERMISSION($taskInstanceHandle, ${clientId?:"<anyClient>"}.${serviceId?:"<anyService>"}.${childScope?.description?:"*"})"
 
             override fun toString(): String {
                 return description
@@ -307,6 +401,7 @@ sealed class LoanPermissions : PermissionScope {
 
                 other as ContextScope
 
+                if (clientId != other.clientId) return false
                 if (serviceId != other.serviceId) return false
                 if (childScope != other.childScope) return false
 
@@ -314,10 +409,12 @@ sealed class LoanPermissions : PermissionScope {
             }
 
             override fun hashCode(): Int {
-                var result = serviceId.hashCode()
-                result = 31 * result + childScope.hashCode()
+                var result = clientId?.hashCode() ?: 0
+                result = 31 * result + (serviceId?.hashCode() ?: 0)
+                result = 31 * result + (childScope?.hashCode() ?: 0)
                 return result
             }
+
         }
     }
 

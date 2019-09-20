@@ -171,7 +171,8 @@ class AuthService(
         service: Service,
         scope: PermissionScope
                                            ): AuthorizationCode {
-        internalValidateAuthInfo(auth, LoanPermissions.GRANT_PERMISSION.context(clientId, service, scope))
+        // We know the task handle so permission limited to the task handle is sufficient
+        internalValidateAuthInfo(auth, GRANT_ACTIVITY_PERMISSION.context(nodeInstanceHandle, clientId, service, scope))
 
         val clientPrincipal = clientFromId(clientId)
         val existingToken = activeTokens.lastOrNull {
@@ -214,7 +215,11 @@ class AuthService(
     }
 
     /** Create a token that allows the identification of the client with the token */
-    fun createTaskIdentityToken(clientAuth: IdSecretAuthInfo, processNodeInstance: Handle<SecureObject<ProcessNodeInstance<*>>>, principal: Principal): AuthToken {
+    fun createTaskIdentityToken(
+        clientAuth: IdSecretAuthInfo,
+        processNodeInstance: PNIHandle,
+        principal: Principal
+                               ): AuthToken {
         internalValidateAuthInfo(clientAuth, LoanPermissions.CREATE_TASK_IDENTITY)
         val token = AuthToken(principal, processNodeInstance, Random.nextString(), authServiceId, LoanPermissions.IDENTIFY)
         activeTokens.add(token)
@@ -229,14 +234,31 @@ class AuthService(
         val userPermissions = globalPermissions.get(identityToken.principal)?.get(serviceId) ?: emptyList<PermissionScope>()
 
         val effectiveScope: PermissionScope
-        val tokenAssociatedPermissions = if (identityToken is AuthToken) {
-            (tokenPermissions[identityToken.tokenValue]
+        val tokenAssociatedPermissions: Sequence<PermissionScope> = if (identityToken is AuthToken) {
+            val scopes = (tokenPermissions[identityToken.tokenValue]
                 ?.asSequence()
                 ?: emptySequence())
                 .map { it.scope }
-                .filterIsInstance<LoanPermissions.GRANT_PERMISSION.ContextScope>()
-                .filter { it.serviceId == serviceId }
-                .map { it.childScope ?: ANYSCOPE }
+
+            if (identityToken.nodeInstanceHandle.isValid) {
+                scopes.mapNotNull {
+                    when {
+                        // Any child scopes for activity limited grants
+                        it is GRANT_ACTIVITY_PERMISSION.ContextScope &&
+                            it.taskInstanceHandle == identityToken.nodeInstanceHandle -> it.childScope ?: ANYSCOPE
+
+                        // As well as global grants
+                        it is GRANT_GLOBAL_PERMISSION.ContextScope    ->
+                            it.childScope ?: ANYSCOPE
+
+                        else                                                          -> null
+                    }
+                }
+            } else { // not restricted to a task, so activity permissions are not valid
+                scopes.filterIsInstance<GRANT_GLOBAL_PERMISSION.ContextScope>()
+                    .filter { it.serviceId == serviceId }
+                    .map { it.childScope ?: ANYSCOPE }
+            }
         } else {
             emptySequence()
         }
@@ -303,8 +325,14 @@ class AuthService(
     fun grantPermission(auth: AuthInfo, taskIdToken: AuthToken, service: Service, scope: PermissionScope) {
         val serviceId = service.serviceId
         val clientId = auth.principal.name
-        internalValidateAuthInfo(auth, LoanPermissions.GRANT_PERMISSION.context(clientId, service, scope))
-        if (taskIdToken.serviceId != serviceId) throw AuthorizationException("Cannot grant permission for a token for one service to work againsta another service")
+        // If we are providing permission to an activity limited token, it is sufficient to have the ability to grant
+        // permissions limited to that activity context (as the token receiving permission will not outlast the activity)
+        val neededScope = when (taskIdToken.nodeInstanceHandle.isValid) {
+            true -> GRANT_ACTIVITY_PERMISSION.context(taskIdToken.nodeInstanceHandle, clientId, service, scope)
+            else -> GRANT_GLOBAL_PERMISSION.context(clientId, service, scope)
+        }
+        internalValidateAuthInfo(auth, neededScope)
+        if (taskIdToken.serviceId != serviceId) throw AuthorizationException("Cannot grant permission for a token for one service to work against another service")
         assert(taskIdToken in activeTokens)
         val tokenPermissionList = tokenPermissions.getOrPut(taskIdToken.tokenValue) { mutableListOf() }
         doLog(auth, "grantPermission(token = ${taskIdToken.tokenValue}, serviceId = $serviceId, scope = $scope)")
@@ -346,7 +374,7 @@ class AuthService(
         doLog(authInfo, "registerGlobalPermissions($authInfo, $principal, ${service.serviceId}, $scope)")
         if (authInfo != null) {
             val clientId = authInfo.principal.name
-            internalValidateAuthInfo(authInfo, LoanPermissions.GRANT_PERMISSION.context(clientId, service, scope))
+            internalValidateAuthInfo(authInfo, LoanPermissions.GRANT_GLOBAL_PERMISSION.context(clientId, service, scope))
         }
         globalPermissions.getOrPut(principal) { mutableMapOf() }
             .getOrPut(service.serviceId) { mutableListOf() }
