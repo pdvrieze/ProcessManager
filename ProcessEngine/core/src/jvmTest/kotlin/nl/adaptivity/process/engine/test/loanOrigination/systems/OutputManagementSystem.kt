@@ -24,7 +24,7 @@ import nl.adaptivity.process.engine.test.loanOrigination.datatypes.Contract
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.Offer
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.PricedLoanProductBundle
 
-class OutputManagementSystem(authService: AuthService): ServiceImpl(authService, "Output_Manamgent_System") {
+class OutputManagementSystem(authService: AuthService): ServiceImpl(authService, "Output_Management_System") {
 
     override fun getServiceState(): String = ""
 
