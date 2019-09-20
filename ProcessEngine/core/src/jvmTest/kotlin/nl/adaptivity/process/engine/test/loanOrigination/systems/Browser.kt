@@ -38,6 +38,9 @@ class Browser private constructor(val logger: Logger, val auth: IdSecretAuthInfo
     }
 
     fun addToken(authService: AuthService, authorizationCode: AuthorizationCode) {
+        val auth = tokens.lastOrNull { it.scope == LoanPermissions.IDENTIFY && it.serviceId == authService.serviceId }
+            ?: this.auth
+
         addToken(authService.getAuthToken(auth, authorizationCode))
     }
 

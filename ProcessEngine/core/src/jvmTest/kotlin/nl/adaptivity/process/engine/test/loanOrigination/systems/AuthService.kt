@@ -187,7 +187,7 @@ class AuthService(
         return SimplePrincipal(clientId)
     }
 
-    fun getAuthToken(clientAuth: IdSecretAuthInfo, authorizationCode: AuthorizationCode): AuthToken {
+    fun getAuthToken(clientAuth: AuthInfo, authorizationCode: AuthorizationCode): AuthToken {
         internalValidateAuthInfo(clientAuth, LoanPermissions.IDENTIFY)
         val token =
             authorizationCodes.get(authorizationCode) ?: throw AuthorizationException("authorization code invalid")
