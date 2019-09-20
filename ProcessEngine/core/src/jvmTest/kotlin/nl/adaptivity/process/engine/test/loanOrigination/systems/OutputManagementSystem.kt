@@ -16,40 +16,39 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
+import nl.adaptivity.process.engine.test.loanOrigination.Random
 import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthInfo
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
-import nl.adaptivity.process.engine.test.loanOrigination.auth.Service
 import nl.adaptivity.process.engine.test.loanOrigination.auth.ServiceImpl
+import nl.adaptivity.process.engine.test.loanOrigination.datatypes.Contract
+import nl.adaptivity.process.engine.test.loanOrigination.datatypes.Offer
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.PricedLoanProductBundle
-import java.util.*
-import nl.adaptivity.process.engine.test.loanOrigination.datatypes.*
-import java.lang.IllegalArgumentException
 
 class OutputManagementSystem(authService: AuthService): ServiceImpl(authService, "Output_Manamgent_System") {
 
     override fun getServiceState(): String = ""
 
-    private val _contracts = mutableMapOf<UUID, Contract>()
-    val contracts: Map<UUID, Contract> get() = _contracts
+    private val _contracts = mutableMapOf<String, Contract>()
+    val contracts: Map<String, Contract> get() = _contracts
 
-    private val _offers = mutableMapOf<UUID, PricedLoanProductBundle>()
-    val offers: Map<UUID, PricedLoanProductBundle> get() = _offers
+    private val _offers = mutableMapOf<String, PricedLoanProductBundle>()
+    val offers: Map<String, PricedLoanProductBundle> get() = _offers
 
     fun registerAndPrintOffer(authInfo: AuthInfo, approvedOffer: PricedLoanProductBundle): Offer {
         logMe(approvedOffer)
         validateAuthInfo(authInfo, LoanPermissions.PRINT_OFFER)
-        val offerUuid = UUID.randomUUID()
-        _offers.put(offerUuid, approvedOffer)
-        return Offer(offerUuid.toString(), approvedOffer.customerId)
+        val offerId = Random.nextString()
+        _offers.put(offerId, approvedOffer)
+        return Offer(offerId, approvedOffer.customerId)
     }
 
     fun signAndRegisterContract(authInfo: AuthInfo, offer: Offer, signature: String): Contract {
         logMe(offer, signature)
-        val offerAmount = _offers[UUID.fromString(offer.id)]?.amount ?: throw IllegalArgumentException("Offer not registered")
+        val offerAmount = _offers[offer.id]?.amount ?: throw IllegalArgumentException("Offer not registered")
         validateAuthInfo(authInfo, LoanPermissions.SIGN_LOAN.context(offer.customerId, offerAmount))
 
-        val contractId = UUID.randomUUID()
-        return Contract(contractId.toString(), offer.id, offer.customerId, offer.customerSignature!!, signature).also {
+        val contractId = Random.nextString()
+        return Contract(contractId, offer.id, offer.customerId, offer.customerSignature!!, signature).also {
             _contracts[contractId] = it
         }
     }
