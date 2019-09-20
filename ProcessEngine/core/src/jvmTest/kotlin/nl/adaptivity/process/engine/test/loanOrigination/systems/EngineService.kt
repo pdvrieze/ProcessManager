@@ -79,7 +79,7 @@ class EngineService(
 
         val taskListAuth = authTokenForService(taskList)
 
-        taskList.registerToken(taskListAuth, taskListToEngineAuthToken)
+        taskList.postTask(taskListAuth, taskListToEngineAuthToken, pniHandle)
     }
 
 }

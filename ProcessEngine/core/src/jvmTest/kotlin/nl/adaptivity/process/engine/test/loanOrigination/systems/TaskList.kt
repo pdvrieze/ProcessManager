@@ -21,26 +21,36 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.test.loanOrigination.LoanActivityContext
 import nl.adaptivity.process.engine.test.loanOrigination.auth.*
-import java.lang.IllegalStateException
 import java.security.Principal
 import java.util.*
 
-class TaskList constructor(authService:AuthService, private val engineService: EngineService, clientAuth: IdSecretAuthInfo, val principal: Principal): ServiceImpl(authService, clientAuth) {
+class TaskList constructor(
+    authService: AuthService,
+    private val engineService: EngineService,
+    clientAuth: IdSecretAuthInfo,
+    val principal: Principal
+                          ) : ServiceImpl(authService, clientAuth) {
 //    val nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>? get() = activityAccessToken?.nodeInstanceHandle
 
     override fun getServiceState(): String = principal.name
 
     private val tokens = mutableListOf<AuthToken>()
 
-    fun registerToken(authInfo: AuthToken, authorizationCode: AuthorizationCode) {
-        logMe(authorizationCode)
+    fun postTask(
+        authInfo: AuthToken,
+        authorizationCode: AuthorizationCode,
+        nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>
+                ) {
+        logMe(authInfo, authorizationCode, nodeInstanceHandle)
         validateAuthInfo(authInfo, LoanPermissions.POST_TASK)
         val token = authService.getAuthToken(serviceAuth, authorizationCode)
+        assert(token.nodeInstanceHandle == nodeInstanceHandle)
         tokens.add(token)
     }
 
-    fun finishTask(nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>) {
-        logMe(nodeInstanceHandle)
+    fun unregisterTask(authToken: AuthInfo, nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>) {
+        logMe(authToken, nodeInstanceHandle)
+        validateAuthInfo(authToken, LoanPermissions.POST_TASK)
         tokens.removeIf { it.nodeInstanceHandle == nodeInstanceHandle }
     }
 
@@ -56,7 +66,8 @@ class TaskList constructor(authService:AuthService, private val engineService: E
 
         validateAuthInfo(authToken, LoanPermissions.ACCEPT_TASK)
         val activityAccessToken = tokens.single { it.nodeInstanceHandle == processNodeInstance }
-        val userAuthorization = engineService.acceptActivity(activityAccessToken, processNodeInstance, principal, pendingPermissions)
+        val userAuthorization =
+            engineService.acceptActivity(activityAccessToken, processNodeInstance, principal, pendingPermissions)
 
         return userAuthorization
 

@@ -57,7 +57,6 @@ class LoanContextFactory(val log: Logger) : ProcessContextFactory<LoanActivityCo
 
 
     private val taskLists = mutableMapOf<Principal, TaskList>()
-    private val taskListClientAuth = authService.registerClient("TaskList", Random.nextString())
 
     val customerData = CustomerData(
         "cust123456",
@@ -77,9 +76,15 @@ class LoanContextFactory(val log: Logger) : ProcessContextFactory<LoanActivityCo
                                            ): LoanActivityContext {
         val instanceHandle = processNodeInstance.processContext.handle
         nodes[processNodeInstance.handle] = processNodeInstance.node.id
-        val processContext = processContexts.getOrPut(instanceHandle) { LoanProcessContext(engineDataAccess, this, instanceHandle) }
+        val processContext = getProcessContext(engineDataAccess, instanceHandle)
         return LoanActivityContext(processContext, processNodeInstance)
     }
+
+    private fun getProcessContext(
+        engineDataAccess: ProcessEngineDataAccess,
+        instanceHandle: Handle<SecureObject<ProcessInstance>>
+                                 ) =
+        processContexts.getOrPut(instanceHandle) { LoanProcessContext(engineDataAccess, this, instanceHandle) }
 
     override fun onProcessFinished(
         engineDataAccess: ProcessEngineDataAccess,
@@ -93,8 +98,10 @@ class LoanContextFactory(val log: Logger) : ProcessContextFactory<LoanActivityCo
         processNodeInstance: IProcessNodeInstance
                                       ) {
         val nodeInstanceHandle = processNodeInstance.handle
+        val loanProcessContext = getProcessContext(engineDataAccess, processNodeInstance.processContext.handle)
         for (taskList in taskLists.values) {
-            taskList.finishTask(nodeInstanceHandle)
+            val authToken = loanProcessContext.engineService.authTokenForService(taskList)
+            taskList.unregisterTask(authToken, nodeInstanceHandle)
         }
         authService.invalidateActivityTokens(engineClientAuth, processNodeInstance.handle)
     }
@@ -102,7 +109,8 @@ class LoanContextFactory(val log: Logger) : ProcessContextFactory<LoanActivityCo
     fun taskList(engineService: EngineService, principal: Principal): TaskList {
         return taskLists.getOrPut(principal) {
             log.log(Level.INFO, "Creating tasklist for ${principal.name}")
-            val t = TaskList(authService, engineService, taskListClientAuth, principal)
+            val clientAuth = authService.registerClient("TaskList(${principal.name})", Random.nextString())
+            val t = TaskList(authService, engineService, clientAuth, principal)
             val auth = engineClientAuth
             authService.registerGlobalPermission(auth, principal, t, LoanPermissions.ACCEPT_TASK)
             authService.registerGlobalPermission(auth, SimplePrincipal(engineService.serviceId), t, LoanPermissions.POST_TASK)
