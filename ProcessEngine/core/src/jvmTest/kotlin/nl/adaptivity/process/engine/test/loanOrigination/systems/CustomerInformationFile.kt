@@ -16,7 +16,9 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
-import nl.adaptivity.process.engine.test.loanOrigination.auth.*
+import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthToken
+import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
+import nl.adaptivity.process.engine.test.loanOrigination.auth.ServiceImpl
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
 
 class CustomerInformationFile(authService: AuthService): ServiceImpl(authService, "Customer_Information_File") {

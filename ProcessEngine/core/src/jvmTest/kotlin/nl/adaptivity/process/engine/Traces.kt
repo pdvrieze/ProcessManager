@@ -20,7 +20,6 @@ import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.spek.allChildren
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xmlutil.util.CompactFragment
-import org.w3c.dom.Node
 
 /**
  * Functionality related to specifying traces.

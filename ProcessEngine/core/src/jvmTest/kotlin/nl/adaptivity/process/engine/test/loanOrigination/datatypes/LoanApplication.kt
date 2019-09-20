@@ -17,7 +17,6 @@
 package nl.adaptivity.process.engine.test.loanOrigination.datatypes
 
 import kotlinx.serialization.Serializable
-import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerCollateral
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable

@@ -19,11 +19,11 @@ package nl.adaptivity.process.engine.test.loanOrigination
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
+import nl.adaptivity.process.engine.PNIHandle
 import nl.adaptivity.process.engine.ProcessContextFactory
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.test.loanOrigination.auth.IdSecretAuthInfo
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
@@ -33,7 +33,7 @@ import java.util.logging.Level
 import java.util.logging.Logger
 
 class LoanContextFactory(val log: Logger) : ProcessContextFactory<LoanActivityContext> {
-    private val nodes = mutableMapOf<Handle<SecureObject<ProcessNodeInstance<*>>>, String>()
+    private val nodes = mutableMapOf<PNIHandle, String>()
 
     val authService = AuthService(log, nodes)
 

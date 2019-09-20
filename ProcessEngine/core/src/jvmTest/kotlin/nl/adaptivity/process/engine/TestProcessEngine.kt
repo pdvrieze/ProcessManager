@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.engine
 
-import net.devrieze.util.*
+import net.devrieze.util.InputStreamOutputStream
 import nl.adaptivity.process.engine.ProcessInstance.State
 import nl.adaptivity.process.engine.impl.dom.toFragment
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
@@ -38,8 +38,11 @@ import org.xml.sax.InputSource
 import org.xmlunit.XMLUnitException
 import org.xmlunit.builder.DiffBuilder
 import org.xmlunit.diff.DefaultComparisonFormatter
-import java.io.*
-import java.util.UUID
+import java.io.ByteArrayInputStream
+import java.io.ByteArrayOutputStream
+import java.io.CharArrayWriter
+import java.io.StringReader
+import java.util.*
 import javax.xml.bind.JAXB
 import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory

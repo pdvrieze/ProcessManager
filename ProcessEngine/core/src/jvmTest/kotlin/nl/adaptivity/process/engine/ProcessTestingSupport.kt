@@ -18,12 +18,13 @@ package nl.adaptivity.process.engine
 
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
-import nl.adaptivity.process.engine.EngineTesting.*
+import nl.adaptivity.process.engine.EngineTesting.EngineSpecBody
 import nl.adaptivity.process.engine.ProcessTestingDsl.InstanceSpecBody
 import nl.adaptivity.process.engine.ProcessTestingDsl.InstanceTestBody
 import nl.adaptivity.process.engine.processModel.CompositeInstance
 import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
+import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.spek.InstanceSupport
 import nl.adaptivity.process.engine.spek.ProcessNodeActions
 import nl.adaptivity.process.engine.spek.SafeNodeActions
@@ -32,7 +33,10 @@ import nl.adaptivity.process.processModel.engine.ExecutableCondition
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.spek.*
+import nl.adaptivity.spek.DelegateSpecBody
+import nl.adaptivity.spek.DelegateTestBody
+import nl.adaptivity.spek.it
+import nl.adaptivity.spek.rgroup
 import nl.adaptivity.xmlutil.XmlStreaming
 import nl.adaptivity.xmlutil.util.CompactFragment
 import org.junit.jupiter.api.Assertions.*
@@ -44,6 +48,7 @@ import java.security.Principal
 @DslMarker
 annotation class ProcessTestingDslMarker
 
+typealias PNIHandle = Handle<SecureObject<ProcessNodeInstance<*>>>
 
 class EngineTesting {
 

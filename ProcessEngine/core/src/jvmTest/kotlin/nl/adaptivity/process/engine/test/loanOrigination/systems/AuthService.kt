@@ -16,13 +16,13 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
-import net.devrieze.util.Handle
 import net.devrieze.util.getInvalidHandle
-import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.PNIHandle
 import nl.adaptivity.process.engine.test.loanOrigination.Random
 import nl.adaptivity.process.engine.test.loanOrigination.auth.*
+import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions.GRANT_ACTIVITY_PERMISSION
+import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions.GRANT_GLOBAL_PERMISSION
 import java.security.Principal
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -31,17 +31,17 @@ import kotlin.random.nextULong
 
 class AuthService(
     val logger: Logger,
-    private val nodeLookup: Map<Handle<SecureObject<ProcessNodeInstance<*>>>, String>
-                 ): Service {
+    private val nodeLookup: Map<PNIHandle, String>
+                 ) : Service {
     @UseExperimental(ExperimentalUnsignedTypes::class)
     val authServiceId = "AuthService:${Random.nextUInt().toString(16)}"
     override val serviceId: String
         get() = authServiceId
 
     private val registeredClients = mutableMapOf<String, ClientInfo>()
-    private val authorizationCodes= mutableMapOf<AuthorizationCode, AuthToken>()
+    private val authorizationCodes = mutableMapOf<AuthorizationCode, AuthToken>()
     private val activeTokens = mutableListOf<AuthToken>()
-    private val globalPermissions = mutableMapOf<Principal,MutableMap<String, MutableList<PermissionScope>>>()
+    private val globalPermissions = mutableMapOf<Principal, MutableMap<String, MutableList<PermissionScope>>>()
 
     private val tokenPermissions = mutableMapOf<String, MutableList<Permission>>()
 
@@ -70,7 +70,7 @@ class AuthService(
      */
     fun validateAuthInfo(service: Service, authInfo: AuthInfo, scope: UseAuthScope) {
         val serviceId = service.serviceId
-        when(authInfo) {
+        when (authInfo) {
             is IdSecretAuthInfo -> validateUserPermission(serviceId, authInfo, scope)
             is AuthToken -> validateAuthTokenPermission(serviceId, authInfo, scope)
             else -> doLog(authInfo, "validateAuthInfo(clientId = $serviceId, authInfo = $authInfo, scope = $scope)")
@@ -78,24 +78,24 @@ class AuthService(
     }
 
     private fun internalValidateAuthInfo(authInfo: AuthInfo, scope: UseAuthScope) {
-        when(authInfo) {
+        when (authInfo) {
             is IdSecretAuthInfo -> validateUserPermission(authServiceId, authInfo, scope)
-            is AuthToken -> validateAuthTokenPermission(authServiceId, authInfo, scope)
-            else -> doLog(authInfo, "validateAuthInfo(authInfo = $authInfo, scope = $scope)")
+            is AuthToken        -> validateAuthTokenPermission(authServiceId, authInfo, scope)
+            else                -> doLog(authInfo, "validateAuthInfo(authInfo = $authInfo, scope = $scope)")
         }
 
     }
 
     private fun validateAuthTokenPermission(serviceId: String, authToken: AuthToken, useScope: UseAuthScope) {
-        if(authToken !in activeTokens) throw AuthorizationException("Token not active: $authToken")
-        if(authToken.serviceId != serviceId) throw AuthorizationException("The token $authToken is not for the expected service $serviceId")
+        if (authToken !in activeTokens) throw AuthorizationException("Token not active: $authToken")
+        if (authToken.serviceId != serviceId) throw AuthorizationException("The token $authToken is not for the expected service $serviceId")
 //        val tokenPermissions = tokenPermissions.get(authToken.tokenValue) ?:emptyList<Permission>()
-        val hasPermissionDirectPermission = authToken.serviceId==serviceId && authToken.scope.includes(useScope)
+        val hasPermissionDirectPermission = authToken.serviceId == serviceId && authToken.scope.includes(useScope)
         if (!hasPermissionDirectPermission) {
-            val additionalPermissions = tokenPermissions[authToken.tokenValue]?: emptyList<Permission>()
+            val additionalPermissions = tokenPermissions[authToken.tokenValue] ?: emptyList<Permission>()
             val hasExtPermission = additionalPermissions.any { it.scope.includes(useScope) }
             if (!hasExtPermission) {
-                val hasGlobalPerm: Boolean = authToken.scope==LoanPermissions.IDENTIFY &&
+                val hasGlobalPerm: Boolean = authToken.scope == LoanPermissions.IDENTIFY &&
                     (globalPermissions.get(authToken.principal)?.get(serviceId)?.any { it.includes(useScope) } ?: false)
 
                 if (!hasGlobalPerm) {
@@ -107,7 +107,7 @@ class AuthService(
     }
 
     private fun validateUserPermission(serviceId: String, authInfo: IdSecretAuthInfo, useScope: UseAuthScope) {
-        if (serviceId!= authServiceId) throw AuthorizationException("Only authService allows password auth")
+        if (serviceId != authServiceId) throw AuthorizationException("Only authService allows password auth")
         if (registeredClients[authInfo.principal.name]?.secret != authInfo.secret) {
             throw AuthorizationException("Password mismatch for client ${authInfo.principal} (${registeredClients[authInfo.principal.name]?.secret} != ${authInfo.secret})")
         }
@@ -134,7 +134,7 @@ class AuthService(
     fun createAuthorizationCode(
         auth: IdSecretAuthInfo,
         clientId: String,
-        nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>,
+        nodeInstanceHandle: PNIHandle,
         service: Service,
         scope: PermissionScope
                                ): AuthorizationCode {
@@ -159,15 +159,15 @@ class AuthService(
         return createAuthorizationCodeImpl(auth, clientId, nodeInstanceHandle, service, scope)
     }
 
-    private fun AuthInfo.getNodeInstanceHandle(): Handle<SecureObject<ProcessNodeInstance<*>>> = when(this) {
+    private fun AuthInfo.getNodeInstanceHandle(): PNIHandle = when (this) {
         is AuthToken -> nodeInstanceHandle
-        else -> getInvalidHandle()
+        else         -> getInvalidHandle()
     }
 
     private fun createAuthorizationCodeImpl(
         auth: AuthInfo,
         clientId: String,
-        nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>,
+        nodeInstanceHandle: PNIHandle,
         service: Service,
         scope: PermissionScope
                                            ): AuthorizationCode {
@@ -181,7 +181,7 @@ class AuthService(
                 it.scope == scope
         }
 
-        val token = if(existingToken!=null) {
+        val token = if (existingToken != null) {
             Random.nextString()
             existingToken
         } else {
@@ -190,7 +190,7 @@ class AuthService(
         val authorizationCode = AuthorizationCode(Random.nextString())
         authorizationCodes[authorizationCode] = token
         activeTokens.add(token)
-        doLog(auth, "createAuthorizationCode(code = ${authorizationCode.code}, token${if(existingToken!=null) " - reused" else ""} = $token)")
+        doLog(auth, "createAuthorizationCode(code = ${authorizationCode.code}, token${if (existingToken != null) " - reused" else ""} = $token)")
         return authorizationCode
     }
 
@@ -204,9 +204,9 @@ class AuthService(
         val token =
             authorizationCodes.get(authorizationCode) ?: throw AuthorizationException("authorization code invalid")
 
-        if(token !in activeTokens) throw AuthorizationException("Authorization code expired")
+        if (token !in activeTokens) throw AuthorizationException("Authorization code expired")
 
-        if(token.principal!=clientAuth.principal) throw AuthorizationException("Invalid client for authentication code")
+        if (token.principal != clientAuth.principal) throw AuthorizationException("Invalid client for authentication code")
 
         doLog(clientAuth, "authTokenFromAuthorization(authorization = $authorizationCode) = $token")
         authorizationCodes.remove(authorizationCode)
@@ -243,22 +243,16 @@ class AuthService(
         val registeredPermissions = tokenAssociatedPermissions
             .plus(userPermissions.asSequence())
             .ifEmpty {
-/*
-                if (reqScope == LoanPermissions.IDENTIFY || reqScope == ANYSCOPE) {
-                    sequenceOf(LoanPermissions.IDENTIFY)
-                } else {
-*/
-                    throw AuthorizationException("The token $identityToken has no permission to create delegate tokens for ${service.serviceId}.${reqScope.description}")
-//                }
+                throw AuthorizationException("The token $identityToken has no permission to create delegate tokens for ${service.serviceId}.${reqScope.description}")
             }
-            .reduce<PermissionScope?, PermissionScope>{ l, r -> l?.union(r)}
-            ?:  throw AuthorizationException("The token $identityToken permissions cancel to nothing")
+            .reduce<PermissionScope?, PermissionScope> { l, r -> l?.union(r) }
+            ?: throw AuthorizationException("The token $identityToken permissions cancel to nothing")
 
-        if(reqScope==ANYSCOPE) {
+        if (reqScope == ANYSCOPE) {
             effectiveScope = registeredPermissions
         } else {
             val intersection = registeredPermissions.intersect(reqScope)
-            if (intersection!=reqScope) throw AuthorizationException("The requested permission $reqScope is not contained within $registeredPermissions")
+            if (intersection != reqScope) throw AuthorizationException("The requested permission $reqScope is not contained within $registeredPermissions")
             effectiveScope = intersection
         }
 
@@ -281,7 +275,7 @@ class AuthService(
                 it.scope == effectiveScope
         }
 
-        if (existingToken!=null) {
+        if (existingToken != null) {
             Random.nextString() // consume random number
             doLog(identityToken, "getAuthTokenDirect($identityToken) - reuse = $existingToken")
             return existingToken
@@ -317,12 +311,12 @@ class AuthService(
         tokenPermissionList.add(Permission(scope))
     }
 
-    fun invalidateActivityTokens(auth: AuthInfo, hNodeInstance: Handle<SecureObject<ProcessNodeInstance<*>>>) {
+    fun invalidateActivityTokens(auth: AuthInfo, hNodeInstance: PNIHandle) {
         internalValidateAuthInfo(auth, LoanPermissions.INVALIDATE_ACTIVITY.context(hNodeInstance))
         val it = activeTokens.iterator()
         while (it.hasNext()) {
             val token = it.next()
-            if (token.nodeInstanceHandle==hNodeInstance) {
+            if (token.nodeInstanceHandle == hNodeInstance) {
                 doLog(auth, "invalidateActivityTokens($hNodeInstance, $token)")
                 it.remove()
                 tokenPermissions.remove(token.tokenValue)
@@ -339,7 +333,7 @@ class AuthService(
     fun registerClient(user: Principal, secret: String, name: String = user.name): IdSecretAuthInfo {
         doLog("registerClient($user)")
         val clientId = user.name
-        if (registeredClients[clientId]!=null) return registerClient(name, secret)
+        if (registeredClients[clientId] != null) return registerClient(name, secret)
         registeredClients[clientId] = ClientInfo(clientId, name, secret)
         return IdSecretAuthInfo(user, secret)
     }
@@ -350,12 +344,12 @@ class AuthService(
 
     fun registerGlobalPermission(authInfo: AuthInfo?, principal: Principal, service: Service, scope: PermissionScope) {
         doLog(authInfo, "registerGlobalPermissions($authInfo, $principal, ${service.serviceId}, $scope)")
-        if (authInfo!=null) {
+        if (authInfo != null) {
             val clientId = authInfo.principal.name
             internalValidateAuthInfo(authInfo, LoanPermissions.GRANT_PERMISSION.context(clientId, service, scope))
         }
-        globalPermissions.getOrPut(principal) { mutableMapOf()}
-            .getOrPut(service.serviceId) { mutableListOf()}
+        globalPermissions.getOrPut(principal) { mutableMapOf() }
+            .getOrPut(service.serviceId) { mutableListOf() }
             .add(scope)
     }
 

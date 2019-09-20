@@ -16,15 +16,12 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.auth
 
-import net.devrieze.util.Handle
-import net.devrieze.util.security.SecureObject
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.PNIHandle
 import java.security.Principal
-import java.util.*
 
 class AuthToken(
     principal: Principal,
-    val nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>,
+    val nodeInstanceHandle: PNIHandle,
     val tokenValue: String,
     val serviceId: String,
     val scope: PermissionScope

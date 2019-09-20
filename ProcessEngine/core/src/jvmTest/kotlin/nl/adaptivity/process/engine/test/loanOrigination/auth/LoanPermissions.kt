@@ -16,17 +16,15 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.auth
 
-import net.devrieze.util.Handle
 import net.devrieze.util.getInvalidHandle
-import net.devrieze.util.security.SecureObject
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.PNIHandle
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanApplication
 
 sealed class LoanPermissions : PermissionScope {
     object POST_TASK: LoanPermissions(), UseAuthScope
     object SIGN : LoanPermissions(), UseAuthScope
     object ACCEPT_TASK : LoanPermissions(), UseAuthScope {
-        operator fun invoke(hNodeInstance: Handle<SecureObject<ProcessNodeInstance<*>>>) =
+        operator fun invoke(hNodeInstance: PNIHandle) =
             contextImpl(hNodeInstance)
     }
 
@@ -61,7 +59,7 @@ sealed class LoanPermissions : PermissionScope {
     }
 
     object INVALIDATE_ACTIVITY : LoanPermissions() {
-        fun context(hNodeInstance: Handle<SecureObject<ProcessNodeInstance<*>>>) =
+        fun context(hNodeInstance: PNIHandle) =
             UPDATE_ACTIVITY_STATE.contextImpl(hNodeInstance)
 
         override fun includes(useScope: UseAuthScope): Boolean {
@@ -88,7 +86,7 @@ sealed class LoanPermissions : PermissionScope {
     object UPDATE_CUSTOMER_DATA : LoanPermissions(), UseAuthScope
     object UPDATE_ACTIVITY_STATE : LoanPermissions() {
 
-        operator fun invoke(hNodeInstance: Handle<SecureObject<ProcessNodeInstance<*>>>) =
+        operator fun invoke(hNodeInstance: PNIHandle) =
             contextImpl(hNodeInstance)
 
         override fun includes(useScope: UseAuthScope): Boolean {

@@ -18,7 +18,6 @@ package nl.adaptivity.process.engine.test
 
 import net.devrieze.util.CachingHandleMap
 import net.devrieze.util.ComparableHandle
-import net.devrieze.util.Handle
 import net.devrieze.util.MutableTransactionedHandleMap
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
@@ -26,7 +25,7 @@ import nl.adaptivity.dropStack
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.MemTransactionedHandleMap
 import nl.adaptivity.process.engine.*
-import nl.adaptivity.process.engine.ProcessInstance.*
+import nl.adaptivity.process.engine.ProcessInstance.State
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
@@ -209,7 +208,7 @@ open class ProcessEngineTestSupport {
                                          )
         }
 
-        internal val PNI_SET_HANDLE = fun(transaction: StubProcessTransaction, pni: SecureObject<ProcessNodeInstance<*>>, handle: Handle<SecureObject<ProcessNodeInstance<*>>>): SecureObject<ProcessNodeInstance<*>>? {
+        internal val PNI_SET_HANDLE = fun(transaction: StubProcessTransaction, pni: SecureObject<ProcessNodeInstance<*>>, handle: PNIHandle): SecureObject<ProcessNodeInstance<*>>? {
             if (pni.withPermission().handle == handle) {
                 return pni
             }

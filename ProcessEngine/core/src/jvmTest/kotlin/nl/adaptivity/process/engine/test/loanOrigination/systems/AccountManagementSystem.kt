@@ -18,7 +18,8 @@ package nl.adaptivity.process.engine.test.loanOrigination.systems
 import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthInfo
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.auth.ServiceImpl
-import nl.adaptivity.process.engine.test.loanOrigination.datatypes.*
+import nl.adaptivity.process.engine.test.loanOrigination.datatypes.BankAccountNumber
+import nl.adaptivity.process.engine.test.loanOrigination.datatypes.Contract
 
 class AccountManagementSystem(authService: AuthService): ServiceImpl(authService, "Account_Management_System") {
 

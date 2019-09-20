@@ -18,12 +18,15 @@ package nl.adaptivity.process.engine.patterns
 
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.Join
+import nl.adaptivity.process.processModel.configurableModel.activity
+import nl.adaptivity.process.processModel.configurableModel.endNode
+import nl.adaptivity.process.processModel.configurableModel.join
+import nl.adaptivity.process.processModel.configurableModel.startNode
 import nl.adaptivity.process.processModel.invoke
 import nl.adaptivity.spek.lenientFactory
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Tag
 import org.spekframework.spek2.CreateWith
-import nl.adaptivity.process.processModel.configurableModel.*
 
 @CreateWith(lenientFactory::class)
 @Tag("slow")

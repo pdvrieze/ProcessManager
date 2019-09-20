@@ -16,9 +16,7 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
-import net.devrieze.util.Handle
-import net.devrieze.util.security.SecureObject
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.PNIHandle
 import nl.adaptivity.process.engine.test.loanOrigination.LoanActivityContext
 import nl.adaptivity.process.engine.test.loanOrigination.auth.*
 import java.security.Principal
@@ -30,7 +28,7 @@ class TaskList constructor(
     clientAuth: IdSecretAuthInfo,
     val principal: Principal
                           ) : ServiceImpl(authService, clientAuth) {
-//    val nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>? get() = activityAccessToken?.nodeInstanceHandle
+//    val nodeInstanceHandle: PNIHandle? get() = activityAccessToken?.nodeInstanceHandle
 
     override fun getServiceState(): String = principal.name
 
@@ -39,7 +37,7 @@ class TaskList constructor(
     fun postTask(
         authInfo: AuthToken,
         authorizationCode: AuthorizationCode,
-        nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>
+        nodeInstanceHandle: PNIHandle
                 ) {
         logMe(authInfo, authorizationCode, nodeInstanceHandle)
         validateAuthInfo(authInfo, LoanPermissions.POST_TASK)
@@ -48,7 +46,7 @@ class TaskList constructor(
         tokens.add(token)
     }
 
-    fun unregisterTask(authToken: AuthInfo, nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>) {
+    fun unregisterTask(authToken: AuthInfo, nodeInstanceHandle: PNIHandle) {
         logMe(authToken, nodeInstanceHandle)
         validateAuthInfo(authToken, LoanPermissions.POST_TASK)
         tokens.removeIf { it.nodeInstanceHandle == nodeInstanceHandle }
@@ -60,7 +58,7 @@ class TaskList constructor(
         authToken: AuthToken,
         principal: Principal,
         pendingPermissions: ArrayDeque<LoanActivityContext.PendingPermission>,
-        processNodeInstance: Handle<SecureObject<ProcessNodeInstance<*>>>
+        processNodeInstance: PNIHandle
                       ): AuthorizationCode {
         logMe(processNodeInstance, principal)
 

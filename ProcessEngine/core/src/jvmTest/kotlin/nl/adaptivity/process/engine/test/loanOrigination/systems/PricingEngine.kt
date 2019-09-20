@@ -19,9 +19,9 @@ package nl.adaptivity.process.engine.test.loanOrigination.systems
 import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthInfo
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.auth.ServiceImpl
+import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanEvaluation
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanProductBundle
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.PricedLoanProductBundle
-import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanEvaluation
 
 class PricingEngine(authService: AuthService): ServiceImpl(authService, "Pricing_Engine") {
 

@@ -16,10 +16,8 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
-import net.devrieze.util.Handle
-import net.devrieze.util.security.SecureObject
+import nl.adaptivity.process.engine.PNIHandle
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.test.loanOrigination.LoanActivityContext
 import nl.adaptivity.process.engine.test.loanOrigination.auth.*
 import java.security.Principal
@@ -39,11 +37,11 @@ class EngineService(
      */
     fun acceptActivity(
         authToken: AuthToken,
-        nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>,
+        nodeInstanceHandle: PNIHandle,
         principal: Principal,
         pendingPermissions: ArrayDeque<LoanActivityContext.PendingPermission>
                       ): AuthorizationCode {
-        logMe(nodeInstanceHandle, principal)
+        logMe(authToken, nodeInstanceHandle, principal)
         validateAuthInfo(authToken, LoanPermissions.ACCEPT_TASK(nodeInstanceHandle)) // TODO mark correct expected permission
         if (nodeInstanceHandle!= authToken.nodeInstanceHandle) throw IllegalArgumentException("Mismatch with node instances")
         // Should register owner.
@@ -64,7 +62,7 @@ class EngineService(
     }
 
 
-    fun registerActivityToTaskList(taskList: TaskList, pniHandle: Handle<SecureObject<ProcessNodeInstance<*>>>) {
+    fun registerActivityToTaskList(taskList: TaskList, pniHandle: PNIHandle) {
         logMe(pniHandle)
 
         val permissions = listOf(LoanPermissions.UPDATE_ACTIVITY_STATE(pniHandle),

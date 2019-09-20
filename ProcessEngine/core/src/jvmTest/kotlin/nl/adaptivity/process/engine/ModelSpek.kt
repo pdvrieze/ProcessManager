@@ -42,7 +42,8 @@ import org.spekframework.spek2.dsl.Skip
 import org.spekframework.spek2.dsl.TestBody
 import org.spekframework.spek2.lifecycle.CachingMode
 import org.spekframework.spek2.meta.*
-import org.spekframework.spek2.style.specification.*
+import org.spekframework.spek2.style.specification.Suite
+import org.spekframework.spek2.style.specification.describe
 import java.security.Principal
 import java.util.*
 

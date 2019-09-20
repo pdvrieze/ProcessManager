@@ -94,10 +94,6 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
         pendingPermissions.add(PendingPermission(null, service, scope))
     }
 
-    fun registerActivityToTaskList() {
-        processContext.engineService.registerActivityToTaskList(this.taskList, handle)
-    }
-
     lateinit var taskList: TaskList
 
     private val engineServiceAuth: IdSecretAuthInfo get() = processContext.loanContextFactory.engineClientAuth
