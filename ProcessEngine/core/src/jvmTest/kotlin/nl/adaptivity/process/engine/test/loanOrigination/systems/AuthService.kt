@@ -262,6 +262,19 @@ class AuthService(
 
         val nodeInstanceHandle = (identityToken as? AuthToken)?.nodeInstanceHandle ?: getInvalidHandle()
 
+        val existingToken = activeTokens.firstOrNull {
+            it.principal == identityToken.principal &&
+                it.nodeInstanceHandle == nodeInstanceHandle &&
+                it.serviceId == serviceId &&
+                it.scope == effectiveScope
+        }
+
+        if (existingToken!=null) {
+            Random.nextString() // consume random number
+            doLog(identityToken, "getAuthTokenDirect($identityToken) - reuse = $existingToken")
+            return existingToken
+        }
+
         return AuthToken(identityToken.principal, nodeInstanceHandle, Random.nextString(), serviceId, effectiveScope).also {
             activeTokens.add(it)
             doLog(identityToken, "getAuthTokenDirect($identityToken) = $it")
