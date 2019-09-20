@@ -174,11 +174,23 @@ class AuthService(
         internalValidateAuthInfo(auth, LoanPermissions.GRANT_PERMISSION.context(clientId, service, scope))
 
         val clientPrincipal = clientFromId(clientId)
-        val token = AuthToken(clientPrincipal, nodeInstanceHandle, Random.nextString(), service.serviceId, scope)
+        val existingToken = activeTokens.lastOrNull {
+            it.principal == clientPrincipal &&
+                it.nodeInstanceHandle == nodeInstanceHandle &&
+                it.serviceId == serviceId &&
+                it.scope == scope
+        }
+
+        val token = if(existingToken!=null) {
+            Random.nextString()
+            existingToken
+        } else {
+            AuthToken(clientPrincipal, nodeInstanceHandle, Random.nextString(), service.serviceId, scope)
+        }
         val authorizationCode = AuthorizationCode(Random.nextString())
         authorizationCodes[authorizationCode] = token
         activeTokens.add(token)
-        doLog(auth, "createAuthorizationCode(code = ${authorizationCode.code}, token = $token)")
+        doLog(auth, "createAuthorizationCode(code = ${authorizationCode.code}, token${if(existingToken!=null) " - reused" else ""} = $token)")
         return authorizationCode
     }
 
