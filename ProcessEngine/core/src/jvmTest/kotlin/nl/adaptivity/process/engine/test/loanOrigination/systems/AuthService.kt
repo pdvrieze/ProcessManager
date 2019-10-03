@@ -23,6 +23,7 @@ import nl.adaptivity.process.engine.test.loanOrigination.Random
 import nl.adaptivity.process.engine.test.loanOrigination.auth.*
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions.GRANT_ACTIVITY_PERMISSION
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions.GRANT_GLOBAL_PERMISSION
+import nl.adaptivity.util.nl.adaptivity.util.kotlin.removeIfTo
 import java.security.Principal
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -188,7 +189,7 @@ class AuthService(
         } else {
             AuthToken(clientPrincipal, nodeInstanceHandle, Random.nextString(), service.serviceId, scope)
         }
-        val authorizationCode = AuthorizationCode(Random.nextString())
+        val authorizationCode = AuthorizationCode(Random.nextString(), clientPrincipal)
         authorizationCodes[authorizationCode] = token
         activeTokens.add(token)
         doLog(auth, "createAuthorizationCode(code = ${authorizationCode.code}, token${if (existingToken != null) " - reused" else ""} = $token)")
@@ -205,9 +206,9 @@ class AuthService(
         val token =
             authorizationCodes.get(authorizationCode) ?: throw AuthorizationException("authorization code invalid")
 
-        if (token !in activeTokens) throw AuthorizationException("Authorization code expired")
+        if (token !in activeTokens) activeTokens.add(token)
 
-        if (token.principal != clientAuth.principal) throw AuthorizationException("Invalid client for authentication code")
+        if (authorizationCode.principal != clientAuth.principal) throw AuthorizationException("Invalid client for authentication code ${token.principal} != ${clientAuth.principal}")
 
         doLog(clientAuth, "authTokenFromAuthorization(authorization = $authorizationCode) = $token")
         authorizationCodes.remove(authorizationCode)
@@ -227,7 +228,8 @@ class AuthService(
         return token
     }
 
-    fun getAuthTokenDirect(identityToken: AuthInfo, service: Service, reqScope: PermissionScope): AuthToken {
+    /** Common implementation that is used for authorization codes/authtokens but doesn't log*/
+    private fun getAuthCommon(identityToken: AuthInfo, service: Service, reqScope: PermissionScope): AuthToken {
         // TODO principal should be authorized
         val serviceId = service.serviceId
         internalValidateAuthInfo(identityToken, LoanPermissions.IDENTIFY)
@@ -278,14 +280,100 @@ class AuthService(
             effectiveScope = intersection
         }
 
-/*
-        val tokenPermissions = tokenPermissions.get(taskIdentityToken.tokenValue) ?:emptyList<Permission>()
-        val hasPermission = tokenPermissions.any { it.serviceId == serviceId && it.scope.includes(scope) }
-        if (!hasPermission) {
-            throw AuthorizationException("No permissions available for $taskIdentityToken to $serviceId.$scope")
+        // TODO look up permissions for taskIdentityToken
 
+        val nodeInstanceHandle = (identityToken as? AuthToken)?.nodeInstanceHandle ?: getInvalidHandle()
+
+        val existingToken = activeTokens.firstOrNull {
+            it.principal == identityToken.principal &&
+                it.nodeInstanceHandle == nodeInstanceHandle &&
+                it.serviceId == serviceId &&
+                it.scope == effectiveScope
         }
-*/
+
+        if (existingToken != null) {
+            return existingToken
+        }
+
+        return AuthToken(identityToken.principal, nodeInstanceHandle, Random.nextString(), serviceId, effectiveScope)
+
+    }
+
+    fun getAuthorizationCode(identityToken: AuthInfo, service: Service, reqScope: PermissionScope): AuthorizationCode {
+        val token = getAuthCommon(identityToken, service, reqScope)
+        val authorizationCode = AuthorizationCode(Random.nextString(), clientFromId(service.serviceId))
+        authorizationCodes[authorizationCode] = token
+
+        if (token in activeTokens) {
+            doLog(identityToken, "getAuthorizationCode($identityToken) - reuse = $authorizationCode -> $token")
+        } else {
+            doLog(identityToken, "getAuthorizationCode($identityToken) = $authorizationCode -> $token")
+        }
+        return authorizationCode
+    }
+
+    fun getAuthTokenDirect(identityToken: AuthInfo, service: Service, reqScope: PermissionScope): AuthToken {
+        val token = getAuthCommon(identityToken, service, reqScope)
+        if (token in activeTokens) {
+            doLog(identityToken, "getAuthTokenDirect($identityToken) - reuse = $token")
+        } else {
+            activeTokens.add(token)
+            doLog(identityToken, "getAuthTokenDirect($identityToken) = $token")
+        }
+        return token
+    }
+
+    fun getAuthTokenDirect2(identityToken: AuthInfo, service: Service, reqScope: PermissionScope): AuthToken {
+        // TODO principal should be authorized
+        val serviceId = service.serviceId
+        internalValidateAuthInfo(identityToken, LoanPermissions.IDENTIFY)
+        val userPermissions = globalPermissions.get(identityToken.principal)?.get(serviceId) ?: emptyList<PermissionScope>()
+
+        val effectiveScope: PermissionScope
+        val tokenAssociatedPermissions: Sequence<PermissionScope> = if (identityToken is AuthToken) {
+            val scopes = (tokenPermissions[identityToken.tokenValue]
+                ?.asSequence()
+                ?: emptySequence())
+                .map { it.scope }
+
+            if (identityToken.nodeInstanceHandle.isValid) {
+                scopes.mapNotNull {
+                    when {
+                        // Any child scopes for activity limited grants
+                        it is GRANT_ACTIVITY_PERMISSION.ContextScope &&
+                            it.taskInstanceHandle == identityToken.nodeInstanceHandle -> it.childScope ?: ANYSCOPE
+
+                        // As well as global grants
+                        it is GRANT_GLOBAL_PERMISSION.ContextScope    ->
+                            it.childScope ?: ANYSCOPE
+
+                        else                                                          -> null
+                    }
+                }
+            } else { // not restricted to a task, so activity permissions are not valid
+                scopes.filterIsInstance<GRANT_GLOBAL_PERMISSION.ContextScope>()
+                    .filter { it.serviceId == serviceId }
+                    .map { it.childScope ?: ANYSCOPE }
+            }
+        } else {
+            emptySequence()
+        }
+        val registeredPermissions = tokenAssociatedPermissions
+            .plus(userPermissions.asSequence())
+            .ifEmpty {
+                throw AuthorizationException("The token $identityToken has no permission to create delegate tokens for ${service.serviceId}.${reqScope.description}")
+            }
+            .reduce<PermissionScope?, PermissionScope> { l, r -> l?.union(r) }
+            ?: throw AuthorizationException("The token $identityToken permissions cancel to nothing")
+
+        if (reqScope == ANYSCOPE) {
+            effectiveScope = registeredPermissions
+        } else {
+            val intersection = registeredPermissions.intersect(reqScope)
+            if (intersection != reqScope) throw AuthorizationException("The requested permission $reqScope is not contained within $registeredPermissions")
+            effectiveScope = intersection
+        }
+
         // TODO look up permissions for taskIdentityToken
 
         val nodeInstanceHandle = (identityToken as? AuthToken)?.nodeInstanceHandle ?: getInvalidHandle()
@@ -341,14 +429,14 @@ class AuthService(
 
     fun invalidateActivityTokens(auth: AuthInfo, hNodeInstance: PNIHandle) {
         internalValidateAuthInfo(auth, LoanPermissions.INVALIDATE_ACTIVITY.context(hNodeInstance))
-        val it = activeTokens.iterator()
-        while (it.hasNext()) {
-            val token = it.next()
-            if (token.nodeInstanceHandle == hNodeInstance) {
-                doLog(auth, "invalidateActivityTokens($hNodeInstance, $token)")
-                it.remove()
-                tokenPermissions.remove(token.tokenValue)
-            }
+
+        val invalidatedTokens = mutableListOf<AuthToken>()
+        authorizationCodes.values.removeIfTo(invalidatedTokens) { it.nodeInstanceHandle == hNodeInstance }
+        activeTokens.removeIfTo(invalidatedTokens) { it.nodeInstanceHandle == hNodeInstance }
+
+        for(token in invalidatedTokens) {
+            doLog(auth, "invalidateActivityTokens($hNodeInstance, $token)")
+            tokenPermissions.remove(token.tokenValue)
         }
     }
 

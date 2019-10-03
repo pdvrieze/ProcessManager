@@ -41,7 +41,8 @@ abstract class ServiceImpl(protected val authService: AuthService, protected val
     }
 
     fun loginBrowser(browser: Browser): AuthToken {
-        return browser.loginToService(authService, this)
+        val authorization = browser.loginToService(authService, this)
+        return authService.getAuthToken(serviceAuth, authorization)
     }
 
     fun authTokenForService(service: Service, scope: PermissionScope = ANYSCOPE): AuthToken {

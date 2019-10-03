@@ -20,13 +20,13 @@ import nl.adaptivity.process.engine.test.loanOrigination.Random
 import nl.adaptivity.process.engine.test.loanOrigination.auth.*
 import java.security.Principal
 import java.util.logging.Level
-import java.util.logging.Logger
 
-class Browser private constructor(val logger: Logger, val auth: IdSecretAuthInfo) {
+class Browser private constructor(private val authService: AuthService, val auth: IdSecretAuthInfo) {
     val user get() = auth.principal
     private val tokens=mutableListOf<AuthToken>()
+    val logger get() = authService.logger
 
-    constructor(authService: AuthService, user: Principal): this(authService.logger, authService.registerClient(user, Random.nextString())) {
+    constructor(authService: AuthService, user: Principal): this(authService, authService.registerClient(user, Random.nextString())) {
         addToken(authService.loginDirect(auth))
     }
 
@@ -46,14 +46,21 @@ class Browser private constructor(val logger: Logger, val auth: IdSecretAuthInfo
     }
 
     fun loginToService(service: ServiceImpl): AuthToken {
-        return service.loginBrowser(this)
+        tokens.removeIf { authService.isTokenInvalid(it) }
+        tokens.lastOrNull { it.serviceId == service.serviceId }?.let {
+            logger.log(Level.INFO, "Browser(${user.name}).loginToService(${service.serviceId}) = already logged in - $it")
+            return it
+        }
+        return service.loginBrowser(this).also {
+            addToken(it)
+        }
     }
 
-    fun loginToService(authService: AuthService, service: ServiceImpl): AuthToken {
-        authService.logger.log(Level.INFO, "Browser(${user.name}).loginToService(${service.serviceId})")
+    fun loginToService(authService: AuthService, service: ServiceImpl): AuthorizationCode {
+        logger.log(Level.INFO, "Browser(${user.name}).loginToService(${service.serviceId})")
         tokens.removeIf { authService.isTokenInvalid(it) }
         val token = tokens.lastOrNull { it.scope == LoanPermissions.IDENTIFY && it.serviceId == authService.serviceId }
             ?: throw AuthorizationException("Not logged in to authorization service")
-        return authService.getAuthTokenDirect(token, service, ANYSCOPE)
+        return authService.getAuthorizationCode(token, service, ANYSCOPE)
     }
 }

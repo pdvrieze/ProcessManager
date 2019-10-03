@@ -16,4 +16,6 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.auth
 
-data class AuthorizationCode(val code: String)
+import java.security.Principal
+
+data class AuthorizationCode(val code: String, val principal: Principal)
