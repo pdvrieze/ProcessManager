@@ -215,19 +215,6 @@ class AuthService(
         return token
     }
 
-    /** Create a token that allows the identification of the client with the token */
-    fun createTaskIdentityToken(
-        clientAuth: IdSecretAuthInfo,
-        processNodeInstance: PNIHandle,
-        principal: Principal
-                               ): AuthToken {
-        internalValidateAuthInfo(clientAuth, LoanPermissions.CREATE_TASK_IDENTITY)
-        val token = AuthToken(principal, processNodeInstance, Random.nextString(), authServiceId, LoanPermissions.IDENTIFY)
-        activeTokens.add(token)
-        doLog(clientAuth, "createTaskIdentityToken() = $token")
-        return token
-    }
-
     /** Common implementation that is used for authorization codes/authtokens but doesn't log*/
     private fun getAuthCommon(identityToken: AuthInfo, service: Service, reqScope: PermissionScope): AuthToken {
         // TODO principal should be authorized
@@ -428,6 +415,7 @@ class AuthService(
     }
 
     fun invalidateActivityTokens(auth: AuthInfo, hNodeInstance: PNIHandle) {
+        doLog(auth, "invalidateActivityTokens($hNodeInstance)")
         internalValidateAuthInfo(auth, LoanPermissions.INVALIDATE_ACTIVITY.context(hNodeInstance))
 
         val invalidatedTokens = mutableListOf<AuthToken>()
@@ -435,7 +423,7 @@ class AuthService(
         activeTokens.removeIfTo(invalidatedTokens) { it.nodeInstanceHandle == hNodeInstance }
 
         for(token in invalidatedTokens) {
-            doLog(auth, "invalidateActivityTokens($hNodeInstance, $token)")
+            doLog("invalidateActivityTokens/token($hNodeInstance, $token)")
             tokenPermissions.remove(token.tokenValue)
         }
     }
