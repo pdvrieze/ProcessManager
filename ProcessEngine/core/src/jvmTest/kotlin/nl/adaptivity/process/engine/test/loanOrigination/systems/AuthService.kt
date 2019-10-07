@@ -325,12 +325,12 @@ class AuthService(
 
     fun grantPermission(auth: AuthInfo, taskIdToken: AuthToken, service: Service, scope: PermissionScope) {
         val serviceId = service.serviceId
-        val clientId = taskIdToken.serviceId
+        val neededClientId = auth.principal.name
         // If we are providing permission to an activity limited token, it is sufficient to have the ability to grant
         // permissions limited to that activity context (as the token receiving permission will not outlast the activity)
         val neededScope = when (taskIdToken.nodeInstanceHandle.isValid) {
-            true -> GRANT_ACTIVITY_PERMISSION.context(taskIdToken.nodeInstanceHandle, clientId, service, scope)
-            else -> GRANT_GLOBAL_PERMISSION.context(clientId, service, scope)
+            true -> GRANT_ACTIVITY_PERMISSION.context(taskIdToken.nodeInstanceHandle, neededClientId, service, scope)
+            else -> GRANT_GLOBAL_PERMISSION.context(neededClientId, service, scope)
         }
         internalValidateAuthInfo(auth, neededScope)
         if (taskIdToken.serviceId != serviceId) throw AuthorizationException("Cannot grant permission for a token for one service to work against another service")

@@ -48,6 +48,7 @@ class EngineService(
 //        val taskAuthorizationCode = authService.createAuthorizationCode(serviceAuth, authToken.principal.name, authToken.nodeInstanceHandle, this)
         return authService.createAuthorizationCode(serviceAuth, principal.name, authToken.nodeInstanceHandle, authService, LoanPermissions.IDENTIFY).also { authorizationCode ->
 
+            val clientId = principal.name
             // Also use the result to register permissions for it
             while (pendingPermissions.isNotEmpty()) {
                 val pendingPermission = pendingPermissions.removeFirst()
@@ -55,7 +56,7 @@ class EngineService(
                     serviceAuth,
                     authorizationCode,
                     authService,
-                    LoanPermissions.GRANT_ACTIVITY_PERMISSION.restrictTo(nodeInstanceHandle, principal.name, pendingPermission.service, pendingPermission.scope))
+                    LoanPermissions.GRANT_ACTIVITY_PERMISSION.restrictTo(nodeInstanceHandle, clientId, pendingPermission.service, pendingPermission.scope))
             }
 
         }
