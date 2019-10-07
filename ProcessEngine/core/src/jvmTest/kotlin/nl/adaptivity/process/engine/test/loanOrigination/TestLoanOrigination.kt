@@ -207,13 +207,12 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
 
             action = { (application, creditReport) ->
                 registerTaskPermission(creditApplication, EVALUATE_LOAN(application.customerId))
-                registerTaskPermission(authService, GRANT_ACTIVITY_PERMISSION.restrictTo(handle, customerFile, QUERY_CUSTOMER_DATA(application.customerId)))
+                registerTaskPermission(creditApplication.serviceId, customerFile, QUERY_CUSTOMER_DATA(application.customerId))
 
                 generalClientService.runWithAuthorization(ctx.serviceTask()) { taskIdToken ->
 
-                    val delegatePermissionToken = getServiceToken(authService, GRANT_ACTIVITY_PERMISSION.restrictTo(handle, creditApplication.serviceId, customerFile, QUERY_CUSTOMER_DATA.invoke(application.customerId)))
                     val delegateAuthorization = authService.createAuthorizationCode(
-                        delegatePermissionToken,
+                        taskIdToken,
                         creditApplication.serviceId,
                         customerFile,
                         QUERY_CUSTOMER_DATA(application.customerId)
@@ -368,6 +367,9 @@ private inline val ActivityInstanceContext.customer get() = ctx.processContext.c
 
 private fun ActivityInstanceContext.registerTaskPermission(service: Service, scope: PermissionScope) =
     ctx.registerTaskPermission(service, scope)
+
+private fun ActivityInstanceContext.registerTaskPermission(client: String, service: Service, scope: PermissionScope) =
+    ctx.registerTaskPermission(client, service, scope)
 private inline fun <R> ActivityInstanceContext.acceptBrowserActivity(browser: Browser, action: TaskList.Context.() -> R): R =
     ctx.acceptBrowserActivity(browser, action)
 

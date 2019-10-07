@@ -389,7 +389,7 @@ sealed class LoanPermissions : PermissionScope {
             }
 
             override val description: String
-                get() = "GRANT_ACTIVITY_PERMISSION($taskInstanceHandle, ${clientId?:"<anyClient>"}.${serviceId?:"<anyService>"}.${childScope?.description?:"*"})"
+                get() = "GRANT_ACTIVITY_PERMISSION($taskInstanceHandle, ${clientId?:"<anyClient>"}->${serviceId?:"<anyService>"}.${childScope?.description?:"*"})"
 
             override fun toString(): String {
                 return description

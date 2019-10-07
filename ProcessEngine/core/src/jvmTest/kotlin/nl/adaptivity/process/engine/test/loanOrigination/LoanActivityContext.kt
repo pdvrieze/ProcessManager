@@ -74,14 +74,16 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
         if (::taskList.isInitialized) {
             throw UnsupportedOperationException("Attempting to mark as service task an activity that has already been marked for users")
         }
+        val clientServiceId = processContext.generalClientService.serviceId
         val serviceAuthorization = with(processContext) {
-            authService.createAuthorizationCode(engineServiceAuth, generalClientService.serviceId, this@LoanActivityContext.handle, authService, LoanPermissions.IDENTIFY)
+            authService.createAuthorizationCode(engineServiceAuth,
+                                                clientServiceId, this@LoanActivityContext.handle, authService, LoanPermissions.IDENTIFY)
         }
 
         while(pendingPermissions.isNotEmpty()) {
             val pendingPermission = pendingPermissions.removeFirst()
             processContext.authService.grantPermission(engineServiceAuth, serviceAuthorization, processContext.authService, LoanPermissions.GRANT_ACTIVITY_PERMISSION.restrictTo(
-                handle, pendingPermission.service, pendingPermission.scope))
+                handle, pendingPermission.clientId ?: clientServiceId, pendingPermission.service, pendingPermission.scope))
         }
 
         return serviceAuthorization
@@ -93,6 +95,14 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
      */
     fun registerTaskPermission(service: Service, scope: PermissionScope) {
         pendingPermissions.add(PendingPermission(null, service, scope))
+    }
+
+    /**
+     * TODO Function that registers permissions for the task. This should be done based upon task definition
+     *      and in acceptActivity.
+     */
+    fun registerTaskPermission(clientId: String, service: Service, scope: PermissionScope) {
+        pendingPermissions.add(PendingPermission(clientId, service, scope))
     }
 
     lateinit var taskList: TaskList

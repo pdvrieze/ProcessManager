@@ -310,80 +310,6 @@ class AuthService(
         return token
     }
 
-    fun getAuthTokenDirect2(identityToken: AuthInfo, service: Service, reqScope: PermissionScope): AuthToken {
-        // TODO principal should be authorized
-        val serviceId = service.serviceId
-        internalValidateAuthInfo(identityToken, LoanPermissions.IDENTIFY)
-        val userPermissions = globalPermissions.get(identityToken.principal)?.get(serviceId) ?: emptyList<PermissionScope>()
-
-        val effectiveScope: PermissionScope
-        val tokenAssociatedPermissions: Sequence<PermissionScope> = if (identityToken is AuthToken) {
-            val scopes = (tokenPermissions[identityToken.tokenValue]
-                ?.asSequence()
-                ?: emptySequence())
-                .map { it.scope }
-
-            if (identityToken.nodeInstanceHandle.isValid) {
-                scopes.mapNotNull {
-                    when {
-                        // Any child scopes for activity limited grants
-                        it is GRANT_ACTIVITY_PERMISSION.ContextScope &&
-                            it.taskInstanceHandle == identityToken.nodeInstanceHandle -> it.childScope ?: ANYSCOPE
-
-                        // As well as global grants
-                        it is GRANT_GLOBAL_PERMISSION.ContextScope    ->
-                            it.childScope ?: ANYSCOPE
-
-                        else                                                          -> null
-                    }
-                }
-            } else { // not restricted to a task, so activity permissions are not valid
-                scopes.filterIsInstance<GRANT_GLOBAL_PERMISSION.ContextScope>()
-                    .filter { it.serviceId == serviceId }
-                    .map { it.childScope ?: ANYSCOPE }
-            }
-        } else {
-            emptySequence()
-        }
-        val registeredPermissions = tokenAssociatedPermissions
-            .plus(userPermissions.asSequence())
-            .ifEmpty {
-                throw AuthorizationException("The token $identityToken has no permission to create delegate tokens for ${service.serviceId}.${reqScope.description}")
-            }
-            .reduce<PermissionScope?, PermissionScope> { l, r -> l?.union(r) }
-            ?: throw AuthorizationException("The token $identityToken permissions cancel to nothing")
-
-        if (reqScope == ANYSCOPE) {
-            effectiveScope = registeredPermissions
-        } else {
-            val intersection = registeredPermissions.intersect(reqScope)
-            if (intersection != reqScope) throw AuthorizationException("The requested permission $reqScope is not contained within $registeredPermissions")
-            effectiveScope = intersection
-        }
-
-        // TODO look up permissions for taskIdentityToken
-
-        val nodeInstanceHandle = (identityToken as? AuthToken)?.nodeInstanceHandle ?: getInvalidHandle()
-
-        val existingToken = activeTokens.firstOrNull {
-            it.principal == identityToken.principal &&
-                it.nodeInstanceHandle == nodeInstanceHandle &&
-                it.serviceId == serviceId &&
-                it.scope == effectiveScope
-        }
-
-        if (existingToken != null) {
-            Random.nextString() // consume random number
-            doLog(identityToken, "getAuthTokenDirect($identityToken) - reuse = $existingToken")
-            return existingToken
-        }
-
-        return AuthToken(identityToken.principal, nodeInstanceHandle, Random.nextString(), serviceId, effectiveScope).also {
-            activeTokens.add(it)
-            doLog(identityToken, "getAuthTokenDirect($identityToken) = $it")
-        }
-    }
-
     fun loginDirect(auth: IdSecretAuthInfo): AuthToken {
         internalValidateAuthInfo(auth, LoanPermissions.IDENTIFY)
         return AuthToken(auth.principal, getInvalidHandle(), Random.nextString(), authServiceId, LoanPermissions.IDENTIFY).also {
@@ -399,7 +325,7 @@ class AuthService(
 
     fun grantPermission(auth: AuthInfo, taskIdToken: AuthToken, service: Service, scope: PermissionScope) {
         val serviceId = service.serviceId
-        val clientId = auth.principal.name
+        val clientId = taskIdToken.serviceId
         // If we are providing permission to an activity limited token, it is sufficient to have the ability to grant
         // permissions limited to that activity context (as the token receiving permission will not outlast the activity)
         val neededScope = when (taskIdToken.nodeInstanceHandle.isValid) {
