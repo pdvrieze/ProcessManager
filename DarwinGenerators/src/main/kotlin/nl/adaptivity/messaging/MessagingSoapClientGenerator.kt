@@ -19,10 +19,6 @@ package nl.adaptivity.messaging
 import nl.adaptivity.rest.annotations.RestParam
 import nl.adaptivity.rest.annotations.RestParamType
 import nl.adaptivity.ws.soap.SoapSeeAlso
-
-import javax.jws.WebMethod
-import javax.jws.WebParam
-import javax.xml.namespace.QName
 import java.io.*
 import java.net.MalformedURLException
 import java.net.URI
@@ -32,6 +28,9 @@ import java.nio.file.FileSystem
 import java.nio.file.FileSystems
 import java.nio.file.Path
 import java.util.*
+import javax.jws.WebMethod
+import javax.jws.WebParam
+import javax.xml.namespace.QName
 import kotlin.reflect.*
 import kotlin.reflect.full.createInstance
 import kotlin.reflect.full.findAnnotation
@@ -105,6 +104,7 @@ object MessagingSoapClientGenerator {
                         outClass = outClass.substring(j + 1)
                     }
                 }
+                "-gencp",
                 "-cp"      -> {
                     if ("." != cp) {
                         showHelp()
@@ -136,7 +136,7 @@ object MessagingSoapClientGenerator {
             ++i
         }
         try {
-            generateClientJava(pkg, outClass, inClasses, cp, dstdir)
+            generateClientKotlin(pkg, outClass, inClasses, cp, dstdir)
         } catch (e: Exception) {
             e.printStackTrace()
             ++_errorCount
@@ -146,11 +146,11 @@ object MessagingSoapClientGenerator {
         System.exit(0)
     }
 
-    private fun generateClientJava(destPkg: String?,
-                                   outClass: String?,
-                                   inClasses: List<String>,
-                                   cp: String,
-                                   dstdir: String) {
+    private fun generateClientKotlin(destPkg: String?,
+                                     outClass: String?,
+                                     inClasses: List<String>,
+                                     cp: String,
+                                     dstdir: String) {
         val outClass = when {
             inClasses.isEmpty() || destPkg == null  -> {
                 System.err.println("Not all three of inclass, outclass and package have been provided")
@@ -232,7 +232,7 @@ object MessagingSoapClientGenerator {
         val result = ArrayList<URL>()
 
         try {
-            for (element in classPath.split(":".toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()) {
+            for (element in classPath.split(File.pathSeparator.toRegex()).dropLastWhile { it.isEmpty() }.toTypedArray()) {
                 if (element.length > 0) {
                     var url: URL
                     try {
@@ -260,7 +260,7 @@ object MessagingSoapClientGenerator {
         println("  -help              : Show this message, ignore everything else")
         println("  -out <classname>   : The output classname to generate")
         println("  -package <pkgname> : The output package name to generate")
-        println("  -cp <path>         : The classpath to look for source classes and their dependencies")
+        println("  -gencp <path>         : The classpath to look for source classes and their dependencies")
         println("  -dstdir <dirname>  : The directory to write the generated kotlin files")
         println("  <inputclass>       : The Endpoint that needs a client")
     }

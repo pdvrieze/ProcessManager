@@ -17,8 +17,9 @@
 import multiplatform.androidAttribute
 import multiplatform.registerAndroidAttributeForDeps
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
-import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
-import versions.*
+import versions.jaxbVersion
+import versions.myJavaVersion
+import versions.tomcatVersion
 
 plugins {
     kotlin("jvm")
@@ -82,7 +83,7 @@ tasks {
             classpath = configurations["codegen"]
             val cp = configurations["codegenClasspath"]
 
-            args("-cp")
+            args("-gencp")
             val cpString = cp.asPath
             args(cpString)
             logger.info("Classpath for generation: $cpString")
