@@ -1,0 +1,354 @@
+html, body {
+	margin: 0px;
+	height: 100%;
+}
+
+body {
+	font-family: Arial, sans-serif;
+}
+
+#xtop {
+  min-height:100%;
+  font-size:small;
+  padding-bottom: 0px;
+  overflow:hidden;
+}
+
+#xtop > * {
+  font-size: medium;
+}
+
+#xtop:after {
+  content: "x";
+  color:transparent;
+  height:2em;
+  font-size:small;
+  display:inline-block;
+}
+
+#header {
+	padding: 4pt 4pt 4pt 8pt;
+/*	border-bottom: 1px solid black; */
+	margin: 0px;
+	background-color: white;
+}
+
+#header > * {
+	vertical-align: middle;
+}
+
+
+#logo {
+	background-image: url('../assets/logo.png');
+	width: 96px;
+	height: 96px;
+	overflow: hidden;
+	color: transparent;
+	display: inline-block;
+	margin-right:16pt;
+}
+
+#title {
+	font-size: 35pt;
+	font-weight: normal;
+}
+
+#menu {
+	background: url('../assets/background.gif') repeat-x;
+	height: 40px;
+	padding-left: 8pt;
+	padding-right: 8pt;
+	padding-bottom:0px;
+	/*border-bottom: 1px solid black;*/
+	overflow:hidden;
+}
+#menu > :first-child:before {
+	content: " ";
+	display: inline-block;
+	height:41px;
+	margin-bottom:-3pt;
+	width:0px;
+	vertical-align: bottom;
+}
+
+#menu > .menuitem {
+	vertical-align: bottom;
+  background-color: #DEDEDE;
+  border-top-left-radius: 10px;
+  border-top-right-radius: 10px;
+  padding: 3pt 5pt 3pt 5pt;	
+  margin-left: 4pt;
+  margin-right: 4pt;
+  cursor: pointer;
+}
+
+#menu > .menuitem.active {
+  background-color:white;
+  padding: 5pt 7pt 3pt 7pt;	
+  margin-left: 1pt;
+  margin-right: 1pt;
+  border-top: 1pt solid black;
+  border-left: 1pt solid black;
+  border-right: 1pt solid black;
+}
+#menu > .menuitem a, #menu > a.menuitem {
+  text-decoration:none;
+  color: black;
+}
+
+#forgotpasswd {
+  margin-left: -2em;
+  margin-top: 1ex;
+  margin-bottom: -2ex;
+  clear: both;
+  font-size: 80%;
+}
+
+#login {
+  background-color:white;
+  padding: 0pt;
+  border-bottom: 1px solid black;
+  border-left: 1px solid black;
+  border-right: 1px solid black;
+  border-bottom-left-radius: 10px;
+  border-bottom-right-radius: 10px;
+  position: absolute;
+  right: 16pt;
+}
+
+#login > * {
+  padding: 2pt 1ex 3pt 1ex;
+  border-left: 1px solid black;
+  display: inline-block;
+}
+
+#login > :first-child {
+  border-left:none;
+}
+
+#login > a:first-child {
+	text-decoration: none;
+	color: black;
+}
+
+input + input {
+    margin-left: 1em;
+}
+
+#logout {
+	cursor: pointer;
+	text-decoration: underline;
+}
+
+.hide, #login > .hide {
+  display:none;
+}
+
+#content {
+/*  margin-top: 1.5em;*/
+  min-height: 74%;
+  min-height: -webkit-calc(100% - 136px - 24pt - 1.4em);
+  min-height: -moz-calc(100% - 136px - 24pt - 1.4em);
+  min-height: calc(100% - 136px - 24pt - 1.4em);
+  padding: 8pt 8pt 8pt 8pt;
+}
+
+#divider {
+  display: block;
+  position: absolute;
+  top:-1px;
+  left:0px;
+  right:0px;
+  height: 1px;
+  background-color:black;
+}
+
+#footer {
+	background:white;
+	position:relative;
+	bottom:0px;
+/*	border-top: 1px solid black; */
+	left:0px;
+	right:0px;
+	text-align: center;
+	padding: 0.25em 5pt;
+  font-size:70%;
+  height: 1.5em;
+	line-height: 1.5em;
+/*	margin-top:-1px; */
+/*	overflow: hidden; */
+}
+
+#footer > {
+}
+
+.action {
+	margin: 1em 3em;
+	border: 2px ridge #A2D7DF;
+	padding: 8px;
+}
+
+.action .ac_icon {
+	padding-right: 32px;
+}
+.ac_icon img, .ac_icon object {
+	height: 150px;
+	width: 150px;
+}
+.ac_icon .attribution {
+	position: absolute;
+	border: 1px solid black;
+	padding: 3px;
+	background: #f0ffff;
+	color:#200000;
+	margin-left: 2em;
+	display:none;
+} 
+.ac_icon .attribution img, .ac_icon .attribution object {
+	height: auto;
+	width: auto;
+}
+.attribution {
+	font-size: 75%;
+	color: gray;
+	display:inline-block;
+}
+.ac_icon:hover .attribution {
+	display: block;
+}
+.attribution a {
+	color:#200000;
+}
+
+.centerContents {
+  text-align: center;
+}
+
+.centerContents:before {
+  content: '';
+  display: inline-block;
+  height: 100%;
+  vertical-align: middle;
+}
+
+.centerContents > .centerContents {
+  text-align: center;
+}
+
+.centerContents > * {
+  display:inline-block;
+  vertical-align:middle;
+  text-align: left;
+}
+
+.dialog {
+  position: fixed;
+  left:0px;
+  right:0px;
+  top:0px;
+  bottom:0px;
+  background: rgba(0,0,0,0.7);
+  z-index: 1;
+}
+
+.dialogOuter {
+  min-width: 33%;
+  background: white;
+  border: 1px solid black;
+}
+
+.dialogOuter > .dlgTitle {
+  margin: 0px;
+  font-size: large;
+  text-align: center;
+  font-weight: bold;
+  padding: 0.25em;
+  border-bottom: 1px solid black;
+  line-height: 1.3em;
+}
+
+.dialogInner {
+  font-size:medium;
+}
+
+.dialogInner:before {
+  height: 10em !important;
+}
+
+.dialogInner > .dlgContent {
+  padding: 8pt;
+}
+
+.dlgContent .warning {
+  background: #FFB8B8;
+  border: 1px solid red;
+  margin-bottom: 0.8em;
+}
+
+.usercell {
+	padding:0.75em;
+	xdisplay: inline-block;
+	xwidth: 15em;
+	border-bottom: dotted 1px black;
+}
+.usercell > .fullname {
+	font-size: 110%;
+	font-weight: bold;
+}
+.usercell > .username, .wsgroup > .username {
+	font-size: 90%;
+	font-style: italic;
+}
+
+.wsgroup > .fullname {
+  font-weight: bold;
+}
+
+.groupeditpanelhead {
+	margin: 1em -4% 0.5em -4%;
+  margin-left:-4%;
+  border-top: 1px dotted black;
+	padding: 0.4em 3% 0px 3%;
+	font-size: larger;
+}
+
+.gwt-TextBox {
+  padding: 5px 4px;
+  border: 1px solid #ccc;
+  border-top: 1px solid #999;
+  font-size: small;
+  font-family: Arial Unicode MS, Arial, sans-serif;
+}
+
+.gwt-Button {
+	padding: 1.5ex 2em;
+	font-size: 120%;
+}
+
+.gwttextboxlabel {
+	padding-top:7px;
+	margin-right:1ex;
+}
+
+.slotchoicescrollcontainer {
+	max-height: 20em;
+	margin: 0.7em 0px;
+	border: 1px solid black;
+	padding: 0.3em;
+}
+
+.userchoicescrollcontainer {
+  max-height: 30em;
+  margin: 0.7em 0px;
+  border: 1px solid black;
+  padding: 0.3em;
+}
+
+.slotcell {
+	padding: 0.3ex;
+	border-bottom: 1px dotted darkgray;
+}
+
+.presentationContentHolder > h3 {
+	margin-left:-1%;
+}

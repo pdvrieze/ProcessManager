@@ -21,16 +21,16 @@
 
 package uk.ac.bournemouth.darwin
 
+import kotlinx.browser.document
+import kotlinx.dom.appendText
+import kotlinx.dom.clear
+import kotlinx.dom.hasClass
 import kotlinx.html.dom.create
 import org.w3c.dom.*
 import uk.ac.bournemouth.darwin.sharedhtml.ServiceContext
 import uk.ac.bournemouth.darwin.sharedhtml.loginDialog
 import uk.ac.bournemouth.darwin.sharedhtml.withContext
 import uk.ac.bournemouth.darwin.util.visitDescendants
-import kotlin.browser.document
-import kotlin.dom.appendText
-import kotlin.dom.clear
-import kotlin.dom.hasClass
 
 const val accountsLoc = "/accountmgr/"
 

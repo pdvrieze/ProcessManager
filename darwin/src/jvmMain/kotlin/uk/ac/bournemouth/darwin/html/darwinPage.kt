@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2021.
  *
  * This file is part of ProcessManager.
  *
@@ -14,6 +14,8 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+@file:JvmName("ServletKt")
+
 package uk.ac.bournemouth.darwin.html
 
 import kotlinx.html.*
@@ -22,17 +24,11 @@ import uk.ac.bournemouth.darwin.sharedhtml.*
 import java.net.URI
 import java.security.Principal
 import java.util.*
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
 
 /** Should Javascript initialization be delayed to the footer of the page. */
 private const val DELAY_JS = true
 
-fun HttpServletResponse.contentType(type: String) {
-    addHeader("Content-Type", type)
-}
-
-val HttpServletRequest.isNoChromeRequested: Boolean
+val RequestInfo.isNoChromeRequested: Boolean
     get() = getHeader("X-Darwin")?.contains("nochrome") ?: false
 
 /**
@@ -43,88 +39,94 @@ val HttpServletRequest.isNoChromeRequested: Boolean
  * @param pageTitle The title to display on page (if not the same as windowTitle)
  * @param bodyContent The closure that creates the actual body content of the document.
  */
-fun HttpServletResponse.darwinResponse(request: HttpServletRequest,
+fun ResponseContext.darwinResponse(request: RequestInfo,
                                        windowTitle: String = "Darwin",
                                        pageTitle: String? = null,
                                        includeLogin: Boolean = true,
                                        context: ServiceContext = RequestServiceContext(request),
                                        bodyContent: ContextTagConsumer<HtmlBlockTag>.() -> Unit) {
-    val result = writer
+    respondWriter { result ->
 
-    if (request.isNoChromeRequested) {
-        contentType("text/xml")
-        result.append("<?xml version=\"1.0\" ?>\n")
-        result.appendHTML().partialHTML {
-            title(windowTitle, pageTitle)
-            script(context.jsLocalRef("main.js"))
-            body {
-                withContext(context).bodyContent()
-            }
-        }
-    } else {
-        contentType("text/html")
-        result.append("<!DOCTYPE html>\n")
-        result.appendHTML().html {
-
-            head {
-                title(windowTitle)
-                styleLink(context.cssRef("darwin.css"))
-                meta(name = "viewport", content = "width=device-width, initial-scale=1.0")
-                if (!DELAY_JS) script(type = ScriptType.textJavaScript, src = context.jsGlobalRef(
-                    "require.js")) { this.attributes["data-main"] = context.jsLocalRef("main.js") }
-            }
-            body {
-                h1 {
-                    id = "header"
-                    a(href = "/") {
-                        id = "logo"
-                        +"Darwin"
-                    }
-                    span {
-                        id = "title"
-                        +(pageTitle ?: windowTitle)
-                    }
-                }
-
-                darwinMenu(request)
-
-                div {
-                    id = "login"
-                    loginPanelContent(context, request.userPrincipal?.name)
-                }
-
-                div {
-                    id = "content"
+        if (request.isNoChromeRequested) {
+            contentType("text/xml")
+            result.append("<?xml version=\"1.0\" ?>\n")
+            result.appendHTML().partialHTML {
+                title(windowTitle, pageTitle)
+                script(context.jsLocalRef("main.js"))
+                body {
                     withContext(context).bodyContent()
                 }
-                if (includeLogin) {
-                    // A mini form that we use to get username/password out of the account manager
-                    form(action = "${context.accountMgrPath}login", method = FormMethod.post) {
-                        id = "xloginform"; style = "display:none"
-                        input(type = InputType.text, name = "username")
-                        input(type = InputType.password, name = "password")
+            }
+        } else {
+            contentType("text/html")
+            result.append("<!DOCTYPE html>\n")
+            result.appendHTML().html {
+
+                head {
+                    title(windowTitle)
+                    styleLink(context.cssRef("darwin.css"))
+                    meta(name = "viewport", content = "width=device-width, initial-scale=1.0")
+                    if (!DELAY_JS) script(
+                        type = ScriptType.textJavaScript,
+                        src = context.jsGlobalRef("require.js")
+                    ) { this.attributes["data-main"] = context.jsLocalRef("main.js") }
+                }
+                body {
+                    h1 {
+                        id = "header"
+                        a(href = "/") {
+                            id = "logo"
+                            +"Darwin"
+                        }
+                        span {
+                            id = "title"
+                            +(pageTitle ?: windowTitle)
+                        }
                     }
-                }
-                div {
-                    id = "footer"
-                    span { id = "divider" }
-                    +"Darwin is a Bournemouth University Project"
-                }
-                if (DELAY_JS) script(type = ScriptType.textJavaScript, src = context.jsGlobalRef(
-                    "require.js")) { this.attributes["data-main"] = context.jsLocalRef("main.js") }
+
+                    darwinMenu(request)
+
+                    div {
+                        id = "login"
+                        loginPanelContent(context, request.userPrincipal?.name)
+                    }
+
+                    div {
+                        id = "content"
+                        withContext(context).bodyContent()
+                    }
+                    if (includeLogin) {
+                        // A mini form that we use to get username/password out of the account manager
+                        form(action = "${context.accountMgrPath}login", method = FormMethod.post) {
+                            id = "xloginform"; style = "display:none"
+                            input(type = InputType.text, name = "username")
+                            input(type = InputType.password, name = "password")
+                        }
+                    }
+                    div {
+                        id = "footer"
+                        span { id = "divider" }
+                        +"Darwin is a Bournemouth University Project"
+                    }
+                    if (DELAY_JS) script(
+                        type = ScriptType.textJavaScript, src = context.jsGlobalRef(
+                            "require.js"
+                        )
+                    ) { this.attributes["data-main"] = context.jsLocalRef("main.js") }
 //        script(type= ScriptType.textJavaScript, src="/js/darwin.js")
+                }
             }
         }
     }
 }
 
-fun HttpServletResponse.darwinError(req: HttpServletRequest,
+fun ResponseContext.darwinError(req: RequestInfo,
                                     message: String,
                                     code: Int = 500,
                                     status: String = "Server error",
                                     cause: Exception? = null) {
     setStatus(code)
-    this.darwinResponse(req, windowTitle = "$code $status") {
+    darwinResponse(req, windowTitle = "$code $status") {
         h2 { +status }
         p {
             style = "margin-top: 2em"
@@ -163,7 +165,7 @@ class MenuItem(val label: String, val target: URI) {
     constructor(label: String, target: String) : this(label, URI.create(target))
 }
 
-fun <T, C : TagConsumer<T>> C.darwinMenu(request: HttpServletRequest): T {
+fun <T, C : TagConsumer<T>> C.darwinMenu(request: RequestInfo): T {
     val user = request.userPrincipal
 
     return div {
@@ -178,12 +180,12 @@ fun <T, C : TagConsumer<T>> C.darwinMenu(request: HttpServletRequest): T {
     }
 }
 
-fun FlowContent.darwinMenu(request: HttpServletRequest) {
+fun FlowContent.darwinMenu(request: RequestInfo) {
     consumer.darwinMenu(request)
 }
 
 
-private fun getMenuItems(request: HttpServletRequest, user: Principal?): List<MenuItem> {
+private fun getMenuItems(request: RequestInfo, user: Principal?): List<MenuItem> {
     val menuItems: MutableList<MenuItem> = ArrayList()
     // Pages with /#/... urls are virtual pages. They don't have valid other urls
 
@@ -203,18 +205,15 @@ private fun getMenuItems(request: HttpServletRequest, user: Principal?): List<Me
 /**
  * A class representing the idea of sending sufficient html to replace the content, but not the layout of the page.
  */
-class PartialHTML(initialAttributes: Map<String, String>, override val consumer: TagConsumer<*>) : HTMLTag("root",
-                                                                                                           consumer,
-                                                                                                           initialAttributes,
-                                                                                                           null, false,
-                                                                                                           false) {
+class PartialHTML(initialAttributes: Map<String, String>, override val consumer: TagConsumer<*>) :
+    HTMLTag("root", consumer, initialAttributes, null, false, false) {
 
     fun title(block: TITLE.() -> Unit = {}): Unit = TITLE(emptyMap, consumer).visit(block)
-    fun title(windowTitle: String = "", pageTitle: String? = null): Unit = TITLE(emptyMap, consumer).visit({
-                                                                                                               attributes["windowtitle"] = windowTitle
-                                                                                                               +(pageTitle
-                                                                                                                 ?: windowTitle)
-                                                                                                           })
+    fun title(windowTitle: String = "", pageTitle: String? = null): Unit =
+        TITLE(emptyMap, consumer).visit {
+            attributes["windowtitle"] = windowTitle
+            +(pageTitle ?: windowTitle)
+        }
 
     fun script(src: String) {
         SCRIPT(emptyMap, consumer).visit {
@@ -236,7 +235,7 @@ fun <T, C : TagConsumer<T>> C.partialHTML(block: PartialHTML.() -> Unit = {}): T
                                                                                                this).visitAndFinalize(
     this, block)
 
-val HttpServletRequest.htmlAccepted: Boolean
+val RequestInfo.htmlAccepted: Boolean
     get() {
         return getHeader("Accept")?.let { it.contains("text/html") || it.contains("application/nochrome") } ?: false
     }
@@ -260,7 +259,7 @@ fun ContextTagConsumer<HtmlBlockTag>.darwinDialog(title: String,
 
 }
 
-class RequestServiceContext(private val request: HttpServletRequest) : ServiceContext {
+class RequestServiceContext(private val request: RequestInfo) : ServiceContext {
     override val accountMgrPath: String
         get() = "/accountmgr/"
     override val assetPath: String

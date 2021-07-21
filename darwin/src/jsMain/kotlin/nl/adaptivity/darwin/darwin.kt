@@ -28,12 +28,12 @@ import uk.ac.bournemouth.darwin.LoginDialog
 import uk.ac.bournemouth.darwin.accountsLoc
 import uk.ac.bournemouth.darwin.sharedhtml.*
 import uk.ac.bournemouth.darwin.util.*
-import kotlin.browser.document
-import kotlin.browser.window
-import kotlin.dom.addClass
-import kotlin.dom.clear
-import kotlin.dom.hasClass
-import kotlin.dom.removeClass
+import kotlinx.browser.document
+import kotlinx.browser.window
+import kotlinx.dom.addClass
+import kotlinx.dom.clear
+import kotlinx.dom.hasClass
+import kotlinx.dom.removeClass
 
 object html {
   val context: JSServiceContext = JSServiceContext()

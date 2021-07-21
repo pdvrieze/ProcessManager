@@ -37,7 +37,7 @@ class MainServlet: HttpServlet(), Servlet {
       }
       "/common/menu" -> {
         resp.writer!!.use {
-          it.appendHTML().darwinMenu(req)
+            it.appendHTML().darwinMenu(ServletRequestInfo(req))
         }
       }
 
