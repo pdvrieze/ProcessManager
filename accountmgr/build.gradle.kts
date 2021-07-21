@@ -33,7 +33,6 @@ base {
 configurations {
     create("javascript") {
         attributes {
-            attribute(androidAttribute, false)
             attribute(KotlinPlatformType.attribute, KotlinPlatformType.js)
         }
     }
@@ -58,8 +57,8 @@ dependencies {
     compileOnly(project(":DarwinJavaApi"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
     implementation(project(":darwin-sql"))
-    testRuntime("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
-    testRuntime("mysql:mysql-connector-java:5.1.36")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
+    testRuntimeOnly("mysql:mysql-connector-java:5.1.36")
 
     "javascript"(project(":accountmgr:js"))
 }

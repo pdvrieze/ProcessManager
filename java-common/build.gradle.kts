@@ -54,7 +54,9 @@ kotlin {
                 }
             }
         }
-        js {
+        js(BOTH) {
+            browser()
+            nodejs()
             compilations.all {
                 tasks.getByName<KotlinJsCompile>(compileKotlinTaskName).kotlinOptions {
                     sourceMap = true
@@ -119,9 +121,8 @@ kotlin {
 
 
 repositories {
-    jcenter()
+    mavenLocal()
     mavenCentral()
-    maven { setUrl("https://dl.bintray.com/kotlin/kotlin-eap") }
 }
 
 //test {

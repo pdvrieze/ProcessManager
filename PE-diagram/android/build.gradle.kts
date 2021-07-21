@@ -31,7 +31,7 @@ dependencies {
     implementation(kotlin("stdlib", kotlin_version))
     api(project(":PE-common:android"))
     implementation(project(":multiplatform:android"))
-    api("net.devrieze:xmlutil-android:$xmlutilVersion")
+    api("io.github.pdvrieze.xmlutil:core-android:$xmlutilVersion")
     api(project(":java-common:android"))
     expectedBy(project(":PE-diagram:common"))
 }

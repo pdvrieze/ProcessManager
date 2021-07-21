@@ -17,14 +17,10 @@
 pluginManagement {
     repositories {
         mavenLocal()
-        jcenter()
+        mavenCentral()
         google()
         maven { url "https://plugins.gradle.org/m2/" }
 
-        maven { url "https://kotlin.bintray.com/kotlinx" }
-        maven { url "https://dl.bintray.com/kotlin/kotlin-eap" }
-
-        mavenCentral()
     }
     resolutionStrategy {
         eachPlugin {
@@ -48,6 +44,10 @@ pluginManagement {
                 case "org.jetbrains.dokka-android":
                     def ver = requested.version != null ? requested.version : dokkaVersion
                     useModule("org.jetbrains.dokka:dokka-android-gradle-plugin:${ver}")
+                    break
+                case "org.jetbrains.kotlin.plugin.serialization":
+                    def version = (requested.version == null || requested.version.length() == 0) ? kotlin_version : requested.version
+                    useVersion(version)
                     break
                 case "kotlinx-serialization":
                     def version = (requested.version == null || requested.version.length() == 0) ? kotlin_version : requested.version
@@ -89,8 +89,6 @@ pluginManagement {
 
 rootProject.name = "ProcessManager"
 
-enableFeaturePreview("GRADLE_METADATA")
-
 include(":multiplatform")
 include(":JavaCommonApi")
 
@@ -105,8 +103,8 @@ if(file("kotlinsql").exists()) {
 if (file("xmlutil").exists()) {
     includeBuild("xmlutil") {
         dependencySubstitution {
-            substitute module('net.devrieze:xmlutil') with project(':core')
-            substitute module('net.devrieze:xmlutil-serialization') with project(':serialization')
+            substitute module('io.github.pdvrieze.xmlutil:core') with project(':core')
+            substitute module('io.github.pdvrieze.xmlutil:serialization') with project(':serialization')
         }
     }
 }

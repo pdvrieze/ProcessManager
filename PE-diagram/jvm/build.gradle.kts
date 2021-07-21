@@ -47,10 +47,10 @@ dependencies {
     implementation(project(":PE-common:jvm"))
     compileOnly(project(path= ":PE-common:jvm", configuration="compileOnly"))
     imageGenCompile(project(":PE-diagram:jvm"))
-    imageGenRuntime("net.devrieze:xmlutil:$xmlutilVersion")
+    imageGenRuntime("io.github.pdvrieze.xmlutil:core:$xmlutilVersion")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
-    testRuntime("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
 }
 
 tasks.withType<Test> {

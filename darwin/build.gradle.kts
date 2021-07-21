@@ -26,7 +26,7 @@ plugins {
 }
 
 base {
-    archivesBaseName = "darwin"
+    archivesName.set("darwin")
     version = "1.1.0"
     description = "Wrapper project for the main darwin web interface. This is not really process dependent."
 }
@@ -36,8 +36,8 @@ val outDir = "$buildDir/kotlin2js/main/"
 lateinit var javascriptConfiguration: Configuration
 
 configurations {
-    javascriptConfiguration = create("javascript")
-    create("warConfig")
+//    javascriptConfiguration = create("javascript")
+//    create("warConfig")
 }
 
 
@@ -54,10 +54,10 @@ kotlin {
             }
             attributes.attribute(androidAttribute, false)
         }
-        js {
+        js(BOTH) {
+            browser()
             compilations.all {
-                tasks.getByName<KotlinJsCompile>(compileKotlinTaskName).kotlinOptions {
-//                    outputFile = outDir + "darwin.js"
+                kotlinOptions {
                     sourceMap = true
                     suppressWarnings = false
                     verbose = true
@@ -71,17 +71,23 @@ kotlin {
     }
 
     sourceSets {
+
+        all {
+            languageSettings {
+                useExperimentalAnnotation("kotlin.RequiresOptIn")
+            }
+        }
         val commonMain by getting {
             dependencies {
                 implementation(project(":multiplatform"))
                 implementation(kotlin("stdlib"))
-                implementation("org.jetbrains.kotlinx:kotlinx-html-common:$kotlinx_html_version")
+                implementation("org.jetbrains.kotlinx:kotlinx-html:$kotlinx_html_version")
             }
         }
         val jvmMain by getting {
             dependencies {
                 implementation(kotlin("stdlib-jdk8"))
-                implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:$kotlinx_html_version")
+                implementation("org.jetbrains.kotlinx:kotlinx-html:$kotlinx_html_version")
 
                 compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
                 compileOnly(project(":JavaCommonApi"))
@@ -99,6 +105,6 @@ kotlin {
 }
 
 repositories {
-    jcenter()
-    maven { setUrl("https://dl.bintray.com/kotlin/kotlin-eap") }
+    mavenLocal()
+    mavenCentral()
 }

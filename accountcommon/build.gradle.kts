@@ -1,5 +1,3 @@
-import versions.*
-
 /*
  * Copyright (c) 2017.
  *
@@ -16,6 +14,8 @@ import versions.*
  * see <http://www.gnu.org/licenses/>.
  */
 
+import versions.*
+
 plugins {
     id("org.jetbrains.kotlin.jvm")
     id("java-library")
@@ -29,7 +29,7 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
     implementation(project(":darwin-sql"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
-    testRuntime("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
     testRuntimeOnly("mysql:mysql-connector-java:$mysqlConnectorVersion")
 }
 

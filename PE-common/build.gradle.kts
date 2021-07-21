@@ -59,7 +59,9 @@ kotlin {
                 }
             }
         }
-        js {
+        js(BOTH) {
+            browser()
+            nodejs()
             compilations.all {
                 tasks.getByName<KotlinJsCompile>(compileKotlinTaskName).kotlinOptions {
                     sourceMap = true
@@ -80,10 +82,10 @@ kotlin {
                 implementation(project(":multiplatform"))
                 implementation(kotlin("stdlib"))
 
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationVersion")
-                implementation("net.devrieze:xmlutil:$xmlutilVersion")
-                implementation("net.devrieze:serialutil:$xmlutilVersion")
-                api("net.devrieze:xmlutil-serialization:$xmlutilVersion")
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
+                implementation("io.github.pdvrieze.xmlutil:core:$xmlutilVersion")
+                implementation("io.github.pdvrieze.xmlutil:serialutil:$xmlutilVersion")
+                api("io.github.pdvrieze.xmlutil:serialization:$xmlutilVersion")
 
                 compileOnly(project(":JavaCommonApi"))
                 implementation(project(":java-common"))
@@ -94,8 +96,8 @@ kotlin {
             dependsOn(commonMain)
             dependencies {
                 implementation(kotlin("stdlib"))
-                implementation("net.devrieze:xmlutil:$xmlutilVersion")
-                implementation("net.devrieze:serialutil:$xmlutilVersion")
+                implementation("io.github.pdvrieze.xmlutil:core:$xmlutilVersion")
+                implementation("io.github.pdvrieze.xmlutil:serialutil:$xmlutilVersion")
             }
         }
         val jvmMain by getting {
@@ -110,9 +112,9 @@ kotlin {
                 implementation("javax.activation:javax.activation-api:$activationVersion")
                 implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
 
-                implementation("net.devrieze:xmlutil:$xmlutilVersion")
-                implementation("net.devrieze:serialutil:$xmlutilVersion")
-                implementation("net.devrieze:xmlutil-serialization:$xmlutilVersion")
+                implementation("io.github.pdvrieze.xmlutil:core:$xmlutilVersion")
+                implementation("io.github.pdvrieze.xmlutil:serialutil:$xmlutilVersion")
+                implementation("io.github.pdvrieze.xmlutil:serialization:$xmlutilVersion")
             }
         }
         val jvmTest by getting {
@@ -127,9 +129,9 @@ kotlin {
 
                 runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.1.0")
 
-                implementation("net.devrieze:xmlutil-jvm:$xmlutilVersion")
-                implementation("net.devrieze:serialutil-jvm:$xmlutilVersion")
-                implementation("net.devrieze:xmlutil-serialization-jvm:$xmlutilVersion")
+                implementation("io.github.pdvrieze.xmlutil:core-jvm:$xmlutilVersion")
+                implementation("io.github.pdvrieze.xmlutil:serialutil-jvm:$xmlutilVersion")
+                implementation("io.github.pdvrieze.xmlutil:serialization-jvm:$xmlutilVersion")
 
 //                implementation(project(":JavaCommonApi"))
                 implementation(project(":DarwinJavaApi"))
@@ -143,18 +145,18 @@ kotlin {
                 compileOnly(project(":DarwinJavaApi"))
                 compileOnly(project(":JavaCommonApi"))
                 implementation(kotlin("stdlib-jdk7"))
-                implementation("net.devrieze:xmlutil-android:$xmlutilVersion")
-                implementation("net.devrieze:serialutil-android:$xmlutilVersion")
-                implementation("net.devrieze:xmlutil-serialization-android:$xmlutilVersion")
+                implementation("io.github.pdvrieze.xmlutil:core-android:$xmlutilVersion")
+                implementation("io.github.pdvrieze.xmlutil:serialutil-android:$xmlutilVersion")
+                implementation("io.github.pdvrieze.xmlutil:serialization-android:$xmlutilVersion")
             }
         }
         val jsMain by getting {
             dependsOn(commonMain)
             dependencies {
-                implementation("net.devrieze:serialutil-js:$xmlutilVersion")
-                api("net.devrieze:xmlutil-js:$xmlutilVersion")
-                api("net.devrieze:xmlutil-serialization-js:$xmlutilVersion")
-                api("org.jetbrains.kotlinx:kotlinx-serialization-runtime-js:$serializationVersion")
+                implementation("io.github.pdvrieze.xmlutil:serialutil-js:$xmlutilVersion")
+                api("io.github.pdvrieze.xmlutil:core-js:$xmlutilVersion")
+                api("io.github.pdvrieze.xmlutil:serialization-js:$xmlutilVersion")
+                api("org.jetbrains.kotlinx:kotlinx-serialization-core-js:$serializationVersion")
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version")
             }
         }
@@ -164,12 +166,6 @@ kotlin {
 
 registerAndroidAttributeForDeps()
 
-
-repositories {
-    jcenter()
-    mavenCentral()
-    maven { setUrl("https://dl.bintray.com/kotlin/kotlin-eap") }
-}
 
 tasks.create<Task>("test") {
     dependsOn(tasks.named("jvmTest"))

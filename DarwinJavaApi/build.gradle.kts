@@ -43,8 +43,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
 }
 repositories {
-    maven { setUrl("https://dl.bintray.com/kotlin/kotlin-eap") }
-    jcenter()
+    mavenLocal()
     mavenCentral()
 }
 val compileKotlin: KotlinCompile by tasks

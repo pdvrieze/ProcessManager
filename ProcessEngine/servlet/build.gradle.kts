@@ -69,7 +69,7 @@ dependencies {
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
     testImplementation("org.xmlunit:xmlunit-core:2.6.0")
-    testRuntime("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
 }
 
 tasks.named<Test>("test") {

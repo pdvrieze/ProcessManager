@@ -61,7 +61,7 @@ dependencies {
 
 }
 repositories {
-    maven { setUrl("https://dl.bintray.com/kotlin/kotlin-eap") }
+    mavenLocal()
     mavenCentral()
 }
 val compileKotlin: KotlinCompile by tasks

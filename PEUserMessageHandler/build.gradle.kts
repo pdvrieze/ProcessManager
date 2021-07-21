@@ -185,8 +185,8 @@ dependencies {
     compileOnly(sourceSets["api"].output)
 
 
-    runtime("com.fasterxml.woodstox:woodstox-core:5.1.0")
-    implementation(("net.devrieze:xmlutil:$xmlutilVersion"))
+    runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.1.0")
+    implementation(("io.github.pdvrieze.xmlutil:core:$xmlutilVersion"))
     implementation(project(":PE-common"))
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
 
@@ -195,13 +195,13 @@ dependencies {
     compileOnly(project(":DarwinJavaApi"))
 
 
-    testRuntime(project(":DarwinJavaApi"))
+    testRuntimeOnly(project(":DarwinJavaApi"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
-    testRuntime("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
     testImplementation("org.xmlunit:xmlunit-core:2.6.0")
     testImplementation(project(":PE-common"))
-    testRuntime("com.fasterxml.woodstox:woodstox-core:5.1.0")
-    testRuntime("mysql:mysql-connector-java:5.1.36")
+    testRuntimeOnly("com.fasterxml.woodstox:woodstox-core:5.1.0")
+    testRuntimeOnly("mysql:mysql-connector-java:5.1.36")
 
 /*
     wsDoc project(":PE-common:endpointDoclet")

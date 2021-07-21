@@ -32,9 +32,9 @@ java {
 }
 
 configurations {
-    val testRuntime by getting {}
+    val testRuntimeClasspath by getting {}
     val testJarConfig by creating {
-        extendsFrom(testRuntime)
+        extendsFrom(testRuntimeClasspath)
     }
 }
 
@@ -44,7 +44,7 @@ val testJar by tasks.creating(Jar::class) {
 }
 
 artifacts {
-    add("testRuntime", testJar)
+    add("testRuntimeClasspath", testJar)
 }
 
 registerAndroidAttributeForDeps()
@@ -56,7 +56,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
 }
 repositories {
-    maven { setUrl("https://dl.bintray.com/kotlin/kotlin-eap") }
+    mavenLocal()
     mavenCentral()
 }
 val compileKotlin: KotlinCompile by tasks

@@ -35,6 +35,13 @@ base {
     description = "A library with process engine support classes"
 }
 
+registerAndroidAttributeForDeps()
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
+
 kotlin {
     targets {
         jvm {
@@ -84,11 +91,11 @@ kotlin {
                 implementation(kotlin("stdlib"))
                 implementation(project(":java-common"))
                 implementation(project(":PE-common"))
-                implementation("net.devrieze:xmlutil:$xmlutilVersion")
+                implementation("io.github.pdvrieze.xmlutil:core:$xmlutilVersion")
                 compileOnly(project(":JavaCommonApi"))
 
-//                implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationVersion")
-//                api("net.devrieze:xmlutil-serialization:$xmlutilVersion")
+//                implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
+//                api("io.github.pdvrieze.xmlutil:serialization:$xmlutilVersion")
 
 
             }
@@ -96,7 +103,7 @@ kotlin {
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
-                implementation(kotlin("test-annotations-common"))
+                implementation(kotlin("test-annotations"))
             }
         }
         val javaMain by creating {
@@ -114,8 +121,8 @@ kotlin {
 //                compileOnly(project(":JavaCommonApi"))
 //                compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
 
-//                implementation("net.devrieze:xmlutil:$xmlutilVersion")
-//                implementation("net.devrieze:xmlutil-serialization:$xmlutilVersion")
+//                implementation("io.github.pdvrieze.xmlutil:core:$xmlutilVersion")
+//                implementation("io.github.pdvrieze.xmlutil:serialization:$xmlutilVersion")
             }
         }
         val jvmTest by getting {
@@ -139,8 +146,8 @@ kotlin {
 
                 runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.1.0")
 
-                implementation("net.devrieze:xmlutil:$xmlutilVersion")
-                implementation("net.devrieze:xmlutil-serialization:$xmlutilVersion")
+                implementation("io.github.pdvrieze.xmlutil:core:$xmlutilVersion")
+                implementation("io.github.pdvrieze.xmlutil:serialization:$xmlutilVersion")
 
 //                implementation(project(":JavaCommonApi"))
                 implementation(project(":DarwinJavaApi"))
@@ -156,9 +163,9 @@ kotlin {
         val jsMain by getting {
             dependsOn(commonMain)
             dependencies {
-                api("net.devrieze:xmlutil:$xmlutilVersion")
-                api("net.devrieze:xmlutil-serialization:$xmlutilVersion")
-                api("org.jetbrains.kotlinx:kotlinx-serialization-runtime-js:$serializationVersion")
+                api("io.github.pdvrieze.xmlutil:core:$xmlutilVersion")
+                api("io.github.pdvrieze.xmlutil:serialization:$xmlutilVersion")
+                api("org.jetbrains.kotlinx:kotlinx-serialization-runtime-core-js:$serializationVersion")
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version")
             }
         }
@@ -167,14 +174,6 @@ kotlin {
 
 }
 
-registerAndroidAttributeForDeps()
-
-
-repositories {
-    jcenter()
-    mavenCentral()
-    maven { setUrl("https://dl.bintray.com/kotlin/kotlin-eap") }
-}
 
 tasks.create<Task>("test") {
     dependsOn(tasks.named("jvmTest"))

@@ -31,19 +31,21 @@ run {
     }
 }
 
-val bintrayVersion: String by project
 val kotlin_version: String by project
 val androidPluginVersion: String by project
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.21")
     runtimeOnly("com.android.tools.build:gradle:$androidPluginVersion")
 }
 
+//dependencies {
+//    "implementationOnly"("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
+//    runtimeOnly("com.android.tools.build:gradle:$androidPluginVersion")
+//}
+
 repositories {
     mavenLocal()
-    jcenter()
+    mavenCentral()
     google()
-    maven(url = "https://dl.bintray.com/kotlin/kotlin-eap")
-
 }

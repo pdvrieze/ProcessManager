@@ -53,9 +53,9 @@ kotlin {
 
 
             tasks.create<Test>("testWCP1") {
-                useJUnitPlatform {
-                    includeEngines("spek2"/*, "junit-jupiter"*/)
-                }
+//                useJUnitPlatform {
+//                    includeEngines("spek2"/*, "junit-jupiter"*/)
+//                }
                 filter {
                     includeTestsMatching("nl.adaptivity.process.engine.patterns.WCP1.*")
                 }
@@ -101,9 +101,9 @@ kotlin {
                     api(project(":PE-common"))
                     api("jakarta.jws:jakarta.jws-api:$jwsApiVersion")
                     api("javax.activation:javax.activation-api:$activationVersion")
-                    implementation("org.jetbrains.kotlinx:kotlinx-serialization-runtime:$serializationVersion")
+                    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
 
-                    runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.1.0")
+                    runtimeOnly("com.fasterxml.woodstox:woodstox-core:6.2.6")
 
                     compileOnly("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
                 }
@@ -115,8 +115,10 @@ kotlin {
                     implementation(kotlin("stdlib-jdk8"))
 
                     implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
-                    implementation("org.spekframework.spek2:spek-dsl-jvm:${spek2Version}")
-                    runtimeOnly("org.spekframework.spek2:spek-runtime-jvm:${spek2Version}")
+
+//                    implementation("org.spekframework.spek2:spek-dsl-jvm:${spek2Version}")
+//                    runtimeOnly("org.spekframework.spek2:spek-runtime-jvm:${spek2Version}")
+
                     implementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
 
                     implementation("org.xmlunit:xmlunit-core:2.6.0")
@@ -124,15 +126,15 @@ kotlin {
 
                     implementation(project(":DarwinJavaApi"))
                     implementation(project(":TestSupport"))
-                    implementation("net.devrieze:xmlutil-serialization-jvm:$xmlutilVersion")
+                    implementation("io.github.pdvrieze.xmlutil:serialization-jvm:$xmlutilVersion")
 
                     runtimeOnly("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
                     runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
 
-                    runtimeOnly("org.spekframework.spek2:spek-runner-junit5:${spek2Version}") {
-                        exclude(group = "org.junit.platform")
-                        exclude(group = "org.jetbrains.kotlin")
-                    }
+//                    runtimeOnly("org.spekframework.spek2:spek-runner-junit5:${spek2Version}") {
+//                        exclude(group = "org.junit.platform")
+//                        exclude(group = "org.jetbrains.kotlin")
+//                    }
                 }
             }
         }
@@ -157,7 +159,7 @@ tasks.withType<KotlinCompile> {
 
 tasks.named<Test>("jvmTest") {
     useJUnitPlatform {
-        includeEngines("spek2", "junit-jupiter")
+        includeEngines(/*"spek2",*/ "junit-jupiter")
     }
     include("**/TestWorkflowPatterns**")
     include("**/TestProcessEngine**")

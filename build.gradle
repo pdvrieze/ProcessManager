@@ -21,14 +21,11 @@ buildscript {
     repositories {
         mavenLocal()
         google()
-        jcenter()
-        maven { url = "https://dl.bintray.com/kotlin/kotlin-eap" }
+        mavenCentral()
     }
     dependencies {
         classpath "com.android.tools.build:gradle:$androidPluginVersion" //1.5.0
         classpath "com.bmuschko:gradle-tomcat-plugin:$tomcatPluginVersion"
-
-        classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
     }
 
 }
@@ -191,21 +188,9 @@ htmlDependencyReport {
 allprojects {
     repositories {
         mavenLocal()
-        jcenter()
-        maven() {
-            url = "https://dl.bintray.com/kotlin/kotlin-dev"
-        }
+        mavenCentral()
         google()
-        maven() {
-            url = "https://dl.bintray.com/kotlin/kotlinx.html"
-        }
-        maven() {
-            url = "https://kotlin.bintray.com/kotlinx"
-        }
-        maven {
-            url = "https://dl.bintray.com/jetbrains/spek"
-        }
-        maven { url = "https://dl.bintray.com/kotlin/kotlin-eap" }
+        maven { url "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven" }
     }
 //
 //    tasks.withType(KotlinCompile) {

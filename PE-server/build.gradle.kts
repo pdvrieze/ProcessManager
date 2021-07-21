@@ -66,7 +66,7 @@ configurations {
             attribute(KotlinPlatformType.attribute, KotlinPlatformType.jvm)
         }
     }
-    "runtime" {
+    "runtimeOnly" {
         setExtendsFrom(listOf(warContents))
     }
 }
@@ -92,7 +92,7 @@ dependencies {
     tomcat(project(":JavaCommonApi"))
     tomcat(project(":DarwinRealm"))
 
-    "warContents"(project(path= ":PEUserMessageHandler", configuration= "runtime"))
+    "warContents"(project(path= ":PEUserMessageHandler", configuration= "runtimeElements"))
     "warContents"(project(":DarwinServices"))
     "warContents"(project(path= ":darwin:war", configuration= "warConfig"))
     "warContents"(project(path= ":ProcessEngine:servlet"))

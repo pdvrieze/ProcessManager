@@ -38,11 +38,11 @@ registerAndroidAttributeForDeps()
 
 dependencies {
     compileOnly("org.apache.tomcat:tomcat-catalina:$tomcatVersion")
-    runtime(dbcpSpec)
+    runtimeOnly(dbcpSpec)
 
-    compile(project(":DarwinJavaApi"))
-    compile(project(":JavaCommonApi"))
-    compile(project(":accountcommon"))
+    implementation(project(":DarwinJavaApi"))
+    implementation(project(":JavaCommonApi"))
+    implementation(project(":accountcommon"))
 }
 
 tasks.withType<KotlinCompile> {

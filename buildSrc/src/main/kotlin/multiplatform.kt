@@ -16,12 +16,9 @@
 
 package multiplatform
 
-import org.gradle.api.Action
 import org.gradle.api.Project
 import org.gradle.api.attributes.*
-import org.gradle.api.logging.Logging
 import org.gradle.kotlin.dsl.dependencies
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
 val androidAttribute = Attribute.of("net.devrieze.android", Boolean::class.javaObjectType)
 

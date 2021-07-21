@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2017.
+ * Copyright (c) 2021.
  *
  * This file is part of ProcessManager.
  *
@@ -14,27 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-plugins {
-    id("kotlin")
-    id("java-library")
-    id("mpconsumer")
+
+fun main() {
+    nl.adaptivity.darwin.main(emptyArray())
 }
-
-description = "The DDL files for the darwin databases"
-
-dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
-    api("net.devrieze:kotlinsql:$kotlinsqlVersion")
-
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
-    testRuntimeOnly("mysql:mysql-connector-java:$mysqlConnectorVersion")
-}
-
-
-test {
-    useJUnitPlatform()
-}
-
-sourceCompatibility = myJavaVersion
-targetCompatibility = myJavaVersion

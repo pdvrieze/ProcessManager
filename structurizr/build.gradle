@@ -23,7 +23,7 @@ plugins {
 description = 'Structurizr architecture generation for the project'
 
 ext {
-    structurizrVer= "0.6.0"
+    structurizrVer= "1.9.5"
     if (!hasProperty("structurizrWs1ApikeyProp")) {
         structurizrWs1ApikeyProp="dummy"
     }
@@ -32,14 +32,17 @@ ext {
     }
 }
 
-
+repositories {
+    mavenLocal()
+    mavenCentral()
+}
 
 dependencies {
-    compile("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
-    compile("org.jetbrains:annotations:13.0")
-    compile("com.structurizr:structurizr-core:${structurizrVer}")
-    compile("com.structurizr:structurizr-client:${structurizrVer}")
-    compile(project(":darwin-sql"))
+    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
+    implementation("org.jetbrains:annotations:13.0")
+    implementation("com.structurizr:structurizr-core:${structurizrVer}")
+    implementation("com.structurizr:structurizr-client:${structurizrVer}")
+    implementation(project(":darwin-sql"))
 }
 
 mainClassName= "uk.ac.bournemouth.darwin.architecture.StructurizrKt"

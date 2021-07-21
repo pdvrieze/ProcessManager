@@ -1,6 +1,4 @@
-import com.android.builder.model.ApiVersion
 import multiplatform.androidAttribute
-import multiplatform.registerAndroidAttributeForDeps
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import versions.*
@@ -88,8 +86,8 @@ dependencies {
 
     implementation(project(":JavaCommonApi"))
 
-    implementation("net.devrieze:xmlutil:$xmlutilVersion")
-    implementation("net.devrieze:xmlutil-serialization:$xmlutilVersion")
+    implementation("io.github.pdvrieze.xmlutil:core:$xmlutilVersion")
+    implementation("io.github.pdvrieze.xmlutil:serialization:$xmlutilVersion")
     implementation(project(":java-common"))
 //    implementation("net.devrieze:android-coroutines-appcompat:0.7.990")
 
