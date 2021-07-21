@@ -138,6 +138,7 @@ include(":accountcommon")
 include(":DarwinRealm")
 include(":darwin")
 include(":darwin:war")
+include(":darwin:ktor")
 include(":accountmgr")
 include(":accountmgr:js")
 
