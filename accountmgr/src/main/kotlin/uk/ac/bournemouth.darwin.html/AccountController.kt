@@ -16,6 +16,10 @@
 
 package uk.ac.bournemouth.darwin.html
 
+import io.github.pdvrieze.darwin.servlet.support.ServletRequestInfo
+import io.github.pdvrieze.darwin.servlet.support.darwinError
+import io.github.pdvrieze.darwin.servlet.support.darwinResponse
+import io.github.pdvrieze.darwin.servlet.support.htmlAccepted
 import kotlinx.html.*
 import net.devrieze.util.nullIfNot
 import net.devrieze.util.overrideIf
@@ -146,7 +150,7 @@ class AccountController : HttpServlet() {
     }
 
     private fun mainJs(req: HttpServletRequest, resp: HttpServletResponse) {
-        resp.contentType("text/javascript")
+        resp.contentType = "text/javascript"
         resp.writer.use { out ->
             out.println("""
                 require.config({
@@ -259,7 +263,7 @@ class AccountController : HttpServlet() {
                 }
 
             } else {
-                resp.contentType("text/xml")
+                resp.contentType = "text/xml"
                 resp.characterEncoding="UTF8"
                 resp.outputStream.use {
                     XMLOutputFactory.newFactory().createXMLStreamWriter(it, "UTF8").useHelper({it.close()}) { writer ->
@@ -291,7 +295,7 @@ class AccountController : HttpServlet() {
             accountDb(DBRESOURCE) {
                 if (verifyCredentials(username, password)) {
                     if (pubkey.isNullOrBlank()) {
-                        resp.contentType("text/plain")
+                        resp.contentType = "text/plain"
                         resp.writer.use {
                             it.append("authenticated:").appendln(username)
                             log.warning("registerkey: User authenticated but missing public key to register")
@@ -299,12 +303,14 @@ class AccountController : HttpServlet() {
                     } else {
                         try {
                             val newKeyId = registerkey(username, pubkey, appname, keyid?.toInt())
-                            resp.contentType("text/plain")
+                            resp.contentType = "text/plain"
                             resp.writer.use { it.append("key:").appendln(newKeyId.toString()) }
                             log.fine("registerkey: registered key with id: $newKeyId")
                         } catch (e: NumberFormatException) {
-                            resp.darwinError(req, "Invalid key format", SC_UNPROCESSIBLE_ENTITY, "UNPROCESSIBLE ENTITY",
-                                             e)
+                            resp.darwinError(
+                                req, "Invalid key format", SC_UNPROCESSIBLE_ENTITY, "UNPROCESSIBLE ENTITY",
+                                e
+                            )
                         }
                     }
 
@@ -338,7 +344,7 @@ class AccountController : HttpServlet() {
                 return
             }
             if (req.htmlAccepted) { // Just display the account manager dialog
-                resp.sendRedirect("${RequestServiceContext(req).accountMgrPath}myaccount")
+                resp.sendRedirect("${RequestServiceContext(ServletRequestInfo(req)).accountMgrPath}myaccount")
             } else {
                 resp.status = HttpServletResponse.SC_NO_CONTENT
                 resp.writer.close()
@@ -448,7 +454,7 @@ class AccountController : HttpServlet() {
         if (req.htmlAccepted) {
             loginScreen(req, resp)
         } else {
-            resp.contentType("text/plain")
+            resp.contentType = "text/plain"
             resp.writer.use { it.appendln("logout") }
         }
     }
@@ -485,7 +491,7 @@ class AccountController : HttpServlet() {
                 }
             }
         } catch (e: AuthException) {
-            resp.darwinError(req = req, message = e.message, code = e.errorCode, cause = e)
+            resp.darwinError(request = req, message = e.message, code = e.errorCode, cause = e)
         }
     }
 
@@ -494,10 +500,12 @@ class AccountController : HttpServlet() {
             cleanChallenges()
             val challenge: String
             try {
-                challenge = newChallenge(keyid,
-                                         req.remoteAddr) // This should fail on an incorrect keyid due to integrity constraints
+                challenge = newChallenge(
+                    keyid,
+                    req.remoteAddr
+                ) // This should fail on an incorrect keyid due to integrity constraints
             } catch (e: AuthException) {
-                resp.contentType("text/plain")
+                resp.contentType = "text/plain"
                 resp.status = e.errorCode
                 resp.writer.use { it.appendln("INVALID REQUEST") }
                 if (e.errorCode == HttpServletResponse.SC_NOT_FOUND) { // missing code
@@ -505,7 +513,7 @@ class AccountController : HttpServlet() {
                 }
                 throw e
             }
-            resp.contentType("text/plain")
+            resp.contentType = "text/plain"
             resp.setHeader(HEADER_CHALLENGE_VERSION, CHALLENGE_VERSION)
             resp.writer.use { it.appendln(challenge) }
         }

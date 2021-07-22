@@ -22,7 +22,7 @@ plugins {
     kotlin("jvm")
     id("war")
     id("idea")
-    id("mpconsumer")
+    mpconsumer
 }
 
 version = "1.0.0"

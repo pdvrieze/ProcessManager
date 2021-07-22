@@ -36,3 +36,10 @@ interface Transaction : AutoCloseable, Closeable {
 
     fun addRollbackHandler(runnable: Runnable)
 }
+
+interface TransactionMonad<Data> {
+    fun <Output> map(action: (Data)-> Output): TransactionMonad<Output>
+    fun <Output> map(rollbackHandler: Runnable, action: (Data)-> Output): TransactionMonad<Output>
+    fun rollback(): Unit
+    fun commit(): Data
+}

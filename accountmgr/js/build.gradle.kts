@@ -15,10 +15,12 @@
  */
 
 import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
+import org.jetbrains.kotlin.gradle.targets.js.KotlinJsCompilerAttribute
 
 plugins {
     kotlin("js")
     idea
+    mpconsumer
 }
 
 description = "Javascript library supporting the accountmanager funcationality."
@@ -28,7 +30,7 @@ val kotlinx_html_version: String by project
 val myJavaVersion: JavaVersion by project
 
 kotlin {
-    js(KotlinJsCompilerType.IR) {
+    js(KotlinJsCompilerType.LEGACY) {
         browser()
     }
 /*
@@ -54,7 +56,7 @@ dependencies {
 val outDir = "${buildDir}/kotlin2js/main/"
 
 tasks.create<Jar>("jar") {
-    baseName="accountmgrjs"
+    archiveBaseName.set("accountmgrjs")
 }
 
 

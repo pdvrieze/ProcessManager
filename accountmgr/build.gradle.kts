@@ -23,7 +23,7 @@ import versions.*
 plugins {
     kotlin("jvm")
     war
-    id("mpconsumer")
+    mpconsumer
 }
 
 base {
@@ -51,7 +51,7 @@ dependencies {
     implementation("com.sun.mail:javax.mail:1.5.5")
     implementation(project(":accountcommon"))
     implementation("net.devrieze:kotlinsql:$kotlinsqlVersion")
-    implementation(project(":darwin"))
+    implementation(project(":darwin:servletSupport"))
     compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
     compileOnly(project(":JavaCommonApi"))
     compileOnly(project(":DarwinJavaApi"))

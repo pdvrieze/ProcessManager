@@ -25,7 +25,7 @@ plugins {
     kotlin("jvm")
     id("java-library")
     id("idea")
-    id("mpconsumer")
+    mpconsumer
 }
 
 

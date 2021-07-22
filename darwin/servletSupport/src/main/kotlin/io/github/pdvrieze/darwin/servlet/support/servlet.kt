@@ -17,6 +17,7 @@
 package io.github.pdvrieze.darwin.servlet.support
 
 import kotlinx.html.HtmlBlockTag
+import uk.ac.bournemouth.darwin.html.RequestInfo
 import uk.ac.bournemouth.darwin.html.RequestServiceContext
 import uk.ac.bournemouth.darwin.html.darwinError
 import uk.ac.bournemouth.darwin.html.darwinResponse
@@ -60,3 +61,9 @@ public fun HttpServletResponse.darwinError(request: HttpServletRequest,
     val req = ServletRequestInfo(request)
     resp.darwinError(req, message, code, status, cause)
 }
+
+
+public val HttpServletRequest.htmlAccepted: Boolean
+    get() {
+        return getHeader("Accept")?.let { it.contains("text/html") || it.contains("application/nochrome") } ?: false
+    }

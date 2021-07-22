@@ -19,7 +19,7 @@ import versions.*
 plugins {
     id("org.jetbrains.kotlin.jvm")
     id("java-library")
-    id("mpconsumer")
+    mpconsumer
 }
 
 description = "A library that abstracts away the access to the account database through a nicer api"

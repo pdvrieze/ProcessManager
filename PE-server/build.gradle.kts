@@ -27,7 +27,7 @@ plugins {
     java
     id("com.bmuschko.tomcat")
     idea
-    id("mpconsumer")
+    mpconsumer
 }
 
 base {

@@ -27,7 +27,7 @@ plugins {
     id("java-library")
     id("kotlinx-serialization")
     id("idea")
-    id("mpconsumer")
+    mpconsumer
 }
 
 version = "1.0.0"

@@ -19,8 +19,8 @@ package uk.ac.bournemouth.util.kotlin
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import uk.ac.bournemouth.kotlinsql.Database
-import uk.ac.bournemouth.util.kotlin.sql.DBConnection
-import uk.ac.bournemouth.util.kotlin.sql.use
+import uk.ac.bournemouth.kotlinsql.query
+import uk.ac.bournemouth.util.kotlin.sql.*
 import java.sql.Connection
 import java.sql.DriverManager
 

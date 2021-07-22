@@ -17,8 +17,10 @@
 package multiplatform
 
 import org.gradle.api.Project
+import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.attributes.*
 import org.gradle.kotlin.dsl.dependencies
+import org.jetbrains.kotlin.gradle.targets.js.*
 
 val androidAttribute = Attribute.of("net.devrieze.android", Boolean::class.javaObjectType)
 
@@ -53,4 +55,10 @@ class AndroidDisambiguationRule : AttributeDisambiguationRule<Boolean> {
         }
     }
 
+}
+
+fun ExternalModuleDependency.jsLegacyAttribute() {
+    attributes {
+        attribute(KotlinJsCompilerAttribute.jsCompilerAttribute, KotlinJsCompilerAttribute.legacy)
+    }
 }

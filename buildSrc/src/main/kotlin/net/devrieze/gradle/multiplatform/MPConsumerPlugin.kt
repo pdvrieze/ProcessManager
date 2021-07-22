@@ -18,11 +18,15 @@ package multiplatform.net.devrieze.gradle.multiplatform
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.attributes.AttributeDisambiguationRule
+import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.kotlin.dsl.hasPlugin
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformAndroidPlugin
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformJsPlugin
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMultiplatformPlugin
+import org.jetbrains.kotlin.gradle.targets.js.KotlinJsCompilerAttribute
+import org.jetbrains.kotlin.gradle.targets.js.KotlinJsCompilerAttribute.Companion.jsCompilerAttribute
 
 class MPConsumerPlugin: Plugin<Project> {
     override fun apply(project: Project) {
@@ -35,10 +39,10 @@ class MPConsumerPlugin: Plugin<Project> {
                     // Don't use classes for the android plugins as we don't want to pull in the android plugin into the
                     // classpath just to find that android is not needed.
                     plugins.hasPlugin(KotlinPlatformAndroidPlugin::class) or
-                    plugins.hasPlugin("com.android.application") or
-                    plugins.hasPlugin("com.android.feature") or
-                    plugins.hasPlugin("com.android.test") or
-                    plugins.hasPlugin("com.android.library") -> KotlinPlatformType.androidJvm
+                        plugins.hasPlugin("com.android.application") or
+                        plugins.hasPlugin("com.android.feature") or
+                        plugins.hasPlugin("com.android.test") or
+                        plugins.hasPlugin("com.android.library") -> KotlinPlatformType.androidJvm
 
                     plugins.hasPlugin(KotlinPlatformJsPlugin::class) -> KotlinPlatformType.js
 
@@ -51,18 +55,47 @@ class MPConsumerPlugin: Plugin<Project> {
                     } else {
                         // All should defer actual application
                         attributes {
-                            if (! contains(KotlinPlatformType.attribute)) {
+                            if (!contains(KotlinPlatformType.attribute)) {
                                 logger.info("Adding kotlin usage attribute $platformType to configuration: ${name}")
                                 attribute(KotlinPlatformType.attribute, platformType)
                             } else {
-                                logger.debug("Preserving kotlin usage attribute on configuration $name as ${getAttribute(KotlinPlatformType.attribute)} instead of $platformType")
+                                logger.debug(
+                                    "Preserving kotlin usage attribute on configuration $name as ${
+                                        getAttribute(
+                                            KotlinPlatformType.attribute
+                                        )
+                                    } instead of $platformType"
+                                )
+                            }
+
+                            if (platformType == KotlinPlatformType.js && !contains(KotlinJsCompilerAttribute.jsCompilerAttribute)) {
+                                attribute(
+                                    KotlinJsCompilerAttribute.jsCompilerAttribute,
+                                    KotlinJsCompilerAttribute.legacy
+                                )
                             }
                         }
                     }
                 }
                 logger.lifecycle("Registering the platform type attributes to the schema with the resolution rules")
                 KotlinPlatformType.setupAttributesMatchingStrategy(dependencies.attributesSchema)
+                dependencies.attributesSchema.attribute(jsCompilerAttribute) {
+                    disambiguationRules.add(KotlinJsDisambiguationRule::class.java)
+                }
+
             }
         }
     }
 }
+
+class KotlinJsDisambiguationRule : AttributeDisambiguationRule<KotlinJsCompilerAttribute> {
+    override fun execute(details: MultipleCandidatesDetails<KotlinJsCompilerAttribute?>) = with(details) {
+        if (consumerValue == null || consumerValue == KotlinJsCompilerAttribute.both) {
+            if (candidateValues == setOf(KotlinJsCompilerAttribute.legacy, KotlinJsCompilerAttribute.ir))
+                closestMatch(KotlinJsCompilerAttribute.legacy)
+        } else {
+            closestMatch(consumerValue!!)
+        }
+    }
+}
+
