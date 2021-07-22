@@ -14,7 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package example
+package io.github.pdvrieze.darwin.ktor.support
 
 import io.ktor.application.*
 import io.ktor.auth.*
@@ -22,9 +22,6 @@ import io.ktor.http.*
 import io.ktor.request.*
 import io.ktor.response.*
 import io.ktor.util.pipeline.*
-import kotlinx.coroutines.CoroutineStart
-import kotlinx.coroutines.GlobalScope
-import kotlinx.coroutines.launch
 import kotlinx.coroutines.runBlocking
 import kotlinx.html.HtmlBlockTag
 import uk.ac.bournemouth.darwin.html.RequestInfo
@@ -36,11 +33,8 @@ import uk.ac.bournemouth.darwin.sharedhtml.ServiceContext
 import java.io.CharArrayWriter
 import java.io.Writer
 import java.security.Principal
-import kotlin.coroutines.Continuation
-import kotlin.coroutines.resume
-import kotlin.coroutines.suspendCoroutine
 
-suspend fun PipelineContext<*, ApplicationCall>.darwinResponse(
+public suspend fun PipelineContext<*, ApplicationCall>.darwinResponse(
     windowTitle: String = "Darwin",
     pageTitle: String? = null,
     includeLogin: Boolean = true,
@@ -52,10 +46,10 @@ suspend fun PipelineContext<*, ApplicationCall>.darwinResponse(
     return resp.darwinResponse(req, windowTitle, pageTitle, includeLogin, context, bodyContent)
 }
 
-suspend fun PipelineContext<*, ApplicationCall>.darwinResponse(windowTitle: String = "Darwin",
-                                                       pageTitle: String? = null,
-                                                       includeLogin: Boolean = true,
-                                                       bodyContent: ContextTagConsumer<HtmlBlockTag>.() -> Unit) {
+public suspend fun PipelineContext<*, ApplicationCall>.darwinResponse(windowTitle: String = "Darwin",
+                                                                      pageTitle: String? = null,
+                                                                      includeLogin: Boolean = true,
+                                                                      bodyContent: ContextTagConsumer<HtmlBlockTag>.() -> Unit) {
     val resp = KtorResponseContext(call)
     val req = KtorServletRequestInfo(call)
     val context = RequestServiceContext(req)
@@ -63,7 +57,7 @@ suspend fun PipelineContext<*, ApplicationCall>.darwinResponse(windowTitle: Stri
 
 }
 
-class KtorResponseContext(private val call: ApplicationCall): ResponseContext {
+public class KtorResponseContext(private val call: ApplicationCall): ResponseContext {
     private var pendingContentType: ContentType = ContentType.parse("text/plain")
     private var pendingCode: HttpStatusCode = HttpStatusCode.OK
 
@@ -85,7 +79,7 @@ class KtorResponseContext(private val call: ApplicationCall): ResponseContext {
     }
 }
 
-class KtorServletRequestInfo(private val call: ApplicationCall): RequestInfo {
+public class KtorServletRequestInfo(private val call: ApplicationCall): RequestInfo {
     override fun getHeader(name: String): String? {
         return call.request.header(name)
     }
@@ -94,7 +88,7 @@ class KtorServletRequestInfo(private val call: ApplicationCall): RequestInfo {
         return false // TODO use more extensive authentication
     }
 
-    val ktorPrincipal: UserIdPrincipal? get() {
+    public val ktorPrincipal: UserIdPrincipal? get() {
         return call.principal()
     }
 

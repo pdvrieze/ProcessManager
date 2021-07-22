@@ -18,8 +18,10 @@
  * Created by pdvrieze on 28/03/16.
  */
 
-package example
+package io.github.pdvrieze.darwin.ktor
 
+import io.github.pdvrieze.darwin.ktor.support.KtorServletRequestInfo
+import io.github.pdvrieze.darwin.ktor.support.darwinResponse
 import io.ktor.application.*
 import io.ktor.features.*
 import io.ktor.http.content.*
@@ -31,7 +33,6 @@ import io.ktor.server.netty.*
 import io.ktor.util.pipeline.*
 import kotlinx.html.img
 import kotlinx.html.stream.appendHTML
-import nl.adaptivity.xmlutil.serialization.ktor.xml
 import uk.ac.bournemouth.darwin.html.darwinDialog
 import uk.ac.bournemouth.darwin.html.darwinMenu
 import java.io.File

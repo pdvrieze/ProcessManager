@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2016.
+ * Copyright (c) 2021.
  *
  * This file is part of ProcessManager.
  *
@@ -18,10 +18,15 @@
  * Created by pdvrieze on 28/03/16.
  */
 
-package uk.ac.bournemouth.darwin.html
+package io.github.pdvrieze.darwin.servlet
 
+import io.github.pdvrieze.darwin.servlet.support.ServletRequestInfo
+import io.github.pdvrieze.darwin.servlet.support.darwinError
+import io.github.pdvrieze.darwin.servlet.support.darwinResponse
 import kotlinx.html.img
 import kotlinx.html.stream.appendHTML
+import uk.ac.bournemouth.darwin.html.darwinDialog
+import uk.ac.bournemouth.darwin.html.darwinMenu
 import javax.servlet.Servlet
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest

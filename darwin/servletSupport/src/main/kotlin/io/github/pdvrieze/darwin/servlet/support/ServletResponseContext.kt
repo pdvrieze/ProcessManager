@@ -14,21 +14,23 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.bournemouth.darwin.html
+package io.github.pdvrieze.darwin.servlet.support
 
-import java.security.Principal
-import javax.servlet.http.HttpServletRequest
+import uk.ac.bournemouth.darwin.html.ResponseContext
+import java.io.Writer
+import javax.servlet.http.HttpServletResponse
 
-class ServletRequestInfo(val request: HttpServletRequest) : RequestInfo {
-    override fun getHeader(name: String): String? = request.getHeader(name)
+public class ServletResponseContext(public val servletResponse: HttpServletResponse): ResponseContext {
+    override fun contentType(type: String) {
+        servletResponse.contentType = type
+    }
 
-    override fun isUserInRole(role: String): Boolean = request.isUserInRole(role)
+    override fun setStatus(code: Int) {
+        servletResponse.status = code
+    }
 
-    override val userPrincipal: Principal?
-        get() = request.userPrincipal
-
-    override val contextPath: String
-        get() = request.contextPath
+    override fun respondWriter(body: (Writer) -> Unit) {
+        servletResponse.writer.use { body(it) }
+    }
 
 }
-

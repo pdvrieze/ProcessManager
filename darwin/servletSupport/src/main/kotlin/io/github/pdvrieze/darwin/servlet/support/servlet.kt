@@ -14,16 +14,18 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package uk.ac.bournemouth.darwin.html
+package io.github.pdvrieze.darwin.servlet.support
 
 import kotlinx.html.HtmlBlockTag
-import uk.ac.bournemouth.darwin.html.uk.ac.bournemouth.darwin.html.ServletResponseContext
+import uk.ac.bournemouth.darwin.html.RequestServiceContext
+import uk.ac.bournemouth.darwin.html.darwinError
+import uk.ac.bournemouth.darwin.html.darwinResponse
 import uk.ac.bournemouth.darwin.sharedhtml.ContextTagConsumer
 import uk.ac.bournemouth.darwin.sharedhtml.ServiceContext
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
 
-fun HttpServletResponse.darwinResponse(
+public fun HttpServletResponse.darwinResponse(
     request: HttpServletRequest,
     windowTitle: String = "Darwin",
     pageTitle: String? = null,
@@ -36,7 +38,7 @@ fun HttpServletResponse.darwinResponse(
     return resp.darwinResponse(req, windowTitle, pageTitle, includeLogin, context, bodyContent)
 }
 
-fun HttpServletResponse.darwinResponse(
+public fun HttpServletResponse.darwinResponse(
     request: HttpServletRequest,
     windowTitle: String = "Darwin",
     pageTitle: String? = null,
@@ -49,11 +51,11 @@ fun HttpServletResponse.darwinResponse(
     return resp.darwinResponse(req, windowTitle, pageTitle, includeLogin, context, bodyContent)
 }
 
-fun HttpServletResponse.darwinError(request: HttpServletRequest,
-                                message: String,
-                                code: Int = 500,
-                                status: String = "Server error",
-                                cause: Exception? = null) {
+public fun HttpServletResponse.darwinError(request: HttpServletRequest,
+                                           message: String,
+                                           code: Int = 500,
+                                           status: String = "Server error",
+                                           cause: Exception? = null) {
     val resp = ServletResponseContext(this)
     val req = ServletRequestInfo(request)
     resp.darwinError(req, message, code, status, cause)

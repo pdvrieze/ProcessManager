@@ -67,7 +67,7 @@ kotlin {
             dependencies {
                 implementation(kotlin("stdlib-jdk8"))
                 implementation("org.jetbrains.kotlinx:kotlinx-html:$kotlinx_html_version")
-                implementation(project(":darwin"))
+                implementation(project(":darwin:servletSupport"))
                 implementation("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
                 compileOnly(project(":JavaCommonApi"))
                 compileOnly(project(":DarwinJavaApi"))

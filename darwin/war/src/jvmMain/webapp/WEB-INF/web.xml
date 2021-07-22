@@ -21,7 +21,7 @@
 
     <servlet>
         <servlet-name>mainServlet</servlet-name>
-        <servlet-class>uk.ac.bournemouth.darwin.html.MainServlet</servlet-class>
+        <servlet-class>io.github.pdvrieze.darwin.servlet.MainServlet</servlet-class>
         <load-on-startup>1</load-on-startup>
     </servlet>
 

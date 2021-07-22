@@ -80,7 +80,7 @@ kotlin {
                 implementation("io.github.pdvrieze.xmlutil:ktor:$xmlutilVersion")
                 implementation("ch.qos.logback:logback-classic:$logbackVersion")
                 implementation("org.jetbrains.kotlinx:kotlinx-html:$kotlinx_html_version")
-                implementation(project(":darwin"))
+                implementation(project(":darwin:ktorSupport"))
                 runtimeOnly("org.webjars:requirejs:$requirejs_version")
 
                 val webpackTask = tasks.getByName<KotlinWebpack>("jsBrowserDevelopmentWebpack")
@@ -104,7 +104,7 @@ kotlin {
 }
 
 application {
-    mainClass.set("example.MainKt")
+    mainClass.set("io.github.pdvrieze.darwin.ktor.MainKt")
 }
 
 val webPacks: Configuration by configurations.creating {
