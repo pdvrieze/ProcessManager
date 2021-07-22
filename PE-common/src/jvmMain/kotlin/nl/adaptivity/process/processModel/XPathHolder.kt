@@ -93,25 +93,6 @@ actual abstract class XPathHolder : XMLContainer {
         assert(value == null || xPath != null)
     }
 
-    actual open fun deserializeAttribute(
-        attributeNamespace: String?,
-        attributeLocalName: String,
-        attributeValue: String
-                                        ): Boolean {
-        when (attributeLocalName) {
-            "name"                       -> {
-                _name = attributeValue
-                return true
-            }
-            "path", "xpath"              -> {
-                pathString = attributeValue
-                return true
-            }
-            XMLConstants.XMLNS_ATTRIBUTE -> return true
-            else                         -> return false
-        }
-    }
-
     @Throws(XmlException::class)
     actual
     override fun deserializeChildren(reader: XmlReader) {

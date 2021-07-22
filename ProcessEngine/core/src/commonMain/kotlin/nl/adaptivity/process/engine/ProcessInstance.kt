@@ -43,15 +43,7 @@ import kotlin.jvm.Synchronized
 
 class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, SecureObject<ProcessInstance> {
 
-    fun serializable(transaction: ProcessTransaction): XmlSerializable {
-        return object : XmlSerializable {
-            override fun serialize(out: XmlWriter) {
-                serialize(transaction, out)
-            }
-        }
-    }
-
-    private class InstanceFuture<T : ProcessNodeInstance<*>, N : ExecutableProcessNode>(internal val origBuilder: ProcessNodeInstance.Builder<out ExecutableProcessNode, out T>) :
+    private class InstanceFuture<T : ProcessNodeInstance<*>, N : ExecutableProcessNode>(val origBuilder: ProcessNodeInstance.Builder<out ExecutableProcessNode, out T>) :
         Future<T> {
         private var cancelled = false
 

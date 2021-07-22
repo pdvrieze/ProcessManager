@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018.
+ * Copyright (c) 2021.
  *
  * This file is part of ProcessManager.
  *
@@ -16,23 +16,17 @@
 
 package nl.adaptivity.util
 
-import kotlinx.serialization.SerialInfo
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.internal.SerialClassDescImpl
-import kotlin.reflect.KProperty
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializer
+import net.devrieze.util.Transaction
+import nl.adaptivity.xmlutil.QName
 
-actual fun SerialClassDescImpl.addField(property: KProperty<*>) {
-    var name = property.name
+class SerializableData<T>(val serializer: KSerializer<T>, val data: T, val tagName: QName? = null)
 
-    val annotations = property.annotations
-        .filter { annotation ->
-            if (annotation is SerialName) {
-                name = annotation.value
-                false
-            } else
-                annotation::class.annotations.any { it is SerialInfo }
-        }
-    addElement(name)
+fun <T> Transaction.commitSerializable(serializer: KSerializer<T>, data: T, tagName: QName? = null): SerializableData<T> {
+    return commit(SerializableData(serializer, data, tagName))
+}
 
-    annotations.forEach { annotation -> pushAnnotation(annotation) }
+inline fun <reified T> Transaction.commitSerializable(data: T, tagName: QName? = null): SerializableData<T> {
+    return commitSerializable(serializer<T>(), data, tagName)
 }

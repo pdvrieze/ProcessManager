@@ -142,10 +142,10 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
                                                      ): Identifier = this
 
 
-    inline operator fun <T : ConfigurableCompositeActivity> T.provideDelegate(
+    operator fun <T : ConfigurableCompositeActivity> T.provideDelegate(
         thisRef: ConfigurableProcessModel<*>,
         property: KProperty<*>
-                                                                             ): T {
+    ): T {
         setIdIfEmpty(property.name)
         return this
     }
@@ -154,7 +154,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
         T.getValue(thisRef: ConfigurableProcessModel<*>, property: KProperty<*>): T = this
 
     @ConfigurationDsl
-    protected abstract inner class ConfigurableCompositeActivity(
+    internal abstract inner class ConfigurableCompositeActivity(
         predecessor: Identified,
         childId: String? = null,
         id: String? = null

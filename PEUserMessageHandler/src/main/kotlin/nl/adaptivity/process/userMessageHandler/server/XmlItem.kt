@@ -16,171 +16,86 @@
 
 package nl.adaptivity.process.userMessageHandler.server
 
+import kotlinx.serialization.Serializable
 import nl.adaptivity.process.userMessageHandler.server.UserTask.TaskItem
 import nl.adaptivity.process.util.Constants
-import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import javax.xml.namespace.QName
 
+@Serializable
+@XmlSerialName(XmlItem.ELEMENTLOCALNAME, Constants.USER_MESSAGE_HANDLER_NS, Constants.USER_MESSAGE_HANDLER_NS_PREFIX)
+class XmlItem : TaskItem {
 
-class XmlItem : TaskItem, XmlSerializable, SimpleXmlDeserializable {
+    override var name: String? = null // TODO make this non-null
+    override var label: String? = null
 
-  inner class Factory : XmlDeserializerFactory<XmlItem> {
+    override var type: String? = null
+    override var value: String? = null
+    override var params: String? = null
 
-    @Throws(XmlException::class)
-    override fun deserialize(reader: XmlReader): XmlItem {
-      return XmlItem.deserialize(reader)
-    }
-  }
+    @XmlSerialName(OPTION_LOCALNAME, Constants.USER_MESSAGE_HANDLER_NS, Constants.USER_MESSAGE_HANDLER_NS_PREFIX)
+    private val _options = lazy { mutableListOf<String>() }
+    override val options: List<String> get() = _options.value
 
-  override var name: String? = null // TODO make this non-null
-  override var label: String? = null
+    companion object {
 
-  override var type: String? = null
-  override var value: String? = null
-  override var params: String? = null
+        const val ELEMENTLOCALNAME = "item"
+        val ELEMENTNAME = QName(Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME, "umh")
+        private const val OPTION_LOCALNAME = "option"
 
-  private val _options = lazy { mutableListOf<String>() }
-  override val options:List<String> get() = _options.value
-
-  override val elementName: QName get() = ELEMENTNAME
-
-  @Throws(XmlException::class)
-  override fun deserializeChild(reader: XmlReader): Boolean {
-    if (reader.isElement(OPTION_ELEMENTNAME)) {
-      _options.value.add(reader.readSimpleElement())
-      return true
-    }
-    return false
-  }
-
-  override fun deserializeChildText(elementText: CharSequence): Boolean {
-    return false
-  }
-
-  override fun deserializeAttribute(attributeNamespace: String?,
-                                    attributeLocalName: String,
-                                    attributeValue: String): Boolean {
-    when (attributeLocalName) {
-      "name"   -> {
-        name = attributeValue
-        return true
-      }
-      "label"  -> {
-        label = attributeValue
-        return true
-      }
-      "params" -> {
-        params = attributeValue
-        return true
-      }
-      "type"   -> {
-        type = attributeValue
-        return true
-      }
-      "value"  -> {
-        value = attributeValue
-        return true
-      }
-    }
-    return false
-  }
-
-  @Throws(XmlException::class)
-  override fun onBeforeDeserializeChildren(reader: XmlReader) {
-    // do nothing
-  }
-
-  @Throws(XmlException::class)
-  override fun serialize(out: XmlWriter) {
-    out.smartStartTag(ELEMENTNAME)
-    out.writeAttribute("name", name)
-    out.writeAttribute("label", label)
-    out.writeAttribute("params", params)
-    out.writeAttribute("type", type)
-    out.writeAttribute("value", value)
-
-    if (_options.isInitialized()) {
-      for (option in _options.value) {
-        out.writeSimpleElement(OPTION_ELEMENTNAME, option)
-      }
-    }
-
-    out.endTag(ELEMENTNAME)
-  }
-
-  override fun hashCode(): Int {
-    val prime = 31
-    var result = 1
-    result = prime * result + (name?.hashCode() ?: 0)
-    result = prime * result + if (!_options.isInitialized() || _options.value.isEmpty()) 0 else _options.value.hashCode()
-    result = prime * result + (type?.hashCode() ?: 0)
-    result = prime * result + (value?.hashCode() ?: 0)
-    return result
-  }
-
-  override fun equals(obj: Any?): Boolean {
-    if (this === obj)
-      return true
-    if (obj == null)
-      return false
-    if (javaClass != obj.javaClass)
-      return false
-    val other = obj as XmlItem
-    if (name == null) {
-      if (other.name != null)
-        return false
-    } else if (name != other.name)
-      return false
-    if (! _options.isInitialized() || _options.value.isEmpty()) {
-      if (other._options.isInitialized() && ! _options.value.isEmpty())
-        return false
-    } else if (! other._options.isInitialized() || _options.value != other._options.value)
-      return false
-    if (type == null) {
-      if (other.type != null)
-        return false
-    } else if (type != other.type)
-      return false
-    if (value == null) {
-      if (other.value != null)
-        return false
-    } else if (value != other.value)
-      return false
-    return true
-  }
-
-  companion object {
-
-    val ELEMENTLOCALNAME = "item"
-    val ELEMENTNAME = QName(Constants.USER_MESSAGE_HANDLER_NS, ELEMENTLOCALNAME, "umh")
-    private val OPTION_ELEMENTNAME = QName(Constants.USER_MESSAGE_HANDLER_NS, "option", "umh")
-
-    @Throws(XmlException::class)
-    fun deserialize(reader: XmlReader): XmlItem {
-      return XmlItem().deserializeHelper(reader)
-    }
-
-    fun get(source: Sequence<TaskItem>) = source.map { get(it) }
-
-    fun get(source: Collection<TaskItem>) = get(source.asSequence()).toList()
-
-    operator fun get(orig: TaskItem): XmlItem {
-      if (orig is XmlItem) {
-        return orig
-      }
-
-      return XmlItem().apply {
-        name = orig.name
-        label = orig.label
-        type = orig.type
-        value = orig.value
-        params = orig.params
-
-        if (orig.options.isNotEmpty()) {
-          _options.value.addAll(orig.options)
+        @Throws(XmlException::class)
+        fun deserialize(reader: XmlReader): XmlItem {
+            return XML.decodeFromReader(reader)
         }
-      }
+
+        fun get(source: Sequence<TaskItem>) = source.map { get(it) }
+
+        fun get(source: Collection<TaskItem>) = get(source.asSequence()).toList()
+
+        operator fun get(orig: TaskItem): XmlItem {
+            if (orig is XmlItem) {
+                return orig
+            }
+
+            return XmlItem().apply {
+                name = orig.name
+                label = orig.label
+                type = orig.type
+                value = orig.value
+                params = orig.params
+
+                if (orig.options.isNotEmpty()) {
+                    _options.value.addAll(orig.options)
+                }
+            }
+        }
     }
-  }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as XmlItem
+
+        if (name != other.name) return false
+        if (label != other.label) return false
+        if (type != other.type) return false
+        if (value != other.value) return false
+        if (params != other.params) return false
+        if (_options != other._options) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = name?.hashCode() ?: 0
+        result = 31 * result + (label?.hashCode() ?: 0)
+        result = 31 * result + (type?.hashCode() ?: 0)
+        result = 31 * result + (value?.hashCode() ?: 0)
+        result = 31 * result + (params?.hashCode() ?: 0)
+        result = 31 * result + _options.hashCode()
+        return result
+    }
 }

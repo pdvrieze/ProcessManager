@@ -28,6 +28,7 @@ import javax.xml.namespace.QName
 import javax.xml.xpath.XPathExpression
 import javax.xml.xpath.XPathExpressionException
 import javax.xml.xpath.XPathFactory
+import nl.adaptivity.xmlutil.xmlserializable.deserializeHelper
 
 actual abstract class XPathHolder : XMLContainer {
     /**
@@ -180,7 +181,7 @@ actual abstract class XPathHolder : XMLContainer {
         }
     }
 
-    actual companion object {
+    companion object {
 
         private val SELF_PATH: XPathExpression
 
@@ -195,7 +196,7 @@ actual abstract class XPathHolder : XMLContainer {
 
         @JvmStatic
         @Throws(XmlException::class)
-        actual fun <T : XPathHolder> deserialize(reader: XmlReader, result: T): T {
+        fun <T : XPathHolder> deserialize(reader: XmlReader, result: T): T {
             return result.deserializeHelper(reader)
         }
     }

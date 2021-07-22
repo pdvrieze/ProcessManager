@@ -16,12 +16,9 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import kotlinx.serialization.*
-import kotlinx.serialization.internal.SerialClassDescImpl
 import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
 import nl.adaptivity.process.processModel.ProcessNode
-import nl.adaptivity.util.multiplatform.name
 
 
 /**

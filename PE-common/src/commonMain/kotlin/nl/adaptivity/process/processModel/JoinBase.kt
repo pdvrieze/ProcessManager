@@ -17,9 +17,10 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.engine.XmlCondition
-import nl.adaptivity.process.processModel.serialization.ConditionStringSerializer
 import nl.adaptivity.process.util.*
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xmlutil.*
@@ -60,11 +61,11 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
         private set
 
     @Required
-    @Serializable(with = ConditionStringSerializer::class)
+//    @Serializable(with = ConditionStringSerializer::class)
     @XmlSerialName("predecessor", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     @SerialName("predecessors")
     @XmlElement(true)
-    internal val conditionStringsForSerialization: Map<Identifier, String?>
+    internal val conditionStringsForSerialization: List<PredecessorInfo>
 
 
     constructor(
@@ -76,36 +77,17 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
         isMultiMerge = builder.isMultiMerge
         val predecessors = (this.predecessors as MutableIdentifyableSet<Identified>)
         val conditions = mutableMapOf<Identifier, Condition?>()
+        val serialConditions = mutableListOf<PredecessorInfo>()
         builder.conditions.forEach { entry ->
             predecessors.add(entry.key)
             conditions[entry.key] = entry.value?.let { buildHelper.condition(it) }
+            serialConditions.add(PredecessorInfo(entry.key.id, entry.value))
         }
         this.conditions = conditions
-        conditionStringsForSerialization = conditions.mapValues { (_, value) -> value?.condition }
+        conditionStringsForSerialization = serialConditions
     }
 
     override fun builder(): Join.Builder = Builder(this)
-
-    @Throws(XmlException::class)
-    override fun serialize(out: XmlWriter) {
-        out.smartStartTag(Join.ELEMENTNAME)
-        serializeAttributes(out)
-        serializeChildren(out)
-        out.endTag(Join.ELEMENTNAME)
-    }
-
-    @Throws(XmlException::class)
-    override fun serializeChildren(out: XmlWriter) {
-        super.serializeChildren(out)
-        for (pred in predecessors) {
-            out.smartStartTag(Join.PREDELEMNAME)
-            val c = conditions[pred.identifier]
-            out.writeAttribute("condition", c?.condition)
-
-            out.text(pred.id)
-            out.endTag(Join.PREDELEMNAME)
-        }
-    }
 
     override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
         return visitor.visitJoin(this)
@@ -118,7 +100,6 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
         override val idBase: String
             get() = "join"
 
-        @Optional
         @XmlDefault("false")
         final override var isMultiMerge: Boolean = false
 
@@ -129,17 +110,12 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
                 field.addAll(value)
             }
 
-        @Serializable(ConditionStringSerializer::class)
         @XmlSerialName("predecessor", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
         @SerialName("predecessors")
         override var conditions: MutableMap<Identifier, Condition?> = mutableMapOf()
 
         @Transient
         final override var successor: Identifiable? = null
-
-        @Transient
-        override val elementName: QName
-            get() = Join.ELEMENTNAME
 
         constructor() : this(predecessors = emptyList<PredecessorInfo>(), isMultiMerge = false, isMultiInstance = false)
 
@@ -194,20 +170,6 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
                 node.conditions[it.identifier]
             }
             this.successor = node.successor
-        }
-
-        override fun deserializeChild(reader: XmlReader): Boolean {
-            if (reader.isElement(Join.PREDELEMNAME)) {
-                val condition = reader.getAttributeValue(null, "condition")
-                val id = reader.readSimpleElement()
-                val identifier = Identifier(id)
-                if (condition != null) {
-                    conditions[identifier] = XmlCondition(condition)
-                }
-                predecessors.add(identifier)
-                return true
-            }
-            return super.deserializeChild(reader)
         }
 
         private inner class PredecessorSet : AbstractMutableSet<Identified>() {
@@ -266,6 +228,22 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
     companion object {
 
         const val IDBASE = "join"
+    }
+
+
+
+    @Serializable()
+    private class ConditionPairs(val map: Map<Identifier, String?>)
+
+    @Serializer(forClass = ConditionPairs::class)
+    private class ConditionSerializer {
+        override fun deserialize(decoder: Decoder): ConditionPairs {
+            TODO("not implemented")
+        }
+
+        override fun serialize(encoder: Encoder, value: ConditionPairs) {
+            TODO("not implemented")
+        }
     }
 }
 

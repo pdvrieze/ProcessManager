@@ -21,9 +21,8 @@ import com.nhaarman.mockitokotlin2.doReturn
 import com.nhaarman.mockitokotlin2.inOrder
 import com.nhaarman.mockitokotlin2.mock
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.modules.EmptyModule
-import kotlinx.serialization.modules.SerialModule
+import kotlinx.serialization.modules.EmptySerializersModule
+import kotlinx.serialization.modules.SerializersModule
 import net.devrieze.util.readString
 import nl.adaptivity.process.engine.impl.dom.toDocumentFragment
 import nl.adaptivity.process.engine.processModel.applyData
@@ -33,6 +32,7 @@ import nl.adaptivity.process.util.Constants
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.xmlserializable.toString
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -541,9 +541,9 @@ class TestProcessData {
         val found = XmlStreaming.toString(result)
         assertXMLEqual(control, found)
 
-        assertXMLEqual(control, XML(indent = 2).stringify(XmlResultType.serializer(), result, ""))
+        assertXMLEqual(control, XML{ indent = 2 }.encodeToString(XmlResultType.serializer(), result, ""))
 
-        assertEquals(control, XML(indent = 2).stringify(XmlResultType.serializer(), result, ""))
+        assertEquals(control, XML{ indent = 2 }.encodeToString(XmlResultType.serializer(), result, ""))
 
     }
 
@@ -592,7 +592,7 @@ class TestProcessData {
             on { namespaceContext } doReturn nsContext
         }
         val mockedFactory = mock<XmlStreamingFactory> {
-            on { newWriter(any<Writer>(), any(), any()) } doReturn mockedWriter
+            on { newWriter(any<Writer>(), any<Boolean>(), any<XmlDeclMode>()) } doReturn mockedWriter
         }
 
         XmlStreaming.setFactory(mockedFactory)
@@ -764,10 +764,7 @@ class TestProcessData {
                 "        </Body>\n" +
                 "      </Envelope>\n" +
                 "    </pe:message>\n"
-        testRoundTrip(xml, XmlMessage::class, XmlMessage.serializer(), false) {
-            assertEquals("http://adaptivity.nl/userMessageHandler", it.serviceNS)
-            assertEquals("userMessageHandler", it.serviceName)
-        }
+        testRoundTrip(xml, XmlMessage::class, XmlMessage.serializer(), false)
     }
 
     @Test
@@ -916,8 +913,8 @@ class TestProcessData {
         fun <T : XmlSerializable> testRoundTrip(
             reader: InputStream, target: KClass<out T>,
             serializer: KSerializer<T>,
-            serialModule: SerialModule,
-            factoryOpt: XmlDeserializerFactory<T>? = null,
+            serialModule: SerializersModule,
+            factoryOpt: Nothing? = null,
             testObject: (T) -> Unit = {}
                                                ): String {
             val expected: String
@@ -937,7 +934,6 @@ class TestProcessData {
             return testRoundTripCombined(
                 expected, streamReaderFactory, target, serializer = serializer,
                 serialModule = serialModule,
-                factoryOpt = factoryOpt,
                 testObject = testObject
                                         )
         }
@@ -949,15 +945,13 @@ class TestProcessData {
         fun <T : XmlSerializable> testRoundTrip(
             xml: String, target: KClass<out T>,
             serializer: KSerializer<T>,
-            serialModule: SerialModule,
-            factoryOpt: XmlDeserializerFactory<out T>? = null,
+            serialModule: SerializersModule,
             testObject: (T) -> Unit = {}
                                                ): String {
             return testRoundTripCombined(
                 xml, { XmlStreaming.newReader(StringReader(xml)) }, target,
                 serializer = serializer,
                 serialModule = serialModule,
-                factoryOpt = factoryOpt,
                 testObject = testObject
                                         )
         }
@@ -970,7 +964,7 @@ class TestProcessData {
         fun <T : Any> testRoundTrip(
             xml: String, target: KClass<out T>,
             serializer: KSerializer<T>,
-            serialModule: SerialModule = EmptyModule,
+            serialModule: SerializersModule = EmptySerializersModule,
             repairNamespaces: Boolean = false,
             omitXmlDecl: Boolean = true,
             testObject: (T) -> Unit = {}
@@ -979,9 +973,8 @@ class TestProcessData {
                 xml, { XmlStreaming.newReader(StringReader(xml)) }, target, serializer = serializer,
                 serialModule = serialModule,
                 repairNamespaces = repairNamespaces,
-                omitXmlDecl = omitXmlDecl,
-                testObject = testObject
-                                        )
+                omitXmlDecl = omitXmlDecl
+            )
         }
 
         @Throws(
@@ -992,15 +985,13 @@ class TestProcessData {
             xml: String, target: KClass<out T>,
             serializer: KSerializer<T>,
             @Suppress("UNUSED_PARAMETER") ignoreNs: Boolean,
-            serialModule: SerialModule = EmptyModule,
-            factoryOpt: XmlDeserializerFactory<T>? = null,
+            serialModule: SerializersModule = EmptySerializersModule,
             testObject: (T) -> Unit = {}
                                                ): String {
             return testRoundTripCombined(
                 xml, { XmlStreaming.newReader(StringReader(xml)) }, target,
                 serializer = serializer,
                 serialModule = serialModule,
-                factoryOpt = factoryOpt,
                 testObject = testObject
                                         )
         }
@@ -1014,7 +1005,7 @@ class TestProcessData {
             xml: String, target: KClass<out T>,
             serializer: KSerializer<T>,
             @Suppress("UNUSED_PARAMETER") ignoreNs: Boolean,
-            serialModule: SerialModule,
+            serialModule: SerializersModule,
             repairNamespaces: Boolean = false,
             omitXmlDecl: Boolean = true,
             testObject: (T) -> Unit = {}
@@ -1023,9 +1014,8 @@ class TestProcessData {
                 xml, { XmlStreaming.newReader(StringReader(xml)) }, target, serializer,
                 serialModule,
                 repairNamespaces = repairNamespaces,
-                omitXmlDecl = omitXmlDecl,
-                testObject = testObject
-                                        )
+                omitXmlDecl = omitXmlDecl
+            )
         }
 
         private inline fun <T : Any> testRoundTripCombined(
@@ -1033,62 +1023,22 @@ class TestProcessData {
             readerFactory: () -> XmlReader,
             target: KClass<out T>,
             serializer: KSerializer<T>,
-            serialModule: SerialModule,
+            serialModule: SerializersModule,
             repairNamespaces: Boolean = false,
             omitXmlDecl: Boolean = true,
-            factoryOpt: XmlDeserializerFactory<out T>? = null,
             noinline testObject: (T) -> Unit = {}
                                                           ): String {
-            val new = if (target.java.getAnnotation(Serializable::class.java) == null) null else
-                testRoundTripSer(
-                    expected,
-                    readerFactory(),
-                    serializer,
-                    serialModule,
-                    repairNamespaces,
-                    omitXmlDecl,
-                    testObject
-                                )
+            val new = testRoundTripSer(
+                expected,
+                readerFactory(),
+                serializer,
+                serialModule,
+                repairNamespaces,
+                omitXmlDecl,
+                testObject
+            )
 
-            val old = if (XmlSerializable::class.java.isAssignableFrom(target.java)) {
-                val serializableTarget = target.java.asSubclass(XmlSerializable::class.java)
-                @Suppress("UNCHECKED_CAST")
-                testRoundTripOld<XmlSerializable>(
-                    expected, readerFactory(), serializableTarget,
-                    factoryOpt as XmlDeserializerFactory<out XmlSerializable>?,
-                    testObject as ((XmlSerializable) -> Unit)
-                                                 )
-            } else null
-            if (new != null && old != null)
-                assertXMLEqual(new, old)
-            return new ?: old ?: throw AssertionError("Either old or new needs to be initialised")
-        }
-
-        @Throws(InstantiationException::class, IllegalAccessException::class, XmlException::class)
-        private fun <T : XmlSerializable> testRoundTripOld(
-            expected: String,
-            reader: XmlReader,
-            target: Class<out T>,
-            factoryOpt: XmlDeserializerFactory<out T>? = null,
-            testObject: (T) -> Unit = {}
-                                                          ): String {
-            assertNotNull(reader)
-            val factory = factoryOpt ?: target.getAnnotation(
-                XmlDeserializer::class.java
-                                                            ).value.java.newInstance() as XmlDeserializerFactory<*>
-            val obj = target.cast(factory.deserialize(reader))
-            testObject(obj)
-
-            val actual = CharArrayWriter().use { caw ->
-                XmlStreaming.newWriter(caw).use { xsw ->
-                    obj.serialize(xsw)
-                }
-                caw.toString()
-            }
-
-            assertXMLEqual(expected, actual)
-
-            return actual
+            return new
         }
 
         @Throws(InstantiationException::class, IllegalAccessException::class, XmlException::class)
@@ -1096,7 +1046,7 @@ class TestProcessData {
             expected: String,
             reader: XmlReader,
             target: KSerializer<T>,
-            serialModule: SerialModule,
+            serialModule: SerializersModule,
             repairNamespaces: Boolean = false,
             omitXmlDecl: Boolean = true,
             testObject: (T) -> Unit = {}

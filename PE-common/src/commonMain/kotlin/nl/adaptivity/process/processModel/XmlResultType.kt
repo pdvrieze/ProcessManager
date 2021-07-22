@@ -22,58 +22,42 @@
 //
 
 
+@file:Suppress("EXPERIMENTAL_API_USAGE")
+
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
-import kotlinx.serialization.internal.StringSerializer
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.descriptors.element
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
-import nl.adaptivity.serialutil.simpleSerialClassDesc
-import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.serialization.XML.Companion.decodeFromReader
 
-@XmlDeserializer(XmlResultType.Factory::class)
 @Serializable
 @XmlSerialName(value = XmlResultType.ELEMENTLOCALNAME, namespace = Engine.NAMESPACE, prefix = Engine.NSPREFIX)
-class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
+class XmlResultType : XPathHolder, IXmlResultType {
 
     constructor(
         name: String?,
         path: String? = null,
         content: CharArray? = null,
         originalNSContext: Iterable<Namespace> = emptyList()
-               ) :
-        super(name, path, content, originalNSContext)
-
-    class Factory : XmlDeserializerFactory<XmlResultType> {
-
-        override fun deserialize(reader: XmlReader): XmlResultType {
-            return Companion.deserialize(reader)
-        }
-
-    }
+    ) : super(name, path, content, originalNSContext)
 
     @ProcessModelDSL
-    class Builder {
+    class Builder constructor(
+        var name: String? = null,
+        var path: String? = null,
+        var content: CharArray? = CharArray(0),
+        nsContext: Iterable<Namespace> = emptyList(),
+    ) {
 
-        var name: String?
-        var path: String?
-        var content: CharArray?
-        val nsContext: MutableList<Namespace>
+        val nsContext = nsContext.toMutableList()
 
-        constructor() {
-            name = null
-            path = null
-            content = CharArray(0)
-            nsContext = mutableListOf<Namespace>()
-        }
-
-        constructor(orig: IXmlResultType) {
-            name = orig.getName()
-            path = orig.getPath()
-            content = orig.content?.copyOf()
-            nsContext = orig.originalNSContext.toMutableList()
-        }
+        constructor(orig: IXmlResultType) : this(orig.name, orig.path, orig.content?.copyOf(), orig.originalNSContext)
 
         fun build(): XmlResultType {
             return XmlResultType(name, path, content, nsContext)
@@ -89,23 +73,19 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
         out.endTag(ELEMENTNAME)
     }
 
-    @Transient
-    val elementName: QName
-        get() = ELEMENTNAME
-
     @Serializer(forClass = XmlResultType::class)
     companion object : XPathHolderSerializer<XmlResultType>(), KSerializer<XmlResultType> {
-        override val descriptor = simpleSerialClassDesc<XmlResultType>(
-            XmlResultTypeAnnotationHelper.descriptor.getEntityAnnotations(),
-            "name" to StringSerializer,
-            "xpath" to StringSerializer,
-            "namespaces" to Namespace.list,
-            "content" to StringSerializer
-                                                                      )
+        override val descriptor = buildClassSerialDescriptor("XmlResultType") {
+            annotations = XmlResultTypeAnnotationHelper.descriptor.annotations
+            element<String>("name")
+            element<String>("xpath")
+            element<String>("namespaces")
+            element<String>("content")
+        }
 
         @kotlin.jvm.JvmStatic
         fun deserialize(reader: XmlReader): XmlResultType {
-            return XML.Companion.parse(reader, serializer())
+            return decodeFromReader(this, reader)
         }
 
         const val ELEMENTLOCALNAME = "result"
@@ -122,24 +102,12 @@ class XmlResultType : XPathHolder, IXmlResultType, XmlSerializable {
 
         override fun deserialize(decoder: Decoder): XmlResultType {
             val data = PathHolderData(this)
-            data.deserialize(descriptor, decoder, XmlResultType.Companion)
+            data.deserialize(descriptor, decoder, XmlResultType)
             return XmlResultType(data.name, data.path, data.content, data.namespaces)
         }
 
-        override fun patch(decoder: Decoder, old: XmlResultType): XmlResultType {
-            with(PathHolderData(this)) {
-                name = old.name
-                path = old.path
-                content = old.content
-                namespaces = old.namespaces
-                deserialize(descriptor, decoder, XmlResultType.Companion)
-
-                return XmlResultType(name, path, content, namespaces)
-            }
-        }
-
-        override fun serialize(encoder: Encoder, obj: XmlResultType) {
-            serialize(descriptor, encoder, obj)
+        override fun serialize(encoder: Encoder, value: XmlResultType) {
+            serialize(descriptor, encoder, value)
         }
     }
 

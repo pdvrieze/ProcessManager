@@ -23,7 +23,7 @@ import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
-import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
+import nl.adaptivity.xmlutil.xmlserializable.SimpleXmlDeserializable
 import nl.adaptivity.xmlutil.*
 
 
@@ -52,18 +52,6 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
 
     override fun builder(): EndNode.Builder = Builder(this)
 
-    override fun serialize(out: XmlWriter) {
-        out.smartStartTag(EndNode.ELEMENTNAME) {
-            serializeAttributes(this)
-            serializeChildren(this)
-        }
-    }
-
-    override fun serializeAttributes(out: XmlWriter) {
-        super.serializeAttributes(out)
-        predecessor?.let { out.writeAttribute(ProcessNodeBase.ATTR_PREDECESSOR, it.id) }
-    }
-
     override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
         return visitor.visitEndNode(this)
     }
@@ -71,8 +59,7 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
     @Serializable
     open class Builder :
         ProcessNodeBase.Builder,
-        EndNode.Builder,
-        SimpleXmlDeserializable {
+        EndNode.Builder {
 
         @Transient
         override val idBase: String
@@ -80,10 +67,6 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
 
         @Serializable(with = Identifiable.Companion::class)
         final override var predecessor: Identifiable? = null
-
-        @Transient
-        override val elementName: QName
-            get() = EndNode.ELEMENTNAME
 
         constructor() : this(id = null)
 
@@ -103,37 +86,6 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
 
         constructor(node: EndNode) : super(node) {
             this.predecessor = node.predecessor
-        }
-
-        override fun deserializeChild(reader: XmlReader): Boolean {
-            if (ProcessConsts.Engine.NAMESPACE == reader.namespaceURI) {
-                when (reader.localName) {
-                    "export", XmlDefineType.ELEMENTLOCALNAME -> {
-                        defines.add(XmlDefineType.deserialize(reader))
-                        return true
-                    }
-                }
-            }
-            return false
-        }
-
-        override fun deserializeAttribute(
-            attributeNamespace: String?,
-            attributeLocalName: String,
-            attributeValue: String
-                                         ): Boolean {
-            if (ProcessNodeBase.ATTR_PREDECESSOR == attributeLocalName) {
-                predecessor = Identifier(attributeValue)
-                return true
-            }
-            return super<ProcessNodeBase.Builder>.deserializeAttribute(
-                attributeNamespace, attributeLocalName,
-                attributeValue
-                                                                      )
-        }
-
-        override fun deserializeChildText(elementText: CharSequence): Boolean {
-            return false
         }
 
     }

@@ -27,6 +27,7 @@ import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.xmlutil.util.ICompactFragment
 import nl.adaptivity.util.DomUtil
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.xmlserializable.XmlDeserializer
 import org.w3.soapEnvelope.Envelope
 import org.w3.soapEnvelope.Header
 import org.w3c.dom.Document

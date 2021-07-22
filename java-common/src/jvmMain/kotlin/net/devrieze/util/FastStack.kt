@@ -49,7 +49,6 @@ interface FastStack<E> : List<E> {
 
   val lastElem: E
 
-  @JvmDefault
   fun last(): E = lastElem
 }
 

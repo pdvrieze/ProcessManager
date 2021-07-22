@@ -17,6 +17,9 @@
 package nl.adaptivity.process.util
 
 import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.serialutil.simpleSerialClassDesc
 
 /**

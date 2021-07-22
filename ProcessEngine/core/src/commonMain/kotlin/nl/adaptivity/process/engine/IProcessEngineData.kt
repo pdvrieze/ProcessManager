@@ -71,7 +71,7 @@ abstract class IProcessEngineData<T : ProcessTransaction> : TransactionFactory<T
         principal: Principal,
         permissionResult: SecurityProvider.PermissionResult,
         body: ProcessEngineDataAccess.() -> R
-                                        ): R {
+    ): R {
         val tr = startTransaction()
         try {
             return body(createReadDelegate(tr))
@@ -85,7 +85,7 @@ abstract class IProcessEngineData<T : ProcessTransaction> : TransactionFactory<T
         principal: Principal,
         permissionResult: SecurityProvider.PermissionResult,
         body: MutableProcessEngineDataAccess.() -> R
-                                     ): R {
+    ): R {
         val tr = startTransaction()
         try {
             return body(createWriteDelegate(tr)).apply { tr.commit() }
@@ -97,8 +97,11 @@ abstract class IProcessEngineData<T : ProcessTransaction> : TransactionFactory<T
 }
 
 
-@UseExperimental(ExperimentalContracts::class)
-inline fun <T : ProcessTransaction, R> IProcessEngineData<T>.inWriteTransaction(transaction: T, body: MutableProcessEngineDataAccess.() -> R): R {
+@OptIn(ExperimentalContracts::class)
+inline fun <T : ProcessTransaction, R> IProcessEngineData<T>.inWriteTransaction(
+    transaction: T,
+    body: MutableProcessEngineDataAccess.() -> R
+): R {
     contract {
         callsInPlace(body, InvocationKind.EXACTLY_ONCE)
     }

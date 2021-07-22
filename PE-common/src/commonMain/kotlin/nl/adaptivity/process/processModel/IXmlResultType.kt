@@ -17,12 +17,16 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.xmlutil.Namespace
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.XmlSerializable
 
-
-expect interface IXmlResultType : XmlSerializable {
+@Serializable(with = IXmlResultType.Serializer::class)
+expect interface IXmlResultType {
 
     val content: CharArray?
 
@@ -62,7 +66,7 @@ expect interface IXmlResultType : XmlSerializable {
      */
     val originalNSContext: Iterable<Namespace>
 
-    companion object serializer : KSerializer<IXmlResultType>
+    companion object Serializer : KSerializer<IXmlResultType>
 }
 
 val IXmlResultType.path: String?
@@ -77,17 +81,12 @@ var IXmlResultType.name: String
 fun IXmlResultType.getOriginalNSContext(): Iterable<Namespace> = originalNSContext
 
 object IXmlResultTypeListSerializer : KSerializer<List<IXmlResultType>> {
-    val delegate = XmlResultType.list
+    val delegate = ListSerializer(XmlResultType)
 
     override val descriptor: SerialDescriptor = delegate.descriptor
 
     override fun deserialize(decoder: Decoder): List<IXmlResultType> {
         return delegate.deserialize(decoder)
-    }
-
-    override fun patch(decoder: Decoder, old: List<IXmlResultType>): List<IXmlResultType> {
-        @Suppress("UNCHECKED_CAST") // Don't check as it's not needed. Update merely appends
-        return delegate.patch(decoder, old as List<XmlResultType>)
     }
 
     override fun serialize(encoder: Encoder, obj: List<IXmlResultType>) {

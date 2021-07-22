@@ -62,20 +62,6 @@ abstract class SplitBase : JoinSplitBase, Split {
 
     override fun builder(): Split.Builder = Builder(this)
 
-    override fun serialize(out: XmlWriter) {
-        out.smartStartTag(Split.ELEMENTNAME) {
-            serializeAttributes(out)
-            serializeChildren(out)
-        }
-    }
-
-    override fun serializeAttributes(out: XmlWriter) {
-        super.serializeAttributes(out)
-        if (predecessors.size > 0) {
-            out.writeAttribute(ProcessNodeBase.ATTR_PREDECESSOR, predecessors.iterator().next().id)
-        }
-    }
-
     override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
         return visitor.visitSplit(this)
     }
@@ -98,10 +84,6 @@ abstract class SplitBase : JoinSplitBase, Split {
 
         @Serializable(with = Identifiable.Companion::class)
         final override var predecessor: Identifiable? = null
-
-        @Transient
-        override val elementName: QName
-            get() = Split.ELEMENTNAME
 
         constructor() : this(id = null)
 
@@ -150,21 +132,6 @@ abstract class SplitBase : JoinSplitBase, Split {
         constructor(node: Split) : super(node) {
             this.predecessor = node.predecessor
             this.successors.addAll(node.successors)
-        }
-
-        override fun deserializeAttribute(
-            attributeNamespace: String?,
-            attributeLocalName: String,
-            attributeValue: String
-                                         ): Boolean {
-            if (attributeNamespace.isNullOrEmpty() && attributeLocalName == "predecessor") {
-                predecessor = Identifier(attributeValue)
-                return true
-            } else
-                return super<JoinSplitBase.Builder>.deserializeAttribute(
-                    attributeNamespace, attributeLocalName,
-                    attributeValue
-                                                                        )
         }
     }
 

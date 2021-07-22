@@ -32,7 +32,7 @@ kotlin {
 }
 
 dependencies {
-    implementation(kotlin("stdlib"))
+//    implementation(kotlin("stdlib"))
 //    implementation("org.jetbrains.kotlin:kotlin-stdlib-common:$kotlin_version")
 //    implementation("org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version")
     implementation("org.jetbrains.kotlinx:kotlinx-html-js:$kotlinx_html_version")

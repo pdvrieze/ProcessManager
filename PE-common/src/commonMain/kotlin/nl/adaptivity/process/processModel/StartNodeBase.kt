@@ -22,7 +22,7 @@ import kotlinx.serialization.Transient
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
+import nl.adaptivity.xmlutil.xmlserializable.SimpleXmlDeserializable
 import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.XmlWriter
@@ -71,13 +71,6 @@ abstract class StartNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?>
 
     override fun builder(): StartNode.Builder = Builder()
 
-    override fun serialize(out: XmlWriter) {
-        out.smartStartTag(StartNode.ELEMENTNAME) {
-            serializeAttributes(this)
-            serializeChildren(this)
-        }
-    }
-
     override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
         return visitor.visitStartNode(this)
     }
@@ -86,15 +79,11 @@ abstract class StartNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?>
     @SerialName("start")
     @XmlSerialName("start", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     @Serializable
-    open class Builder : ProcessNodeBase.Builder, StartNode.Builder, SimpleXmlDeserializable {
+    open class Builder : ProcessNodeBase.Builder, StartNode.Builder {
 
         @Transient
         override val idBase: String
             get() = "start"
-
-        @Transient
-        override val elementName: QName
-            get() = StartNode.ELEMENTNAME
 
         @Transient
         final override var successor: Identifiable? = null
@@ -123,22 +112,6 @@ abstract class StartNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?>
 
         constructor(node: StartNode) : super(node) {
             successor = node.successor
-        }
-
-        override fun deserializeChild(reader: XmlReader): Boolean {
-            if (ProcessConsts.Engine.NAMESPACE == reader.namespaceURI) {
-                when (reader.localName) {
-                    "import" -> {
-                        (results as MutableList).add(XmlResultType.deserialize(reader))
-                        return true
-                    }
-                }
-            }
-            return false
-        }
-
-        override fun deserializeChildText(elementText: CharSequence): Boolean {
-            return false
         }
 
     }

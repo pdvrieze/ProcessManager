@@ -24,23 +24,32 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.*
-import kotlinx.serialization.internal.SerialClassDescImpl
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializer
+import kotlinx.serialization.Transient
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.encoding.CompositeEncoder
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.ProcessConsts.Engine
+import nl.adaptivity.serialutil.encodeNullableStringElement
+import nl.adaptivity.serialutil.readNullableString
 import nl.adaptivity.util.multiplatform.JvmName
-import nl.adaptivity.util.multiplatform.name
 import nl.adaptivity.util.multiplatform.toUri
 import nl.adaptivity.xml.localPart
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.serialutil.*
+import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
-import nl.adaptivity.serialutil.encodeNullableStringElement
-import nl.adaptivity.serialutil.readNullableString
 import nl.adaptivity.xmlutil.util.CompactFragment
-import nl.adaptivity.xmlutil.util.ExtXmlDeserializable
 import nl.adaptivity.xmlutil.util.ICompactFragment
+import nl.adaptivity.xmlutil.xmlserializable.ExtXmlDeserializable
+import nl.adaptivity.xmlutil.xmlserializable.XmlDeserializer
+import nl.adaptivity.xmlutil.xmlserializable.deserializeHelper
+import nl.adaptivity.xmlutil.xmlserializable.toString
 import nl.adaptivity.xml.QName as DescQName
 import nl.adaptivity.xmlutil.QName as XmlQName
 
@@ -72,7 +81,6 @@ import nl.adaptivity.xmlutil.QName as XmlQName
  * </complexType>
  * ```
  */
-@XmlDeserializer(XmlMessage.Factory::class)
 @Serializable
 @XmlSerialName(XmlMessage.ELEMENTLOCALNAME, Engine.NAMESPACE, Engine.NSPREFIX)
 class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
@@ -128,13 +136,6 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
     override val messageBody: ICompactFragment
         get() = CompactFragment(namespaces, content)
 
-    class Factory : XmlDeserializerFactory<XmlMessage> {
-
-        override fun deserialize(reader: XmlReader): XmlMessage {
-            return XmlMessage.deserialize(reader)
-        }
-    }
-
     constructor() : this(service = null) { /* default constructor */
     }
 
@@ -169,10 +170,6 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
         out.writeAttribute("operation", operation)
         out.writeAttribute("url", url)
         out.writeAttribute("method", method)
-    }
-
-    override fun onBeforeDeserializeChildren(reader: XmlReader) {
-        super<XMLContainer>.onBeforeDeserializeChildren(reader)
     }
 
     override fun deserializeAttribute(
@@ -284,7 +281,7 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
         }
 
         fun deserialize(reader: XmlReader): XmlMessage {
-            return XmlMessage().deserializeHelper(reader)
+            return XML.decodeFromReader(reader)
         }
 
         override fun deserialize(decoder: Decoder): XmlMessage {

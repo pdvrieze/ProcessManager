@@ -31,12 +31,11 @@ import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.util.multiplatform.Class
-import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
-import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.QName
+import nl.adaptivity.xmlutil.XmlReader
+import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
-
-@XmlDeserializer(ActivityResponse.Factory::class)
 /**
  *
  *
@@ -86,7 +85,7 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
  */
 @Serializable
 @XmlSerialName(ActivityResponse.ELEMENTLOCALNAME, ActivityResponse.NAMESPACE, Engine.NSPREFIX)
-class ActivityResponse<T : Any?> : XmlSerializable, SimpleXmlDeserializable {
+class ActivityResponse<T : Any?> {
 
     private constructor(
         nodeInstanceState: NodeInstanceState,
@@ -126,10 +125,6 @@ class ActivityResponse<T : Any?> : XmlSerializable, SimpleXmlDeserializable {
         private set
 
 
-    @Transient
-    override val elementName: QName
-        get() = ELEMENTNAME
-
     /**
      * The value of the taskState property as string.
      */
@@ -139,45 +134,6 @@ class ActivityResponse<T : Any?> : XmlSerializable, SimpleXmlDeserializable {
         set(value) {
             nodeInstanceState = NodeInstanceState.valueOf(value)
         }
-
-    class Factory : XmlDeserializerFactory<ActivityResponse<*>> {
-
-        override fun deserialize(reader: XmlReader): ActivityResponse<*> {
-            return ActivityResponse.deserialize<Any>(reader)
-        }
-    }
-
-    override fun deserializeChild(reader: XmlReader): Boolean {
-        return false
-    }
-
-    override fun deserializeChildText(elementText: CharSequence): Boolean {
-        return false
-    }
-
-    override fun deserializeAttribute(
-        attributeNamespace: String?,
-        attributeLocalName: String,
-        attributeValue: String
-                                     ): Boolean {
-        when (attributeLocalName) {
-            "taskState" -> {
-                taskStateString = attributeValue
-                return true
-            }
-        }
-        return false
-    }
-
-    override fun onBeforeDeserializeChildren(reader: XmlReader) {
-
-    }
-
-    override fun serialize(out: XmlWriter) {
-        out.smartStartTag(ELEMENTNAME) {
-            writeAttribute(ATTRTASKSTATE, nodeInstanceState.name)
-        }
-    }
 
     companion object {
 
@@ -205,7 +161,7 @@ class ActivityResponse<T : Any?> : XmlSerializable, SimpleXmlDeserializable {
         }
 
         fun <T> deserialize(reader: XmlReader): ActivityResponse<T> {
-            return ActivityResponse<T>().deserializeHelper(reader)
+            return XML.decodeFromReader(reader)
         }
     }
 

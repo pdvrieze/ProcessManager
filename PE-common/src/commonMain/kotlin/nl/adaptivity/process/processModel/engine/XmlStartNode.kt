@@ -16,10 +16,10 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import kotlinx.serialization.Decoder
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer
+import kotlinx.serialization.encoding.Decoder
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.StartNode

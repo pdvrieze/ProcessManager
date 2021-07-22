@@ -17,8 +17,9 @@
 package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.*
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.internal.GeneratedSerializer
-import kotlinx.serialization.internal.SerialClassDescImpl
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.ChildProcessModel
 import nl.adaptivity.process.processModel.ChildProcessModelBase
@@ -40,16 +41,17 @@ class XmlChildModel : ChildProcessModelBase<XmlProcessNode>, ChildProcessModel<X
     constructor(
         builder: ChildProcessModel.Builder,
         buildHelper: BuildHelper<XmlProcessNode, ProcessModel<XmlProcessNode>, *, *>
-               ) : super(builder, buildHelper)
+    ) : super(builder, buildHelper)
 
     override fun builder(rootBuilder: RootProcessModel.Builder): ModelBuilder {
         return ModelBuilder(rootBuilder, this)
     }
 
-    @UseExperimental(InternalSerializationApi::class)
+    @OptIn(InternalSerializationApi::class)
     @Serializer(forClass = XmlChildModel::class)
     companion object : ChildProcessModelBase.BaseSerializer<XmlChildModel>(), GeneratedSerializer<XmlChildModel> {
 
+/*
         init {
             // Hack to handle invalid codegen for the generated serializer
             val d = descriptor as SerialClassDescImpl
@@ -57,10 +59,11 @@ class XmlChildModel : ChildProcessModelBase<XmlProcessNode>, ChildProcessModel<X
                 d.pushDescriptor(childSerializer.descriptor)
             }
         }
+*/
 
         @Suppress("RedundantOverride")
-        override fun serialize(encoder: Encoder, obj: XmlChildModel) {
-            super.serialize(encoder, obj)
+        override fun serialize(encoder: Encoder, value: XmlChildModel) {
+            super.serialize(encoder, value)
         }
 
         override fun deserialize(decoder: Decoder): XmlChildModel {

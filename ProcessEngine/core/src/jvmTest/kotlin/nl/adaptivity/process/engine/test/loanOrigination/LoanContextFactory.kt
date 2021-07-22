@@ -37,7 +37,7 @@ class LoanContextFactory(val log: Logger) : ProcessContextFactory<LoanActivityCo
 
     val authService = AuthService(log, nodes)
 
-    @UseExperimental(ExperimentalUnsignedTypes::class)
+    @OptIn(ExperimentalUnsignedTypes::class)
     val engineClientAuth: IdSecretAuthInfo = authService.registerClient("ProcessEngine", Random.nextString()).also {
         authService.registerGlobalPermission(null, it.principal, authService, LoanPermissions.UPDATE_ACTIVITY_STATE)
         authService.registerGlobalPermission(null, it.principal, authService, LoanPermissions.GRANT_GLOBAL_PERMISSION)
@@ -64,7 +64,7 @@ class LoanContextFactory(val log: Logger) : ProcessContextFactory<LoanActivityCo
         "passport345",
         "John Doe",
         "10 Downing Street"
-                                   )
+    )
 
     val clerk1 = Browser(authService, SimplePrincipal("preprocessing clerk 1"))
     val postProcClerk = Browser(authService, SimplePrincipal("postprocessing clerk 2"))
@@ -73,7 +73,7 @@ class LoanContextFactory(val log: Logger) : ProcessContextFactory<LoanActivityCo
     override fun newActivityInstanceContext(
         engineDataAccess: ProcessEngineDataAccess,
         processNodeInstance: IProcessNodeInstance
-                                           ): LoanActivityContext {
+    ): LoanActivityContext {
         val instanceHandle = processNodeInstance.processContext.handle
         nodes[processNodeInstance.handle] = processNodeInstance.node.id
         val processContext = getProcessContext(engineDataAccess, instanceHandle)
@@ -83,20 +83,20 @@ class LoanContextFactory(val log: Logger) : ProcessContextFactory<LoanActivityCo
     private fun getProcessContext(
         engineDataAccess: ProcessEngineDataAccess,
         instanceHandle: Handle<SecureObject<ProcessInstance>>
-                                 ) =
+    ) =
         processContexts.getOrPut(instanceHandle) { LoanProcessContext(engineDataAccess, this, instanceHandle) }
 
     override fun onProcessFinished(
         engineDataAccess: ProcessEngineDataAccess,
         processInstance: Handle<SecureObject<ProcessInstance>>
-                                  ) {
+    ) {
         processContexts.remove(processInstance)
     }
 
     override fun onActivityTermination(
         engineDataAccess: ProcessEngineDataAccess,
         processNodeInstance: IProcessNodeInstance
-                                      ) {
+    ) {
         val nodeInstanceHandle = processNodeInstance.handle
         val loanProcessContext = getProcessContext(engineDataAccess, processNodeInstance.processContext.handle)
         for (taskList in taskLists.values) {
@@ -113,7 +113,12 @@ class LoanContextFactory(val log: Logger) : ProcessContextFactory<LoanActivityCo
             val t = TaskList(authService, engineService, clientAuth, principal)
             val auth = engineClientAuth
             authService.registerGlobalPermission(auth, principal, t, LoanPermissions.ACCEPT_TASK)
-            authService.registerGlobalPermission(auth, SimplePrincipal(engineService.serviceId), t, LoanPermissions.POST_TASK)
+            authService.registerGlobalPermission(
+                auth,
+                SimplePrincipal(engineService.serviceId),
+                t,
+                LoanPermissions.POST_TASK
+            )
             t
         }
     }

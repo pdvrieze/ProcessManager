@@ -17,13 +17,17 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.xmlutil.Namespace
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.XmlSerializable
 import org.w3c.dom.Node
 
-actual interface IXmlResultType : XmlSerializable {
+@Serializable(with = IXmlResultType.Serializer::class)
+actual interface IXmlResultType {
 
     actual val content: CharArray?
 
@@ -60,7 +64,7 @@ actual interface IXmlResultType : XmlSerializable {
      */
     actual val originalNSContext: Iterable<Namespace>
 
-    actual companion object serializer : KSerializer<IXmlResultType> {
+    actual companion object Serializer : KSerializer<IXmlResultType> {
         override val descriptor: SerialDescriptor
             get() = XmlResultType.serializer().descriptor
 

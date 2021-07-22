@@ -35,7 +35,6 @@ interface DrawableProcessModel : ProcessModel<DrawableProcessNode> {
 
         override val rootBuilder: RootDrawableProcessModel.Builder
 
-        @JvmDefault
         override fun compositeActivityBuilder(): CompositeActivity.ModelBuilder {
             TODO("DrawableChildModels still need to be implemented")
         }

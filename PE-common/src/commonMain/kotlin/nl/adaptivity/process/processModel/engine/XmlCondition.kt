@@ -17,10 +17,13 @@
 package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.*
-import kotlinx.serialization.internal.StringSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.processModel.Condition
-import nl.adaptivity.util.SerialClassDescImpl
+import nl.adaptivity.serialutil.withName
 import nl.adaptivity.xmlutil.*
 
 
@@ -30,21 +33,12 @@ import nl.adaptivity.xmlutil.*
  * @author Paul de Vrieze
  */
 @Serializable(XmlCondition.Companion::class)
-class XmlCondition(override val condition: String) : XmlSerializable, Condition {
-
-    override fun serialize(out: XmlWriter) {
-        out.writeSimpleElement(
-            QName(
-                Engine.NAMESPACE, Condition.ELEMENTLOCALNAME,
-                Engine.NSPREFIX
-                 ), condition
-                              )
-    }
+class XmlCondition(override val condition: String) : Condition {
 
     @Serializer(XmlCondition::class)
     companion object : KSerializer<Condition> {
         override val descriptor: SerialDescriptor
-            get() = SerialClassDescImpl(StringSerializer.descriptor, "condition")
+            get() = String.serializer().descriptor.withName("condition")
 
         fun deserialize(reader: XmlReader): XmlCondition {
             val condition = reader.readSimpleElement()

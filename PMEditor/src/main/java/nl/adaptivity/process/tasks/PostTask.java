@@ -22,7 +22,7 @@ import net.devrieze.util.StringUtil;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.xmlutil.util.CompactFragment;
 import nl.adaptivity.xmlutil.util.ICompactFragment;
-import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable;
+import nl.adaptivity.xmlutil.xmlserializable.SimpleXmlDeserializable;
 import nl.adaptivity.xmlutil.*;
 import org.jetbrains.annotations.NotNull;
 

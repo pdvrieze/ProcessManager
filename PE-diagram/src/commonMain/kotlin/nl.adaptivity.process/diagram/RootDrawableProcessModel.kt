@@ -36,6 +36,7 @@ import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xmlutil.XmlDeserializerFactory
 import nl.adaptivity.xmlutil.XmlReader
+import nl.adaptivity.xmlutil.serialization.XML
 import kotlin.math.max
 
 
@@ -135,7 +136,7 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
 
         @kotlin.jvm.JvmStatic
         fun deserialize(reader: XmlReader): RootDrawableProcessModel {
-            return RootDrawableProcessModel(RootProcessModelBase.Builder.deserialize(Builder(), reader))
+            return XML.decodeFromReader(reader)
         }
 
         @kotlin.jvm.JvmStatic
@@ -189,9 +190,9 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
         override val topExtent: Double get() = 0.0
 
         override val rightExtent: Double
-            get() = childElements.map { it.x + it.rightExtent }.max() ?: 0.0
+            get() = childElements.map { it.x + it.rightExtent }.maxOrNull() ?: 0.0
         override val bottomExtent: Double
-            get() = childElements.map { it.y + it.bottomExtent }.max() ?: 0.0
+            get() = childElements.map { it.y + it.bottomExtent }.maxOrNull() ?: 0.0
 
         override var state = Drawable.STATE_DEFAULT
 
@@ -352,9 +353,6 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
 
 
         companion object {
-            @kotlin.jvm.JvmStatic
-            fun deserialize(reader: XmlReader) = RootProcessModelBase.Builder.deserialize(Builder(), reader)
-
 
             private fun toDiagramNodes(modelNodes: Collection<ProcessNode.Builder>): List<DiagramNode<DrawableProcessNode.Builder<*>>> {
                 val nodeMap = HashMap<String, DiagramNode<DrawableProcessNode.Builder<*>>>()
@@ -379,13 +377,6 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
 
         }
     }
-
-    class Factory : XmlDeserializerFactory<RootDrawableProcessModel> {
-
-        override fun deserialize(reader: XmlReader) = RootDrawableProcessModel.deserialize(reader)
-
-    }
-
 }
 
 // Casting as we cannot express that it will create the correct child.

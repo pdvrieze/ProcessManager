@@ -17,8 +17,14 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.encoding.CompositeEncoder
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.internal.GeneratedSerializer
-import kotlinx.serialization.internal.SerialClassDescImpl
 import net.devrieze.util.*
 import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.security.SYSTEMPRINCIPAL
@@ -34,14 +40,14 @@ import nl.adaptivity.util.security.Principal
 import nl.adaptivity.serialutil.*
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.*
+import nl.adaptivity.xmlutil.xmlserializable.writeChildren
 import kotlin.jvm.JvmStatic
 
 @Serializable
 abstract class RootProcessModelBase<NodeT : ProcessNode> :
-    ProcessModelBase<@ContextualSerialization NodeT>,
+    ProcessModelBase<@UseContextualSerialization NodeT>,
     RootProcessModel<NodeT>,
-    MutableHandleAware<RootProcessModel<NodeT>>,
-    XmlSerializable {
+    MutableHandleAware<RootProcessModel<NodeT>> {
 
     /**
      * The name of the model.
@@ -151,32 +157,6 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
         return builder().apply(body).build()
     }*/
 
-    @Throws(XmlException::class)
-    override fun serialize(out: XmlWriter) {
-
-        if (modelNodes.any { it.id == null }) {
-            XmlProcessModel(builder()).serialize(out)
-        } else {
-            out.smartStartTag(ELEMENTNAME) {
-                writeAttribute("name", name)
-                writeAttribute("owner", owner.getName())
-
-                if (roles.isNotEmpty()) {
-                    writeAttribute(ATTR_ROLES, roles.joinToString(","))
-                }
-                if (uuid != null) {
-                    writeAttribute("uuid", uuid.toString())
-                }
-                ignorableWhitespace("\n  ")
-                writeChildren(imports)
-                writeChildren(exports)
-                writeChildren(_childModels as Iterable<XmlSerializable>)
-                writeChildren(modelNodes)
-                ignorableWhitespace("\n")
-            }
-        }
-    }
-
     fun hasUnpositioned() = modelNodes.any { !it.hasPos() }
 
     override fun getChildModel(childId: Identifiable) = _childModels[childId]
@@ -239,27 +219,57 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
 
 
     abstract class BaseSerializer<T : RootProcessModelBase<*>> : ProcessModelBase.BaseSerializer<T>() {
-        private val nameIdx by lazy { descriptor.getElementIndexOrThrow("name") }
-        private val ownerIdx by lazy { descriptor.getElementIndexOrThrow("owner") }
-        private val rolesIdx by lazy { descriptor.getElementIndexOrThrow("roles") }
-        private val uuidIdx by lazy { descriptor.getElementIndexOrThrow("uuid") }
-        private val handleIdx by lazy { descriptor.getElementIndexOrThrow("handle") }
-        private val childModelIdx by lazy { descriptor.getElementIndexOrThrow("childModel") }
-
-        protected abstract val childModelSerializer: KSerializer<ChildProcessModel<*>>
-
-        override fun serialize(encoder: Encoder, obj: T) {
-            // For serialization node ids are required. If they are somehow missing, rebuild the model with ids.
-            if (obj.modelNodes.any { it.id == null }) {
-                val rebuilt = XmlProcessModel(obj.builder())
-                @Suppress("UNCHECKED_CAST")
-                super.serialize(encoder, rebuilt as T)
-            } else {
-                super.serialize(encoder, obj)
+        private val nameIdx by lazy {
+            when (val idx = descriptor.getElementIndex("name")) {
+                CompositeDecoder.UNKNOWN_NAME -> throw IllegalArgumentException("No element with name ${"name"} available")
+                else                          -> idx
+            }
+        }
+        private val ownerIdx by lazy {
+            when (val idx = descriptor.getElementIndex("owner")) {
+                CompositeDecoder.UNKNOWN_NAME -> throw IllegalArgumentException("No element with name ${"owner"} available")
+                else                          -> idx
+            }
+        }
+        private val rolesIdx by lazy {
+            when (val idx = descriptor.getElementIndex("roles")) {
+                CompositeDecoder.UNKNOWN_NAME -> throw IllegalArgumentException("No element with name ${"roles"} available")
+                else                          -> idx
+            }
+        }
+        private val uuidIdx by lazy {
+            when (val idx = descriptor.getElementIndex("uuid")) {
+                CompositeDecoder.UNKNOWN_NAME -> throw IllegalArgumentException("No element with name ${"uuid"} available")
+                else                          -> idx
+            }
+        }
+        private val handleIdx by lazy {
+            when (val idx = descriptor.getElementIndex("handle")) {
+                CompositeDecoder.UNKNOWN_NAME -> throw IllegalArgumentException("No element with name ${"handle"} available")
+                else                          -> idx
+            }
+        }
+        private val childModelIdx by lazy {
+            when (val idx = descriptor.getElementIndex("childModel")) {
+                CompositeDecoder.UNKNOWN_NAME -> throw IllegalArgumentException("No element with name ${"childModel"} available")
+                else                          -> idx
             }
         }
 
-        override fun writeValues(output: KOutput, obj: T) {
+        protected abstract val childModelSerializer: KSerializer<ChildProcessModel<*>>
+
+        override fun serialize(encoder: Encoder, value: T) {
+            // For serialization node ids are required. If they are somehow missing, rebuild the model with ids.
+            if (value.modelNodes.any { it.id == null }) {
+                val rebuilt = XmlProcessModel(value.builder())
+                @Suppress("UNCHECKED_CAST")
+                super.serialize(encoder, rebuilt as T)
+            } else {
+                super.serialize(encoder, value)
+            }
+        }
+
+        override fun writeValues(output: CompositeEncoder, obj: T) {
             val desc = descriptor
             output.encodeNullableStringElement(desc, nameIdx, obj.name)
             output.encodeStringElement(desc, ownerIdx, obj.owner.getName())
@@ -268,7 +278,12 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
             val rolesString = if (obj.roles.isEmpty()) null else obj.roles.joinToString(",")
             output.encodeNullableStringElement(desc, rolesIdx, rolesString)
             output.encodeNullableStringElement(desc, uuidIdx, obj.uuid?.toString())
-            output.encodeSerializableElement(desc, childModelIdx, childModelSerializer.list, obj._childModels)
+            output.encodeSerializableElement(
+                desc,
+                childModelIdx,
+                ListSerializer<T>(childModelSerializer as KSerializer<T>),
+                obj._childModels as List<T>
+            )
 
             super.writeValues(output, obj)
         }
@@ -280,12 +295,6 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
         val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
         const val ATTR_ROLES = "roles"
 
-        @Throws(XmlException::class)
-        @kotlin.jvm.JvmStatic
-        @Deprecated("Remove convenience building", ReplaceWith("Builder.deserialize(builder, reader).build().asM()"))
-        fun deserialize(builder: Builder, reader: XmlReader): RootProcessModelBase<out ProcessNode> {
-            return XmlProcessModel(builder.deserialize(reader))
-        }
     }
 
 
@@ -304,7 +313,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
             uuid: UUID? = null,
             imports: Collection<IXmlResultType> = emptyList(),
             exports: Collection<IXmlDefineType> = emptyList()
-                   )
+        )
             : super(nodes, imports, exports) {
             this.childModels = childModels.toMutableList()
             this.name = name
@@ -344,7 +353,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
                 uuid = base.uuid,
                 imports = base.imports.toMutableList(),
                 exports = base.exports.toMutableList()
-                ) {
+            ) {
 
             base.childModels.mapTo(childModels) { childProcessModel -> childModelBuilder(childProcessModel) }
 
@@ -362,43 +371,12 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
             }
         }
 
-        @Transient
-        override val elementName: QName
-            get() = ELEMENTNAME
-
         // These are open to allow drawable builders to be directly drawable
         open fun childModelBuilder(): ChildProcessModel.Builder =
             ChildProcessModelBase.ModelBuilder(rootBuilder)
 
         open fun childModelBuilder(base: ChildProcessModel<*>): ChildProcessModel.Builder =
             ChildProcessModelBase.ModelBuilder(rootBuilder, base)
-
-        override fun deserializeAttribute(
-            attributeNamespace: String?,
-            attributeLocalName: String,
-            attributeValue: String
-                                         ): Boolean {
-            when (attributeLocalName) {
-                "name"  -> name = attributeValue
-                "owner" -> owner = SimplePrincipal(attributeValue)
-                "roles" -> roles.replaceBy(attributeValue.split(" *, *".toRegex()).filter(String::isEmpty))
-                "uuid"  -> uuid = attributeValue.toUUID()
-                else    -> return false
-            }
-            return true
-        }
-
-        override fun deserializeChild(reader: XmlReader): Boolean {
-            return when {
-                reader.isElement(
-                    ProcessConsts.Engine.NAMESPACE,
-                    ChildProcessModel.ELEMENTLOCALNAME
-                                ) -> {
-                    childModels.add(ChildProcessModelBase.ModelBuilder(rootBuilder).deserializeHelper(reader)); true
-                }
-                else              -> super.deserializeChild(reader)
-            }
-        }
 
         override fun toString(): String {
             return "${this::class.simpleName}(nodes=$nodes, name=$name, handle=$handle, owner=$owner, roles=$roles, uuid=$uuid, imports=$imports, exports=$exports)"
@@ -408,30 +386,36 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
 
             override fun readElement(result: T, input: CompositeDecoder, index: Int, name: String) {
                 when (name) {
-                    "name"                             -> result.name = input.readNullableString(descriptor, index)
-                    "handle"                           -> result.handle = input.decodeLongElement(descriptor, index)
-                    "owner"                            -> input.readNullableString(descriptor, index)?.let {
+                    "name"   -> result.name = input.readNullableString(descriptor, index)
+                    "handle" -> result.handle = input.decodeLongElement(descriptor, index)
+
+                    "owner"  -> input.readNullableString(descriptor, index)?.let {
                         result.owner = SimplePrincipal(it)
                     }
-                    "roles"                            -> input.readNullableString(descriptor, index)?.let { value ->
+
+                    "roles"  -> input.readNullableString(descriptor, index)?.let { value ->
                         result.roles.replaceBy(value.split(" *, *".toRegex()).filter(String::isEmpty))
                     }
-                    "uuid"                             -> result.uuid = input.readNullableString(
+
+                    "uuid"   -> result.uuid = input.readNullableString(
                         descriptor,
                         index
-                                                                                                )?.toUUID()
-                    ChildProcessModel.ELEMENTLOCALNAME -> {
+                    )?.toUUID()
+
+                    ChildProcessModel.ELEMENTLOCALNAME
+                             -> {
                         @Suppress("UNCHECKED_CAST")
-                        val newList = input.updateSerializableElement(
+                        val newList = input.decodeSerializableElement(
                             descriptor,
                             index,
-                            ChildProcessModelBase.ModelBuilder.serializer().list,
+                            ListSerializer(ChildProcessModelBase.ModelBuilder.serializer() as KSerializer<ActivityBase.CompositeActivityBuilder>),
                             result.childModels as List<ActivityBase.CompositeActivityBuilder>
-                                                                     )
+                        )
                         @Suppress("UNCHECKED_CAST")
                         result.childModels.replaceBy(newList)
                     }
-                    else                               -> super.readElement(result, input, index, name)
+
+                    else     -> super.readElement(result, input, index, name)
                 }
             }
 
@@ -440,78 +424,24 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
             }
         }
 
-        @UseExperimental(InternalSerializationApi::class)
+        @OptIn(InternalSerializationApi::class)
         @Serializer(Builder::class)
         companion object : BaseSerializer<Builder>(),
                            GeneratedSerializer<Builder> {
+            override val descriptor: SerialDescriptor = buildClassSerialDescriptor("RootProcessModelBase") {
+                for (childSerializer in childSerializers()) {
+                    element(childSerializer.descriptor.serialName, childSerializer.descriptor)
+                }
+            }
+
             init {
                 // Some nasty hack as somehow initialisation is broken.
+/*
                 val d = descriptor as SerialClassDescImpl
                 for (childSerializer in childSerializers()) {
                     d.pushDescriptor(childSerializer.descriptor)
                 }
-            }
-
-            @Deprecated("Use kotlinx.serializer")
-            @JvmStatic
-            fun <B : Builder> deserialize(
-                builder: B,
-                reader: XmlReader
-                                         ): B {
-
-                reader.skipPreamble()
-                val elementName = ELEMENTNAME
-                assert(reader.isElement(elementName)) { "Expected " + elementName + " but found " + reader.localName }
-                for (i in reader.attributeCount - 1 downTo 0) {
-                    builder.deserializeAttribute(
-                        reader.getAttributeNamespace(i), reader.getAttributeLocalName(i),
-                        reader.getAttributeValue(i)
-                                                )
-                }
-
-//                var event: EventType? = null
-                while (reader.hasNext() && reader.nextTag() !== EventType.END_ELEMENT) {
-                    val event = reader.eventType
-                    if (!(event == EventType.START_ELEMENT && builder.deserializeChild(reader))) {
-                        throw XmlException("Expected child tag, found other content ($event)\n  $reader")
-                    }
-                }
-
-                val addedSplits = mutableListOf<ProcessNode.Builder>()
-                for (node in builder.nodes) {
-                    node.id?.let { nodeId ->
-                        for (pred in node.predecessors) {
-                            val predNode = builder.nodes.firstOrNull { it.id == pred.id }
-                            if (predNode != null && predNode.successors.isNotEmpty() && predNode !is Split.Builder) {
-                                // A special case for the compatibility option where splits are introduced.
-                                // non-split builders now no longer accept multiple successors
-                                val predSuccessor = predNode.successors.single()
-                                val oldSuccessor = builder.nodes.firstOrNull { it.id == predSuccessor.id }
-                                if (oldSuccessor != null) {
-                                    val splitName = builder.newId("split")
-                                    val split = builder.splitBuilder().apply {
-                                        id = splitName
-                                        predecessor = pred
-                                        successors.replaceBy(predSuccessor.identifier, Identifier(nodeId))
-                                    }
-                                    addedSplits.add(split)
-                                    val splitIdentifier = Identifier(splitName)
-                                    predNode.removeSuccessor(predSuccessor)
-                                    predNode.addSuccessor(splitIdentifier)
-                                    oldSuccessor.removePredecessor(pred)
-                                    oldSuccessor.addPredecessor(splitIdentifier)
-                                    node.removePredecessor(pred)
-                                    node.addPredecessor(splitIdentifier)
-                                }
-                            } else {
-                                predNode?.addSuccessor(Identifier(nodeId))
-                            }
-                        }
-                    }
-                }
-                builder.nodes.addAll(addedSplits)
-
-                return builder
+*/
             }
 
             override fun builder() = Builder()
@@ -526,7 +456,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
             }
 
             fun deserialize(reader: XmlReader): Builder {
-                return RootProcessModelBase.Builder.deserialize(Builder(), reader)
+                return XML.decodeFromReader(reader)
             }
 
         }
@@ -616,8 +546,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
 
 }
 
-
-fun <B : RootProcessModelBase.Builder> B.deserialize(reader: XmlReader): B {
-    return this.deserializeHelper(reader)
+internal fun SerialDescriptor.getElementIndexOrThrow(name: String): Int = when (val idx = getElementIndex(name)) {
+    CompositeDecoder.UNKNOWN_NAME -> throw IllegalArgumentException("No element with name $name available")
+    else -> idx
 }
-

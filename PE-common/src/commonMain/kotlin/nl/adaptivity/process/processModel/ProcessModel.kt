@@ -52,42 +52,30 @@ interface ProcessModel<out NodeT : ProcessNode> {
         val imports: MutableList<IXmlResultType>
         val exports: MutableList<IXmlDefineType>
 
-        @JvmDefault
         fun startNodeBuilder(): StartNode.Builder = StartNodeBase.Builder()
 
-        @JvmDefault
         fun splitBuilder(): Split.Builder = SplitBase.Builder()
 
-        @JvmDefault
         fun joinBuilder(): Join.Builder = JoinBase.Builder()
 
-        @JvmDefault
         fun activityBuilder(): MessageActivity.Builder = MessageActivityBase.Builder()
 
-        @JvmDefault
         fun compositeActivityBuilder(): CompositeActivity.ModelBuilder =
             ActivityBase.CompositeActivityBuilder(rootBuilder = this.rootBuilder)
 
-        @JvmDefault
         fun endNodeBuilder(): EndNode.Builder = EndNodeBase.Builder()
 
-        @JvmDefault
         fun startNodeBuilder(startNode: StartNode): StartNode.Builder = StartNodeBase.Builder(startNode)
 
-        @JvmDefault
         fun splitBuilder(split: Split): Split.Builder = SplitBase.Builder(split)
 
-        @JvmDefault
         fun joinBuilder(join: Join): Join.Builder = JoinBase.Builder(join)
 
-        @JvmDefault
         fun activityBuilder(activity: MessageActivity): MessageActivity.Builder = MessageActivityBase.Builder(activity)
 
-        @JvmDefault
         fun activityBuilder(activity: CompositeActivity): CompositeActivity.ReferenceBuilder =
             CompositeActivityBase.ReferenceBuilder(activity)
 
-        @JvmDefault
         fun endNodeBuilder(endNode: EndNode): EndNode.Builder = EndNodeBase.Builder(endNode)
 
         fun startNode(body: StartNode.Builder.() -> Unit): Identifiable {

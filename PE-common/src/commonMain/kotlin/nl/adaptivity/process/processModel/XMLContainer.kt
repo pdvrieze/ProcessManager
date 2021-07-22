@@ -16,45 +16,43 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.*
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Transient
+import nl.adaptivity.serialutil.CharArrayAsStringSerializer
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.multiplatform.assert
+import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.util.GatheringNamespaceContext
 import nl.adaptivity.xmlutil.util.ICompactFragment
-import nl.adaptivity.xmlutil.util.ExtXmlDeserializable
 import nl.adaptivity.xmlutil.util.NamespaceAddingStreamReader
 import nl.adaptivity.xmlutil.util.XMLFragmentStreamReader
-import nl.adaptivity.xmlutil.*
-import nl.adaptivity.serialutil.CharArrayAsStringSerializer
+import nl.adaptivity.xmlutil.xmlserializable.XmlDeserializable
 
 
 /**
  * This class can contain xml content. It allows it to be transformed, and input/output
  * Created by pdvrieze on 30/10/15.
  */
+@Serializable
 abstract class XMLContainer private constructor(
     override var namespaces: SimpleNamespaceContext,
     @Serializable(with = CharArrayAsStringSerializer::class)
     override var content: CharArray
-                                               ) : XmlSerializable, ICompactFragment {
+) : ICompactFragment {
 
     constructor(namespaces: Iterable<Namespace>, content: CharArray) : this(
         SimpleNamespaceContext.from(namespaces),
         content
                                                                            )
-
-    @Transient
     override val isEmpty: Boolean
         get() = content.isEmpty()
 
-    @Transient
     override val contentString: String
         get() = buildString(content.size) { content.forEach { append(it) } }
 
-    @Transient
     val originalNSContext: Iterable<Namespace>
         get() = namespaces
 
-    @Transient
     val bodyStreamReader: XmlReader
         get() = this.getXmlReader()
 
@@ -68,13 +66,6 @@ abstract class XMLContainer private constructor(
                 val content = reader.siblingsToFragment()
                 setContent(content)
             }
-        }
-    }
-
-    open fun onBeforeDeserializeChildren(reader: XmlReader) {
-        val nsEnd = reader.namespaceEnd
-        for (i in reader.namespaceStart until nsEnd) {
-            visitNamespace(reader, reader.getNamespacePrefix(i))
         }
     }
 
@@ -101,7 +92,7 @@ abstract class XMLContainer private constructor(
     }
 
     internal fun addNamespaceContext(namespaceContext: SimpleNamespaceContext) {
-        namespaces = if (namespaces.size == 0) namespaceContext else namespaces.combine(namespaceContext)
+        namespaces = if (namespaces.size == 0) namespaceContext else (namespaces + namespaceContext)
     }
 
     override fun serialize(out: XmlWriter) {

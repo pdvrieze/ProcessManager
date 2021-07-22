@@ -92,6 +92,7 @@ kotlin {
                 implementation(project(":java-common"))
                 implementation(project(":PE-common"))
                 implementation("io.github.pdvrieze.xmlutil:core:$xmlutilVersion")
+                implementation("io.github.pdvrieze.xmlutil:xmldeserializable:$xmlutilVersion")
                 compileOnly(project(":JavaCommonApi"))
 
 //                implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")

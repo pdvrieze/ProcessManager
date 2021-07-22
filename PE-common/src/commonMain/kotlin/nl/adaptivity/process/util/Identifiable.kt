@@ -17,10 +17,13 @@
 package nl.adaptivity.process.util
 
 import kotlinx.serialization.*
-import kotlinx.serialization.internal.NullableSerializer
-import kotlinx.serialization.internal.StringSerializer
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.SetSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.serialutil.DelegateSerializer
-import nl.adaptivity.serialutil.simpleSerialClassDesc
 
 /**
  * Interface for objects that may have identifiers.
@@ -45,7 +48,7 @@ interface Identifiable : Comparable<Identifiable> {
     @Serializer(forClass = Identifiable::class)
     companion object {
         override val descriptor: SerialDescriptor
-            get() = StringSerializer.descriptor
+            get() = String.serializer().descriptor
 
         override fun deserialize(decoder: Decoder): Identifiable {
             return Identifier(decoder.decodeString())
@@ -64,6 +67,6 @@ interface Identifiable : Comparable<Identifiable> {
 
 }
 
-object IdentifiableListSerializer : DelegateSerializer<List<Identifiable>>(Identifiable.list)
+object IdentifiableListSerializer : DelegateSerializer<List<Identifiable>>(ListSerializer(Identifiable))
 
-object IdentifiableSetSerializer : DelegateSerializer<Set<Identifiable>>(Identifiable.set)
+object IdentifiableSetSerializer : DelegateSerializer<Set<Identifiable>>(SetSerializer(Identifiable))

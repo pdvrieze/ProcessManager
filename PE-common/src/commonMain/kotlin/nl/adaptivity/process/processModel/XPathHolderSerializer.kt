@@ -17,10 +17,14 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.encoding.CompositeEncoder
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.serialutil.encodeNullableStringElement
 import nl.adaptivity.serialutil.readNullableString
+import nl.adaptivity.xmlutil.util.GatheringNamespaceContext
 
 open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSerializer<T>() {
     open class PathHolderData<T : XPathHolder>(
@@ -33,7 +37,7 @@ open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSerializer<T>() 
         override fun handleLastRootAttributeReadEvent(
             reader: XmlReader,
             gatheringNamespaceContext: GatheringNamespaceContext
-                                                     ) {
+        ) {
             if (!path.isNullOrEmpty()) {
                 visitXpathUsedPrefixes(path, gatheringNamespaceContext)
             }
@@ -63,7 +67,7 @@ open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSerializer<T>() 
 
     open fun writeAdditionalAttributes(writer: XmlWriter, data: T) {}
 
-    override fun writeAdditionalValues(out: KOutput, desc: KSerialClassDesc, data: T) {
+    override fun writeAdditionalValues(out: CompositeEncoder, desc: SerialDescriptor, data: T) {
         out.encodeNullableStringElement(desc, desc.getElementIndex("name"), data._name)
         out.encodeNullableStringElement(desc, desc.getElementIndex("xpath"), data.getPath())
     }

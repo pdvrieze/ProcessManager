@@ -24,10 +24,8 @@ interface Handle<out T : Any?> {
     val handleValue: Long
 
     @Deprecated("Use isValid", ReplaceWith("isValid"))
-    @JvmDefault
     val valid: Boolean get() = isValid
 
-    @JvmDefault
     val isValid get() = handleValue >= 0
 }
 
@@ -35,7 +33,6 @@ interface Handle<out T : Any?> {
 inline fun <T:Any?> Handle(handleValue:Long):Handle<T> = handle(handle= handleValue)
 
 interface ComparableHandle<out T: Any?> : Handle<T>, Comparable<ComparableHandle<@kotlin.UnsafeVariance T>> {
-    @JvmDefault
     override fun compareTo(other: ComparableHandle<@kotlin.UnsafeVariance T>):Int {
         return handleValue.compareTo(other.handleValue)
     }

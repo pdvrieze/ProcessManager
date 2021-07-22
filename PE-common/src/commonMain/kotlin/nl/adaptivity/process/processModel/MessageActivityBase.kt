@@ -20,7 +20,6 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.xmlutil.XmlWriter
 
 @Serializable
 abstract class MessageActivityBase : ActivityBase, MessageActivity {
@@ -49,12 +48,6 @@ abstract class MessageActivityBase : ActivityBase, MessageActivity {
     override fun builder(): MessageActivity.Builder = Builder(this)
 
     override fun <R> visit(visitor: ProcessNode.Visitor<R>): R = visitor.visitActivity(this)
-
-    override fun serializeChildren(out: XmlWriter) {
-        super.serializeChildren(out)
-
-        _message?.serialize(out)
-    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

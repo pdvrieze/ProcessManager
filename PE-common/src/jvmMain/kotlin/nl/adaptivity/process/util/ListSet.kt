@@ -19,9 +19,8 @@ package nl.adaptivity.process.util
 import java.util.*
 
 actual interface ListSet<out E> : List<E>, Set<E> {
-    @JvmDefault
     override fun spliterator(): Spliterator<@UnsafeVariance E> {
-        return super<List>.spliterator()
+        return Spliterators.spliterator(this, Spliterator.ORDERED)
     }
 
 }

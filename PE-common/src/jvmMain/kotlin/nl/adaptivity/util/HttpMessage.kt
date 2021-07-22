@@ -23,7 +23,6 @@ import net.devrieze.util.webServer.HttpRequest
 import net.devrieze.util.webServer.parseMultipartFormDataTo
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
-import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
 import nl.adaptivity.xmlutil.*
 import org.w3c.dom.Document
 import java.io.*
@@ -41,6 +40,7 @@ import kotlin.collections.ArrayList
 import kotlin.collections.HashMap
 import kotlin.collections.Map.Entry
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
+import nl.adaptivity.xmlutil.xmlserializable.writeChildren
 
 
 // TODO change this to handle regular request bodies.
@@ -57,7 +57,7 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
                                                       type = AnyType::class)))
 @XmlDeserializer(HttpMessage.Factory::class)
 */
-class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
+class HttpMessage {
 
     private val _queries: MutableMap<String, String>// by lazy { HashMap<String, String>() }
 
@@ -105,10 +105,6 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
     var userPrincipal: Principal? = null
         internal set
 
-    override val elementName: QName
-        get() = ELEMENTNAME
-
-
     val content: XmlReader?
         @Throws(XmlException::class)
         get() = body?.getXmlReader()
@@ -119,14 +115,6 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
         set(name) {
             userPrincipal = name?.let { SimplePrincipal(it) }
         }
-
-    class Factory : XmlDeserializerFactory<HttpMessage> {
-
-        @Throws(XmlException::class)
-        override fun deserialize(reader: XmlReader): HttpMessage {
-            return HttpMessage.deserialize(reader)
-        }
-    }
 
     class ByteContentDataSource(
         private var name: String?,
@@ -213,45 +201,29 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
 
     class Query : PairBase {
 
-        override val elementName: QName
-            get() = ELEMENTNAME
-
         protected constructor() {}
 
         constructor(entry: Entry<String, String>) : super(entry) {}
 
         companion object {
             private val ELEMENTNAME = QName(NAMESPACE, "query", "http")
-
-            @Throws(XmlException::class)
-            fun deserialize(reader: XmlReader): Query {
-                return Query().deserializeHelper(reader)
-            }
         }
 
     }
 
     class Post : PairBase {
 
-        override val elementName: QName
-            get() = ELEMENTNAME
-
-        protected constructor() {}
+        protected constructor()
 
         constructor(entry: Entry<String, String>) : super(entry) {}
 
         companion object {
             private val ELEMENTNAME = QName(NAMESPACE, "post", "http")
-
-            @Throws(XmlException::class)
-            fun deserialize(`in`: XmlReader): Post {
-                return Post().deserializeHelper(`in`)
-            }
         }
 
     }
 
-    abstract class PairBase : XmlSerializable, SimpleXmlDeserializable {
+    abstract class PairBase {
 
         @XmlSerialName("name", HttpMessage.NAMESPACE, "http")
         lateinit var key: String
@@ -265,72 +237,29 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
             value = entry.value
         }
 
-        override fun deserializeChild(reader: XmlReader): Boolean {
-            return false
-        }
-
-        override fun deserializeChildText(elementText: CharSequence): Boolean {
-            value = if (!::value.isInitialized) elementText.toString() else value + elementText.toString()
-            return true
-        }
-
-        override fun deserializeAttribute(
-            attributeNamespace: String?,
-            attributeLocalName: String,
-            attributeValue: String
-                                         ): Boolean {
-            if ("name" == attributeLocalName) {
-                key = attributeValue
-                return true
-            }
-            return false
-        }
-
-        override fun onBeforeDeserializeChildren(reader: XmlReader) {
-            /* Do nothing. */
-        }
-
-        @Throws(XmlException::class)
-        override fun serialize(out: XmlWriter) {
-            out.smartStartTag(elementName)
-            out.writeAttribute("name", key)
-            if (value != null) {
-                out.text(value!!)
-            }
-            out.endTag(elementName)
-        }
-
         override fun hashCode(): Int {
             val prime = 31
             var result = 1
-            result = prime * result + if (key == null) 0 else key!!.hashCode()
-            result = prime * result + if (value == null) 0 else value!!.hashCode()
+            result = prime * result + key.hashCode()
+            result = prime * result + value.hashCode()
             return result
         }
 
-        override fun equals(obj: Any?): Boolean {
-            if (this === obj) {
+        override fun equals(other: Any?): Boolean {
+            if (this === other) {
                 return true
             }
-            if (obj == null) {
+            if (other == null) {
                 return false
             }
-            if (javaClass != obj.javaClass) {
+            if (javaClass != other.javaClass) {
                 return false
             }
-            val other = obj as PairBase?
-            if (key == null) {
-                if (other!!.key != null) {
-                    return false
-                }
-            } else if (key != other!!.key) {
+            other as PairBase?
+            if (key != other.key) {
                 return false
             }
-            if (value == null) {
-                if (other.value != null) {
-                    return false
-                }
-            } else if (value != other.value) {
+            if (value != other.value) {
                 return false
             }
             return true
@@ -488,42 +417,6 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
         return Charset.forName(request.characterEncoding)
     }
 
-    override fun deserializeChild(reader: XmlReader): Boolean {
-        return false
-    }
-
-    override fun deserializeChildText(elementText: CharSequence): Boolean {
-        return false
-    }
-
-    override fun deserializeAttribute(
-        attributeNamespace: String?,
-        attributeLocalName: String,
-        attributeValue: String
-                                     ): Boolean {
-        return false
-    }
-
-    override fun onBeforeDeserializeChildren(reader: XmlReader) {
-        // do nothing
-    }
-
-    @Throws(XmlException::class)
-    override fun serialize(out: XmlWriter) {
-        out.smartStartTag(ELEMENTNAME) {
-            writeAttribute("user", userPrincipal!!.name)
-            writeChildren(queries)
-            writeChildren(posts)
-
-            body?.also {
-                smartStartTag(BODYELEMENTNAME) {
-                    it.serialize(this)
-                }
-
-            }
-        }
-    }
-
     private fun addByteContent(byteArray: ByteArray, contentType: String) {
         _byteContent.add(ByteContentDataSource(null, contentType, byteArray))
     }
@@ -590,14 +483,9 @@ class HttpMessage : XmlSerializable, SimpleXmlDeserializable {
 
         private val DEFAULT_CHARSSET = Charset.forName("UTF-8")
 
-        @Throws(XmlException::class)
-        private fun deserialize(reader: XmlReader): HttpMessage {
-            return HttpMessage().deserializeHelper(reader)
-        }
-
         /*
-   * Utility methods
-   */
+         * Utility methods
+         */
 
         private fun getHeaders(request: HttpServletRequest): Map<String, List<String>> {
             val result = HashMap<String, List<String>>()

@@ -43,12 +43,6 @@ expect abstract class XPathHolder : XMLContainer {
     @Deprecated("This should be immutable")
     fun setPath(namespaceContext: Iterable<Namespace>, value: String?)
 
-    open fun deserializeAttribute(
-        attributeNamespace: String?,
-        attributeLocalName: String,
-        attributeValue: String
-                                 ): Boolean
-
     override fun deserializeChildren(reader: XmlReader)
 
     override fun serializeAttributes(out: XmlWriter)

@@ -102,7 +102,6 @@ interface IDrawableJoinSplit : IDrawableProcessNode {
     fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> drawDecoration(canvas: Canvas<S, PEN_T, PATH_T>,
                                                                                                                  clipBounds: Rectangle?)
 
-    @JvmDefault
     override fun isWithinBounds(x: Double, y: Double): Boolean {
         val realradiusX = (JOINWIDTH + DrawableJoinSplit.STROKEEXTEND) / 2
         val realradiusY = (JOINHEIGHT + DrawableJoinSplit.STROKEEXTEND) / 2
@@ -116,15 +115,12 @@ interface IDrawableJoinSplit : IDrawableProcessNode {
     }
 
     /** Determine whether the node represents an or split.  */
-    @JvmDefault
     fun isOr(): Boolean = this.min == 1 && this.max >= maxSiblings
 
     /** Determine whether the node represents an xor split.  */
-    @JvmDefault
     fun isXor(): Boolean = this.min == 1 && this.max == 1
 
     /** Determine whether the node represents an and split.  */
-    @JvmDefault
     fun isAnd(): Boolean = this.min == this.max && this.min >= maxSiblings
 
 }

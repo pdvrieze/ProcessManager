@@ -17,6 +17,9 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.xmlutil.util.ICompactFragment
 import nl.adaptivity.xml.QName

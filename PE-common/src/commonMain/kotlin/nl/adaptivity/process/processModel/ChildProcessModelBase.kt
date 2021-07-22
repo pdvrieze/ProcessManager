@@ -17,6 +17,11 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.encoding.CompositeEncoder
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.engine.XML_BUILDER_VISITOR
 import nl.adaptivity.process.processModel.engine.XmlChildModel
@@ -27,8 +32,9 @@ import nl.adaptivity.serialutil.*
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XmlPolyChildren
 import nl.adaptivity.serialutil.encodeNullableStringElement
-import nl.adaptivity.util.SerialClassDescImpl
 import nl.adaptivity.util.multiplatform.name
+import nl.adaptivity.xmlutil.xmlserializable.deserializeHelper
+import nl.adaptivity.xmlutil.xmlserializable.writeChildren
 import kotlin.jvm.JvmField
 
 /**
@@ -91,16 +97,6 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
 
     override abstract fun builder(rootBuilder: RootProcessModel.Builder): ModelBuilder
 
-    override fun serialize(out: XmlWriter) {
-        out.smartStartTag(ELEMENTNAME) {
-            writeAttribute(ATTR_ID, id)
-
-            writeChildren(imports)
-            writeChildren(exports)
-            writeChildren(modelNodes)
-        }
-    }
-
     @Serializable(with = ModelBuilder.Companion::class)
     open class ModelBuilder : ProcessModelBase.Builder, ChildProcessModel.Builder {
 
@@ -138,38 +134,11 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
                 base.exports
                 )
 
-        @Transient
-        override val elementName: QName
-            get() = ELEMENTNAME
-
         /**
          * When this is overridden and it returns a non-`null` value, it will allow childmodels to be nested in eachother.
          * Note that this does not actually introduce a scope. The nesting is not retained.
          */
         open fun nestedBuilder(): ModelBuilder? = null
-
-        override fun deserializeChild(reader: XmlReader): Boolean {
-            if (reader.isElement(ProcessConsts.Engine.NAMESPACE, ChildProcessModel.ELEMENTLOCALNAME)) {
-                nestedBuilder()?.let { rootBuilder.childModels.add(deserializeHelper(reader)) }
-                    ?: throw XmlException("Child models are not currently allowed to be nested")
-                return true
-            } else {
-                return super.deserializeChild(reader)
-            }
-        }
-
-        override fun deserializeAttribute(
-            attributeNamespace: String?,
-            attributeLocalName: String,
-            attributeValue: String
-                                         ): Boolean {
-            return when (attributeLocalName) {
-                ATTR_ID -> {
-                    childId = attributeValue; true
-                }
-                else    -> super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
-            }
-        }
 
         abstract class BaseSerializer<T : ModelBuilder> : ProcessModelBase.Builder.BaseSerializer<T>() {
             override fun readElement(result: T, input: CompositeDecoder, index: Int, name: String) {
@@ -182,10 +151,9 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
 
         @Serializer(forClass = ModelBuilder::class)
         companion object : BaseSerializer<ModelBuilder>() {
-            override val descriptor: SerialDescriptor = SerialClassDescImpl(
-                XmlChildModel.descriptor,
+            override val descriptor: SerialDescriptor = XmlChildModel.descriptor.withName(
                 ModelBuilder::class.name
-                                                                           )
+            )
 
             override fun builder(): ModelBuilder {
                 return ModelBuilder()

@@ -70,7 +70,6 @@ interface IDrawableEndNode : IDrawableProcessNode {
         }
     }
 
-    @JvmDefault
     override fun isWithinBounds(x: Double, y: Double): Boolean {
         val realradius = ENDNODEOUTERRADIUS + ENDNODEOUTERSTROKEWIDTH / 2
         val dx = abs(this.x - x)

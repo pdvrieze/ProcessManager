@@ -24,7 +24,6 @@
 
 package org.w3.soapEnvelope
 
-import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.xmlutil.*
 
 
@@ -51,7 +50,7 @@ import nl.adaptivity.xmlutil.*
  * ```
  *
  */
-class Body<T : XmlSerializable>() : XmlSerializable {
+class Body<T>() { // TODO make serializable
 
     private val otherAttributes = HashMap<QName, String>()
     /**
@@ -71,7 +70,7 @@ class Body<T : XmlSerializable>() : XmlSerializable {
      * ```
      *
      *
-     * Objects of the following type(s) are allowed in the list [Object]
+     * Objects of the following type(s) are allowed in the list [Any]
      * [Element]
      */
     var bodyContent: T? = null
@@ -84,19 +83,6 @@ class Body<T : XmlSerializable>() : XmlSerializable {
         this.bodyContent = content
     }
 
-    fun deserializeChildren(reader: XmlReader, bodyFactory: XmlDeserializerFactory<T>) {
-        if (reader.next() !== EventType.END_ELEMENT) { // first child
-            if (reader.hasNext()) {
-                bodyContent = bodyFactory.deserialize(reader)
-            }
-            // Be slightly flexible as CompactFragments already deserialize to the parent end element
-            if (!reader.isElement(EventType.END_ELEMENT, ELEMENTNAME)) {
-                reader.nextTag()
-            }
-            reader.require(EventType.END_ELEMENT, ELEMENTNAME.namespaceURI, ELEMENTLOCALNAME)
-        }
-    }
-
     fun deserializeAttribute(
         attributeNamespace: CharSequence,
         attributeLocalName: CharSequence,
@@ -105,15 +91,6 @@ class Body<T : XmlSerializable>() : XmlSerializable {
         val qname = QName(attributeNamespace.toString(), attributeLocalName.toString())
         otherAttributes[qname] = attributeValue.toString()
         return true
-    }
-
-    override fun serialize(out: XmlWriter) {
-        out.smartStartTag(elementName) {
-            for ((key, value) in otherAttributes) {
-                writeAttribute(key, value)
-            }
-            bodyContent?.serialize(this)
-        }
     }
 
     /**
@@ -137,21 +114,6 @@ class Body<T : XmlSerializable>() : XmlSerializable {
         val ELEMENTLOCALNAME = "Body"
         val ELEMENTNAME = QName(Envelope.NAMESPACE, ELEMENTLOCALNAME, Envelope.PREFIX)
 
-        fun <T : XmlSerializable> deserialize(reader: XmlReader, bodyFactory: XmlDeserializerFactory<T>): Body<T> {
-            val result = Body<T>()
-            reader.skipPreamble()
-            assert(reader.isElement(result.elementName)) { "Expected " + result.elementName + " but found " + reader.localName }
-            for (i in reader.attributeCount - 1 downTo 0) {
-                result.deserializeAttribute(
-                    reader.getAttributeNamespace(i), reader.getAttributeLocalName(i),
-                    reader.getAttributeValue(i)
-                                           )
-            }
-            result.deserializeChildren(reader, bodyFactory)
-
-            reader.require(EventType.END_ELEMENT, result.elementName.namespaceURI, result.elementName.localPart)
-            return result
-        }
     }
 
 }

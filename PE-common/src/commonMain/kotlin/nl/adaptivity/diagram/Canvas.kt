@@ -126,12 +126,10 @@ interface Canvas<S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH
      */
     @Suppress("DeprecatedCallableAddReplaceWith")
     @Deprecated("Use fillable version")
-    @JvmDefault
     fun drawPoly(points: DoubleArray, stroke: PEN_T) = drawPoly(points, stroke, null)
 
     @Suppress("DeprecatedCallableAddReplaceWith")
     @Deprecated("Use strokable version")
-    @JvmDefault
     fun drawFilledPoly(points: DoubleArray, fill: PEN_T) = drawPoly(points, null, fill)
 
     fun drawPath(path: PATH_T, stroke: PEN_T?, fill: PEN_T? = null)

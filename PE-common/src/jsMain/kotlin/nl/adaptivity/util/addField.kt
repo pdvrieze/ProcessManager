@@ -16,10 +16,6 @@
 
 package nl.adaptivity.util
 
-import kotlinx.serialization.internal.SerialClassDescImpl
-import nl.adaptivity.xmlutil.serialization.XmlDefault
+import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlin.reflect.KProperty
 
-actual fun SerialClassDescImpl.addField(property: KProperty<*>) {
-    addElement(property.name)
-}

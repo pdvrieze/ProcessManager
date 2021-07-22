@@ -33,8 +33,8 @@ import kotlin.random.nextULong
 class AuthService(
     val logger: Logger,
     private val nodeLookup: Map<PNIHandle, String>
-                 ) : Service {
-    @UseExperimental(ExperimentalUnsignedTypes::class)
+) : Service {
+    @OptIn(ExperimentalUnsignedTypes::class)
     val authServiceId = "AuthService:${Random.nextUInt().toString(16)}"
     override val serviceId: String
         get() = authServiceId
@@ -51,7 +51,10 @@ class AuthService(
             is AuthToken        -> {
                 val processNodeInstance = authInfo.nodeInstanceHandle
                 val nodeId = nodeLookup[processNodeInstance] ?: "<unknown node>"
-                logger.log(Level.INFO, "[$nodeId:${processNodeInstance.handleValue}>${authInfo.principal.name}] - $message")
+                logger.log(
+                    Level.INFO,
+                    "[$nodeId:${processNodeInstance.handleValue}>${authInfo.principal.name}] - $message"
+                )
             }
             is IdSecretAuthInfo -> logger.log(Level.INFO, "[GLOBAL>${authInfo.principal.name}] - $message")
             null                -> logger.log(Level.INFO, "[UNAUTH] - $message")
@@ -73,8 +76,11 @@ class AuthService(
         val serviceId = service.serviceId
         when (authInfo) {
             is IdSecretAuthInfo -> validateUserPermission(serviceId, authInfo, scope)
-            is AuthToken -> validateAuthTokenPermission(serviceId, authInfo, scope)
-            else -> doLog(authInfo, "validateAuthInfo(clientId = $serviceId, authInfo = $authInfo, scope = $scope)")
+            is AuthToken        -> validateAuthTokenPermission(serviceId, authInfo, scope)
+            else                -> doLog(
+                authInfo,
+                "validateAuthInfo(clientId = $serviceId, authInfo = $authInfo, scope = $scope)"
+            )
         }
     }
 
@@ -97,14 +103,18 @@ class AuthService(
             val hasExtPermission = additionalPermissions.any { it.scope.includes(useScope) }
             if (!hasExtPermission) {
                 val hasGlobalPerm: Boolean = authToken.scope == LoanPermissions.IDENTIFY &&
-                    (globalPermissions.get(authToken.principal)?.get(serviceId)?.any { it.includes(useScope) } ?: false)
+                        (globalPermissions.get(authToken.principal)?.get(serviceId)?.any { it.includes(useScope) }
+                            ?: false)
 
                 if (!hasGlobalPerm) {
                     throw AuthorizationException("No permission found for token $authToken to $serviceId.${useScope.description}")
                 }
             }
         }
-        doLog(authToken, "validateTokenPermissions(clientId = $serviceId, token = $authToken, scope = ${useScope.description})")
+        doLog(
+            authToken,
+            "validateTokenPermissions(clientId = $serviceId, token = $authToken, scope = ${useScope.description})"
+        )
     }
 
     private fun validateUserPermission(serviceId: String, authInfo: IdSecretAuthInfo, useScope: UseAuthScope) {
@@ -114,8 +124,11 @@ class AuthService(
         }
 
         val source = Throwable().stackTrace[2].let { "${it.className.substringAfterLast('.')}.${it.methodName}" }
-        doLog(authInfo, "validateUserPermissions(clientId = $serviceId, authInfo = $authInfo, scope = ${useScope.description}) from $source")
-        if (useScope!=LoanPermissions.IDENTIFY) { // Identify by password is always allowed
+        doLog(
+            authInfo,
+            "validateUserPermissions(clientId = $serviceId, authInfo = $authInfo, scope = ${useScope.description}) from $source"
+        )
+        if (useScope != LoanPermissions.IDENTIFY) { // Identify by password is always allowed
             val hasGlobalPerms =
                 globalPermissions.get(authInfo.principal)?.get(serviceId)?.any { it.includes(useScope) } ?: false
             if (!hasGlobalPerms) {
@@ -138,7 +151,7 @@ class AuthService(
         nodeInstanceHandle: PNIHandle,
         service: Service,
         scope: PermissionScope
-                               ): AuthorizationCode {
+    ): AuthorizationCode {
         return createAuthorizationCodeImpl(auth, clientId, nodeInstanceHandle, service, scope)
     }
 
@@ -155,7 +168,7 @@ class AuthService(
         clientId: String,
         service: Service,
         scope: PermissionScope
-                               ): AuthorizationCode {
+    ): AuthorizationCode {
         val nodeInstanceHandle = auth.getNodeInstanceHandle()
         return createAuthorizationCodeImpl(auth, clientId, nodeInstanceHandle, service, scope)
     }
@@ -171,16 +184,16 @@ class AuthService(
         nodeInstanceHandle: PNIHandle,
         service: Service,
         scope: PermissionScope
-                                           ): AuthorizationCode {
+    ): AuthorizationCode {
         // We know the task handle so permission limited to the task handle is sufficient
         internalValidateAuthInfo(auth, GRANT_ACTIVITY_PERMISSION.context(nodeInstanceHandle, clientId, service, scope))
 
         val clientPrincipal = clientFromId(clientId)
         val existingToken = activeTokens.lastOrNull {
             it.principal == clientPrincipal &&
-                it.nodeInstanceHandle == nodeInstanceHandle &&
-                it.serviceId == serviceId &&
-                it.scope == scope
+                    it.nodeInstanceHandle == nodeInstanceHandle &&
+                    it.serviceId == serviceId &&
+                    it.scope == scope
         }
 
         val token = if (existingToken != null) {
@@ -192,7 +205,10 @@ class AuthService(
         val authorizationCode = AuthorizationCode(Random.nextString(), clientPrincipal)
         authorizationCodes[authorizationCode] = token
         activeTokens.add(token)
-        doLog(auth, "createAuthorizationCode(code = ${authorizationCode.code}, token${if (existingToken != null) " - reused" else ""} = $token)")
+        doLog(
+            auth,
+            "createAuthorizationCode(code = ${authorizationCode.code}, token${if (existingToken != null) " - reused" else ""} = $token)"
+        )
         return authorizationCode
     }
 
@@ -220,7 +236,8 @@ class AuthService(
         // TODO principal should be authorized
         val serviceId = service.serviceId
         internalValidateAuthInfo(identityToken, LoanPermissions.IDENTIFY)
-        val userPermissions = globalPermissions.get(identityToken.principal)?.get(serviceId) ?: emptyList<PermissionScope>()
+        val userPermissions =
+            globalPermissions.get(identityToken.principal)?.get(serviceId) ?: emptyList<PermissionScope>()
 
         val effectiveScope: PermissionScope
         val tokenAssociatedPermissions: Sequence<PermissionScope> = if (identityToken is AuthToken) {
@@ -234,13 +251,13 @@ class AuthService(
                     when {
                         // Any child scopes for activity limited grants
                         it is GRANT_ACTIVITY_PERMISSION.ContextScope &&
-                            it.taskInstanceHandle == identityToken.nodeInstanceHandle -> it.childScope ?: ANYSCOPE
+                                it.taskInstanceHandle == identityToken.nodeInstanceHandle -> it.childScope ?: ANYSCOPE
 
                         // As well as global grants
-                        it is GRANT_GLOBAL_PERMISSION.ContextScope    ->
+                        it is GRANT_GLOBAL_PERMISSION.ContextScope                        ->
                             it.childScope ?: ANYSCOPE
 
-                        else                                                          -> null
+                        else                                                              -> null
                     }
                 }
             } else { // not restricted to a task, so activity permissions are not valid
@@ -273,9 +290,9 @@ class AuthService(
 
         val existingToken = activeTokens.firstOrNull {
             it.principal == identityToken.principal &&
-                it.nodeInstanceHandle == nodeInstanceHandle &&
-                it.serviceId == serviceId &&
-                it.scope == effectiveScope
+                    it.nodeInstanceHandle == nodeInstanceHandle &&
+                    it.serviceId == serviceId &&
+                    it.scope == effectiveScope
         }
 
         if (existingToken != null) {
@@ -312,14 +329,26 @@ class AuthService(
 
     fun loginDirect(auth: IdSecretAuthInfo): AuthToken {
         internalValidateAuthInfo(auth, LoanPermissions.IDENTIFY)
-        return AuthToken(auth.principal, getInvalidHandle(), Random.nextString(), authServiceId, LoanPermissions.IDENTIFY).also {
+        return AuthToken(
+            auth.principal,
+            getInvalidHandle(),
+            Random.nextString(),
+            authServiceId,
+            LoanPermissions.IDENTIFY
+        ).also {
             activeTokens.add(it)
             doLog(it, "loginDirect($auth) = $it")
         }
     }
 
-    fun grantPermission(auth: AuthInfo, authorizationCode: AuthorizationCode, service: Service, scope: PermissionScope) {
-        val authToken = authorizationCodes[authorizationCode] ?: throw AuthorizationException("Invalid authorization code")
+    fun grantPermission(
+        auth: AuthInfo,
+        authorizationCode: AuthorizationCode,
+        service: Service,
+        scope: PermissionScope
+    ) {
+        val authToken =
+            authorizationCodes[authorizationCode] ?: throw AuthorizationException("Invalid authorization code")
         grantPermission(auth, authToken, service, scope)
     }
 
@@ -348,7 +377,7 @@ class AuthService(
         authorizationCodes.values.removeIfTo(invalidatedTokens) { it.nodeInstanceHandle == hNodeInstance }
         activeTokens.removeIfTo(invalidatedTokens) { it.nodeInstanceHandle == hNodeInstance }
 
-        for(token in invalidatedTokens) {
+        for (token in invalidatedTokens) {
             doLog("invalidateActivityTokens/token($hNodeInstance, $token)")
             tokenPermissions.remove(token.tokenValue)
         }
@@ -359,7 +388,7 @@ class AuthService(
         return registerClient(clientFromId(clientId), secret, name)
     }
 
-    @UseExperimental(ExperimentalUnsignedTypes::class)
+    @OptIn(ExperimentalUnsignedTypes::class)
     fun registerClient(user: Principal, secret: String, name: String = user.name): IdSecretAuthInfo {
         doLog("registerClient($user)")
         val clientId = user.name
@@ -376,7 +405,10 @@ class AuthService(
         doLog(authInfo, "registerGlobalPermissions($authInfo, $principal, ${service.serviceId}, $scope)")
         if (authInfo != null) {
             val clientId = authInfo.principal.name
-            internalValidateAuthInfo(authInfo, LoanPermissions.GRANT_GLOBAL_PERMISSION.context(clientId, service, scope))
+            internalValidateAuthInfo(
+                authInfo,
+                LoanPermissions.GRANT_GLOBAL_PERMISSION.context(clientId, service, scope)
+            )
         }
         globalPermissions.getOrPut(principal) { mutableMapOf() }
             .getOrPut(service.serviceId) { mutableListOf() }
@@ -395,5 +427,5 @@ class AuthService(
     }
 }
 
-@UseExperimental(ExperimentalUnsignedTypes::class)
+@OptIn(ExperimentalUnsignedTypes::class)
 fun kotlin.random.Random.nextString() = nextULong().toString(16)

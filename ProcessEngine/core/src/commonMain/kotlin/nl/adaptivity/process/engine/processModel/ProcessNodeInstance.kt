@@ -60,9 +60,9 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
     override final val state: NodeInstanceState = Pending,
     results: Iterable<ProcessData> = emptyList(),
     val failureCause: Throwable? = null
-                                                                     ) : SecureObject<ProcessNodeInstance<T>>,
-                                                                         ReadableHandleAware<SecureObject<ProcessNodeInstance<*>>>,
-                                                                         IProcessNodeInstance {
+) : SecureObject<ProcessNodeInstance<T>>,
+    ReadableHandleAware<SecureObject<ProcessNodeInstance<*>>>,
+    IProcessNodeInstance {
 
     private var _handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = handle.toComparableHandle()
 
@@ -79,7 +79,8 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         if (state != SkippedInvalidated &&
             !(node.isMultiInstance || ((node as? ExecutableJoin)?.isMultiMerge == true))
         ) {
-            if (processInstanceBuilder.allChildren { it.node == node && it.entryNo != entryNo && it.state != SkippedInvalidated }.any()) {
+            if (processInstanceBuilder.allChildren { it.node == node && it.entryNo != entryNo && it.state != SkippedInvalidated }
+                    .any()) {
                 throw ProcessException("Attempting to create a new instance $entryNo for node $node that does not support reentry")
             }
         }
@@ -91,7 +92,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         builder.hProcessInstance, builder.owner,
         builder.entryNo, builder.handle, builder.state,
         builder.results, builder.failureCause
-                                                                  )
+    )
 
     override val processContext: ProcessInstanceContext
         get() = object : ProcessInstanceContext {
@@ -112,7 +113,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
     fun update(
         processInstanceBuilder: ProcessInstance.Builder,
         body: Builder<out ExecutableProcessNode, T>.() -> Unit
-              ): Future<out T>? {
+    ): Future<out T>? {
         val builder = builder(processInstanceBuilder).apply(body)
 
         return processInstanceBuilder.storeChild(builder)
@@ -161,7 +162,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
                 writeSimpleElement(
                     XmlProcessNodeInstance.PREDECESSOR_ELEMENTNAME,
                     it.handleValue.toString()
-                                  )
+                )
             }
 
             serializeAll(results)
@@ -265,10 +266,10 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             @Suppress("NON_EXHAUSTIVE_WHEN")
             when (state) {
                 Pending,
-                FailRetry -> state = Skipped
+                FailRetry    -> state = Skipped
                 Sent,
                 Taken,
-                Acknowledged                -> {
+                Acknowledged -> {
                     // The full cancel will trigger successors. We only want to do the actual cancellation
                     // action without triggering successors. This is still marked as cancelled, but successors
                     // may be marked as skipped.
@@ -313,7 +314,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
                 state = state,
                 results = results,
                 body = body
-                                         )
+            )
         }
 
         override var failureCause: Throwable? = null
@@ -422,7 +423,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
         final override fun cancelAndSkip(
             engineData: MutableProcessEngineDataAccess
-                                        ) {
+        ) {
             doCancelAndSkip(engineData)
             engineData.processContextFactory.onActivityTermination(engineData, this)
             processInstanceBuilder.skipSuccessors(engineData, this, Skipped)
@@ -442,7 +443,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         final override val entryNo: Int,
         handle: Handle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
         state: NodeInstanceState = Pending
-                                                                                     ) : AbstractBuilder<N, T>() {
+    ) : AbstractBuilder<N, T>() {
 
         final override var handle: Handle<SecureObject<ProcessNodeInstance<*>>> = handle
 
@@ -471,10 +472,11 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
     abstract class ExtBuilder<N : ExecutableProcessNode, T : ProcessNodeInstance<*>>(
         protected var base: T,
         override val processInstanceBuilder: ProcessInstance.Builder
-                                                                                    ) : AbstractBuilder<N, T>() {
+    ) : AbstractBuilder<N, T>() {
         private val observer: Observer<Any?> = { newValue -> changed = true; newValue }
+
         @Suppress("UNCHECKED_CAST")
-        protected fun <T> observer() :Observer<T> = observer as Observer<T>
+        protected fun <T> observer(): Observer<T> = observer as Observer<T>
 
         final override var predecessors = ObservableSet(base.predecessors.toMutableArraySet(), { changed = true })
         final override var owner by overlay(observer()) { base.owner }
@@ -516,9 +518,9 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
 }
 
-private typealias Observer<T> = (T)->T
+private typealias Observer<T> = (T) -> T
 
-@UseExperimental(ExperimentalContracts::class)
+@OptIn(ExperimentalContracts::class)
 internal inline fun <R> ProcessNodeInstance.Builder<*, *>.tryCreateTask(body: () -> R): R {
     contract {
         callsInPlace(body, InvocationKind.EXACTLY_ONCE)
@@ -528,7 +530,7 @@ internal inline fun <R> ProcessNodeInstance.Builder<*, *>.tryCreateTask(body: ()
     }
 }
 
-@UseExperimental(ExperimentalContracts::class)
+@OptIn(ExperimentalContracts::class)
 internal inline fun <R> ProcessNodeInstance.Builder<*, *>.tryRunTask(body: () -> R): R {
     contract {
         callsInPlace(body, InvocationKind.EXACTLY_ONCE)
@@ -539,14 +541,14 @@ internal inline fun <R> ProcessNodeInstance.Builder<*, *>.tryRunTask(body: () ->
 }
 
 
-@UseExperimental(ExperimentalContracts::class)
+@OptIn(ExperimentalContracts::class)
 @Suppress("unused", "FunctionName")
 @PublishedApi
 internal inline fun <R> _tryHelper(
     engineData: MutableProcessEngineDataAccess,
     processInstance: ProcessInstance,
     body: () -> R, failHandler: (MutableProcessEngineDataAccess, ProcessInstance, Exception) -> Unit
-                                  ): R {
+): R {
     contract {
         callsInPlace(body, InvocationKind.EXACTLY_ONCE)
     }
@@ -563,7 +565,7 @@ internal inline fun <R> _tryHelper(
 }
 
 
-@UseExperimental(ExperimentalContracts::class)
+@OptIn(ExperimentalContracts::class)
 @PublishedApi
 internal inline fun <R> _tryHelper(body: () -> R, failHandler: (Exception) -> Unit): R {
     contract {

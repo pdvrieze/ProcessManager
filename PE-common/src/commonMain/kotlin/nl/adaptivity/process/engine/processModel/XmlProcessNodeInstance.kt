@@ -28,19 +28,14 @@ import net.devrieze.util.Handle
 import net.devrieze.util.handle
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.engine.ProcessData
-import nl.adaptivity.xmlutil.util.ICompactFragment
-import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.util.ICompactFragment
+import nl.adaptivity.xmlutil.xmlserializable.SimpleXmlDeserializable
+import nl.adaptivity.xmlutil.xmlserializable.XmlDeserializer
+import nl.adaptivity.xmlutil.xmlserializable.deserializeHelper
 
-@XmlDeserializer(XmlProcessNodeInstance.Factory::class)
-class XmlProcessNodeInstance : SimpleXmlDeserializable, XmlSerializable {
-
-    class Factory : XmlDeserializerFactory<XmlProcessNodeInstance> {
-
-        override fun deserialize(reader: XmlReader): XmlProcessNodeInstance {
-            return XmlProcessNodeInstance.deserialize(reader)
-        }
-    }
+class XmlProcessNodeInstance {
 
     constructor()
 
@@ -90,76 +85,13 @@ class XmlProcessNodeInstance : SimpleXmlDeserializable, XmlSerializable {
 
     var results: MutableList<ProcessData> = mutableListOf()
 
-    override fun deserializeChild(reader: XmlReader): Boolean {
-        if (reader.isElement(Engine.NAMESPACE, "predecessor")) {
-            _predecessors.add(handle(handle = reader.readSimpleElement()))
-            return true
-        } else if (reader.isElement(Engine.NAMESPACE, "body")) {
-            body = reader.elementContentToFragment()
-            return true
-        } else if (reader.isElement(ProcessData.ELEMENTNAME)) {
-            results.add(ProcessData.deserialize(reader))
-            return true
-        }
-        return false
-    }
-
-    override val elementName: QName
-        get() = ELEMENTNAME
-
     var xmlProcessinstance: Long?
         get() = if (processInstance == -1L) null else processInstance
         set(value) {
             this.processInstance = value ?: -1L
         }
 
-    override fun deserializeChildText(elementText: CharSequence): Boolean {
-        return false
-    }
-
-    override fun deserializeAttribute(
-        attributeNamespace: String?,
-        attributeLocalName: String,
-        attributeValue: String
-                                     ): Boolean {
-        when (attributeLocalName) {
-            "state"           -> state = NodeInstanceState.valueOf(attributeValue)
-            "processinstance" -> processInstance = attributeValue.toLong()
-            "handle"          -> handle = attributeValue.toLong()
-            "nodeid"          -> nodeId = attributeValue
-            "entryNo"         -> entryNo = attributeValue.toInt()
-            else              -> return false
-        }
-        return true
-    }
-
-    override fun onBeforeDeserializeChildren(reader: XmlReader) {
-
-    }
-
-    override fun serialize(out: XmlWriter) {
-        out.smartStartTag(ELEMENTNAME) {
-            writeAttribute("state", state?.name)
-
-            if (processInstance != -1L) writeAttribute("processinstance", processInstance)
-            if (handle != -1L) writeAttribute("handle", handle)
-            writeAttribute("nodeid", nodeId)
-            writeAttribute("entryNo", entryNo)
-
-            _predecessors.forEach { writeSimpleElement(PREDECESSOR_ELEMENTNAME, it.handleValue.toString()) }
-
-            results.forEach { it.serialize(this) }
-
-            body?.let {
-                out.smartStartTag(BODY_ELEMENTNAME) {
-                    it.serialize(out.filterSubstream())
-                }
-            }
-        }
-    }
-
     companion object {
-
 
         const val ELEMENTLOCALNAME = "nodeInstance"
         val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
@@ -171,7 +103,7 @@ class XmlProcessNodeInstance : SimpleXmlDeserializable, XmlSerializable {
         internal val BODY_ELEMENTNAME = QName(Engine.NAMESPACE, BODY_LOCALNAME, Engine.NSPREFIX)
 
         fun deserialize(reader: XmlReader): XmlProcessNodeInstance {
-            return XmlProcessNodeInstance().deserializeHelper(reader)
+            return XML.decodeFromReader(reader)
         }
     }
 

@@ -22,7 +22,7 @@ import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.XmlWriter
-import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
+import nl.adaptivity.xmlutil.xmlserializable.SimpleXmlDeserializable
 import nl.adaptivity.xmlutil.writeAttribute
 
 
@@ -67,25 +67,13 @@ abstract class JoinSplitBase : ProcessNodeBase, JoinSplit {
         return false
     }
 
-    @Throws(XmlException::class)
-    override fun serializeAttributes(out: XmlWriter) {
-        super.serializeAttributes(out)
-        if (min >= 0) {
-            out.writeAttribute("min", min.toLong())
-        }
-        if (max >= 0) {
-            out.writeAttribute("max", max.toLong())
-        }
-    }
-
     @Serializable
     abstract class Builder :
         ProcessNodeBase.Builder,
-        JoinSplit.Builder,
-        SimpleXmlDeserializable {
+        JoinSplit.Builder {
 
-        override var min: Int
-        override var max: Int
+        final override var min: Int
+        final override var max: Int
 
         constructor(
             id: String? = null,
@@ -110,34 +98,10 @@ abstract class JoinSplitBase : ProcessNodeBase, JoinSplit {
             max = node.max
         }
 
-        @Throws(XmlException::class)
-        override fun deserializeChild(reader: XmlReader): Boolean {
-            return false
-        }
-
-        override fun deserializeChildText(elementText: CharSequence): Boolean {
-            return false
-        }
-
         override fun toString(): String {
             return "${super.toString().dropLast(1)}, min=$min, max=$max)"
         }
 
-        override fun deserializeAttribute(
-            attributeNamespace: String?,
-            attributeLocalName: String,
-            attributeValue: String
-                                         ): Boolean {
-            when (attributeLocalName) {
-                "min" -> min = attributeValue.toInt()
-                "max" -> max = attributeValue.toInt()
-                else  -> return super<ProcessNodeBase.Builder>.deserializeAttribute(
-                    attributeNamespace,
-                    attributeLocalName, attributeValue
-                                                                                   )
-            }
-            return true
-        }
     }
 
 }

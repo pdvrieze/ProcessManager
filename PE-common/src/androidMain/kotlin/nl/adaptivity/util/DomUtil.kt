@@ -16,11 +16,11 @@
 
 package nl.adaptivity.util
 
-import kotlinx.io.IOException
 import nl.adaptivity.xmlutil.util.CombiningReader
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.core.impl.multiplatform.IOException
 import org.w3c.dom.*
 import org.xml.sax.InputSource
 import org.xml.sax.SAXException

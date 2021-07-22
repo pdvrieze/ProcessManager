@@ -20,7 +20,7 @@ import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.xmlutil.XmlWriter
-import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
+import nl.adaptivity.xmlutil.xmlserializable.SimpleXmlDeserializable
 import nl.adaptivity.xmlutil.writeAttribute
 
 @Serializable
@@ -56,10 +56,6 @@ abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
     }
 
     override fun <R> visit(visitor: ProcessNode.Visitor<R>): R = visitor.visitActivity(this)
-    override fun serializeAttributes(out: XmlWriter) {
-        super.serializeAttributes(out)
-        out.writeAttribute("childId", childModel.id)
-    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -86,8 +82,7 @@ abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
 
 
     @Serializable
-    open class ReferenceBuilder : BaseBuilder, CompositeActivity.ReferenceBuilder,
-                                  SimpleXmlDeserializable {
+    open class ReferenceBuilder : BaseBuilder, CompositeActivity.ReferenceBuilder {
         final override var childId: String? = null
 
         constructor(

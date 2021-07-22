@@ -17,22 +17,23 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.*
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.serialutil.*
 import nl.adaptivity.serialutil.CharArrayAsStringSerializer
 import nl.adaptivity.xmlutil.serialization.XML
-import nl.adaptivity.serialutil.decodeStructure
-import nl.adaptivity.serialutil.writeStructure
+import nl.adaptivity.xmlutil.util.GatheringNamespaceContext
 
 internal expect fun visitXpathUsedPrefixes(path: CharSequence?, namespaceContext: NamespaceContext)
 
 open class XmlContainerSerializer<T : XMLContainer> {
 
     fun serialize(desc: SerialDescriptor, encoder: Encoder, data: T) {
-        encoder.writeStructure(desc) {
+        encoder.encodeStructure(desc) {
             val childOut = this
             if (childOut is XML.XmlOutput) {
                 val writer = childOut.target
@@ -45,7 +46,7 @@ open class XmlContainerSerializer<T : XMLContainer> {
                 writer.serialize(data.getXmlReader())
             } else {
                 childOut.encodeSerializableElement(
-                    desc, desc.getElementIndex("namespaces"), Namespace.list,
+                    desc, desc.getElementIndex("namespaces"), ListSerializer(Namespace),
                     data.namespaces.toList()
                                                   )
                 childOut.encodeStringElement(desc, desc.getElementIndex("content"), data.contentString)
@@ -54,7 +55,7 @@ open class XmlContainerSerializer<T : XMLContainer> {
         }
     }
 
-    open fun writeAdditionalValues(out: KOutput, desc: KSerialClassDesc, data: T) {}
+    open fun writeAdditionalValues(out: CompositeEncoder, desc: SerialDescriptor, data: T) {}
 
 
     open fun getFilter(gatheringNamespaceContext: GatheringNamespaceContext): NamespaceGatherer {
@@ -70,7 +71,7 @@ open class XmlContainerSerializer<T : XMLContainer> {
         @Transient
         val fragment: ICompactFragment?
             get() = content?.let {
-                CompactFragment(namespaces ?: emptyList(), it)
+                CompactFragment(namespaces, it)
             }
 
         open fun handleAttribute(attributeLocalName: String, attributeValue: String) {
@@ -89,7 +90,8 @@ open class XmlContainerSerializer<T : XMLContainer> {
 
                     val namespacesMap = mutableMapOf<String, String>()
 
-                    val gatheringNamespaceContext = GatheringNamespaceContext(reader.namespaceContext, namespacesMap)
+                    val gatheringNamespaceContext =
+                        GatheringNamespaceContext(reader.namespaceContext, namespacesMap)
 
                     handleLastRootAttributeReadEvent(reader, gatheringNamespaceContext)
 
@@ -112,10 +114,9 @@ open class XmlContainerSerializer<T : XMLContainer> {
                     loop@ while (true) {
                         val next = input.decodeElementIndex(desc)
                         when (next) {
-                            KInput.READ_DONE -> break@loop
-                            KInput.READ_ALL  -> TODO("Not yet supported")
+                            CompositeDecoder.DECODE_DONE -> break@loop
                             else             -> when (desc.getElementName(next)) {
-                                "namespaces" -> namespaces = input.decodeSerializableElement(desc, next, Namespace.list)
+                                "namespaces" -> namespaces = input.decodeSerializableElement(desc, next, ListSerializer(Namespace))
                                 "content"    -> content = input.decodeSerializableElement(
                                     desc, 0,
                                     CharArrayAsStringSerializer
@@ -131,14 +132,14 @@ open class XmlContainerSerializer<T : XMLContainer> {
         }
 
         open fun readAdditionalChild(desc: SerialDescriptor, decoder: CompositeDecoder, index: Int) {
-            throw UnknownFieldException(index)
+            throw UnsupportedOperationException("No support to reading additional child at index: $index")
         }
 
 
         open fun handleLastRootAttributeReadEvent(
             reader: XmlReader,
             gatheringNamespaceContext: GatheringNamespaceContext
-                                                 ) {
+        ) {
         }
 
     }

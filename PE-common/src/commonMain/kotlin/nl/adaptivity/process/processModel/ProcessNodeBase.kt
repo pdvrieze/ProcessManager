@@ -20,15 +20,17 @@ import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.modules.SerializersModule
-import kotlinx.serialization.modules.serializersModule
 import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.processModel.serialization.PublicForSerialization
 import nl.adaptivity.process.util.*
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.multiplatform.name
-import nl.adaptivity.xml.XMLConstants
-import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.XmlException
+import nl.adaptivity.xmlutil.XmlReader
+import nl.adaptivity.xmlutil.XmlWriter
 import nl.adaptivity.xmlutil.serialization.XmlDefault
+import nl.adaptivity.xmlutil.writeAttribute
+import nl.adaptivity.xmlutil.xmlserializable.writeChildren
 
 
 /**
@@ -36,7 +38,7 @@ import nl.adaptivity.xmlutil.serialization.XmlDefault
  * Created by pdvrieze on 23/11/15.
  */
 @Serializable
-@UseExperimental(PublicForSerialization::class)
+@OptIn(PublicForSerialization::class)
 abstract class ProcessNodeBase : ProcessNode {
 
     @Transient
@@ -78,7 +80,7 @@ abstract class ProcessNodeBase : ProcessNode {
         get() = _y
 
     @SerialName("define")
-    override val defines: List<IXmlDefineType>
+    final override val defines: List<IXmlDefineType>
 
     @SerialName("result")
     final override val results: List<IXmlResultType>
@@ -92,7 +94,7 @@ abstract class ProcessNodeBase : ProcessNode {
     override val idBase: String
         get() = "id"
 
-    override val id: String?
+    final override val id: String?
 
     final override val label: String?
 
@@ -113,7 +115,7 @@ abstract class ProcessNodeBase : ProcessNode {
         defines: Collection<IXmlDefineType> = emptyList(),
         results: Collection<IXmlResultType> = emptyList(),
         isMultiInstance: Boolean = false
-               ) {
+    ) {
         this._ownerModel = _ownerModel
         this.isMultiInstance = isMultiInstance
         this._predecessors = toIdentifiers(Int.MAX_VALUE, predecessors)
@@ -131,33 +133,19 @@ abstract class ProcessNodeBase : ProcessNode {
         this(
             buildHelper.newOwner, builder.predecessors, builder.successors, builder.id, builder.label, builder.x,
             builder.y, builder.defines, builder.results, builder.isMultiInstance
-            )
+        )
 
     internal constructor(
         builder: ProcessNode.Builder,
         newOwner: ProcessModel<*>,
         otherNodes: Iterable<ProcessNode.Builder>
-                        ) :
+    ) :
         this(
             newOwner, builder.predecessors, builder.successors, builder.id, builder.label, builder.x,
             builder.y, builder.defines.resolveNodes(otherNodes), builder.results, builder.isMultiInstance
-            )
+        )
 
     abstract override fun builder(): ProcessNode.Builder
-
-    @Throws(XmlException::class)
-    protected open fun serializeAttributes(out: XmlWriter) {
-        out.writeAttribute("id", id)
-        out.writeAttribute("label", label)
-        out.writeAttribute("x", x)
-        out.writeAttribute("y", y)
-    }
-
-    @Throws(XmlException::class)
-    protected open fun serializeChildren(out: XmlWriter) {
-        out.writeChildren(results)
-        out.writeChildren(defines)
-    }
 
     override fun asT(): ProcessNodeBase {
         @Suppress("UNCHECKED_CAST")
@@ -273,13 +261,13 @@ abstract class ProcessNodeBase : ProcessNode {
         private fun toIdentifiers(
             maxSize: Int,
             identifiables: Iterable<Identified>
-                                 ): MutableIdentifyableSet<Identified> =
+        ): MutableIdentifyableSet<Identified> =
             IdentifyableSet.processNodeSet(maxSize, identifiables.map { it as? Identifier ?: Identifier(it.id) })
 
     }
 
     @Serializable
-    abstract class Builder : ProcessNode.Builder, XmlDeserializable {
+    abstract class Builder : ProcessNode.Builder {
 
         override var id: String?
         override var label: String?
@@ -307,7 +295,7 @@ abstract class ProcessNodeBase : ProcessNode {
             x: Double = Double.NaN,
             y: Double = Double.NaN,
             isMultiInstance: Boolean = false
-                   ) {
+        ) {
             this.id = id
             this.label = label
             this.x = x
@@ -328,36 +316,13 @@ abstract class ProcessNodeBase : ProcessNode {
         constructor(node: ProcessNode) : this(
             node.id, node.label,
             node.defines, node.results, node.x, node.y, node.isMultiInstance
-                                             )
+        )
 
         override final fun <T : ProcessNode> build(
             buildHelper: ProcessModel.BuildHelper<T, *, *, *>,
             otherNodes: Iterable<ProcessNode.Builder>
-                                                  ): T {
+        ): T {
             return buildHelper.node(this, otherNodes)
-        }
-
-        override fun onBeforeDeserializeChildren(reader: XmlReader) {
-            // By default do nothing
-        }
-
-        override fun deserializeAttribute(
-            attributeNamespace: String?,
-            attributeLocalName: String,
-            attributeValue: String
-                                         ): Boolean {
-            if (XMLConstants.NULL_NS_URI == attributeNamespace) {
-                val value = attributeValue
-                when (attributeLocalName) {
-                    "id"    -> id = value
-                    "label" -> label = value
-                    "x"     -> x = value.toDouble()
-                    "y"     -> y = value.toDouble()
-                    else    -> return false
-                }
-                return true
-            }
-            return false
         }
 
         override fun toString(): String {
@@ -384,7 +349,7 @@ private fun <E : IXmlDefineType> Collection<E>.resolveNodes(nodeBuilders: Iterab
         d// as E
     }
 
-private fun Char.isUpperCase() = toUpperCase() == this
+private fun Char.isUpperCase() = uppercaseChar() == this
 
 fun <R : ProcessNode.Builder> R.ensureExportable(): R = apply {
     defines.replaceBy(defines.map { XmlDefineType(it) })

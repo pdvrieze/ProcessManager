@@ -23,7 +23,9 @@ import nl.adaptivity.xml.localPart
 import nl.adaptivity.xml.namespaceURI
 import nl.adaptivity.xmlutil.QName as XmlQName
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
+import nl.adaptivity.xmlutil.xmlserializable.SimpleXmlDeserializable
+import nl.adaptivity.xmlutil.xmlserializable.XmlDeserializer
+import nl.adaptivity.xmlutil.xmlserializable.deserializeHelper
 
 
 /**
@@ -32,19 +34,15 @@ import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
  *
  * @author Paul de Vrieze
  */
-@XmlDeserializer(EndpointDescriptorImpl.Factory::class)
 class EndpointDescriptorImpl(
     serviceName: QName?,
     override var endpointName: String?,
     override var endpointLocation: URI?
-                            ) : EndpointDescriptor, XmlSerializable, SimpleXmlDeserializable {
+                            ) : EndpointDescriptor {
 
     internal var serviceLocalName: String? = serviceName?.localPart
 
     internal var serviceNamespace: String? = serviceName?.namespaceURI
-
-    override val elementName: XmlQName
-        get() = ELEMENTNAME
 
     internal var endpointLocationString: String
         get() = endpointLocation!!.toString()
@@ -55,62 +53,7 @@ class EndpointDescriptorImpl(
     override val serviceName: QName?
         get() = serviceLocalName?.let { QName(serviceNamespace ?: XMLConstants.NULL_NS_URI, it) }
 
-    class Factory : XmlDeserializerFactory<EndpointDescriptorImpl> {
-
-        override fun deserialize(reader: XmlReader): EndpointDescriptorImpl {
-            return Companion.deserialize(reader)
-        }
-    }
-
     constructor() : this(null, null, null)
-
-    override fun deserializeChild(reader: XmlReader): Boolean {
-        return false // No children
-    }
-
-    override fun deserializeChildText(elementText: CharSequence): Boolean {
-        return false // No child text
-    }
-
-    override fun deserializeAttribute(
-        attributeNamespace: String?,
-        attributeLocalName: String,
-        attributeValue: String
-                                     ): Boolean {
-
-        when (attributeLocalName) {
-            "endpointLocation" -> {
-                endpointLocation = createUri(attributeValue)
-                return true
-            }
-            "endpointName"     -> {
-                endpointName = attributeValue
-                return true
-            }
-            "serviceLocalName" -> {
-                serviceLocalName = attributeValue
-                return true
-            }
-            "serviceNS"        -> {
-                serviceNamespace = attributeValue
-                return true
-            }
-        }
-        return false
-    }
-
-    override fun onBeforeDeserializeChildren(reader: XmlReader) {
-        // do nothing
-    }
-
-    override fun serialize(out: XmlWriter) {
-        out.smartStartTag(ELEMENTNAME) {
-            writeAttribute("endpointLocation", endpointLocation?.toString())
-            writeAttribute("endpointName", endpointName)
-            writeAttribute("serviceLocalName", serviceLocalName)
-            writeAttribute("serviceNS", serviceNamespace)
-        }
-    }
 
     override fun isSameService(other: EndpointDescriptor?): Boolean {
         return other != null &&
@@ -147,10 +90,6 @@ class EndpointDescriptorImpl(
         val ELEMENTLOCALNAME = "endpointDescriptor"
         val ELEMENTNAME = XmlQName(MY_JBI_NS, ELEMENTLOCALNAME, "jbi")
 
-
-        private fun deserialize(reader: XmlReader): EndpointDescriptorImpl {
-            return EndpointDescriptorImpl().deserializeHelper(reader)
-        }
     }
 
 }

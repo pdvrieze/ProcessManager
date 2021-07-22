@@ -27,8 +27,8 @@ import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.client.ServletProcessEngineClient
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.util.Constants
-import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XML
 import org.w3c.dom.Document
 import org.w3c.dom.DocumentFragment
 import java.security.Principal
@@ -42,16 +42,7 @@ import javax.xml.namespace.QName
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.parsers.ParserConfigurationException
 
-@XmlDeserializer(XmlTask.Factory::class)
-class XmlTask: UserTask<XmlTask>, XmlSerializable, SimpleXmlDeserializable {
-
-  class Factory : XmlDeserializerFactory<XmlTask> {
-
-    @Throws(XmlException::class)
-    override fun deserialize(reader: XmlReader): XmlTask {
-      return XmlTask.deserialize(reader)
-    }
-  }
+class XmlTask: UserTask<XmlTask> {
 
   override var handle = getInvalidHandle<XmlTask>()
     private set
@@ -100,81 +91,6 @@ class XmlTask: UserTask<XmlTask>, XmlSerializable, SimpleXmlDeserializable {
     this.mEndPoint = null
     this.owner = task.owner
     this.items = XmlItem.get(task.items)
-  }
-
-  @Throws(XmlException::class)
-  override fun deserializeChild(xmlReader: XmlReader): Boolean {
-    if (xmlReader.isElement(Constants.USER_MESSAGE_HANDLER_NS, "item")) {
-      _items.add(XmlItem.deserialize(xmlReader))
-      return true
-    }
-    return false
-  }
-
-  override fun deserializeChildText(elementText: CharSequence): Boolean {
-    return false
-  }
-
-  override fun deserializeAttribute(attributeNamespace: String?,
-                                    attributeLocalName: String,
-                                    attributeValue: String): Boolean {
-    val attrString = attributeValue
-    when (attributeLocalName) {
-      "state"          -> {
-        state = NodeInstanceState.valueOf(attrString)
-        return true
-      }
-      "handle"         -> {
-        setHandleValue(attrString.toLong())
-        return true
-      }
-      "remotehandle"   -> {
-        remoteHandle = handle<Any>(handle= attrString.toLong())
-        return true
-      }
-      "instancehandle" -> {
-        instanceHandle = handle<Any>(handle= attrString.toLong())
-        return true
-      }
-      "summary"        -> {
-        summary = attrString
-        return true
-      }
-      "owner"          -> {
-        owner = attributeValue.let { SimplePrincipal(it) }
-        return true
-      }
-    }
-    return false
-  }
-
-  @Throws(XmlException::class)
-  override fun onBeforeDeserializeChildren(xmlReader: XmlReader) = Unit
-
-  override val elementName: QName
-    get() = ELEMENTNAME
-
-  @Throws(XmlException::class)
-  override fun serialize(out: XmlWriter) {
-    out.smartStartTag(ELEMENTNAME)
-    if (state != null) {
-      out.writeAttribute("state", state!!.name)
-    }
-    if (handleValue >= 0) {
-      out.writeAttribute("handle", handleValue)
-    }
-    if (remoteHandle.isValid) {
-      out.writeAttribute("remotehandle", remoteHandle.handleValue)
-    }
-    if (instanceHandle.isValid) {
-      out.writeAttribute("instancehandle", instanceHandle.handleValue)
-    }
-    out.writeAttribute("summary", summary)
-    if (owner != null) {
-      out.writeAttribute("owner", owner!!.name)
-    }
-    out.writeChildren(items)
-    out.endTag(ELEMENTNAME)
   }
 
   override fun setState(newState: NodeInstanceState, user: Principal) { // TODO handle transactions
@@ -309,7 +225,7 @@ class XmlTask: UserTask<XmlTask>, XmlSerializable, SimpleXmlDeserializable {
 
     @Throws(XmlException::class)
     fun deserialize(xmlReader: XmlReader): XmlTask {
-      return XmlTask().deserializeHelper(xmlReader)
+        return XML.decodeFromReader<XmlTask>(xmlReader)
     }
 
     @JvmStatic fun get(task:UserTask<*>) : XmlTask {

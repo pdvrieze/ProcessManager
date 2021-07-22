@@ -23,13 +23,10 @@ import nl.adaptivity.process.processModel.engine.XmlActivity
 import nl.adaptivity.process.processModel.engine.XmlCondition
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
-import nl.adaptivity.util.SerialClassDescImpl
-import nl.adaptivity.util.addField
-import nl.adaptivity.util.multiplatform.name
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XmlDefault
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
-import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
+import nl.adaptivity.xmlutil.xmlserializable.SimpleXmlDeserializable
 
 
 /**
@@ -65,27 +62,6 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
 
     override abstract fun builder(): Activity.Builder
 
-    override fun serialize(out: XmlWriter) {
-        out.smartStartTag(Activity.ELEMENTNAME) {
-            serializeAttributes(this)
-            serializeChildren(this)
-        }
-    }
-
-    override fun serializeAttributes(out: XmlWriter) {
-        super.serializeAttributes(out)
-        out.writeAttribute(ATTR_PREDECESSOR, predecessor?.id)
-        @Suppress("DEPRECATION")
-        out.writeAttribute("name", name)
-    }
-
-    override fun serializeChildren(out: XmlWriter) {
-        super.serializeChildren(out)
-        serializeCondition(out)
-    }
-
-    protected abstract fun serializeCondition(out: XmlWriter)
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is ActivityBase) return false
@@ -116,10 +92,6 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
         @Transient
         override val idBase: String
             get() = "ac"
-
-        @Transient
-        override val elementName: QName
-            get() = Activity.ELEMENTNAME
 
         @SerialName("predecessor")
         @XmlSerialName("predecessor", "", "")
@@ -166,8 +138,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
     }
 
     @Serializable
-    open class DeserializationBuilder : BaseBuilder, MessageActivity.Builder, CompositeActivity.ReferenceBuilder,
-                                        SimpleXmlDeserializable {
+    open class DeserializationBuilder : BaseBuilder, MessageActivity.Builder, CompositeActivity.ReferenceBuilder {
         override var childId: String? = null
 
         @Serializable(with = IXmlMessage.Companion::class)
@@ -213,46 +184,6 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
         override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>): R = when (childId) {
             null -> visitor.visitActivity(this as MessageActivity.Builder)
             else -> visitor.visitActivity(this as CompositeActivity.ReferenceBuilder)
-        }
-
-
-        override fun deserializeChild(reader: XmlReader): Boolean {
-            if (Engine.NAMESPACE == reader.namespaceURI) {
-                when (reader.localName) {
-                    XmlDefineType.ELEMENTLOCALNAME -> (defines as MutableList).add(XmlDefineType.deserialize(reader))
-
-                    XmlResultType.ELEMENTLOCALNAME -> (results as MutableList).add(XmlResultType.deserialize(reader))
-
-                    Condition.ELEMENTLOCALNAME     -> condition = XmlCondition.deserialize(reader)
-
-                    XmlMessage.ELEMENTLOCALNAME    -> message = XmlMessage.deserialize(reader)
-
-                    else                           -> return false
-                }
-                return true
-            }
-            return false
-        }
-
-        override fun deserializeAttribute(
-            attributeNamespace: String?,
-            attributeLocalName: String,
-            attributeValue: String
-                                         ): Boolean {
-            @Suppress("DEPRECATION")
-            when (attributeLocalName) {
-                ATTR_PREDECESSOR                   -> predecessor = Identifier(attributeValue)
-                "name"                             -> name = attributeValue
-                CompositeActivityBase.ATTR_CHILDID -> throw IllegalProcessModelException("child ID in message activity")
-                else                               -> return super<BaseBuilder>.deserializeAttribute(
-                    attributeNamespace, attributeLocalName, attributeValue
-                                                                                                    )
-            }
-            return true
-        }
-
-        override fun deserializeChildText(elementText: CharSequence): Boolean {
-            return false
         }
 
     }
@@ -334,8 +265,6 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
 
         override val idBase: String get() = "child"
 
-        override val elementName: QName get() = ChildProcessModel.ELEMENTNAME
-
         private constructor() : super() {
             id = null
             condition = null
@@ -395,13 +324,14 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
 
         @Serializer(forClass = CompositeActivityBuilder::class)
         companion object : ChildProcessModelBase.ModelBuilder.BaseSerializer<CompositeActivityBuilder>() {
+/*
             override val descriptor: SerialDescriptor =
-                SerialClassDescImpl(
-                    DeserializationBuilder.serializer().descriptor,
+                DeserializationBuilder.serializer().descriptor.withName(
                     ChildProcessModelBase.ModelBuilder::class.name
-                                   ).apply {
+                ).apply {
                     addField(CompositeActivityBuilder::childId)
                 }
+*/
 
             override fun builder(): CompositeActivityBuilder {
                 return CompositeActivityBuilder()

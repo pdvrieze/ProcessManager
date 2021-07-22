@@ -23,17 +23,17 @@ import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
-import nl.adaptivity.xmlutil.XmlDeserializable
-import nl.adaptivity.xmlutil.XmlSerializable
 import nl.adaptivity.util.multiplatform.JvmDefault
+import nl.adaptivity.xmlutil.XmlSerializable
+import nl.adaptivity.xmlutil.xmlserializable.XmlDeserializable
 
 
 /**
  * Created by pdvrieze on 27/11/16.
  */
-interface ProcessNode : Positioned, Identifiable, XmlSerializable {
+interface ProcessNode : Positioned, Identifiable {
 
-    val ownerModel: ProcessModel<out ProcessNode>?
+    val ownerModel: ProcessModel<ProcessNode>?
 
     val predecessors: IdentifyableSet<Identified>
 
@@ -66,7 +66,7 @@ interface ProcessNode : Positioned, Identifiable, XmlSerializable {
     fun getDefine(name: String): IXmlDefineType?
 
     @ProcessModelDSL
-    interface Builder : XmlDeserializable {
+    interface Builder {
         val predecessors: Set<Identified>
         val successors: Set<Identified>
         var id: String?
@@ -105,29 +105,23 @@ interface ProcessNode : Positioned, Identifiable, XmlSerializable {
         /** Remove a predecessor in an appropriate way for the kind. It may fail if not valid */
         fun removePredecessor(identifier: Identifiable)
 
-        @JvmDefault
         fun getResult(name: String): IXmlResultType? = results.firstOrNull { it.name == name }
 
-        @JvmDefault
         fun getDefine(name: String): IXmlDefineType? = defines.firstOrNull { it.name == name }
 
     }
 
     interface BuilderVisitor<R> {
         fun visitStartNode(startNode: StartNode.Builder): R
-        @JvmDefault
         fun visitActivity(activity: MessageActivity.Builder): R = visitGenericActivity(activity)
 
-        @JvmDefault
         fun visitActivity(activity: CompositeActivity.ModelBuilder): R = visitGenericActivity(activity)
 
-        @JvmDefault
         fun visitActivity(activity: CompositeActivity.ReferenceBuilder): R = visitGenericActivity(activity)
 
         fun visitSplit(split: Split.Builder): R
         fun visitJoin(join: Join.Builder): R
         fun visitEndNode(endNode: EndNode.Builder): R
-        @JvmDefault
         fun visitGenericActivity(builder: Activity.Builder): R {
             throw UnsupportedOperationException("This visitor does not support handling generic activities")
         }
@@ -137,7 +131,7 @@ interface ProcessNode : Positioned, Identifiable, XmlSerializable {
         fun visitStartNode(startNode: StartNode): R
         fun visitActivity(messageActivity: MessageActivity): R = visitGenericActivity(messageActivity)
         fun visitActivity(compositeActivity: CompositeActivity): R = visitGenericActivity(compositeActivity)
-        @JvmDefault
+
         fun visitGenericActivity(activity: Activity): R {
             throw UnsupportedOperationException("This visitor does not support handling generic activities")
         }

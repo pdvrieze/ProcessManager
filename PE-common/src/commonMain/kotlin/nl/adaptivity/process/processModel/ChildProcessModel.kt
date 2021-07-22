@@ -41,12 +41,10 @@ interface ChildProcessModel<out NodeT : ProcessNode> : ProcessModel<NodeT>, Iden
     }
 
     interface Builder : ProcessModel.Builder {
-        @JvmDefault
         val childIdBase: String
             get() = CHILD_ID_BASE
         var childId: String?
 
-        @JvmDefault
         fun <NodeT : ProcessNode, ChildT : ChildProcessModel<NodeT>> buildModel(buildHelper: ProcessModel.BuildHelper<NodeT, *, *, ChildT>): ChildT =
             buildHelper.childModel(this)
 

@@ -17,8 +17,10 @@
 package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.internal.GeneratedSerializer
-import kotlinx.serialization.internal.SerialClassDescImpl
 import kotlinx.serialization.modules.SerializersModule
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import nl.adaptivity.process.ProcessConsts
@@ -26,9 +28,8 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.util.security.Principal
-import nl.adaptivity.xmlutil.XmlDeserializer
-import nl.adaptivity.xmlutil.XmlDeserializerFactory
 import nl.adaptivity.xmlutil.XmlReader
+import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 /**
@@ -37,9 +38,8 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
  * @author Paul de Vrieze
  */
 @Serializable(XmlProcessModel.Companion::class)
-@XmlDeserializer(XmlProcessModel.Factory::class)
 @XmlSerialName(RootProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
-class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcessNode> {
+class XmlProcessModel : RootProcessModelBase<@UseContextualSerialization XmlProcessNode> {
 
     @Transient
     override val rootModel: XmlProcessModel
@@ -57,7 +57,7 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
     constructor(builder: RootProcessModel.Builder, pedantic: Boolean = true) :
         super(
             builder,
-            XML_NODE_FACTORY as ProcessModelBase.NodeFactory<XmlProcessNode, XmlProcessNode, ChildProcessModelBase<XmlProcessNode>>,
+            XML_NODE_FACTORY as NodeFactory<XmlProcessNode, XmlProcessNode, ChildProcessModelBase<XmlProcessNode>>,
             pedantic
              )
 
@@ -91,8 +91,8 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
         }
 
         @Suppress("RedundantOverride")
-        override fun serialize(encoder: Encoder, obj: XmlProcessModel) {
-            super.serialize(encoder, obj)
+        override fun serialize(encoder: Encoder, value: XmlProcessModel) {
+            super.serialize(encoder, value)
         }
 
         @kotlin.jvm.JvmOverloads
@@ -105,7 +105,7 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
 
 
     @Serializable
-    @XmlSerialName(RootProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
+    @XmlSerialName(ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     class Builder : RootProcessModelBase.Builder {
 
         constructor(
@@ -118,18 +118,19 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
             uuid: UUID? = null,
             imports: List<IXmlResultType> = emptyList(),
             exports: List<IXmlDefineType> = emptyList()
-                   ) : super(
+        ) : super(
             nodes, childModels, name, handle, owner, roles, uuid,
             imports, exports
-                            )
+        )
 
         constructor(base: XmlProcessModel) : super(base)
 
-        @UseExperimental(InternalSerializationApi::class)
+        @OptIn(InternalSerializationApi::class)
         @Serializer(forClass = Builder::class)
         companion object : RootProcessModelBase.Builder.BaseSerializer<Builder>(), GeneratedSerializer<Builder> {
 //            override val descriptor: SerialDescriptor = SerialClassDescImpl(XmlProcessModel.descriptor, Builder::class.name)
 
+/*
             init {
                 // Some nasty hack as somehow initialisation is broken.
                 val d = descriptor as SerialClassDescImpl
@@ -137,6 +138,7 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
                     d.pushDescriptor(childSerializer.descriptor)
                 }
             }
+*/
 
             override fun builder() = Builder()
 
@@ -150,15 +152,8 @@ class XmlProcessModel : RootProcessModelBase<@ContextualSerialization XmlProcess
             }
 
             fun deserialize(reader: XmlReader): XmlProcessModel.Builder {
-                return RootProcessModelBase.Builder.deserialize(XmlProcessModel.Builder(), reader)
+                return XML.decodeFromReader(reader)
             }
-        }
-    }
-
-    class Factory : XmlDeserializerFactory<XmlProcessModel> {
-
-        override fun deserialize(reader: XmlReader): XmlProcessModel {
-            return XmlProcessModel.deserialize(reader)
         }
     }
 

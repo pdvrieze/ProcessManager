@@ -16,12 +16,16 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.*
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.xmlutil.Namespace
-import nl.adaptivity.xmlutil.XmlSerializable
 
-
-interface IXmlDefineType : XmlSerializable {
+@Serializable(IXmlDefineType.Serializer::class)
+interface IXmlDefineType {
 
     val content: CharArray?
 
@@ -99,7 +103,7 @@ interface IXmlDefineType : XmlSerializable {
         nsContext: Iterable<Namespace> = originalNSContext
             ): IXmlDefineType
 
-    companion object serializer : KSerializer<IXmlDefineType> {
+    companion object Serializer : KSerializer<IXmlDefineType> {
         override val descriptor: SerialDescriptor
             get() = XmlResultType.serializer().descriptor
 
@@ -107,8 +111,8 @@ interface IXmlDefineType : XmlSerializable {
             return XmlDefineType.serializer().deserialize(decoder)
         }
 
-        override fun serialize(encoder: Encoder, obj: IXmlDefineType) {
-            XmlDefineType.serializer().serialize(encoder, XmlDefineType(obj))
+        override fun serialize(encoder: Encoder, value: IXmlDefineType) {
+            XmlDefineType.serializer().serialize(encoder, XmlDefineType(value))
         }
     }
 
@@ -135,17 +139,12 @@ var IXmlDefineType.name: String
 
 object IXmlDefineTypeListSerializer : KSerializer<List<IXmlDefineType>> {
 
-    val delegate = XmlDefineType.list
+    val delegate = ListSerializer(XmlDefineType)
 
-    override val descriptor: KSerialClassDesc = delegate.descriptor
+    override val descriptor: SerialDescriptor = delegate.descriptor
 
     override fun deserialize(decoder: Decoder): List<IXmlDefineType> {
         return delegate.deserialize(decoder)
-    }
-
-    override fun patch(decoder: Decoder, old: List<IXmlDefineType>): List<IXmlDefineType> {
-        @Suppress("UNCHECKED_CAST")
-        return delegate.patch(decoder, old as List<XmlDefineType>)
     }
 
     override fun serialize(encoder: Encoder, obj: List<IXmlDefineType>) {

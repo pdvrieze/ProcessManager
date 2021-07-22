@@ -16,19 +16,15 @@
 
 package nl.adaptivity.process.userMessageHandler.server
 
-import net.devrieze.util.Handle
-import net.devrieze.util.HandleNotFoundException
-import net.devrieze.util.TransactionFactory
+import net.devrieze.util.*
 import net.devrieze.util.db.AbstractElementFactory
 import net.devrieze.util.db.DBHandleMap
 import net.devrieze.util.db.DBTransaction
-import net.devrieze.util.handle
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.client.ServletProcessEngineClient
 import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance
-import nl.adaptivity.process.util.Constants
-import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XML
 import org.w3.soapEnvelope.Envelope
 import uk.ac.bournemouth.ac.db.darwin.usertasks.UserTaskDB
 import uk.ac.bournemouth.ac.db.darwin.webauth.WebAuthDB
@@ -41,44 +37,14 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 
 
-class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
-    DBHandleMap<XmlTask, XmlTask, DBTransaction>(connectionProvider, UserTaskDB, UserTaskMap.UserTaskFactory()),
+class UserTaskMap(connectionProvider: TransactionFactory<DBTransaction>) :
+    DBHandleMap<XmlTask, XmlTask, DBTransaction>(connectionProvider, UserTaskDB, UserTaskFactory()),
     IMutableUserTaskMap<DBTransaction> {
 
 
-    private class PostTaskFactory : XmlDeserializerFactory<XmlTask> {
-
-        @Throws(XmlException::class)
-        override fun deserialize(reader: XmlReader): XmlTask {
-            reader.skipPreamble()
-
-            reader.require(EventType.START_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, "postTask")
-
-            var result: XmlTask? = null
-            while (reader.hasNext() && reader.next() !== EventType.END_ELEMENT) {
-                when (reader.eventType) {
-                    EventType.START_ELEMENT -> if ("taskParam" == reader.localName) {
-                        reader.next() // Go to the contents
-                        result = XmlTask.deserialize(reader)
-                        reader.nextTag()
-                        reader.require(EventType.END_ELEMENT, null, "taskParam")
-                    } else {
-                        reader.skipElement()
-                        reader.require(EventType.END_ELEMENT, null, null)
-                    }
-                    else                    -> throw XmlException("unsupported event ${reader.eventType} in reading postTask")
-                }
-            }
-            reader.require(EventType.END_ELEMENT, Constants.USER_MESSAGE_HANDLER_NS, "postTask")
-
-            return result ?: throw IllegalArgumentException("Missing task parameters")
-        }
-    }
-
-
     private class UserTaskFactory : AbstractElementFactory<XmlTask, XmlTask, DBTransaction>() {
-        private var mColNoHandle: Int = 0
-        private var mColNoRemoteHandle: Int = 0
+        private var colNoHandle: Int = 0
+        private var colNoRemoteHandle: Int = 0
 
         override val table: Table
             get() {
@@ -140,8 +106,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
             }
 
             instance?.body?.let { body ->
-                val reader = body.getXmlReader()
-                val env = Envelope.deserialize(reader, PostTaskFactory())
+                val env = XML.decodeFromReader<Envelope<XmlTask>>(body.getXmlReader())
                 val task = env.body?.bodyContent?.apply {
                     setHandleValue(handle.handleValue)
                     this.remoteHandle = remoteHandle
@@ -154,20 +119,20 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
         }
 
         @Throws(SQLException::class)
-        override fun postCreate(transaction: DBTransaction, element: XmlTask): XmlTask {
-            UserTaskDB.SELECT(nd.name, nd.data).WHERE { nd.taskhandle eq element.handle }
+        override fun postCreate(transaction: DBTransaction, builder: XmlTask): XmlTask {
+            UserTaskDB.SELECT(nd.name, nd.data).WHERE { nd.taskhandle eq builder.handle }
                 .execute(transaction.connection) { name, data ->
                     if (name != null) {
-                        element[name]?.let { it.value = data }
+                        builder[name]?.let { it.value = data }
                     }
                 }
-            return element
+            return builder
         }
 
         override fun getPrimaryKeyCondition(where: Database._Where, instance: XmlTask) =
             getHandleCondition(where, instance.handle)
 
-        override fun getHandleCondition(where: Database._Where, handle: Handle<out XmlTask>) = where.run {
+        override fun getHandleCondition(where: Database._Where, handle: Handle<XmlTask>) = where.run {
             u.taskhandle eq handle
         }
 
@@ -183,7 +148,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
 
         override fun postStore(
             connection: DBConnection,
-            handle: Handle<out XmlTask>,
+            handle: Handle<XmlTask>,
             oldValue: XmlTask?,
             newValue: XmlTask
                               ) {
@@ -217,7 +182,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<out DBTransaction>) :
 
         override fun preRemove(transaction: DBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>) {
             val handleVal = u.taskhandle.value(columns, values)
-            preRemove(transaction, handle<XmlTask>(handleVal))
+            preRemove(transaction, handleVal.toComparableHandle())
         }
 
         companion object {

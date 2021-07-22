@@ -27,9 +27,10 @@ package org.w3.soapEnvelope
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.xmlutil.util.CompactFragment
-import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
+import nl.adaptivity.xmlutil.xmlserializable.SimpleXmlDeserializable
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
+import nl.adaptivity.xmlutil.xmlserializable.deserializeHelper
 
 
 /**
@@ -56,7 +57,7 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
  * </complexType>
  *
  */
-class Header : SimpleXmlDeserializable, XmlSerializable {
+class Header {
 
     @XmlSerialName("any", Envelope.NAMESPACE, Envelope.PREFIX)
     protected var _any: MutableList<CompactFragment>? = null
@@ -71,55 +72,6 @@ class Header : SimpleXmlDeserializable, XmlSerializable {
     var principal: SimplePrincipal? = null
         private set
 
-    override val elementName: QName
-        get() = ELEMENTNAME
-
-    override fun deserializeChild(reader: XmlReader): Boolean {
-        if (reader.isElement(PRINCIPALQNAME)) {
-            // XXX make sure this is secure
-            principal = SimplePrincipal(reader.readSimpleElement())
-        } else {
-            val frag = reader.siblingsToFragment()
-            any.add(frag)
-        }
-        return true
-    }
-
-    override fun deserializeChildText(elementText: CharSequence): Boolean {
-        if (isXmlWhitespace(elementText)) {
-            return true
-        }
-        any.add(CompactFragment(elementText.toString()))
-        return true
-    }
-
-    override fun deserializeAttribute(
-        attributeNamespace: String?,
-        attributeLocalName: String,
-        attributeValue: String
-                                     ): Boolean {
-        val qname = QName(attributeNamespace.toString(), attributeLocalName)
-        otherAttributes[qname] = attributeValue
-        return true
-    }
-
-    override fun onBeforeDeserializeChildren(reader: XmlReader) {
-        // nothing
-    }
-
-    override fun serialize(out: XmlWriter) {
-        out.smartStartTag(elementName) {
-            for ((key, value) in otherAttributes) {
-                writeAttribute(key, value)
-            }
-            principal?.let { writeSimpleElement(PRINCIPALQNAME, it.toString()) }
-
-            for (n in any) {
-                n.serialize(this)
-            }
-        }
-    }
-
     companion object {
 
         const val ELEMENTLOCALNAME = "Header"
@@ -129,10 +81,6 @@ class Header : SimpleXmlDeserializable, XmlSerializable {
             Engine.NAMESPACE, "principal",
             Engine.NSPREFIX
                                   )
-
-        fun deserialize(reader: XmlReader): Header {
-            return Header().deserializeHelper(reader)
-        }
     }
 
 }

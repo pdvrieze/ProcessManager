@@ -27,14 +27,20 @@ interface Service {
 }
 
 abstract class ServiceImpl(protected val authService: AuthService, protected val serviceAuth: IdSecretAuthInfo) : Service {
-    private val tokens=mutableListOf<AuthToken>()
+    private val tokens = mutableListOf<AuthToken>()
 
     override val serviceId: String get() = serviceAuth.principal.name
 
     abstract fun getServiceState(): String
 
-    @UseExperimental(ExperimentalUnsignedTypes::class)
-    constructor(authService: AuthService, name: String): this(authService, authService.registerClient(name, Random.nextULong().toString(16)))
+    @OptIn(ExperimentalUnsignedTypes::class)
+    constructor(authService: AuthService, name: String) : this(
+        authService,
+        authService.registerClient(
+            name,
+            Random.nextULong().toString(16)
+        )
+    )
 
     protected fun validateAuthInfo(authInfo: AuthInfo, scope: UseAuthScope) {
         authService.validateAuthInfo(this, authInfo, scope)

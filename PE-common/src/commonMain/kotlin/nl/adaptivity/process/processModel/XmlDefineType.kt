@@ -25,25 +25,23 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
-import kotlinx.serialization.internal.StringSerializer
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.encoding.CompositeEncoder
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.xmlutil.*
 import nl.adaptivity.serialutil.*
+import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.*
+import nl.adaptivity.xmlutil.xmlserializable.XmlDeserializer
 
 @Serializable
 @XmlSerialName(XmlDefineType.ELEMENTLOCALNAME, Engine.NAMESPACE, Engine.NSPREFIX)
-@XmlDeserializer(XmlDefineType.Factory::class)
 class XmlDefineType : XPathHolder, IXmlDefineType {
-
-    class Factory : XmlDeserializerFactory<XmlDefineType> {
-
-        override fun deserialize(reader: XmlReader): XmlDefineType {
-            return XmlDefineType.deserialize(reader)
-        }
-    }
-
 
     @ProcessModelDSL
     class Builder {
@@ -120,28 +118,6 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         return XmlDefineType(name, refNode, refName, path, content, nsContext)
     }
 
-    @Transient
-    open val elementName: QName
-        get() = ELEMENTNAME
-
-    override fun deserializeAttribute(
-        attributeNamespace: String?,
-        attributeLocalName: String,
-        attributeValue: String
-                                     ): Boolean {
-        when (attributeLocalName) {
-            "refnode" -> {
-                setRefNode(attributeValue)
-                return true
-            }
-            "refname" -> {
-                setRefName(attributeValue)
-                return true
-            }
-            else      -> return super.deserializeAttribute(attributeNamespace, attributeLocalName, attributeValue)
-        }
-    }
-
     override fun serializeStartElement(out: XmlWriter) {
         out.smartStartTag(QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX))
     }
@@ -189,12 +165,12 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
 
         override val descriptor =
             simpleSerialClassDesc<XmlDefineType>(
-                "name" to StringSerializer,
-                "refnode" to StringSerializer,
-                "refname" to StringSerializer,
-                "xpath" to StringSerializer,
-                "namespaces" to Namespace.list,
-                "content" to StringSerializer
+                "name" to String.serializer(),
+                "refnode" to String.serializer(),
+                "refname" to String.serializer(),
+                "xpath" to String.serializer(),
+                "namespaces" to ListSerializer(Namespace),
+                "content" to String.serializer()
                                                 )
 
         const val ELEMENTLOCALNAME = "define"
@@ -202,7 +178,7 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
 
         @kotlin.jvm.JvmStatic
         fun deserialize(reader: XmlReader): XmlDefineType {
-            return XML.parse(reader, serializer())
+            return XML.decodeFromReader(reader)
         }
 
         @Deprecated(
@@ -217,7 +193,7 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
             data.deserialize(descriptor, decoder, XmlDefineType.Companion)
             return XmlDefineType(
                 data.name, data.refNode, data.refName, data.path, data.content,
-                data.namespaces ?: emptyList()
+                data.namespaces
                                 )
         }
 
@@ -227,7 +203,7 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
             writer.writeAttribute("refnode", data.getRefNode())
         }
 
-        override fun writeAdditionalValues(out: KOutput, desc: KSerialClassDesc, data: XmlDefineType) {
+        override fun writeAdditionalValues(out: CompositeEncoder, desc: SerialDescriptor, data: XmlDefineType) {
             super.writeAdditionalValues(out, desc, data)
             out.encodeNullableStringElement(desc, desc.getElementIndex("refname"), data.getRefName())
             out.encodeNullableStringElement(desc, desc.getElementIndex("refnode"), data.getRefNode())
@@ -240,7 +216,7 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         private class DefineTypeData(
             var refNode: String? = null,
             var refName: String? = null
-                                    ) : PathHolderData<XmlDefineType>(this) {
+        ) : PathHolderData<XmlDefineType>(this) {
 
             override fun readAdditionalChild(desc: SerialDescriptor, decoder: CompositeDecoder, index: Int) {
                 val name = desc.getElementName(index)

@@ -24,12 +24,11 @@
 
 package org.w3.soapEnvelope
 
-import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.util.multiplatform.createUri
-import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.QName
+import nl.adaptivity.xmlutil.XmlReader
+import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.ICompactFragment
-
 
 /**
  *
@@ -54,8 +53,7 @@ import nl.adaptivity.xmlutil.util.ICompactFragment
  * </complexType>
  * ```
  */
-@XmlDeserializer(Envelope.Factory::class)
-class Envelope<T : XmlSerializable>() : XmlSerializable {
+class Envelope<T>() {
 
     var header: Header? = null
 
@@ -67,13 +65,6 @@ class Envelope<T : XmlSerializable>() : XmlSerializable {
 
     val elementName: QName
         get() = ELEMENTNAME
-
-    class Factory : XmlDeserializerFactory<Envelope<*>> {
-
-        override fun deserialize(reader: XmlReader): Envelope<*> {
-            return Envelope.deserialize(reader)
-        }
-    }
 
     constructor(body: Body<T>) : this() {
         this.body = body
@@ -93,30 +84,6 @@ class Envelope<T : XmlSerializable>() : XmlSerializable {
         val qname = QName(attributeNamespace.toString(), attributeLocalName.toString())
         otherAttributes[qname] = attributeValue.toString()
         return true
-    }
-
-    fun deserializeChild(reader: XmlReader, bodyDeserializer: XmlDeserializerFactory<T>): Boolean {
-        if (NAMESPACE == reader.namespaceURI) {
-            if (Header.ELEMENTLOCALNAME == reader.localName) {
-                header = Header.deserialize(reader)
-                return true
-            } else if (Body.ELEMENTLOCALNAME == reader.localName) {
-                body = Body.deserialize(reader, bodyDeserializer)
-                return true
-            }
-        }
-        return false
-    }
-
-    override fun serialize(out: XmlWriter) {
-        out.smartStartTag(elementName) {
-            writeAttribute("encodingStyle", encodingStyle)
-            for ((key, value) in otherAttributes) {
-                writeAttribute(key, value)
-            }
-            writeChild(header)
-            writeChild(body)
-        }
     }
 
     /**
@@ -148,43 +115,10 @@ class Envelope<T : XmlSerializable>() : XmlSerializable {
         const val MIMETYPE = "application/soap+xml"
 
         @kotlin.jvm.JvmStatic
-        fun deserialize(`in`: XmlReader): Envelope<out ICompactFragment> {
-            return deserialize(`in`, CompactFragment.Factory())
+        fun deserialize(reader: XmlReader): Envelope<out ICompactFragment> {
+            return XML.decodeFromReader(reader)
         }
 
-        @kotlin.jvm.JvmStatic
-        fun <T : XmlSerializable> deserialize(
-            reader: XmlReader,
-            bodyDeserializer: XmlDeserializerFactory<T>
-                                             ): Envelope<T> {
-            val result = Envelope<T>()
-            reader.skipPreamble()
-            val elementName = result.elementName
-            assert(reader.isElement(elementName)) { "Expected " + elementName + " but found " + reader.localName }
-            for (i in reader.attributeCount - 1 downTo 0) {
-                result.deserializeAttribute(
-                    reader.getAttributeNamespace(i), reader.getAttributeLocalName(i),
-                    reader.getAttributeValue(i)
-                                           )
-            }
-            var event: EventType? = null
-            loop@ while (reader.hasNext()) {
-                event = reader.next()
-                when (event) {
-                    EventType.START_ELEMENT -> {
-                        if (result.deserializeChild(reader, bodyDeserializer)) {
-                            continue@loop
-                        }
-                        throw XmlException("Unexpected child tag in Envelope")
-                    }
-                    EventType.END_ELEMENT   -> break@loop
-                    EventType.IGNORABLE_WHITESPACE,
-                    EventType.COMMENT       -> Unit // just skip
-                    else                    -> throw XmlException("Unexpected element content ($event) in Envelope\n  $reader")
-                }
-            }
-            return result
-        }
     }
 
 }

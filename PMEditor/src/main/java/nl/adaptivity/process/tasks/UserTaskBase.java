@@ -20,7 +20,7 @@ import android.databinding.BaseObservable;
 import android.support.annotation.CallSuper;
 import nl.adaptivity.process.util.Constants;
 import nl.adaptivity.process.util.ModifyHelper;
-import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable;
+import nl.adaptivity.xmlutil.xmlserializable.SimpleXmlDeserializable;
 import nl.adaptivity.xmlutil.*;
 import android.support.annotation.NonNull;
 

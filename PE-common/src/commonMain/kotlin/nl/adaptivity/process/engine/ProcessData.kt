@@ -17,9 +17,11 @@
 package nl.adaptivity.process.engine
 
 import kotlinx.serialization.*
-import kotlinx.serialization.internal.NullableSerializer
-import kotlinx.serialization.internal.StringSerializer
-import kotlinx.serialization.internal.nullable
+import kotlinx.serialization.builtins.nullable
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import net.devrieze.util.Named
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.serialutil.decodeElements
@@ -33,29 +35,21 @@ import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 
 /** Class to represent data attached to process instances.  */
-@Serializable
+@Serializable(with = ProcessData.Companion::class)
 @XmlSerialName(ProcessData.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 class ProcessData
 constructor(
     @XmlElement(false) override val name: String?,
+
     @Serializable(with = ICompactFragmentSerializer::class)
     val content: ICompactFragment
-           ) : Named, XmlSerializable {
+           ) : Named {
 
-    @Transient
-    val contentStream: XmlReader
-        get() = content.getXmlReader()
+    val contentStream: XmlReader get() = content.getXmlReader()
 
     override fun copy(name: String?): ProcessData = copy(name, content)
 
     fun copy(name: String?, value: ICompactFragment): ProcessData = ProcessData(name, value)
-
-    override fun serialize(out: XmlWriter) {
-        out.smartStartTag(ELEMENTNAME) {
-            writeAttribute("name", name)
-            content.serialize(this)
-        }
-    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -100,9 +94,8 @@ constructor(
             decoder.decodeStructure(descriptor) {
                 decodeElements(this) { i ->
                     when (i) {
-                        KInput.READ_ALL -> throw UnsupportedOperationException()
-                        0               -> name =
-                            decodeNullableSerializableElement(descriptor, 0, StringSerializer.nullable)
+                        0                              -> name =
+                            decodeNullableSerializableElement(descriptor, 0, String.serializer().nullable)
                         1               -> content = when (this) {
                             is XML.XmlInput -> this.input.siblingsToFragment()
                             else            -> decodeSerializableElement(descriptor, 1, ICompactFragmentSerializer)
@@ -117,7 +110,7 @@ constructor(
 
         override fun serialize(encoder: Encoder, obj: ProcessData) {
             val newOutput = encoder.beginStructure(descriptor)
-            newOutput.encodeNullableSerializableElement(descriptor, 0, StringSerializer, obj.name)
+            newOutput.encodeNullableSerializableElement(descriptor, 0, String.serializer(), obj.name)
 
             if (newOutput is XML.XmlOutput) {
                 obj.content.serialize(newOutput.target)

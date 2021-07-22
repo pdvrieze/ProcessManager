@@ -18,58 +18,23 @@ package nl.adaptivity.process.engine
 
 import kotlinx.serialization.Serializable
 import net.devrieze.util.Handle
-import nl.adaptivity.xmlutil.util.SimpleXmlDeserializable
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.XmlSerializable
 import nl.adaptivity.xmlutil.XmlWriter
 import nl.adaptivity.xmlutil.serialization.XmlValue
 import nl.adaptivity.xmlutil.writeSimpleElement
+import nl.adaptivity.xmlutil.xmlserializable.SimpleXmlDeserializable
 
 
 /**
  * Created by pdvrieze on 10/12/15.
  */
 @Serializable
-abstract class XmlHandle<T> : Handle<T>, XmlSerializable, SimpleXmlDeserializable {
-
-    constructor(handleValue: Long) {
-        this.handleValue = handleValue
-    }
-
-    @XmlValue(true)
-    final override var handleValue: Long
-        private set
+abstract class XmlHandle<T> constructor(
+    @XmlValue(true) final override val handleValue: Long
+) : Handle<T> {
 
     constructor(handle: Handle<T>) : this(handle.handleValue)
-
-    override fun deserializeChild(reader: XmlReader): Boolean {
-        return false
-    }
-
-    override fun deserializeChildText(elementText: CharSequence): Boolean {
-        handleValue = elementText.toString().toLong()
-        return true
-    }
-
-    override fun deserializeAttribute(
-        attributeNamespace: String?,
-        attributeLocalName: String,
-        attributeValue: String
-                                     ): Boolean {
-        return false
-    }
-
-    override fun onBeforeDeserializeChildren(reader: XmlReader) {
-        // ignore
-    }
-
-    override fun serialize(out: XmlWriter) {
-        out.writeSimpleElement(elementName, handleValue.toString())
-    }
-
-    fun setHandle(handle: Long) {
-        handleValue = handle
-    }
 
     override fun toString(): String {
         return "{$handleValue}"

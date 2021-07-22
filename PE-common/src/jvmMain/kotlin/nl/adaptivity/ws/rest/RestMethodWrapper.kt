@@ -16,6 +16,9 @@
 
 package nl.adaptivity.ws.rest
 
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.serializerOrNull
 import net.devrieze.util.Annotations
 import net.devrieze.util.JAXBCollectionWrapper
 import net.devrieze.util.ReaderInputStream
@@ -32,6 +35,8 @@ import nl.adaptivity.util.activation.writeToStream
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.xmlserializable.XmlDeserializer
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 import java.io.*
@@ -561,10 +566,10 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
                 match = xpathMatch(n, xpath)
                 if (match != null) {
                     if (!isCharSeq) {
-                        val deserializer = paramType.getAnnotation(XmlDeserializer::class.java)
+                        @OptIn(ExperimentalSerializationApi::class)
+                        val deserializer = serializerOrNull(paramType)
                         if (deserializer != null) {
-                            val factory: XmlDeserializerFactory<*> = deserializer.value.java.newInstance()
-                            return factory.deserialize(XmlStreaming.newReader(DOMSource(n)))?.let { paramType.cast(it) }
+                            return XML.Companion.decodeFromReader(deserializer, XmlStreaming.newReader(DOMSource(n))) as T
                         } else {
                             return JAXB.unmarshal(DOMSource(match), paramType)
                         }

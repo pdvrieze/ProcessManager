@@ -17,8 +17,10 @@
 package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.internal.GeneratedSerializer
-import kotlinx.serialization.internal.SerialClassDescImpl
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
@@ -28,7 +30,7 @@ import nl.adaptivity.xmlutil.XmlWriter
 import nl.adaptivity.xmlutil.serialization.XmlDefault
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import nl.adaptivity.xmlutil.writeAttribute
-import nl.adaptivity.xmlutil.writeChild
+import nl.adaptivity.xmlutil.xmlserializable.writeChild
 
 
 /**
@@ -70,7 +72,7 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
         builder: MessageActivity.Builder,
         newOwner: ProcessModel<*>,
         otherNodes: Iterable<ProcessNode.Builder>
-               ) : super(builder.ensureExportable(), newOwner, otherNodes) {
+    ) : super(builder.ensureExportable(), newOwner, otherNodes) {
         childModel = null
         childId = null
         message = builder.message
@@ -80,7 +82,7 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
         builder: DeserializationBuilder,
         buildHelper: BuildHelper<*, *, *, *>,
         otherNodes: Iterable<ProcessNode.Builder>
-                        ) : super(builder.ensureExportable(), buildHelper.newOwner, otherNodes) {
+    ) : super(builder.ensureExportable(), buildHelper.newOwner, otherNodes) {
         val id = builder.childId
         childModel = id?.let { buildHelper.childModel(it) }
         childId = id
@@ -91,7 +93,7 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
         builder: CompositeActivity.ModelBuilder,
         buildHelper: BuildHelper<*, *, *, *>,
         otherNodes: Iterable<ProcessNode.Builder>
-               ) : super(builder.ensureExportable(), buildHelper.newOwner, otherNodes) {
+    ) : super(builder.ensureExportable(), buildHelper.newOwner, otherNodes) {
         childModel = buildHelper.childModel(builder)
         childId = builder.childId
         message = null
@@ -101,26 +103,11 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
         builder: CompositeActivity.ReferenceBuilder,
         buildHelper: BuildHelper<*, *, *, *>,
         otherNodes: Iterable<ProcessNode.Builder>
-               ) : super(builder.ensureExportable(), buildHelper.newOwner, otherNodes) {
+    ) : super(builder.ensureExportable(), buildHelper.newOwner, otherNodes) {
         val id = builder.childId
         childModel = id?.let { buildHelper.childModel(it) }
         childId = id
         message = null
-    }
-
-    @Throws(XmlException::class)
-    override fun serializeCondition(out: XmlWriter) {
-        out.writeChild(xmlCondition)
-    }
-
-    override fun serializeAttributes(out: XmlWriter) {
-        super.serializeAttributes(out)
-        out.writeAttribute("childId", childModel?.id)
-    }
-
-    override fun serializeChildren(out: XmlWriter) {
-        super.serializeChildren(out)
-        message?.let { (it as XmlMessage).serialize(out) }
     }
 
     override fun builder(): Activity.Builder = when {
@@ -133,17 +120,18 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
         else               -> visitor.visitActivity(compositeActivity = this)
     }
 
-    @UseExperimental(InternalSerializationApi::class)
+    @OptIn(InternalSerializationApi::class)
     @Serializer(forClass = XmlActivity::class)
     companion object : KSerializer<XmlActivity>, GeneratedSerializer<XmlActivity> {
 
-        init {
-            // Some nasty hack as somehow initialisation is broken.
-            val d = descriptor as SerialClassDescImpl
+/*
+        override val descriptor: SerialDescriptor = buildClassSerialDescriptor("XmlActivity") {
             for (childSerializer in childSerializers()) {
-                d.pushDescriptor(childSerializer.descriptor)
+                val d = childSerializer.descriptor
+                element(d.serialName, d)
             }
         }
+*/
 
         override fun deserialize(decoder: Decoder): XmlActivity {
             throw UnsupportedOperationException("This can only done in the correct context")

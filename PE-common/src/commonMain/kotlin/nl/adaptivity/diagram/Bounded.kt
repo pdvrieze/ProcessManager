@@ -53,7 +53,6 @@ interface Bounded : Positioned, HasExtent {
      * Determine whether the coordinates are within the bounds of the item. This particular implementation is naive
      * and assumes that the item is a rectangle equal to the extents of the item.
      */
-    @JvmDefault
     fun isWithinBounds(x: Double, y: Double): Boolean =
         hasPos() && ((x - this.x).isBetween(-leftExtent, rightExtent) &&
             (y - this.y).isBetween(-topExtent, bottomExtent))

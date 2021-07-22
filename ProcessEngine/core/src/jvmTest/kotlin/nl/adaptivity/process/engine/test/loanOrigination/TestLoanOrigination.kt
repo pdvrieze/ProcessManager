@@ -53,7 +53,13 @@ class TestLoanOrigination : ProcessEngineTestSupport() {
     fun testRunModel() {
         val model = ExecutableProcessModel(Model1(modelOwnerPrincipal).configurationBuilder)
         val logger = Logger.getLogger(TestLoanOrigination::class.java.name)
-        val pef: ProcessEngineFactory<LoanActivityContext> = { messageService, transactionFactory -> defaultEngineFactory(messageService, transactionFactory, LoanContextFactory(logger))}
+        val pef: ProcessEngineFactory<LoanActivityContext> = { messageService, transactionFactory ->
+            defaultEngineFactory(
+                messageService,
+                transactionFactory,
+                LoanContextFactory(logger)
+            )
+        }
         testProcess(pef, model) { processEngine, tr, model, hinstance ->
             val instance = tr[hinstance]
             assertEquals(ProcessInstance.State.FINISHED, instance.state)
@@ -61,7 +67,7 @@ class TestLoanOrigination : ProcessEngineTestSupport() {
             assertEquals(
                 "<CreditReport creditRating=\"400\" maxLoan=\"20000\">John Doe (rating 400) is approved for loans up to 20000</CreditReport>",
                 creditReport?.content?.contentString
-                        )
+            )
             val accountNumber = instance.outputs.singleOrNull { it.name == "accountNumber" }
             assertEquals("<BankAccountNumber>123456</BankAccountNumber>", accountNumber?.content?.contentString)
         }
@@ -69,11 +75,11 @@ class TestLoanOrigination : ProcessEngineTestSupport() {
 
 }
 
-@UseExperimental(ImplicitReflectionSerializer::class)
+@OptIn(ImplicitReflectionSerializer::class)
 private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProcessNode>(
     "testLoanOrigination",
     owner, UUID.fromString("fbb730ab-f1c4-4af5-979b-7e04a399d75a")
-                                                                                        ) {
+) {
 
 
     val start by startNode
@@ -95,7 +101,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
     val createLoanRequest by configureRunnableActivity<LoanCustomer, LoanApplication>(
         inputCustomerMasterData,
         LoanApplication.serializer()
-                                                                                     ) {
+    ) {
         defineInput(this@Model1.inputCustomerMasterData)
         action = { customer ->
             registerTaskPermission(customerFile, QUERY_CUSTOMER_DATA(customer.customerId))
@@ -105,7 +111,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
                     customer.customerId,
                     10000.0,
                     listOf(CustomerCollateral("house", "100000", "residential"))
-                               )
+                )
             }
         }
     }
@@ -123,7 +129,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
             LoanCustomer.serializer(),
             null,
             "customerId"
-                                                   ) { customer ->
+        ) { customer ->
             registerTaskPermission(signingService, SIGN)
             acceptBrowserActivity(ctx.customer) {
                 val signingToken = loginToService(signingService)
@@ -133,9 +139,10 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
         val verifyCustomerApproval by configureRunnableActivity<VerifyCustomerApprovalInput, SignedDocument<SignedDocument<Approval>>>(
             getCustomerApproval,
             SignedDocument.serializer(SignedDocument.serializer(Approval.serializer()))
-                                                                                                                                      ) {
+        ) {
             val custIn = defineInput("customer", null, "customerId", LoanCustomer.serializer())
-            val approvalIn = defineInput("approval", getCustomerApproval, SignedDocument.serializer(Approval.serializer()))
+            val approvalIn =
+                defineInput("approval", getCustomerApproval, SignedDocument.serializer(Approval.serializer()))
             inputCombiner = InputCombiner { VerifyCustomerApprovalInput(custIn(), approvalIn()) }
             action = { (customer, approval) ->
                 registerTaskPermission(customerFile, QUERY_CUSTOMER_DATA(customer.customerId))
@@ -158,7 +165,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
             CreditReport.serializer(),
             LoanCustomer.serializer(),
             null, "customerId"
-                                               ) { customer ->
+        ) { customer ->
 
             registerTaskPermission(customerFile, QUERY_CUSTOMER_DATA(customer.customerId))
             registerTaskPermission(creditBureau, GET_CREDIT_REPORT("taxId234"))
@@ -198,7 +205,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
         val getLoanEvaluation by configureRunnableActivity<Pair<LoanApplication, CreditReport>, LoanEvaluation>(
             getCreditReport,
             LoanEvaluation.serializer()
-                                                                                                               ) {
+        ) {
             val apIn = defineInput("application", null, "loanApplication", LoanApplication.serializer())
             val credIn = defineInput("creditReport", getCreditReport, CreditReport.serializer())
             inputCombiner = InputCombiner {
@@ -207,7 +214,11 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
 
             action = { (application, creditReport) ->
                 registerTaskPermission(creditApplication, EVALUATE_LOAN(application.customerId))
-                registerTaskPermission(creditApplication.serviceId, customerFile, QUERY_CUSTOMER_DATA(application.customerId))
+                registerTaskPermission(
+                    creditApplication.serviceId,
+                    customerFile,
+                    QUERY_CUSTOMER_DATA(application.customerId)
+                )
 
                 generalClientService.runWithAuthorization(ctx.serviceTask()) { taskIdToken ->
 
@@ -216,12 +227,12 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
                         creditApplication.serviceId,
                         customerFile,
                         QUERY_CUSTOMER_DATA(application.customerId)
-                                                                                   )
+                    )
 
                     val authToken = getServiceToken(
                         creditApplication,
                         EVALUATE_LOAN(application.customerId, application.amount)
-                                                   )
+                    )
                     creditApplication.evaluateLoan(authToken, delegateAuthorization, application, creditReport)
                 }
             }
@@ -237,7 +248,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
         evaluateCredit,
         LoanProductBundle.serializer(),
         LoanEvaluation.serializer(), evaluateCredit, "loanEvaluation"
-                                                ) { loanEvaluation ->
+    ) { loanEvaluation ->
         LoanProductBundle("simpleLoan", "simpleLoan2019.a")
     }
 
@@ -252,7 +263,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
         val priceBundledProduct by configureRunnableActivity<PricingInput, PricedLoanProductBundle>(
             start,
             PricedLoanProductBundle.serializer()
-                                                                                                   ) {
+        ) {
 
             val loanEval = defineInput("loanEval", null, "loanEval", LoanEvaluation.serializer())
             val productInput = defineInput("prod", null, "chosenProduct", LoanProductBundle.serializer())
@@ -275,7 +286,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
             PricedLoanProductBundle.serializer(),
             PricedLoanProductBundle.serializer(),
             priceBundledProduct
-                                            ) { draftOffer ->
+        ) { draftOffer ->
             acceptBrowserActivity(postProcClerk) {
                 draftOffer.approve()
             }
@@ -291,7 +302,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
         Offer.serializer(),
         PricedLoanProductBundle.serializer(),
         offerPricedLoan
-                                      ) { approvedOffer ->
+    ) { approvedOffer ->
         registerTaskPermission(outputManagementSystem, PRINT_OFFER)
         acceptBrowserActivity(postProcClerk) {
 
@@ -305,7 +316,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
         Offer.serializer(),
         Offer.serializer(),
         printOffer
-                                                 ) { offer ->
+    ) { offer ->
         acceptBrowserActivity(customer) {
             offer.signCustomer("Signed by 'John Doe'")
         }
@@ -315,7 +326,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
         Contract.serializer(),
         Offer.serializer(),
         customerSignsContract
-                                             ) { offer ->
+    ) { offer ->
         registerTaskPermission(outputManagementSystem, SIGN_LOAN.restrictTo(offer.customerId, Double.NaN))
 
         acceptBrowserActivity(postProcClerk) {
@@ -329,7 +340,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
         BankAccountNumber.serializer(),
         Contract.serializer(),
         bankSignsContract
-                                       ) { contract ->
+    ) { contract ->
         registerTaskPermission(accountManagementSystem, OPEN_ACCOUNT.invoke(contract.customerId))
 
         acceptBrowserActivity(postProcClerk) {
@@ -370,7 +381,11 @@ private fun ActivityInstanceContext.registerTaskPermission(service: Service, sco
 
 private fun ActivityInstanceContext.registerTaskPermission(client: String, service: Service, scope: PermissionScope) =
     ctx.registerTaskPermission(client, service, scope)
-private inline fun <R> ActivityInstanceContext.acceptBrowserActivity(browser: Browser, action: TaskList.Context.() -> R): R =
+
+private inline fun <R> ActivityInstanceContext.acceptBrowserActivity(
+    browser: Browser,
+    action: TaskList.Context.() -> R
+): R =
     ctx.acceptBrowserActivity(browser, action)
 
 const val ASSERTFORBIDDENENABLED = false

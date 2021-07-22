@@ -17,6 +17,7 @@
 package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.*
+import kotlinx.serialization.encoding.Decoder
 import nl.adaptivity.process.processModel.*
 
 @Serializable(XmlEndNode.Companion::class)
