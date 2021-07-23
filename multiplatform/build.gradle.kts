@@ -34,10 +34,11 @@ import versions.kotlin_version
 
 plugins {
     kotlin("multiplatform")
+    mpconsumer
 }
 
 base {
-    archivesBaseName = "multiplatform"
+    archivesName.set("multiplatform")
     version = "0.1"
 }
 
@@ -45,20 +46,16 @@ kotlin {
     targets {
         jvm {
             compilations.all {
-                tasks.getByName<KotlinCompile>(compileKotlinTaskName).kotlinOptions {
+                kotlinOptions {
                     jvmTarget = "1.8"
-                    freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental")
                 }
             }
-            attributes.attribute(androidAttribute, false)
         }
         jvm("android") {
-            attributes.attribute(androidAttribute, true)
             attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.androidJvm)
             compilations.all {
-                tasks.getByName<KotlinCompile>(compileKotlinTaskName).kotlinOptions {
+                kotlinOptions {
                     jvmTarget = "1.6"
-                    freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental")
                 }
             }
         }
@@ -66,35 +63,36 @@ kotlin {
             browser()
             nodejs()
             compilations.all {
-                tasks.getByName<KotlinJsCompile>(compileKotlinTaskName).kotlinOptions {
+                kotlinOptions {
                     sourceMap = true
                     suppressWarnings = false
                     verbose = true
                     metaInfo = true
                     moduleKind = "umd"
                     main = "call"
-                    freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental")
                 }
             }
         }
     }
 
     sourceSets {
-        val commonMain by getting {
-            dependencies {
-                implementation(kotlin("stdlib"))
+        all {
+            languageSettings {
+                useExperimentalAnnotation("kotlin.RequiresOptIn")
             }
+        }
+        val commonMain by getting {
         }
         val javaShared by creating {
             dependsOn(commonMain)
             dependencies {
-                implementation(kotlin("stdlib-jdk7"))
+//                implementation(kotlin("stdlib-jdk7"))
             }
         }
         val jvmMain by getting {
             dependsOn(javaShared)
             dependencies {
-                implementation(kotlin("stdlib-jdk7"))
+//                implementation(kotlin("stdlib-jdk8"))
             }
         }
         val androidMain by getting {
@@ -103,7 +101,7 @@ kotlin {
         val jsMain by getting {
             dependsOn(commonMain)
             dependencies {
-                implementation("org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version")
+//                implementation("org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version")
             }
         }
     }

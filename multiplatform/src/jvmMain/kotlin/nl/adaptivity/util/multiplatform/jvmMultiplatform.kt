@@ -16,4 +16,3 @@
 
 package nl.adaptivity.util.multiplatform
 
-actual typealias JvmDefault = kotlin.jvm.JvmDefault

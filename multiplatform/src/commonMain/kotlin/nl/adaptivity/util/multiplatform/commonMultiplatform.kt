@@ -21,7 +21,12 @@ import kotlin.reflect.KClass
 //@ExperimentalMultiplatform
 //@OptionalExpectation
 @Deprecated("Use 1.2.70 optional annotation", ReplaceWith("JvmStatic", "kotlin.jvm.JvmStatic"))
-@Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER)
+@Target(
+    AnnotationTarget.FUNCTION,
+    AnnotationTarget.PROPERTY,
+    AnnotationTarget.PROPERTY_GETTER,
+    AnnotationTarget.PROPERTY_SETTER
+)
 expect annotation class JvmStatic()
 
 @Deprecated("Use 1.2.70 optional annotation", ReplaceWith("JvmWildcard", "kotlin.jvm.JvmWildcard"))
@@ -39,9 +44,11 @@ expect annotation class JvmField()
 @Deprecated("Use 1.2.70 optional annotation", ReplaceWith("JvmName", "kotlin.jvm.JvmName"))
 //@ExperimentalMultiplatform
 //@OptionalExpectation
-@Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER,
-        AnnotationTarget.FILE)
-expect annotation class JvmName(val name:String)
+@Target(
+    AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER,
+    AnnotationTarget.FILE
+)
+expect annotation class JvmName(val name: String)
 
 @Deprecated("Use 1.2.70 optional annotation", ReplaceWith("JvmOverloads", "kotlin.jvm.JvmOverloads"))
 //@ExperimentalMultiplatform
@@ -58,21 +65,20 @@ expect annotation class JvmMultifileClass()
 
 //@ExperimentalMultiplatform
 //@OptionalExpectation
-@Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER, AnnotationTarget.CONSTRUCTOR)
+@Target(
+    AnnotationTarget.FUNCTION,
+    AnnotationTarget.PROPERTY_GETTER,
+    AnnotationTarget.PROPERTY_SETTER,
+    AnnotationTarget.CONSTRUCTOR
+)
 expect annotation class Throws(vararg val exceptionClasses: KClass<out Throwable>)
-
-/** Still create here because it doesn't work on older android. */
-@UseExperimental(ExperimentalMultiplatform::class)
-@OptionalExpectation
-@Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY)
-expect annotation class JvmDefault()
-
 
 expect class URI {
     fun getPath(): String
 }
 
 expect class UUID
+
 expect fun randomUUID(): UUID
 
 expect fun String.toUUID(): UUID
@@ -88,11 +94,11 @@ fun Appendable.append(d: Double) = append(d.toString())
 fun Appendable.append(i: Int) = append(i.toString())
 
 @Suppress("unused")
-expect class Class<T:Any?>
+expect class Class<T : Any?>
 
 expect val KClass<*>.name: String
 
-expect fun arraycopy(src: Any, srcPos:Int, dest:Any, destPos:Int, length:Int)
+expect fun arraycopy(src: Any, srcPos: Int, dest: Any, destPos: Int, length: Int)
 
 expect fun <T> fill(array: Array<T>, element: T, fromIndex: Int = 0, toIndex: Int = array.size)
 
@@ -104,14 +110,14 @@ expect interface AutoCloseable {
     fun close()
 }
 
-expect interface Closeable: AutoCloseable
+expect interface Closeable : AutoCloseable
 
 expect interface Runnable {
     fun run()
 }
 
 @Suppress("unused")
-expect inline fun <reified T:Any> isTypeOf(value: Any):Boolean
+expect inline fun <reified T : Any> isTypeOf(value: Any): Boolean
 
 expect fun Throwable.addSuppressedCompat(suppressed: Throwable): Unit
 expect fun Throwable.initCauseCompat(cause: Throwable): Throwable

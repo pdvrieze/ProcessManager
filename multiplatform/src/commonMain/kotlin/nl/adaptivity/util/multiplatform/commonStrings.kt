@@ -27,11 +27,11 @@ fun CharSequence.toLowercase(locale: Locale): String =
     toString().toLowercase(locale)
 
 @Suppress("NOTHING_TO_INLINE")
-inline fun CharSequence.toLowercase(): String = toString().toLowerCase()
+inline fun CharSequence.toLowercase(): String = toString().lowercase()
 
 @Suppress("NOTHING_TO_INLINE")
 @Deprecated("Use builtin version", ReplaceWith("toString().toLowerCase()"))
-inline fun String.toLowercase(): String = toString().toLowerCase()
+inline fun String.toLowercase(): String = toString().lowercase()
 
 expect fun String.toLowercase(locale: Locale):String
 

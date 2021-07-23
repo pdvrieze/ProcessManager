@@ -26,6 +26,9 @@ expect class QName {
     fun getNamespaceURI(): String
 }
 
+@Suppress("DEPRECATION")
 inline val QName.prefix get() = getPrefix()
+@Suppress("DEPRECATION")
 inline val QName.localPart get() = getLocalPart()
+@Suppress("DEPRECATION")
 inline val QName.namespaceURI get() = getNamespaceURI()

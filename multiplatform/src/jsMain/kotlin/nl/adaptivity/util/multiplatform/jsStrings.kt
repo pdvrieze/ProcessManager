@@ -25,7 +25,7 @@ actual object Locales {
 }
 
 @Suppress("NOTHING_TO_INLINE")
-actual inline fun String.toLowercase(locale: Locale):String = toLowerCase()
+actual inline fun String.toLowercase(locale: Locale):String = lowercase()
 
 
 @Suppress("NOTHING_TO_INLINE", "UnsafeCastFromDynamic")
