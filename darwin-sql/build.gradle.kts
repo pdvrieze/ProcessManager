@@ -14,13 +14,17 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+import versions.*
+
 plugins {
     id("kotlin")
     id("java-library")
     id("mpconsumer")
 }
 
-description = "The DDL files for the darwin databases"
+base {
+    description = "The DDL files for the darwin databases"
+}
 
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
@@ -31,10 +35,16 @@ dependencies {
     testRuntimeOnly("mysql:mysql-connector-java:$mysqlConnectorVersion")
 }
 
-
-test {
-    useJUnitPlatform()
+kotlin {
+    target {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = "1.8"
+            }
+        }
+    }
 }
 
-sourceCompatibility = myJavaVersion
-targetCompatibility = myJavaVersion
+tasks.named<Test>("test") {
+    useJUnitPlatform()
+}
