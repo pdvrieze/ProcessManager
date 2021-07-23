@@ -16,17 +16,21 @@
 
 package nl.adaptivity.process.util
 
+import foo.FakeSerializable
+import foo.FakeSerializer
 import kotlinx.serialization.*
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import nl.adaptivity.serialutil.DelegatingSerializer
 import nl.adaptivity.serialutil.simpleSerialClassDesc
 
 
 /**
  * A class representing a simple identifier. It just holds a single string.
  */
-@Serializable
+@FakeSerializable
 class Identifier(override var id: String) : Identified {
 
     @Transient
@@ -75,17 +79,11 @@ class Identifier(override var id: String) : Identified {
     }
 
 
-    @Serializer(forClass = Identifier::class)
-    companion object {
-        override val descriptor: SerialDescriptor
-            get() = simpleSerialClassDesc<Identifier>()
+    @FakeSerializer(forClass = Identifier::class)
+    companion object: DelegatingSerializer<Identifier, String>(String.serializer()) {
+        override fun fromDelegate(delegate: String): Identifier = Identifier(delegate)
 
-        override fun deserialize(decoder: Decoder): Identifier = Identifier(decoder.decodeString())
-
-
-        override fun serialize(encoder: Encoder, obj: Identifier) {
-            encoder.encodeString(obj.id)
-        }
+        override fun Identifier.toDelegate(): String = id
 
         fun findIdentifier(idBase: String, exclusions: Iterable<Identifiable>): String {
             val idFactory = ChangeableIdentifier(idBase)

@@ -21,20 +21,18 @@ import nl.adaptivity.process.util.Identified
 import kotlinx.serialization.serializer
 import nl.adaptivity.process.engine.ActivityInstanceContext
 
-@kotlinx.serialization.ImplicitReflectionSerializer
 inline fun <reified I: Any, reified O:Any> ConfigurableNodeContainer<ExecutableProcessNode>.runnableActivity(predecessor: Identified, noinline action: RunnableAction<I,O>): RunnableActivity.Builder<I,O> {
     return runnableActivity(
         predecessor,
-        O::class.serializer(),
-        I::class.serializer(),
+        serializer<O>(),
+        serializer<I>(),
         predecessor.identifier,
         "",
         action
                            )
 }
 
-@kotlinx.serialization.ImplicitReflectionSerializer
 inline fun <reified I:Any> RunnableActivity.Builder<I, *>.defineInput(refNode: Identified): InputCombiner.InputValue<I> {
-    return defineInput(refNode, I::class.serializer())
+    return defineInput(refNode, serializer<I>())
 }
 

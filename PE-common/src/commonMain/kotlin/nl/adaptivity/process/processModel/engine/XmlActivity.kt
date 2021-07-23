@@ -16,10 +16,13 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import foo.FakeSerializable
+import foo.FakeSerializer
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.internal.GeneratedSerializer
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.*
@@ -43,12 +46,12 @@ import nl.adaptivity.xmlutil.xmlserializable.writeChild
  *
  * @author Paul de Vrieze
  */
-@Serializable
+@FakeSerializable
 @XmlSerialName(Activity.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActivity {
 
     @SerialName("message")
-    @Serializable(with = IXmlMessage.Companion::class)
+    @FakeSerializable(with = IXmlMessage.Companion::class)
     override var message: IXmlMessage?
         get() = field
         private set(value) {
@@ -58,7 +61,7 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
     @Transient
     override val childModel: ChildProcessModel<ProcessNode>?
 
-    @Serializable
+    @FakeSerializable
     @XmlDefault("null")
     val childId: String?
 
@@ -121,10 +124,10 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
     }
 
     @OptIn(InternalSerializationApi::class)
-    @Serializer(forClass = XmlActivity::class)
-    companion object : KSerializer<XmlActivity>, GeneratedSerializer<XmlActivity> {
+    @FakeSerializer(forClass = XmlActivity::class)
+    companion object : KSerializer<XmlActivity> {
 
-/*
+        /*
         override val descriptor: SerialDescriptor = buildClassSerialDescriptor("XmlActivity") {
             for (childSerializer in childSerializers()) {
                 val d = childSerializer.descriptor
@@ -132,6 +135,12 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
             }
         }
 */
+        override val descriptor: SerialDescriptor
+            get() = TODO("not implemented")
+
+        override fun serialize(encoder: Encoder, value: XmlActivity) {
+            TODO("not implemented")
+        }
 
         override fun deserialize(decoder: Decoder): XmlActivity {
             throw UnsupportedOperationException("This can only done in the correct context")

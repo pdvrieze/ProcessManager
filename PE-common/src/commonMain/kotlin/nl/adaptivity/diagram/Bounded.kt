@@ -17,7 +17,6 @@
 package nl.adaptivity.diagram
 
 import nl.adaptivity.util.isBetween
-import nl.adaptivity.util.multiplatform.JvmDefault
 
 
 interface Bounded : Positioned, HasExtent {

@@ -16,15 +16,20 @@
 
 package nl.adaptivity.process.util
 
+import foo.FakeSerializable
+import foo.FakeSerializer
 import kotlinx.serialization.*
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import nl.adaptivity.serialutil.DelegatingSerializer
 import nl.adaptivity.serialutil.simpleSerialClassDesc
 
 /**
  * Created by pdvrieze on 04/12/16.
  */
+@FakeSerializable(Identified.Companion::class)
 interface Identified : Identifiable {
     override val id: String
 
@@ -32,17 +37,10 @@ interface Identified : Identifiable {
     override val identifier: Identifier
         get() = Identifier(id)
 
-    @Serializer(forClass = Identified::class)
-    companion object {
-        override val descriptor: SerialDescriptor
-            get() = simpleSerialClassDesc<Identified>()
+    @FakeSerializer(forClass = Identified::class)
+    companion object: DelegatingSerializer<Identified, String>(String.serializer()) {
+        override fun fromDelegate(delegate: String): Identified = Identifier(delegate)
 
-        override fun deserialize(decoder: Decoder): Identified {
-            return Identifier(decoder.decodeString())
-        }
-
-        override fun serialize(encoder: Encoder, obj: Identified) {
-            encoder.encodeString(obj.id)
-        }
+        override fun Identified.toDelegate(): String = id
     }
 }

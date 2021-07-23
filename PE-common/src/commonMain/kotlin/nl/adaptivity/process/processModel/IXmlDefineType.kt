@@ -16,15 +16,18 @@
 
 package nl.adaptivity.process.processModel
 
+import foo.FakeSerializable
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.serializer
+import nl.adaptivity.serialutil.DelegatingSerializer
 import nl.adaptivity.xmlutil.Namespace
 
-@Serializable(IXmlDefineType.Serializer::class)
+@FakeSerializable(IXmlDefineType.Serializer::class)
 interface IXmlDefineType {
 
     val content: CharArray?
@@ -101,19 +104,12 @@ interface IXmlDefineType {
         path: String? = getPath(),
         content: CharArray? = this.content,
         nsContext: Iterable<Namespace> = originalNSContext
-            ): IXmlDefineType
+    ): IXmlDefineType
 
-    companion object Serializer : KSerializer<IXmlDefineType> {
-        override val descriptor: SerialDescriptor
-            get() = XmlResultType.serializer().descriptor
-
-        override fun deserialize(decoder: Decoder): IXmlDefineType {
-            return XmlDefineType.serializer().deserialize(decoder)
-        }
-
-        override fun serialize(encoder: Encoder, value: IXmlDefineType) {
-            XmlDefineType.serializer().serialize(encoder, XmlDefineType(value))
-        }
+    companion object Serializer : DelegatingSerializer<IXmlDefineType, XmlDefineType>(serializer()) {
+        override fun fromDelegate(delegate: XmlDefineType): IXmlDefineType = delegate
+        override fun IXmlDefineType.toDelegate(): XmlDefineType =
+            this as? XmlDefineType ?: XmlDefineType(this)
     }
 
 }

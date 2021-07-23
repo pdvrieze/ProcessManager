@@ -16,6 +16,8 @@
 
 package nl.adaptivity.process.processModel
 
+import foo.FakeSerializable
+import foo.FakeSerializer
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -43,7 +45,7 @@ import nl.adaptivity.xmlutil.serialization.*
 import nl.adaptivity.xmlutil.xmlserializable.writeChildren
 import kotlin.jvm.JvmStatic
 
-@Serializable
+@FakeSerializable
 abstract class RootProcessModelBase<NodeT : ProcessNode> :
     ProcessModelBase<@UseContextualSerialization NodeT>,
     RootProcessModel<NodeT>,
@@ -65,13 +67,13 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
     /**
      * The owner of a model
      */
-    @Serializable(PrincipalSerializer::class)
+    @FakeSerializable(PrincipalSerializer::class)
     final override var owner: Principal = SYSTEMPRINCIPAL
 
     @SerialName("roles")
     override val roles: Set<String>
 
-    @Serializable(UUIDSerializer::class)
+    @FakeSerializable(UUIDSerializer::class)
     final override val uuid: UUID?
 
     @SerialName("childModel")
@@ -82,7 +84,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
     private var _childModels: IdentifyableSet<ChildProcessModelBase<NodeT>> = IdentifyableSet.processNodeSet()
 
     @SerialName("nodes")
-    @Serializable(IdentifiableSetSerializer::class)
+    @FakeSerializable(IdentifiableSetSerializer::class)
     @XmlPolyChildren(
         arrayOf(
             "nl.adaptivity.process.processModel.engine.XmlActivity\$Builder=pe:activity",
@@ -299,7 +301,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
 
 
     @ProcessModelDSL
-    @Serializable
+    @FakeSerializable
     @XmlSerialName(RootProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     open class Builder : ProcessModelBase.Builder, RootProcessModel.Builder {
 
@@ -329,10 +331,10 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
         @XmlDefault("-1")
         override var handle: Long = -1L
 
-        @Serializable(PrincipalSerializer::class)
+        @FakeSerializable(PrincipalSerializer::class)
         override var owner: Principal = SYSTEMPRINCIPAL
 
-        @Serializable(UUIDSerializer::class)
+        @FakeSerializable(UUIDSerializer::class)
         override var uuid: UUID? = null
 
         override val roles: MutableSet<String>
@@ -408,7 +410,8 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
                         val newList = input.decodeSerializableElement(
                             descriptor,
                             index,
-                            ListSerializer(ChildProcessModelBase.ModelBuilder.serializer() as KSerializer<ActivityBase.CompositeActivityBuilder>),
+                            // TODO use concrete serializer instance
+                            ListSerializer(serializer<ChildProcessModelBase.ModelBuilder>() as KSerializer<ActivityBase.CompositeActivityBuilder>),
                             result.childModels as List<ActivityBase.CompositeActivityBuilder>
                         )
                         @Suppress("UNCHECKED_CAST")
@@ -420,29 +423,14 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
             }
 
             override fun serialize(encoder: Encoder, obj: T) {
-                XmlProcessModel.serializer().serialize(encoder, XmlProcessModel(obj))
+                serializer<XmlProcessModel>().serialize(encoder, XmlProcessModel(obj)) // TODO use concrete serializer instance
             }
         }
 
         @OptIn(InternalSerializationApi::class)
-        @Serializer(Builder::class)
-        companion object : BaseSerializer<Builder>(),
-                           GeneratedSerializer<Builder> {
-            override val descriptor: SerialDescriptor = buildClassSerialDescriptor("RootProcessModelBase") {
-                for (childSerializer in childSerializers()) {
-                    element(childSerializer.descriptor.serialName, childSerializer.descriptor)
-                }
-            }
-
-            init {
-                // Some nasty hack as somehow initialisation is broken.
-/*
-                val d = descriptor as SerialClassDescImpl
-                for (childSerializer in childSerializers()) {
-                    d.pushDescriptor(childSerializer.descriptor)
-                }
-*/
-            }
+        @FakeSerializer(Builder::class)
+        companion object : BaseSerializer<Builder>() {
+            override val descriptor: SerialDescriptor = XmlProcessModel.descriptor.withName("RootProcessModelBase")
 
             override fun builder() = Builder()
 
@@ -452,7 +440,8 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
             }
 
             override fun serialize(encoder: Encoder, obj: Builder) {
-                XmlProcessModel.serializer().serialize(encoder, XmlProcessModel(obj))
+                // TODO use concrete serializer instance
+                serializer<XmlProcessModel>().serialize(encoder, XmlProcessModel(obj))
             }
 
             fun deserialize(reader: XmlReader): Builder {

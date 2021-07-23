@@ -16,28 +16,24 @@
 
 package nl.adaptivity.process.processModel
 
+import foo.FakeSerializable
 import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.modules.SerializersModule
+import kotlinx.serialization.serializer
 import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.processModel.serialization.PublicForSerialization
 import nl.adaptivity.process.util.*
-import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.multiplatform.name
-import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlReader
-import nl.adaptivity.xmlutil.XmlWriter
 import nl.adaptivity.xmlutil.serialization.XmlDefault
-import nl.adaptivity.xmlutil.writeAttribute
-import nl.adaptivity.xmlutil.xmlserializable.writeChildren
 
 
 /**
  * A base class for process nodes. Works like [RootProcessModelBase]
  * Created by pdvrieze on 23/11/15.
  */
-@Serializable
+@FakeSerializable
 @OptIn(PublicForSerialization::class)
 abstract class ProcessNodeBase : ProcessNode {
 
@@ -80,10 +76,10 @@ abstract class ProcessNodeBase : ProcessNode {
         get() = _y
 
     @SerialName("define")
-    final override val defines: List<IXmlDefineType>
+    override val defines: List<IXmlDefineType>
 
     @SerialName("result")
-    final override val results: List<IXmlResultType>
+    override val results: List<IXmlResultType>
 
     @Transient
     private var _hashCode = 0
@@ -94,7 +90,10 @@ abstract class ProcessNodeBase : ProcessNode {
     override val idBase: String
         get() = "id"
 
-    final override val id: String?
+
+    private val _id: String?
+
+    override val id: String? get() = _id
 
     final override val label: String?
 
@@ -125,7 +124,7 @@ abstract class ProcessNodeBase : ProcessNode {
         this.defines = defines.toList()
         this.results = results.toList()
         this.label = label
-        this.id = id
+        this._id = id
     }
 
     @Deprecated("BuildHelper is not needed here")
@@ -254,8 +253,8 @@ abstract class ProcessNodeBase : ProcessNode {
         const val ATTR_PREDECESSOR = "predecessor"
 
         val serialModule = SerializersModule {
-            polymorphic(IXmlResultType::class, XmlResultType::class, XmlResultType.serializer())
-            polymorphic(IXmlDefineType::class, XmlDefineType::class, XmlDefineType.serializer())
+            polymorphic(IXmlResultType::class, XmlResultType::class, serializer()) // TODO use concrete versions again
+            polymorphic(IXmlDefineType::class, XmlDefineType::class, serializer()) // TODO use concrete versions again
         }
 
         private fun toIdentifiers(
@@ -266,7 +265,7 @@ abstract class ProcessNodeBase : ProcessNode {
 
     }
 
-    @Serializable
+    @FakeSerializable
     abstract class Builder : ProcessNode.Builder {
 
         override var id: String?
@@ -305,11 +304,11 @@ abstract class ProcessNodeBase : ProcessNode {
             this.results = ArrayList(results)
         }
 
-        @Serializable(with = IXmlDefineTypeListSerializer::class)
+        @FakeSerializable(with = IXmlDefineTypeListSerializer::class)
         @SerialName("define")
         override val defines: MutableCollection<IXmlDefineType>
 
-        @Serializable(with = IXmlResultTypeListSerializer::class)
+        @FakeSerializable(with = IXmlResultTypeListSerializer::class)
         @SerialName("result")
         override val results: MutableCollection<IXmlResultType>
 

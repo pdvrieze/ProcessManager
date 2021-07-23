@@ -75,15 +75,12 @@ class SoapMethodWrapper(owner: Any, method: Method) : WsMethodWrapper(owner, met
                                       )
                 headers = emptyList()
 
-            } else if (result is ActivityResponse<*>) {
-                val activityResponse = result as ActivityResponse<*>?
-                params = Arrays.asList(
+            } else if (result is ActivityResponse<*,*>) {
+                val activityResponse = result as ActivityResponse<out Any, out Any?>
+                params = listOf(
                     Tripple.tripple(SoapHelper.RESULT, String::class.java, "result"),
-                    Tripple.tripple(
-                        "result", activityResponse!!.returnType,
-                        activityResponse.returnValue
-                                   )
-                                      )
+                    Tripple.tripple("result", activityResponse.returnType.java, activityResponse.returnValue)
+                )
                 headers = listOf<Any>(result)
             } else if (result != null && ActivityResponse::class.java.canonicalName == result.javaClass.canonicalName) {
 

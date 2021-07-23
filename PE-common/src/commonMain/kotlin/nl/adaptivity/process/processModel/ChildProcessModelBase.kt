@@ -16,6 +16,8 @@
 
 package nl.adaptivity.process.processModel
 
+import foo.FakeSerializable
+import foo.FakeSerializer
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.CompositeDecoder
@@ -40,7 +42,7 @@ import kotlin.jvm.JvmField
 /**
  * Base class for submodels
  */
-@Serializable
+@FakeSerializable
 abstract class ChildProcessModelBase<NodeT : ProcessNode> :
     ProcessModelBase<NodeT>, ChildProcessModel<NodeT> {
 
@@ -59,7 +61,7 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
             "nl.adaptivity.process.processModel.engine.XmlEndNode=pe:end"
                )
                     )
-    @Serializable(IdentifiableSetSerializer::class)
+    @FakeSerializable(IdentifiableSetSerializer::class)
     override val modelNodes: IdentifyableSet<NodeT>
 
     @Transient
@@ -97,7 +99,7 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
 
     override abstract fun builder(rootBuilder: RootProcessModel.Builder): ModelBuilder
 
-    @Serializable(with = ModelBuilder.Companion::class)
+    @FakeSerializable(with = ModelBuilder.Companion::class)
     open class ModelBuilder : ProcessModelBase.Builder, ChildProcessModel.Builder {
 
         @Transient
@@ -149,7 +151,7 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
             }
         }
 
-        @Serializer(forClass = ModelBuilder::class)
+        @FakeSerializer(forClass = ModelBuilder::class)
         companion object : BaseSerializer<ModelBuilder>() {
             override val descriptor: SerialDescriptor = XmlChildModel.descriptor.withName(
                 ModelBuilder::class.name

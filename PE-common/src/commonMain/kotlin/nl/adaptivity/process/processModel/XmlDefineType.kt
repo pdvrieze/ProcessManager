@@ -24,7 +24,9 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.*
+import foo.FakeSerializer
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -34,12 +36,14 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.serialutil.*
+import nl.adaptivity.serialutil.encodeNullableStringElement
+import nl.adaptivity.serialutil.readNullableString
+import nl.adaptivity.serialutil.simpleSerialClassDesc
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.serialization.*
-import nl.adaptivity.xmlutil.xmlserializable.XmlDeserializer
+import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
-@Serializable
+@Serializable(XmlDefineType.Companion::class)
 @XmlSerialName(XmlDefineType.ELEMENTLOCALNAME, Engine.NAMESPACE, Engine.NSPREFIX)
 class XmlDefineType : XPathHolder, IXmlDefineType {
 
@@ -76,8 +80,10 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         }
     }
 
+    @SerialName("refnode")
     private var _refNode: String? = null
 
+    @SerialName("refname")
     private var _refName: String? = null
 
     constructor() {}
@@ -160,7 +166,7 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         this._refName = value
     }
 
-    @Serializer(forClass = XmlDefineType::class)
+    @FakeSerializer(forClass = XmlDefineType::class)
     companion object : XPathHolderSerializer<XmlDefineType>() {
 
         override val descriptor =

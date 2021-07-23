@@ -63,7 +63,7 @@ interface Activity : ProcessNode {
 
     override fun builder(): Builder
 
-    //    @Serializable
+    //    @foo.FakeSerializable
     interface Builder : ProcessNode.Builder {
 
 

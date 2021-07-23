@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
+import foo.FakeSerializable
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import nl.adaptivity.process.ProcessConsts
@@ -30,7 +31,7 @@ import nl.adaptivity.xmlutil.*
 /**
  * Created by pdvrieze on 24/11/15.
  */
-@Serializable
+@FakeSerializable
 abstract class EndNodeBase : ProcessNodeBase, EndNode {
 
     @Suppress("ConvertSecondaryConstructorToPrimary")
@@ -38,7 +39,7 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
         super(builder, newOwner, otherNodes)
 
     @Suppress("DEPRECATION")
-    @Serializable(with = Identifiable.Companion::class)
+    @FakeSerializable(with = Identifiable.Companion::class)
     override val predecessor: Identified? = predecessors.singleOrNull()
 
     @Transient
@@ -56,7 +57,7 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
         return visitor.visitEndNode(this)
     }
 
-    @Serializable
+    @FakeSerializable
     open class Builder :
         ProcessNodeBase.Builder,
         EndNode.Builder {
@@ -65,7 +66,7 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
         override val idBase: String
             get() = "end"
 
-        @Serializable(with = Identifiable.Companion::class)
+        @FakeSerializable(with = Identifiable.Companion::class)
         final override var predecessor: Identifiable? = null
 
         constructor() : this(id = null)

@@ -16,6 +16,8 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import foo.FakeSerializable
+import foo.FakeSerializer
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -32,10 +34,10 @@ import nl.adaptivity.xmlutil.*
  *
  * @author Paul de Vrieze
  */
-@Serializable(XmlCondition.Companion::class)
+@FakeSerializable(XmlCondition.Companion::class)
 class XmlCondition(override val condition: String) : Condition {
 
-    @Serializer(XmlCondition::class)
+    @FakeSerializer(XmlCondition::class)
     companion object : KSerializer<Condition> {
         override val descriptor: SerialDescriptor
             get() = String.serializer().descriptor.withName("condition")

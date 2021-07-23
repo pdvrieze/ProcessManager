@@ -20,7 +20,6 @@ import nl.adaptivity.process.engine.impl.dom.toFragment
 import nl.adaptivity.process.engine.processModel.applyData
 import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.XmlResultType
-import nl.adaptivity.process.util.Constants
 import nl.adaptivity.util.DomUtil
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.*
@@ -43,6 +42,7 @@ import java.util.TreeMap
 
 import nl.adaptivity.process.util.Constants.USER_MESSAGE_HANDLER_NS
 import nl.adaptivity.xmlutil.SimpleNamespaceContext.Companion
+import nl.adaptivity.xmlutil.serialization.XML
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 
@@ -79,13 +79,13 @@ class TestXmlResultType {
     fun testXPathNS() {
         val xPath = XPathFactory.newInstance().newXPath()
         val prefixMap = TreeMap<String, String>()
-        prefixMap["ns1"] = Constants.USER_MESSAGE_HANDLER_NS
+        prefixMap["ns1"] = USER_MESSAGE_HANDLER_NS
         xPath.namespaceContext = SimpleNamespaceContext(prefixMap)
         val expr = xPath.compile("/ns1:result/ns1:value[@name='user']/text()")
         val testData = db.parse(
             InputSource(
                 StringReader(
-                    "<umh:result xmlns:umh='" + Constants.USER_MESSAGE_HANDLER_NS + "'><umh:value name='user'>Paul</umh:value></umh:result>"
+                    "<umh:result xmlns:umh='" + USER_MESSAGE_HANDLER_NS + "'><umh:value name='user'>Paul</umh:value></umh:result>"
                             )
                        )
                                )
@@ -100,7 +100,7 @@ class TestXmlResultType {
     fun testXPathNS2() {
         val xPath = XPathFactory.newInstance().newXPath()
         val prefixMap = TreeMap<String, String>()
-        prefixMap["ns1"] = Constants.USER_MESSAGE_HANDLER_NS
+        prefixMap["ns1"] = USER_MESSAGE_HANDLER_NS
         xPath.namespaceContext = SimpleNamespaceContext(prefixMap)
         val expr = xPath.compile("/ns1:result/ns1:value[@name='user']/text()")
         val testData = db.parse(
@@ -133,10 +133,10 @@ class TestXmlResultType {
     @Throws(ParserConfigurationException::class, IOException::class, SAXException::class)
     fun testApplySimpleNS() {
         val testData = db.newDocument()
-        val result = testData.createElementNS(Constants.USER_MESSAGE_HANDLER_NS, "umh:result")
+        val result = testData.createElementNS(USER_MESSAGE_HANDLER_NS, "umh:result")
         testData.appendChild(result)
         val value = result.appendChild(
-            testData.createElementNS(Constants.USER_MESSAGE_HANDLER_NS, "umh:value")
+            testData.createElementNS(USER_MESSAGE_HANDLER_NS, "umh:value")
                                       ) as Element
         value.setAttribute("name", "user")
         value.appendChild(testData.createTextNode("Paul"))
@@ -156,33 +156,32 @@ class TestXmlResultType {
         //    assertXMLEqual(XmlUtil.toString(expected.getDocumentFragment()), XmlUtil.toString(actual.getDocumentFragment()));
     }
 
-
     @Test
     @Throws(JAXBException::class, XmlException::class)
     fun testXDefineHolder() {
-        val testData =
-            "<define xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" path=\"/umh:bar/text()\" />"
-        val `in` = XmlStreaming.newReader(StringReader(testData))
+        val testData = """<define 
+            |    xmlns="http://adaptivity.nl/ProcessEngine/"
+            |    xmlns:umh="http://adaptivity.nl/userMessageHandler" 
+            |    path="/umh:bar/text()" />""".trimMargin()
 
-        val testHolder = XmlDefineType.deserialize(`in`)
+        val testHolder = XML.decodeFromString<XmlDefineType>(testData)
 
         assertNotNull(SimpleNamespaceContext.from(testHolder.originalNSContext))
         assertEquals(
-            USER_MESSAGE_HANDLER_NS, Companion.from(testHolder.originalNSContext)
+            USER_MESSAGE_HANDLER_NS, SimpleNamespaceContext.from(testHolder.originalNSContext)
                 .getNamespaceURI("umh")
-                    )
+        )
     }
 
 
     @Test
     fun testXMLResultHolder() {
-        val testData =
-            "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" path=\"/umh:bar/text()\" />"
+        val testData = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" path=\"/umh:bar/text()\" />"
 
-        val `in` = XmlStreaming.newReader(StringReader(testData))
+        val reader = XmlStreaming.newReader(StringReader(testData))
 
 
-        val testHolder = XmlResultType.deserialize(`in`)
+        val testHolder = XmlResultType.deserialize(reader)
 
         assertNotNull(SimpleNamespaceContext.from(testHolder.originalNSContext))
         assertEquals(
@@ -209,9 +208,9 @@ class TestXmlResultType {
                        )
                                )
 
-        val outer = document.createElementNS(Constants.USER_MESSAGE_HANDLER_NS, "result")
-        outer.setAttributeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns", Constants.USER_MESSAGE_HANDLER_NS)
-        val inner = document.createElementNS(Constants.USER_MESSAGE_HANDLER_NS, "value")
+        val outer = document.createElementNS(USER_MESSAGE_HANDLER_NS, "result")
+        outer.setAttributeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns", USER_MESSAGE_HANDLER_NS)
+        val inner = document.createElementNS(USER_MESSAGE_HANDLER_NS, "value")
         inner.setAttribute("name", "user")
         inner.textContent = "Some test value"
         outer.appendChild(inner)
@@ -223,7 +222,7 @@ class TestXmlResultType {
 
         val xPath = XPathFactory.newInstance().newXPath()
         val prefixMap = TreeMap<String, String>()
-        prefixMap["ns1"] = Constants.USER_MESSAGE_HANDLER_NS
+        prefixMap["ns1"] = USER_MESSAGE_HANDLER_NS
         xPath.namespaceContext = SimpleNamespaceContext(prefixMap)
         val expr = xPath.compile("./ns1:result/ns1:value[@name='user']/text()")
         assertEquals("Some test value", expr.evaluate(frag))

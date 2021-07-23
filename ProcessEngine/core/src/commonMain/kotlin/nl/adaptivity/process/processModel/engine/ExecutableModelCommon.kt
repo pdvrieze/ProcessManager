@@ -17,9 +17,8 @@
 package nl.adaptivity.process.processModel.engine
 
 import nl.adaptivity.process.engine.ProcessData
-import nl.adaptivity.process.processModel.*
-import nl.adaptivity.process.engine.impl.dom.Node
 import nl.adaptivity.process.engine.processModel.applyData
+import nl.adaptivity.process.processModel.*
 import nl.adaptivity.xmlutil.util.CompactFragment
 
 /**
@@ -42,7 +41,7 @@ interface ExecutableModelCommon : ProcessModel<ExecutableProcessNode> {
         // TODO make this work properly
 
         return imports.map {
-            it.applyData(payload)
+            (it as IPlatformXmlResultType).applyData(payload)
         }
     }
 

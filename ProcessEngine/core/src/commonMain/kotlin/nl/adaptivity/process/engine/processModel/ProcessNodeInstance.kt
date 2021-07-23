@@ -24,6 +24,7 @@ import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.impl.*
 import nl.adaptivity.process.engine.processModel.NodeInstanceState.*
+import nl.adaptivity.process.processModel.IPlatformXmlResultType
 import nl.adaptivity.process.processModel.MessageActivity
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
@@ -31,6 +32,7 @@ import nl.adaptivity.util.multiplatform.addSuppressedCompat
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.ICompactFragment
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -165,7 +167,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
                 )
             }
 
-            serializeAll(results)
+            for (result in results) { XML.encodeToWriter(this, result) }
 
             (node as? MessageActivity)?.message?.messageBody?.let { body ->
                 instantiateXmlPlaceholders(engineData, body.getXmlReader(), out, true, localEndpoint)
@@ -286,7 +288,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
                 throw ProcessException("instance ${node.id}:$handle($state) cannot be finished as it is already in a final state.")
             }
             state = Complete
-            node.results.mapTo(results.apply { clear() }) { it.applyData(resultPayload) }
+            node.results.mapTo(results.apply { clear() }) { (it as IPlatformXmlResultType).applyData(resultPayload) }
         }
 
 

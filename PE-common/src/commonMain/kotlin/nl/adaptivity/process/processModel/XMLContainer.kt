@@ -16,27 +16,26 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
+import foo.FakeSerializable
 import nl.adaptivity.serialutil.CharArrayAsStringSerializer
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.GatheringNamespaceContext
 import nl.adaptivity.xmlutil.util.ICompactFragment
 import nl.adaptivity.xmlutil.util.NamespaceAddingStreamReader
 import nl.adaptivity.xmlutil.util.XMLFragmentStreamReader
-import nl.adaptivity.xmlutil.xmlserializable.XmlDeserializable
 
 
 /**
  * This class can contain xml content. It allows it to be transformed, and input/output
  * Created by pdvrieze on 30/10/15.
  */
-@Serializable
+@FakeSerializable
 abstract class XMLContainer private constructor(
     override var namespaces: SimpleNamespaceContext,
-    @Serializable(with = CharArrayAsStringSerializer::class)
+    @FakeSerializable(with = CharArrayAsStringSerializer::class)
     override var content: CharArray
 ) : ICompactFragment {
 
@@ -95,17 +94,9 @@ abstract class XMLContainer private constructor(
         namespaces = if (namespaces.size == 0) namespaceContext else (namespaces + namespaceContext)
     }
 
+    @Deprecated("Don't use")
     override fun serialize(out: XmlWriter) {
-        serializeStartElement(out)
-        serializeAttributes(out)
-        val outNs = out.namespaceContext
-        for (ns in namespaces) {
-            if (ns.namespaceURI != outNs.getNamespaceURI(ns.prefix)) {
-                out.namespaceAttr(ns.prefix, ns.namespaceURI)
-            }
-        }
-        serializeBody(out)
-        serializeEndElement(out)
+        return XML.encodeToWriter(out, this)
     }
 
     protected fun visitNamesInElement(source: XmlReader) {

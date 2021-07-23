@@ -24,15 +24,17 @@
 
 package nl.adaptivity.process.processModel
 
+import foo.FakeSerializable
+import foo.FakeSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
 import kotlinx.serialization.Transient
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.serializer
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.ProcessConsts.Engine
@@ -46,10 +48,6 @@ import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
-import nl.adaptivity.xmlutil.xmlserializable.ExtXmlDeserializable
-import nl.adaptivity.xmlutil.xmlserializable.XmlDeserializer
-import nl.adaptivity.xmlutil.xmlserializable.deserializeHelper
-import nl.adaptivity.xmlutil.xmlserializable.toString
 import nl.adaptivity.xml.QName as DescQName
 import nl.adaptivity.xmlutil.QName as XmlQName
 
@@ -83,10 +81,10 @@ import nl.adaptivity.xmlutil.QName as XmlQName
  */
 @Serializable
 @XmlSerialName(XmlMessage.ELEMENTLOCALNAME, Engine.NAMESPACE, Engine.NSPREFIX)
-class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
+class XmlMessage : XMLContainer, IXmlMessage {
 
     @Transient
-    override var service: DescQName?
+    override var service: DescQName? = null
 
     override var endpoint: String?
     override var operation: String?
@@ -103,11 +101,7 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
     override val contentType: String
         get() = type ?: "application/soap+xml"
 
-    @Transient
-    override val elementName: XmlQName
-        get() = ELEMENTNAME
-
-    @Serializable
+    @FakeSerializable
     override var serviceName: String?
         get() = service?.localPart
         set(name) {
@@ -172,52 +166,12 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
         out.writeAttribute("method", method)
     }
 
-    override fun deserializeAttribute(
-        attributeNamespace: String?,
-        attributeLocalName: String,
-        attributeValue: String
-                                     ): Boolean {
-        if (XMLConstants.NULL_NS_URI == attributeNamespace) {
-            when (attributeLocalName) {
-                "endpoint"    -> {
-                    endpoint = attributeValue
-                    return true
-                }
-                "operation"   -> {
-                    operation = attributeValue
-                    return true
-                }
-                "url"         -> {
-                    url = attributeValue
-                    return true
-                }
-                "method"      -> {
-                    method = attributeValue
-                    return true
-                }
-                "type"        -> {
-                    type = attributeValue
-                    return true
-                }
-                "serviceNS"   -> {
-                    serviceNS = attributeValue
-                    return true
-                }
-                "serviceName" -> {
-                    serviceName = attributeValue
-                    return true
-                }
-            }
-        }
-        return false
-    }
-
     override fun serializeStartElement(out: XmlWriter) {
-        out.smartStartTag(elementName)
+        out.smartStartTag(ELEMENTNAME)
     }
 
     override fun serializeEndElement(out: XmlWriter) {
-        out.endTag(elementName)
+        out.endTag(ELEMENTNAME)
     }
 
     override fun setType(type: String) {
@@ -225,7 +179,7 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
     }
 
     override fun toString(): String {
-        return XmlStreaming.toString(this)
+        return XML.encodeToString(this)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -254,7 +208,7 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
         return result
     }
 
-    @Serializer(forClass = XmlMessage::class)
+    @FakeSerializer(forClass = XmlMessage::class)
     companion object : XmlContainerSerializer<XmlMessage>() {
 
         const val ELEMENTLOCALNAME = "message"
@@ -293,11 +247,11 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
                              )
         }
 
-        override val descriptor: SerialDescriptor = XmlMessageData.serializer().descriptor
+        override val descriptor: SerialDescriptor = serializer<XmlMessageData>().descriptor // TODO use concrete serializer instance
 
 
-        override fun serialize(encoder: Encoder, obj: XmlMessage) {
-            super.serialize(descriptor, encoder, obj)
+        override fun serialize(encoder: Encoder, value: XmlMessage) {
+            super.serialize(descriptor, encoder, value)
         }
 
         override fun writeAdditionalValues(encoder: CompositeEncoder, desc: SerialDescriptor, data: XmlMessage) {
@@ -311,7 +265,7 @@ class XmlMessage : XMLContainer, IXmlMessage, ExtXmlDeserializable {
             super.writeAdditionalValues(encoder, desc, data)
         }
 
-        @Serializable
+        @FakeSerializable
         @XmlSerialName(XmlMessage.ELEMENTLOCALNAME, Engine.NAMESPACE, Engine.NSPREFIX)
         private class XmlMessageData : XmlContainerSerializer.ContainerData<XmlMessage> {
             constructor(owner: XmlMessage.Companion) : super()

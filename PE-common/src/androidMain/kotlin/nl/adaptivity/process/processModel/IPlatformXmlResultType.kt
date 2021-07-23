@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018.
+ * Copyright (c) 2021.
  *
  * This file is part of ProcessManager.
  *
@@ -16,21 +16,22 @@
 
 package nl.adaptivity.process.processModel
 
-import foo.FakeSerializable
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import nl.adaptivity.process.processModel.engine.XmlCondition
-import nl.adaptivity.xmlutil.serialization.XmlElement
-import nl.adaptivity.xmlutil.serialization.XmlValue
+import nl.adaptivity.process.engine.ProcessData
+import nl.adaptivity.serialutil.DelegatingSerializer
+import org.w3c.dom.Node
 
-@Serializable
-class PredecessorInfo(
-    @SerialName("predecessor")
-    @XmlValue(true) val id: String,
-    @FakeSerializable(XmlCondition.Companion::class)
-    @XmlElement(false) val condition: Condition? = null
-                     ) {
-    init {
-        if (id.isEmpty()) throw IllegalArgumentException("Empty id's are not valid")
+@Serializable(with = IPlatformXmlResultType.Serializer::class)
+actual interface IPlatformXmlResultType: IXmlResultType {
+
+    fun applyData(payload: Node?): ProcessData = TODO("Android XPath processing is not like Java. Not supported yet")
+
+    object Serializer : DelegatingSerializer<IXmlResultType, XmlResultType>(XmlResultType.serializer()) {
+        override fun fromDelegate(delegate: XmlResultType): IXmlResultType = delegate
+
+        override fun IXmlResultType.toDelegate(): XmlResultType {
+            return this as? XmlResultType ?: XmlResultType(this)
+        }
     }
+
 }

@@ -16,7 +16,10 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import foo.FakeSerializable
+import foo.FakeSerializer
 import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.internal.GeneratedSerializer
@@ -28,7 +31,7 @@ import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
 import nl.adaptivity.process.processModel.RootProcessModel
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
-@Serializable(XmlChildModel.Companion::class)
+@FakeSerializable(XmlChildModel.Companion::class)
 @SerialName(ChildProcessModel.ELEMENTLOCALNAME)
 @XmlSerialName(ChildProcessModel.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 class XmlChildModel : ChildProcessModelBase<XmlProcessNode>, ChildProcessModel<XmlProcessNode> {
@@ -48,8 +51,8 @@ class XmlChildModel : ChildProcessModelBase<XmlProcessNode>, ChildProcessModel<X
     }
 
     @OptIn(InternalSerializationApi::class)
-    @Serializer(forClass = XmlChildModel::class)
-    companion object : ChildProcessModelBase.BaseSerializer<XmlChildModel>(), GeneratedSerializer<XmlChildModel> {
+    @FakeSerializer(forClass = XmlChildModel::class)
+    companion object : ChildProcessModelBase.BaseSerializer<XmlChildModel>() {
 
 /*
         init {
@@ -60,6 +63,9 @@ class XmlChildModel : ChildProcessModelBase<XmlProcessNode>, ChildProcessModel<X
             }
         }
 */
+
+        override val descriptor: SerialDescriptor
+            get() = TODO("not implemented")
 
         @Suppress("RedundantOverride")
         override fun serialize(encoder: Encoder, value: XmlChildModel) {

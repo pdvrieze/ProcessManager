@@ -16,16 +16,15 @@
 
 package nl.adaptivity.process.processModel
 
+import foo.FakeSerializable
+import foo.FakeSerializer
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.PolymorphicKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
-import kotlinx.serialization.encoding.CompositeDecoder
-import kotlinx.serialization.encoding.CompositeEncoder
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.encoding.*
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 import net.devrieze.util.collection.ArrayAccess
@@ -33,20 +32,18 @@ import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.process.util.MutableIdentifyableSet
-import nl.adaptivity.util.multiplatform.Throws
-import nl.adaptivity.util.multiplatform.assert
-import nl.adaptivity.serialutil.*
-import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.serialization.*
+import nl.adaptivity.serialutil.decodeElements
+import nl.adaptivity.serialutil.simpleSerialClassDesc
+import nl.adaptivity.xmlutil.serialization.XmlPolyChildren
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import kotlin.jvm.JvmStatic
 
 /**
  * Created by pdvrieze on 02/01/17.
  */
-//@Serializable
+//@foo.FakeSerializable
 abstract class ProcessModelBase<NodeT : ProcessNode> : ProcessModel<NodeT> {
 
     /*
@@ -61,7 +58,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode> : ProcessModel<NodeT> {
                                  "nl.adaptivity.process.processModel.engine.XmlSplit=pe:split",
                                  "nl.adaptivity.process.processModel.engine.XmlJoin=pe:join",
                                  "nl.adaptivity.process.processModel.engine.XmlEndNode=pe:end"))
-        @Serializable(IdentifiableSetSerializer::class)
+        @foo.FakeSerializable(IdentifiableSetSerializer::class)
     */
     @Transient
     abstract override val modelNodes: IdentifyableSet<NodeT>
@@ -69,12 +66,12 @@ abstract class ProcessModelBase<NodeT : ProcessNode> : ProcessModel<NodeT> {
     @SerialName("import")
     @XmlSerialName(value = "import", namespace = ProcessConsts.Engine.NAMESPACE, prefix = ProcessConsts.Engine.NSPREFIX)
     @XmlPolyChildren(arrayOf("nl.adaptivity.process.processModel.XmlResultType=import"))
-    @Serializable(IXmlResultTypeListSerializer::class)
+    @FakeSerializable(IXmlResultTypeListSerializer::class)
     private var _imports: List<IXmlResultType>
 
     @SerialName("export")
     @XmlSerialName(value = "export", namespace = ProcessConsts.Engine.NAMESPACE, prefix = ProcessConsts.Engine.NSPREFIX)
-    @Serializable(IXmlDefineTypeListSerializer::class)
+    @FakeSerializable(IXmlDefineTypeListSerializer::class)
     @XmlPolyChildren(arrayOf("nl.adaptivity.process.processModel.XmlDefineType=export"))
     private var _exports: List<IXmlDefineType>
 
@@ -162,7 +159,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode> : ProcessModel<NodeT> {
         private val nodesIdx by lazy { descriptor.getElementIndex("nodes") }
 
         override fun serialize(encoder: Encoder, value: T) {
-            encoder.writeStructure(descriptor) {
+            encoder.encodeStructure(descriptor) {
                 writeValues(this, value)
             }
         }
@@ -190,7 +187,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode> : ProcessModel<NodeT> {
         fun condition(condition: Condition): Condition = condition
     }
 
-    @Serializable
+    @FakeSerializable
     @ProcessModelDSL
     abstract class Builder : ProcessModel.Builder {
 
@@ -229,7 +226,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode> : ProcessModel<NodeT> {
             prefix = ProcessConsts.Engine.NSPREFIX
                       )
         @XmlPolyChildren(arrayOf("nl.adaptivity.process.processModel.XmlResultType=import"))
-        @Serializable(IXmlResultTypeListSerializer::class)
+        @FakeSerializable(IXmlResultTypeListSerializer::class)
         final override val imports: MutableList<IXmlResultType>
 
         @SerialName("export")
@@ -237,7 +234,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode> : ProcessModel<NodeT> {
             value = "export", namespace = ProcessConsts.Engine.NAMESPACE,
             prefix = ProcessConsts.Engine.NSPREFIX
                       )
-        @Serializable(IXmlDefineTypeListSerializer::class)
+        @FakeSerializable(IXmlDefineTypeListSerializer::class)
         @XmlPolyChildren(arrayOf("nl.adaptivity.process.processModel.XmlDefineType=export"))
         final override val exports: MutableList<IXmlDefineType>
 
@@ -329,7 +326,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode> : ProcessModel<NodeT> {
 
     }
 
-    @Serializer(forClass = ProcessModelBase::class)
+    @FakeSerializer(forClass = ProcessModelBase::class)
     companion object {
 
 //        fun descriptor(name:String): SerialClassDescImpl = SerialClassDescImpl(descriptor, name)
@@ -395,7 +392,7 @@ object ModelNodeSerializer : KSerializer<ProcessNode> {
 
     override fun serialize(encoder: Encoder, obj: ProcessNode) {
         val saver = serializerByValue(obj, encoder.serializersModule) as SerializationStrategy<ProcessNode>
-        encoder.writeStructure(descriptor) {
+        encoder.encodeStructure(descriptor) {
             encodeStringElement(descriptor, 0, saver.descriptor.serialName)
             encodeSerializableElement(descriptor, 1, saver, obj)
         }
@@ -407,11 +404,11 @@ object ModelNodeSerializer : KSerializer<ProcessNode> {
         context?.getContextual(obj::class)?.let { return it }
         // Otherwise fall back to "known" serializers
         when (obj) {
-            is XmlStartNode -> return XmlStartNode.serializer()
-            is XmlActivity  -> return XmlActivity.serializer()
-            is XmlSplit     -> return XmlSplit.serializer()
-            is XmlJoin      -> return XmlJoin.serializer()
-            is XmlEndNode   -> return XmlEndNode.serializer()
+            is XmlStartNode -> return serializer<XmlStartNode>() // TODO use concrete serializer instance
+            is XmlActivity  -> return serializer<XmlActivity>() // TODO use concrete serializer instance
+            is XmlSplit     -> return serializer<XmlSplit>() // TODO use concrete serializer instance
+            is XmlJoin      -> return serializer<XmlJoin>() // TODO use concrete serializer instance
+            is XmlEndNode   -> return serializer<XmlEndNode>() // TODO use concrete serializer instance
         }
         throw SerializationException("No serializer known for ${obj::class} with value '${obj.toString()}'")
     }
@@ -469,7 +466,7 @@ object ModelNodeBuilderSerializer : KSerializer<ProcessNode.Builder> {
         if (klassName.startsWith(NODE_PACKAGE)) {
             serializerBySimpleName(klassName.substring(NODE_PACKAGE.length + 1))?.let { return it }
         } else if (klassName == "nl.adaptivity.xmlutil.serialization.canary.CanaryInput\$Dummy") {
-            return ActivityBase.DeserializationBuilder.serializer()
+            return serializer<ActivityBase.DeserializationBuilder>() // TODO use concrete serializer instance
         }
         throw IllegalArgumentException("No serializer found for class $klassName")
     }
@@ -480,15 +477,15 @@ object ModelNodeBuilderSerializer : KSerializer<ProcessNode.Builder> {
         context: SerializersModule = EmptySerializersModule
                                       ): KSerializer<out ProcessNode.Builder>? = when (simpleName) {
         "XmlStartNode",
-        "XmlStartNode\$Builder" -> StartNodeBase.Builder.serializer()
+        "XmlStartNode\$Builder" -> serializer<StartNodeBase.Builder>() // TODO use concrete serializer instance
         "XmlActivity",
-        "XmlActivity\$Builder"  -> ActivityBase.DeserializationBuilder.serializer()
+        "XmlActivity\$Builder"  -> serializer<ActivityBase.DeserializationBuilder>() // TODO use concrete serializer instance
         "XmlSplit",
-        "XmlSplit\$Builder"     -> SplitBase.Builder.serializer()
+        "XmlSplit\$Builder"     -> serializer<SplitBase.Builder>() // TODO use concrete serializer instance
         "XmlJoin",
-        "XmlJoin\$Builder"      -> JoinBase.Builder.serializer()
+        "XmlJoin\$Builder"      -> serializer<JoinBase.Builder>() // TODO use concrete serializer instance
         "XmlEndNode",
-        "XmlEndNode\$Builder"   -> EndNodeBase.Builder.serializer()
+        "XmlEndNode\$Builder"   -> serializer<EndNodeBase.Builder>() // TODO use concrete serializer instance
         else                    -> null
     }
 

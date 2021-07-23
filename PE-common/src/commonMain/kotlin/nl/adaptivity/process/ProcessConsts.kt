@@ -19,8 +19,7 @@ package nl.adaptivity.process
 
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.util.Constants
-import nl.adaptivity.util.multiplatform.JvmDefault
-import nl.adaptivity.util.multiplatform.JvmField
+import kotlin.jvm.JvmField
 import nl.adaptivity.util.multiplatform.URI
 import nl.adaptivity.xml.QName
 

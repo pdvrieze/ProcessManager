@@ -16,14 +16,17 @@
 
 package nl.adaptivity.process.util
 
+import foo.FakeSerializer
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.SetSerializer
+import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.serialutil.DelegateSerializer
+import nl.adaptivity.serialutil.DelegatingSerializer
 
 /**
  * Interface for objects that may have identifiers.
@@ -45,24 +48,16 @@ interface Identifiable : Comparable<Identifiable> {
         }
     }
 
-    @Serializer(forClass = Identifiable::class)
-    companion object {
+    @FakeSerializer(forClass = Identifiable::class)
+    companion object: DelegatingSerializer<Identifiable, String?>(String.serializer().nullable) {
+        override fun fromDelegate(delegate: String?): Identifiable = Identifier(delegate!!)
+
+        override fun Identifiable.toDelegate(): String? {
+            return id
+        }
+
         override val descriptor: SerialDescriptor
             get() = String.serializer().descriptor
-
-        override fun deserialize(decoder: Decoder): Identifiable {
-            return Identifier(decoder.decodeString())
-        }
-
-        override fun serialize(encoder: Encoder, obj: Identifiable) {
-            val value = obj.id
-            if (value == null) {
-                encoder.encodeNull()
-            } else {
-                encoder.encodeNotNullMark()
-                encoder.encodeString(value)
-            }
-        }
     }
 
 }

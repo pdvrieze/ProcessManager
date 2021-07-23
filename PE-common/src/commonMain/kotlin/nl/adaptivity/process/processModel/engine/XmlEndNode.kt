@@ -16,11 +16,15 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import foo.FakeSerializable
+import foo.FakeSerializer
 import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.process.processModel.*
 
-@Serializable(XmlEndNode.Companion::class)
+@FakeSerializable(XmlEndNode.Companion::class)
 class XmlEndNode : EndNodeBase, XmlProcessNode {
 
     @Suppress("ConvertSecondaryConstructorToPrimary") // For serialization
@@ -31,11 +35,18 @@ class XmlEndNode : EndNodeBase, XmlProcessNode {
                ) :
         super(builder.ensureExportable(), newOwner, otherNodes)
 
-    @Serializer(XmlEndNode::class)
+    @FakeSerializer(XmlEndNode::class)
     companion object : KSerializer<XmlEndNode> {
 
         override fun deserialize(decoder: Decoder): XmlEndNode {
             throw Exception("Deserializing an end node directly is not possible")
+        }
+
+        override val descriptor: SerialDescriptor
+            get() = TODO("not implemented")
+
+        override fun serialize(encoder: Encoder, value: XmlEndNode) {
+            TODO("not implemented")
         }
     }
 

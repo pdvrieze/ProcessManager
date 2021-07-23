@@ -87,13 +87,18 @@ kotlin {
 
                 implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
                 implementation("io.github.pdvrieze.xmlutil:core:$xmlutilVersion")
-                implementation("io.github.pdvrieze.xmlutil:serialutil:$xmlutilVersion")
-                implementation("io.github.pdvrieze.xmlutil:xmlserializable:$xmlutilVersion")
+                api("io.github.pdvrieze.xmlutil:serialutil:$xmlutilVersion")
                 api("io.github.pdvrieze.xmlutil:serialization:$xmlutilVersion")
 
                 compileOnly(project(":JavaCommonApi"))
                 implementation(project(":java-common"))
 
+            }
+        }
+        val commonTest by getting {
+            dependencies {
+                implementation(kotlin("test"))
+                implementation(kotlin("test-annotations-common"))
             }
         }
         val javaMain by creating {
@@ -133,6 +138,7 @@ kotlin {
                 implementation("org.xmlunit:xmlunit-core:2.6.0")
                 implementation("org.mockito:mockito-core:2.25.0")
                 implementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0")
+                implementation(kotlin("test-junit5"))
 
                 runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.1.0")
 

@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
+import foo.FakeSerializable
 import kotlinx.serialization.Serializable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.multiplatform.Throws
@@ -29,7 +30,7 @@ import nl.adaptivity.xmlutil.writeAttribute
 /**
  * Created by pdvrieze on 25/11/15.
  */
-@Serializable
+@FakeSerializable
 abstract class JoinSplitBase : ProcessNodeBase, JoinSplit {
 
     constructor(
@@ -67,7 +68,7 @@ abstract class JoinSplitBase : ProcessNodeBase, JoinSplit {
         return false
     }
 
-    @Serializable
+    @FakeSerializable
     abstract class Builder :
         ProcessNodeBase.Builder,
         JoinSplit.Builder {

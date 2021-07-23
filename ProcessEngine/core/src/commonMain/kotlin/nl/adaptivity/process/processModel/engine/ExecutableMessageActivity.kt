@@ -25,7 +25,7 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlWriter
-import nl.adaptivity.xmlutil.writeChild
+import nl.adaptivity.xmlutil.serialization.XML
 
 
 /**
@@ -96,8 +96,10 @@ class ExecutableMessageActivity : MessageActivityBase, ExecutableProcessNode {
     override fun startTask(instance: ProcessNodeInstance.Builder<*, *>): Boolean = false
 
     @Throws(XmlException::class)
-    override fun serializeCondition(out: XmlWriter) {
-        out.writeChild(_condition?.let { XmlCondition(it.condition) })
+    fun serializeCondition(out: XmlWriter) {
+        condition?.let {
+            XML.Companion.encodeToWriter(out, XmlCondition(it.condition))
+        }
     }
 
 }

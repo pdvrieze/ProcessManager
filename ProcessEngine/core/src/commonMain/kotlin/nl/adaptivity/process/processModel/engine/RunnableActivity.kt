@@ -18,7 +18,7 @@ package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
-import kotlinx.serialization.internal.UnitSerializer
+import kotlinx.serialization.builtins.serializer
 import net.devrieze.util.TypecheckingCollection
 import net.devrieze.util.toComparableHandle
 import nl.adaptivity.process.engine.*
@@ -71,10 +71,6 @@ class RunnableActivity<I: Any, O: Any> : ActivityBase, ExecutableProcessNode {
 
     override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
         return visitor.visitGenericActivity(this)
-    }
-
-    override fun serializeCondition(out: XmlWriter): Nothing {
-        throw UnsupportedOperationException("Runnable Activities cannot be serialized")
     }
 
     override fun provideTask(
@@ -140,7 +136,7 @@ class RunnableActivity<I: Any, O: Any> : ActivityBase, ExecutableProcessNode {
                    ) : super(predecessor = predecessor) {
             this.outputSerializer = outputSerializer
             this.action = action
-            if (inputSerializer == UnitSerializer) {
+            if (inputSerializer == Unit.serializer()) {
                 @Suppress("UNCHECKED_CAST")
                 inputCombiner = InputCombiner.UNIT as InputCombiner<I>
             } else {
@@ -149,7 +145,7 @@ class RunnableActivity<I: Any, O: Any> : ActivityBase, ExecutableProcessNode {
 
             when (outputSerializer) {
                 null,
-                UnitSerializer -> { }
+                Unit.serializer() -> { }
                 else           -> results.add(XmlResultType("output"))
             }
 
@@ -254,8 +250,6 @@ class RunnableActivity<I: Any, O: Any> : ActivityBase, ExecutableProcessNode {
             return DefineType(name, refNode, refName, path, deserializer, nsContext)
         }
 
-        override fun serialize(out: XmlWriter): Nothing =
-            throw UnsupportedOperationException("Cannot serialize coded define")
     }
 }
 

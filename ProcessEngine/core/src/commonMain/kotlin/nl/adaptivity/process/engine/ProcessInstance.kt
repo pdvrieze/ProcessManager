@@ -35,6 +35,7 @@ import nl.adaptivity.util.multiplatform.initCauseCompat
 import nl.adaptivity.util.multiplatform.randomUUID
 import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 import kotlin.jvm.JvmStatic
@@ -265,11 +266,12 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
             }
         }
 
-        @Synchronized
+//        @Synchronized
         private fun <N : IProcessNodeInstance> handleFinishedState(
             engineData: MutableProcessEngineDataAccess,
             nodeInstance: N
                                                                   ) {
+
             // XXX todo, handle failed or cancelled tasks
             try {
                 if (nodeInstance.node is EndNode) {
@@ -370,9 +372,10 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         fun getOutputPayload(): ICompactFragment? {
             if (outputs.isEmpty()) return null
 
-            return CompactFragment { writer ->
+            return CompactFragment { xmlWriter ->
+                val xmlEncoder = XML
                 outputs.forEach { output ->
-                    output.serialize(writer)
+                    xmlEncoder.encodeToWriter(xmlWriter, output)
                 }
             }
         }
@@ -979,11 +982,13 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
             writeAttribute("state", state.name)
 
             smartStartTag(Constants.PROCESS_ENGINE_NS, "inputs") {
-                inputs.forEach { it.serialize(this) }
+                val xml = XML
+                inputs.forEach { xml.encodeToWriter(this, it) }
             }
 
             writer.smartStartTag(Constants.PROCESS_ENGINE_NS, "outputs") {
-                outputs.forEach { it.serialize(this) }
+                val xml = XML
+                outputs.forEach { xml.encodeToWriter(this, it) }
             }
 
             writeListIfNotEmpty(active, Constants.PROCESS_ENGINE_NS, "active") {
@@ -1020,7 +1025,8 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
             writeNodeRefCommon(nodeInstance)
 
             startTag(Constants.PROCESS_ENGINE_NS, "results") {
-                nodeInstance.results.forEach { it.serialize(this) }
+                val xml = XML
+                nodeInstance.results.forEach { xml.encodeToWriter(this, it) }
             }
         }
     }

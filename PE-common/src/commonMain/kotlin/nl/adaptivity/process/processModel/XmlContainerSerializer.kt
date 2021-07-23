@@ -30,7 +30,7 @@ import nl.adaptivity.xmlutil.util.GatheringNamespaceContext
 
 internal expect fun visitXpathUsedPrefixes(path: CharSequence?, namespaceContext: NamespaceContext)
 
-open class XmlContainerSerializer<T : XMLContainer> {
+abstract open class XmlContainerSerializer<T : XMLContainer>: KSerializer<T> {
 
     fun serialize(desc: SerialDescriptor, encoder: Encoder, data: T) {
         encoder.encodeStructure(desc) {

@@ -23,6 +23,7 @@ import nl.adaptivity.ws.soap.SoapHelper
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.EventType
+import nl.adaptivity.xmlutil.serialization.XML
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import org.w3.soapEnvelope.Envelope
@@ -80,7 +81,7 @@ class TestSoapHelper {
         val env = Envelope.deserialize(XmlStreaming.newReader(StringReader(SOAP_RESPONSE1)))
         val caw = CharArrayWriter()
         val out = DebugWriter(XmlStreaming.newWriter(caw))
-        env.serialize(out)
+        XML.encodeToWriter(out, env)
         out.close()
         assertXMLEqual(SOAP_RESPONSE1, caw.toString())
     }
@@ -91,7 +92,7 @@ class TestSoapHelper {
         val env = Envelope.deserialize(XmlStreaming.newReader(StringReader(SOAP_RESPONSE2)))
         val caw = CharArrayWriter()
         val out = DebugWriter(XmlStreaming.newWriter(caw))
-        env.serialize(out)
+        XML.encodeToWriter(out, env)
         out.close()
         assertXMLEqual(SOAP_RESPONSE2, caw.toString())
     }

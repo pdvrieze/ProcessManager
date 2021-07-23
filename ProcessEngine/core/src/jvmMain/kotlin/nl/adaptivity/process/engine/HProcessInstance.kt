@@ -29,8 +29,7 @@ import nl.adaptivity.xmlutil.serialization.XmlValue
 
 @Serializable
 @XmlSerialName(HProcessInstance.ELEMENTLOCALNAME, Engine.NAMESPACE, Engine.NSPREFIX)
-@XmlDeserializer(HProcessInstance.Factory::class)
-class HProcessInstance : XmlHandle<@ContextualSerialization SecureObject<@ContextualSerialization ProcessInstance>> {
+class HProcessInstance : XmlHandle<@UseContextualSerialization SecureObject<@UseContextualSerialization ProcessInstance>> {
 
     constructor(handle: ComparableHandle<SecureObject<ProcessInstance>>) : super(handle)
 
@@ -43,9 +42,6 @@ class HProcessInstance : XmlHandle<@ContextualSerialization SecureObject<@Contex
     }
 
     constructor() : this(getInvalidHandle<SecureObject<ProcessInstance>>())
-
-    override val elementName: QName
-        get() = ELEMENTNAME
 
     override fun equals(other: Any?): Boolean {
         return other === this || other is HProcessInstance && handleValue == other.handleValue

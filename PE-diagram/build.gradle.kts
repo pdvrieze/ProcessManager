@@ -36,11 +36,13 @@ base {
 }
 
 registerAndroidAttributeForDeps()
+/*
 
 repositories {
     mavenLocal()
     mavenCentral()
 }
+*/
 
 kotlin {
     targets {
@@ -92,7 +94,7 @@ kotlin {
                 implementation(project(":java-common"))
                 implementation(project(":PE-common"))
                 implementation("io.github.pdvrieze.xmlutil:core:$xmlutilVersion")
-                implementation("io.github.pdvrieze.xmlutil:xmldeserializable:$xmlutilVersion")
+                implementation("io.github.pdvrieze.xmlutil:xmlserializable:$xmlutilVersion")
                 compileOnly(project(":JavaCommonApi"))
 
 //                implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
@@ -132,6 +134,12 @@ kotlin {
 //                implementation(kotlin("test-annotations-common"))
 //                implementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
                 runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.1.0")
+                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
+            }
+        }
+        val androidTest by getting {
+            dependencies {
+                implementation(kotlin("test-junit5"))
                 runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
             }
         }

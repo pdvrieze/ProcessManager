@@ -21,14 +21,16 @@ import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.engine.impl.dom.NodeList
 import nl.adaptivity.process.engine.impl.dom.XPathConstants
 import nl.adaptivity.process.engine.impl.dom.toDocumentFragment
-import nl.adaptivity.process.processModel.IXmlResultType
+import nl.adaptivity.process.processModel.IPlatformXmlResultType
+import nl.adaptivity.process.processModel.path
 import nl.adaptivity.util.DomUtil
 import nl.adaptivity.xmlutil.SimpleNamespaceContext
 import nl.adaptivity.xmlutil.siblingsToFragment
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 
-actual fun IXmlResultType.applyData(payload: ICompactFragment?): ProcessData {
+actual fun IPlatformXmlResultType.applyData(payload: ICompactFragment?): ProcessData {
+    val xPath = this.xPath
     // shortcircuit missing path
     if (payload == null) {
         return ProcessData(getName(), CompactFragment(""))

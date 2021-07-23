@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
+import foo.FakeSerializable
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import net.devrieze.util.ArraySet
@@ -31,7 +32,7 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 /**
  * Created by pdvrieze on 26/11/15.
  */
-@Serializable
+@FakeSerializable
 @XmlSerialName("split", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 abstract class SplitBase : JoinSplitBase, Split {
 
@@ -39,7 +40,7 @@ abstract class SplitBase : JoinSplitBase, Split {
     override val maxSuccessorCount: Int
         get() = Int.MAX_VALUE
 
-    @Serializable(with = Identifiable.Companion::class)
+    @FakeSerializable(with = Identifiable.Companion::class)
     final override val predecessor: Identifiable? = predecessors.singleOrNull()
 
     constructor(
@@ -66,7 +67,7 @@ abstract class SplitBase : JoinSplitBase, Split {
         return visitor.visitSplit(this)
     }
 
-    @Serializable
+    @FakeSerializable
     @XmlSerialName("split", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     open class Builder :
         JoinSplitBase.Builder,
@@ -82,7 +83,7 @@ abstract class SplitBase : JoinSplitBase, Split {
                 field.replaceBy(value)
             }
 
-        @Serializable(with = Identifiable.Companion::class)
+        @FakeSerializable(with = Identifiable.Companion::class)
         final override var predecessor: Identifiable? = null
 
         constructor() : this(id = null)

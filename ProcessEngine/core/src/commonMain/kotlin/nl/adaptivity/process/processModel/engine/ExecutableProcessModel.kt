@@ -17,6 +17,7 @@
 package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.Transient
+import kotlinx.serialization.serializer
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
@@ -91,7 +92,7 @@ class ExecutableProcessModel @JvmOverloads constructor(
 
         @JvmStatic
         fun deserialize(reader: XmlReader): ExecutableProcessModel {
-            return ExecutableProcessModel(XML.parse(reader, RootProcessModelBase.Builder.serializer()))
+            return ExecutableProcessModel(XML.parse(reader, serializer<RootProcessModelBase.Builder>()))
         }
 
         @JvmStatic

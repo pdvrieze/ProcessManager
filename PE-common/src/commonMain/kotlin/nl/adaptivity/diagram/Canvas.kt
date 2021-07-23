@@ -16,8 +16,6 @@
 
 package nl.adaptivity.diagram
 
-import nl.adaptivity.util.multiplatform.JvmDefault
-
 
 interface Canvas<S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> {
 

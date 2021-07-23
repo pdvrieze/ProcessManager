@@ -16,6 +16,8 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import foo.FakeSerializable
+import foo.FakeSerializer
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
@@ -73,7 +75,7 @@ class XmlProcessModel : RootProcessModelBase<@UseContextualSerialization XmlProc
         return super.getChildModel(childId)?.let { it as XmlChildModel }
     }
 
-    @Serializer(forClass = XmlProcessModel::class)
+    @FakeSerializer(forClass = XmlProcessModel::class)
     companion object : RootProcessModelBase.BaseSerializer<XmlProcessModel>(), KSerializer<XmlProcessModel> {
 
         override val descriptor: SerialDescriptor get() = Builder.descriptor
@@ -84,10 +86,11 @@ class XmlProcessModel : RootProcessModelBase<@UseContextualSerialization XmlProc
 
         @Suppress("UNCHECKED_CAST")
         override val childModelSerializer: KSerializer<ChildProcessModel<*>>
-            get() = XmlChildModel.serializer() as KSerializer<ChildProcessModel<*>>
+            get() = serializer<XmlChildModel>() as KSerializer<ChildProcessModel<*>> // TODO use concrete serializer instance
 
         override fun deserialize(decoder: Decoder): XmlProcessModel {
-            return XmlProcessModel(RootProcessModelBase.Builder.serializer().deserialize(decoder), true)
+            // TODO use concrete serializer instance
+            return XmlProcessModel(serializer<RootProcessModelBase.Builder>().deserialize(decoder), true)
         }
 
         @Suppress("RedundantOverride")
@@ -104,7 +107,7 @@ class XmlProcessModel : RootProcessModelBase<@UseContextualSerialization XmlProc
     }
 
 
-    @Serializable
+    @FakeSerializable
     @XmlSerialName(ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     class Builder : RootProcessModelBase.Builder {
 
@@ -126,11 +129,13 @@ class XmlProcessModel : RootProcessModelBase<@UseContextualSerialization XmlProc
         constructor(base: XmlProcessModel) : super(base)
 
         @OptIn(InternalSerializationApi::class)
-        @Serializer(forClass = Builder::class)
-        companion object : RootProcessModelBase.Builder.BaseSerializer<Builder>(), GeneratedSerializer<Builder> {
-//            override val descriptor: SerialDescriptor = SerialClassDescImpl(XmlProcessModel.descriptor, Builder::class.name)
+        @FakeSerializer(forClass = Builder::class)
+        companion object : RootProcessModelBase.Builder.BaseSerializer<Builder>() {
+            //            override val descriptor: SerialDescriptor = SerialClassDescImpl(XmlProcessModel.descriptor, Builder::class.name)
+            override val descriptor: SerialDescriptor
+                get() = TODO("not implemented")
 
-/*
+            /*
             init {
                 // Some nasty hack as somehow initialisation is broken.
                 val d = descriptor as SerialClassDescImpl
@@ -148,7 +153,8 @@ class XmlProcessModel : RootProcessModelBase<@UseContextualSerialization XmlProc
             }
 
             override fun serialize(encoder: Encoder, obj: Builder) {
-                XmlProcessModel.serializer().serialize(encoder, XmlProcessModel(obj))
+                // TODO use concrete serializer instance
+                serializer<XmlProcessModel>().serialize(encoder, XmlProcessModel(obj))
             }
 
             fun deserialize(reader: XmlReader): XmlProcessModel.Builder {

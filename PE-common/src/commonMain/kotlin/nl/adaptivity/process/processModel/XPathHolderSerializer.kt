@@ -26,7 +26,7 @@ import nl.adaptivity.serialutil.encodeNullableStringElement
 import nl.adaptivity.serialutil.readNullableString
 import nl.adaptivity.xmlutil.util.GatheringNamespaceContext
 
-open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSerializer<T>() {
+abstract open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSerializer<T>() {
     open class PathHolderData<T : XPathHolder>(
         val owner: XPathHolderSerializer<in T>,
         var name: String? = null,

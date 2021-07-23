@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
+import foo.FakeSerializable
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -33,7 +34,7 @@ import nl.adaptivity.xmlutil.smartStartTag
 /**
  * Base class for start nodes. It knows about the data
  */
-@Serializable
+@FakeSerializable
 abstract class StartNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> : ProcessNodeBase, StartNode {
 
     @Transient
@@ -78,7 +79,7 @@ abstract class StartNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?>
 
     @SerialName("start")
     @XmlSerialName("start", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
-    @Serializable
+    @FakeSerializable
     open class Builder : ProcessNodeBase.Builder, StartNode.Builder {
 
         @Transient

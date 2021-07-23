@@ -26,6 +26,7 @@ import nl.adaptivity.process.engine.db.ProcessEngineDB
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.XmlProcessModel
 import nl.adaptivity.xmlutil.XmlStreaming
+import nl.adaptivity.xmlutil.serialization.XML
 import uk.ac.bournemouth.kotlinsql.*
 import java.io.StringReader
 
@@ -72,10 +73,10 @@ internal class ProcessModelFactory(val stringCache: StringCache) : AbstractEleme
   override fun asInstance(obj: Any) = obj as? ExecutableProcessModel
 
   override fun store(update: Database._UpdateBuilder, value: SecureObject<ExecutableProcessModel>) {
-    value.withPermission().let { processModel ->
-      update.SET(pm.owner, processModel.owner.name)
-      update.SET(pm.model, XmlStreaming.toString(processModel))
-    }
+      value.withPermission().let { processModel ->
+          update.SET(pm.owner, processModel.owner.name)
+          update.SET(pm.model, XML.encodeToString(processModel))
+      }
   }
 
   override val keyColumn: CustomColumnType<Handle<SecureObject<ExecutableProcessModel>>, Long, ColumnType.NumericColumnType.BIGINT_T, *, *>.CustomColumn
@@ -85,7 +86,7 @@ internal class ProcessModelFactory(val stringCache: StringCache) : AbstractEleme
     return value.withPermission().let { processModel ->
       ProcessEngineDB
             .INSERT(pm.owner, pm.model)
-            .VALUES(processModel.owner.name, XmlStreaming.toString(processModel))
+            .VALUES(processModel.owner.name, XML.encodeToString(processModel))
     }
   }
 

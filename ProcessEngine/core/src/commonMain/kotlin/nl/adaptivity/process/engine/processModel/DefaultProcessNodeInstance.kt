@@ -30,14 +30,12 @@ import nl.adaptivity.process.processModel.XmlMessage
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.util.security.Principal
-import nl.adaptivity.xmlutil.XmlDeserializer
 import nl.adaptivity.xmlutil.XmlDeserializerFactory
 import nl.adaptivity.xmlutil.XmlReader
 
 /**
  * Class to represent the instanciation of a node. Subclasses may add behaviour.
  */
-@XmlDeserializer(DefaultProcessNodeInstance.Factory::class)
 class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstance> {
 
     /**

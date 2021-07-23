@@ -16,10 +16,14 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import foo.FakeSerializable
+import foo.FakeSerializer
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer
+import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
 import nl.adaptivity.util.multiplatform.Throws
@@ -27,7 +31,7 @@ import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.xmlserializable.deserializeHelper
 
-@Serializable(XmlJoin.Companion::class)
+@FakeSerializable(XmlJoin.Companion::class)
 class XmlJoin : JoinBase<XmlProcessNode, ProcessModel<XmlProcessNode>>, XmlProcessNode {
 
     @Suppress("ConvertSecondaryConstructorToPrimary")
@@ -38,8 +42,14 @@ class XmlJoin : JoinBase<XmlProcessNode, ProcessModel<XmlProcessNode>>, XmlProce
                )
         : super(builder.ensureExportable(), buildHelper, otherNodes)
 
-    @Serializer(XmlJoin::class)
+    @FakeSerializer(XmlJoin::class)
     companion object : KSerializer<XmlJoin> {
+        override val descriptor: SerialDescriptor
+            get() = TODO("not implemented")
+
+        override fun serialize(encoder: Encoder, value: XmlJoin) {
+            TODO("not implemented")
+        }
 
         override fun deserialize(decoder: Decoder): XmlJoin {
             throw Exception("Deserializing an end node directly is not possible")

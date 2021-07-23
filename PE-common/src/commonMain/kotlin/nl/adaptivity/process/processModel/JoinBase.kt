@@ -16,7 +16,10 @@
 
 package nl.adaptivity.process.processModel
 
+import foo.FakeSerializable
+import foo.FakeSerializer
 import kotlinx.serialization.*
+import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.process.ProcessConsts
@@ -33,7 +36,7 @@ import kotlin.collections.set
 /**
  * Created by pdvrieze on 26/11/15.
  */
-@Serializable
+@FakeSerializable
 abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
     JoinSplitBase,
     Join {
@@ -61,7 +64,7 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
         private set
 
     @Required
-//    @Serializable(with = ConditionStringSerializer::class)
+//    @foo.FakeSerializable(with = ConditionStringSerializer::class)
     @XmlSerialName("predecessor", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     @SerialName("predecessors")
     @XmlElement(true)
@@ -93,7 +96,7 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
         return visitor.visitJoin(this)
     }
 
-    @Serializable
+    @FakeSerializable
     open class Builder : JoinSplitBase.Builder, Join.Builder {
 
         @Transient
@@ -232,11 +235,14 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
 
 
 
-    @Serializable()
+    @FakeSerializable()
     private class ConditionPairs(val map: Map<Identifier, String?>)
 
-    @Serializer(forClass = ConditionPairs::class)
-    private class ConditionSerializer {
+    @FakeSerializer(forClass = ConditionPairs::class)
+    private class ConditionSerializer: KSerializer<ConditionPairs> {
+        override val descriptor: SerialDescriptor
+            get() = TODO("not implemented")
+
         override fun deserialize(decoder: Decoder): ConditionPairs {
             TODO("not implemented")
         }

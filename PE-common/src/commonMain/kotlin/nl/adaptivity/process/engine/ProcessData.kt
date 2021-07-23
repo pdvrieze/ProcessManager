@@ -16,9 +16,14 @@
 
 package nl.adaptivity.process.engine
 
+import foo.FakeSerializable
+import foo.FakeSerializer
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.descriptors.element
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
@@ -26,6 +31,7 @@ import net.devrieze.util.Named
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.serialutil.decodeElements
 import nl.adaptivity.serialutil.decodeStructure
+import nl.adaptivity.serialutil.impl.maybeAnnotations
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.ICompactFragmentSerializer
 import nl.adaptivity.xmlutil.serialization.XML
@@ -41,9 +47,9 @@ class ProcessData
 constructor(
     @XmlElement(false) override val name: String?,
 
-    @Serializable(with = ICompactFragmentSerializer::class)
+    @FakeSerializable(with = ICompactFragmentSerializer::class)
     val content: ICompactFragment
-           ) : Named {
+) : Named {
 
     val contentStream: XmlReader get() = content.getXmlReader()
 
@@ -73,14 +79,27 @@ constructor(
         return "ProcessData($name=$content)"
     }
 
-    @Serializer(forClass = ProcessData::class)
-    companion object {
+    @Deprecated("Use encodeToWriter directly",
+                ReplaceWith("XML.encodeToWriter(target, this)", "nl.adaptivity.xmlutil.serialization.XML")
+    )
+    fun serialize(target: XmlWriter) {
+        XML.encodeToWriter(target, this)
+    }
+
+    @FakeSerializer(forClass = ProcessData::class)
+    companion object: KSerializer<ProcessData> {
 
         const val ELEMENTLOCALNAME = "value"
         val ELEMENTNAME = QName(ProcessConsts.Engine.NAMESPACE, ELEMENTLOCALNAME, ProcessConsts.Engine.NSPREFIX)
 
         fun missingData(name: String): ProcessData {
             return ProcessData(name, CompactFragment(""))
+        }
+
+        override val descriptor: SerialDescriptor = buildClassSerialDescriptor("ProcessData") {
+            annotations = ProcessData::class.maybeAnnotations.filterIsInstance<XmlSerialName>()
+            element<String>("name")
+            element<ICompactFragment>("content")
         }
 
         fun deserialize(reader: XmlReader): ProcessData {

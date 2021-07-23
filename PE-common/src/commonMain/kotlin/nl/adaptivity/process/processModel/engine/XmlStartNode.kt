@@ -16,10 +16,14 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import foo.FakeSerializable
+import foo.FakeSerializer
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer
+import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.StartNode
@@ -27,7 +31,7 @@ import nl.adaptivity.process.processModel.StartNodeBase
 import nl.adaptivity.process.processModel.ensureExportable
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
-@Serializable(XmlStartNode.Companion::class)
+@FakeSerializable(XmlStartNode.Companion::class)
 @XmlSerialName("start", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 class XmlStartNode : StartNodeBase<XmlProcessNode, ProcessModel<XmlProcessNode>>, XmlProcessNode {
 
@@ -37,8 +41,14 @@ class XmlStartNode : StartNodeBase<XmlProcessNode, ProcessModel<XmlProcessNode>>
 
     override fun builder() = StartNodeBase.Builder(this)
 
-    @Serializer(XmlStartNode::class)
+    @FakeSerializer(XmlStartNode::class)
     companion object : KSerializer<XmlStartNode> {
+        override val descriptor: SerialDescriptor
+            get() = TODO("not implemented")
+
+        override fun serialize(encoder: Encoder, value: XmlStartNode) {
+            TODO("not implemented")
+        }
 
         override fun deserialize(decoder: Decoder): XmlStartNode {
             throw Exception("Deserializing a start directly is not possible")

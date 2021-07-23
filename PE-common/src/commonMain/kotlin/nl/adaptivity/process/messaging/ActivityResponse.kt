@@ -24,6 +24,7 @@
 
 package nl.adaptivity.process.messaging
 
+import foo.FakeSerializable
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
@@ -35,6 +36,7 @@ import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
+import kotlin.reflect.KClass
 
 /**
  *
@@ -83,14 +85,14 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
  * @param T The type of the actual return value returned in the result of the
  * SOAP message.
  */
-@Serializable
+@FakeSerializable
 @XmlSerialName(ActivityResponse.ELEMENTLOCALNAME, ActivityResponse.NAMESPACE, Engine.NSPREFIX)
-class ActivityResponse<T : Any?> {
+class ActivityResponse<T : Any, V: T?> {
 
     private constructor(
         nodeInstanceState: NodeInstanceState,
-        returnType: Class<T>,
-        returnValue: T
+        returnType: KClass<T>,
+        returnValue: V
                        ) {
         this.nodeInstanceState = nodeInstanceState
         this.returnType = returnType
@@ -121,7 +123,7 @@ class ActivityResponse<T : Any?> {
      * @return The embedded return type.
      */
     @Transient
-    var returnType: Class<T> = Nothing::class as Class<T>
+    var returnType: KClass<T> = Nothing::class as KClass<T>
         private set
 
 
@@ -152,15 +154,15 @@ class ActivityResponse<T : Any?> {
          * @param returnValue The value to return.
          * @return
          */
-        fun <V : Any> create(
+        fun <U : Any> create(
             nodeInstanceState: NodeInstanceState,
-            returnType: Class<V>,
-            returnValue: V
-                            ): ActivityResponse<V> {
+            returnType: KClass<U>,
+            returnValue: U
+                            ): ActivityResponse<U, U> {
             return ActivityResponse(nodeInstanceState, returnType, returnValue)
         }
 
-        fun <T> deserialize(reader: XmlReader): ActivityResponse<T> {
+        fun <T: Any> deserialize(reader: XmlReader): ActivityResponse<T, T> {
             return XML.decodeFromReader(reader)
         }
     }
