@@ -21,12 +21,22 @@ import versions.*
 plugins {
     id("java-library")
     kotlin("jvm")
-    id("idea")
+    mpconsumer
 }
 
 java {
     sourceCompatibility = myJavaVersion
     targetCompatibility = myJavaVersion
+}
+
+kotlin {
+    target {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = "1.8"
+            }
+        }
+    }
 }
 
 version = "1.1.0"
@@ -39,18 +49,8 @@ dependencies {
     compileOnly(project(":JavaCommonApi"))
     compileOnly("org.jetbrains:annotations:13.0")
     compileOnly("jakarta.jws:jakarta.jws-api:$jwsApiVersion")
+
+    compileOnly(project(":multiplatform"))
     implementation("javax.activation:javax.activation-api:$activationVersion")
     implementation(kotlin("stdlib-jdk8"))
-}
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
-val compileKotlin: KotlinCompile by tasks
-compileKotlin.kotlinOptions {
-    jvmTarget = "1.8"
-}
-val compileTestKotlin: KotlinCompile by tasks
-compileTestKotlin.kotlinOptions {
-    jvmTarget = "1.8"
 }

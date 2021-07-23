@@ -47,7 +47,7 @@ public final class MessagingRegistry {
 
   private static class SimpleEndpointDescriptor implements EndpointDescriptor {
 
-    private final QName mServiceName;
+    private final QName  mServiceName;
     private final String mEndpointName;
     private final URI mEndpointLocation;
 
