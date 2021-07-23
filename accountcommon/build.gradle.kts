@@ -26,9 +26,12 @@ description = "A library that abstracts away the access to the account database 
 
 dependencies {
     api("net.devrieze:kotlinsql:$kotlinsqlVersion")
+
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
     implementation(project(":darwin-sql"))
+
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
+
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
     testRuntimeOnly("mysql:mysql-connector-java:$mysqlConnectorVersion")
 }

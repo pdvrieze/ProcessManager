@@ -85,7 +85,7 @@ open class AccountDb(private val connection: DBConnection2<WebAuthDB>) {
 
     private fun generateAuthToken() = buildString {
         Base64.getUrlEncoder().encode(random.nextBytes(32)).asSequence()
-            .map(Byte::toChar)
+            .map { it.toInt().toChar() }
             .forEach { c ->
                 when (c) {
                     '+' -> append('-')
@@ -121,7 +121,7 @@ open class AccountDb(private val connection: DBConnection2<WebAuthDB>) {
                         yield(appname)
                         for (i in 1..Int.MAX_VALUE) yield("appname $i")
                     }.first { candidateName ->
-                        query { SELECT(p.appname).WHERE { whereClauseFactory(appname) } }
+                        query { SELECT(p.appname).WHERE { whereClauseFactory(candidateName) } }
                             .map { it.iterator().hasNext() }
                             .commit()
                     }
@@ -376,20 +376,15 @@ open class AccountDb(private val connection: DBConnection2<WebAuthDB>) {
                 .map { if (it == 0) throw AuthException(appendWarnings("Could not store challenge")) else challenge }
                 .commit()
         } catch (e: SQLException) {
-            conn
-                .query { SELECT(p.keyid).WHERE { p.keyid eq keyid } }
+            @Suppress("IMPLICIT_NOTHING_TYPE_ARGUMENT_IN_RETURN_POSITION")
+            conn.query { SELECT(p.keyid).WHERE { p.keyid eq keyid } }
                 .map { s ->
                     throw if (s.none()) {
-                        AuthException(
-                            "Unknown or expired key id. Reauthentication required",
-                            e,
-                            HttpURLConnection.HTTP_NOT_FOUND
-                                     )
+                        AuthException("Unknown or expired key id. Reauthentication required", e, HttpURLConnection.HTTP_NOT_FOUND)
                     } else {
                         AuthException("Could not store challenge")
                     }
-                }
-                .commit()
+                }.evaluateNow()
         }
     }
 
