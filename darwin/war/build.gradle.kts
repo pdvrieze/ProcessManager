@@ -14,7 +14,6 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import multiplatform.registerAndroidAttributeForDeps
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsCompilerAttribute
 import versions.kotlinx_html_version
@@ -26,6 +25,7 @@ import versions.tomcatVersion
 plugins {
     kotlin("multiplatform")
     war
+    mpconsumer
 }
 
 base {
@@ -38,12 +38,14 @@ java {
     targetCompatibility = myJavaVersion
 }
 
-registerAndroidAttributeForDeps()
-
 kotlin {
     targets {
         jvm {
-            withJava()
+            compilations.all {
+                kotlinOptions {
+                    jvmTarget = "1.8"
+                }
+            }
         }
         js(LEGACY) {
             moduleName = "darwin"

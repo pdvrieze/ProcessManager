@@ -24,6 +24,7 @@ plugins {
     kotlin("multiplatform")
     application
     kotlin("plugin.serialization")
+    mpconsumer
 }
 
 base {
