@@ -63,7 +63,7 @@ fun <T> handle(handle: Long): ComparableHandle<T> {
     return if (handle < 0) getInvalidHandle() else SimpleHandle(handle)
 }
 
-@Deprecated("Use extension function", ReplaceWith("handle.toComparableHandle()"))
+@Deprecated("Use extension function", ReplaceWith("handle.toComparableHandle()", "net.devrieze.util.toComparableHandle"))
 fun <T> handle(handle: Handle<T>): ComparableHandle<T> {
     return handle.toComparableHandle()
 }

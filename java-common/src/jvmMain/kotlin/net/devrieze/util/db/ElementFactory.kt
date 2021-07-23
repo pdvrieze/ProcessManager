@@ -47,7 +47,6 @@ import java.sql.SQLException
  *                [#postCreate] step.
  * @param T       The actual type the factory works on.
  * @param TR      The transaction type to use for database interaction.
- * @param KEY     The type of the primary key used
  */
 interface ElementFactory<BUILDER, T:Any, in TR: DBTransaction> {
 

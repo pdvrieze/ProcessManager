@@ -38,8 +38,10 @@ import kotlin.contracts.contract
 val EMPTYSORTEDSET: SortedSet<*> = EmptySortedSet
 
 
-private open class CombiningIterable<T, U : MutableIterable<T>>(internal var first: U,
-                                                                internal var others: Array<out U>) : MutableIterable<T> {
+private open class CombiningIterable<T, U : MutableIterable<T>>(
+    internal var first: U,
+    internal var others: Array<out U>
+) : MutableIterable<T> {
 
     override fun iterator(): MutableIterator<T> {
         return CombiningIterator(this)
@@ -282,8 +284,10 @@ private class CombiningIterator<T>(iterable: CombiningIterable<T, out MutableIte
         mIterators = toIterators(iterable.first, iterable.others)
     }
 
-    private fun <T> toIterators(first: MutableIterable<T>,
-                                others: Array<out MutableIterable<T>>): List<MutableIterator<T>> {
+    private fun <T> toIterators(
+        first: MutableIterable<T>,
+        others: Array<out MutableIterable<T>>
+    ): List<MutableIterator<T>> {
         return ArrayList<MutableIterator<T>>(others.size + 1).apply {
             add(first.iterator())
             others.mapTo(this) { it.iterator() }
@@ -353,8 +357,10 @@ private class CombiningListIterator<T> : MutableListIterator<T> {
         }
     }
 
-    private fun <T> toIterators(first: MutableList<T>,
-                                others: Array<out MutableList<T>>): List<MutableListIterator<T>> {
+    private fun <T> toIterators(
+        first: MutableList<T>,
+        others: Array<out MutableList<T>>
+    ): List<MutableListIterator<T>> {
         val result = ArrayList<MutableListIterator<T>>(others.size + 1)
         result.add(first.listIterator())
         for (other in others) {
@@ -434,8 +440,10 @@ private class CombiningListIterator<T> : MutableListIterator<T> {
 
 }
 
-private class MonitoringIterator<T>(private val listeners: Collection<CollectionChangeListener<T>>?,
-                                    private val original: MutableIterator<T>) : MutableIterator<T> {
+private class MonitoringIterator<T>(
+    private val listeners: Collection<CollectionChangeListener<T>>?,
+    private val original: MutableIterator<T>
+) : MutableIterator<T> {
 
     private var last: T? = null
 
@@ -552,10 +560,10 @@ fun isNullOrEmpty(content: DoubleArray?): Boolean {
     return content == null || content.size == 0
 }
 
-@UseExperimental(ExperimentalContracts::class)
+@OptIn(ExperimentalContracts::class)
 fun isNullOrEmpty(content: Array<Any>?): Boolean {
     contract {
-        returns(false) implies(content!=null)
+        returns(false) implies (content != null)
     }
     return content == null || content.isEmpty()
 }
@@ -709,8 +717,7 @@ fun <T, U> hashMap(vararg tupples: Tupple<out T, out U>): HashMap<T, U> {
 @Suppress("DEPRECATION")
 fun <T : Enum<T>, U> enumMap(vararg tupples: Tupple<out T, out U>): EnumMap<T, U> {
     if (tupples.isEmpty()) {
-        throw IllegalArgumentException(
-            "For an enumeration map simple creator, at least one element must be present")
+        throw IllegalArgumentException("For an enumeration map simple creator, at least one element must be present")
     }
     @Suppress("UNCHECKED_CAST")
     val type = Enum::class.java.asSubclass(tupples[0].first.javaClass) as java.lang.Class<T>
@@ -721,10 +728,9 @@ fun <T : Enum<T>, U> enumMap(vararg tupples: Tupple<out T, out U>): EnumMap<T, U
     return result
 }
 
-fun <T : Enum<T>, U> enumMapOf(vararg tupples: Pair<T,U>): EnumMap<T, U> {
+fun <T : Enum<T>, U> enumMapOf(vararg tupples: Pair<T, U>): EnumMap<T, U> {
     if (tupples.size < 1) {
-        throw IllegalArgumentException(
-            "For an enumeration map simple creator, at least one element must be present")
+        throw IllegalArgumentException("For an enumeration map simple creator, at least one element must be present")
     }
     @Suppress("UNCHECKED_CAST")
     val type: Class<T> = Enum::class.java.asSubclass(tupples[0].first.javaClass) as java.lang.Class<T>
@@ -741,8 +747,10 @@ fun <T> singletonList(elem: T): List<T> {
     return listOf(elem)
 }
 
-fun <T> monitoringIterator(listeners: Collection<CollectionChangeListener<T>>,
-                           original: MutableIterator<T>): MutableIterator<T> {
+fun <T> monitoringIterator(
+    listeners: Collection<CollectionChangeListener<T>>,
+    original: MutableIterator<T>
+): MutableIterator<T> {
     return MonitoringIterator(listeners, original)
 }
 
@@ -759,9 +767,13 @@ fun <T> mergeLists(base: MutableList<T>, other: List<T>) {
         if (if (current == null) replacement != null else current != replacement) {
             // not equal
             var next: Any?
-            if (i + 1 < base.size && ((base[i + 1].also { next = it }) === replacement || next != null && next == replacement)) {
+            if (i + 1 < base.size && ((base[i + 1].also {
+                    next = it
+                }) === replacement || next != null && next == replacement)) {
                 base.removeAt(i) // Remove the current item so there is a match, the item was removed in the other
-            } else if (i + 1 < other.size && (current === (other[i + 1].also { next = it }) || current != null && current == next)) {
+            } else if (i + 1 < other.size && (current === (other[i + 1].also {
+                    next = it
+                }) || current != null && current == next)) {
                 base.add(i, replacement) // Insert the item here. The item was added in the other list
             } else {
                 base[i] = replacement// In other cases, just set the value

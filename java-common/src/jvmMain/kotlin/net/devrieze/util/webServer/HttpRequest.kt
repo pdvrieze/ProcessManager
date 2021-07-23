@@ -88,7 +88,7 @@ class HttpRequest(input: BufferedReader, var uri: String) {
                 val i = s.indexOf(':')
 
                 if (i >= 0) {
-                    val t = s.substring(0, i).trim { it <= ' ' }.toLowerCase()
+                    val t = s.substring(0, i).trim { it <= ' ' }.lowercase()
                     s = s.substring(i + 1).trim { it <= ' ' }
                     headers[t] = s
                 }
@@ -107,7 +107,7 @@ class HttpRequest(input: BufferedReader, var uri: String) {
 
                 val ct = headers["content-type"]
 
-                if (ct?.toLowerCase() == "application/x-www-form-urlencoded") {
+                if (ct?.lowercase() == "application/x-www-form-urlencoded") {
                     val query = String(mContents)
                     parseUrlEncodedHelper(queries, query)
                 }
@@ -284,7 +284,7 @@ class HttpRequest(input: BufferedReader, var uri: String) {
         companion object {
 
             fun find(pName: String): Method? {
-                val name = pName.toUpperCase()
+                val name = pName.uppercase()
                 for (m in Method.values()) {
                     if (name == m.methodString) {
                         return m
@@ -342,9 +342,9 @@ fun <M : MutableMap<String, DataSource>> InputStream.parseMultipartFormDataTo(
     BufferedInputStream(this).use { input ->
 
         var b = input.read()
-        if (b == Const._CR.toInt()) {
+        if (b == Const._CR.code) {
             b = input.read()
-            if (b == Const._LF.toInt()) {
+            if (b == Const._LF.code) {
                 b = input.read()
             }
         }
@@ -358,28 +358,28 @@ fun <M : MutableMap<String, DataSource>> InputStream.parseMultipartFormDataTo(
         while (b >= 0) {
 
 
-            if (stage == 0 && b == Const._CR.toInt()) {
+            if (stage == 0 && b == Const._CR.code) {
                 stage = 1
-            } else if (stage == 1 && b == Const._LF.toInt()) {
+            } else if (stage == 1 && b == Const._LF.code) {
                 stage = 2
-            } else if ((stage == 2 || stage == 3) && b == '-'.toInt()) { // Reading two hyphens
+            } else if ((stage == 2 || stage == 3) && b == '-'.code) { // Reading two hyphens
                 ++stage
-            } else if (stage == 4 && b == boundary[curPos].toInt()) { // Reading the actual boundary
+            } else if (stage == 4 && b == boundary[curPos].code) { // Reading the actual boundary
                 ++curPos
                 if (curPos == boundary.length) {
                     stage = 5
                     curPos = 0
                 }
-            } else if (stage == 5 && (b == ' '.toInt() || b == '\t'.toInt())) {
+            } else if (stage == 5 && (b == ' '.code || b == '\t'.code)) {
                 if (wsBuffer == null) {
                     wsBuffer = ByteArrayOutputStream()
                 } // Remember to be able to replay
                 wsBuffer.write(b)
-            } else if (stage == 5 && b == '-'.toInt() && wsBuffer == null) {
+            } else if (stage == 5 && b == '-'.code && wsBuffer == null) {
                 b = input.read()
-                if (b != '-'.toInt()) {
+                if (b != '-'.code) {
                     wsBuffer = ByteArrayOutputStream()
-                    wsBuffer.write('-'.toInt())
+                    wsBuffer.write('-'.code)
                     continue // This will fail in the next loop iteration
                 }
                 // We found an end of all data.
@@ -398,9 +398,9 @@ fun <M : MutableMap<String, DataSource>> InputStream.parseMultipartFormDataTo(
                     }
                 }
                 break // Go out of the loop.
-            } else if (stage == 5 && b == Const._CR.toInt()) {
+            } else if (stage == 5 && b == Const._CR.code) {
                 stage = 6
-            } else if (stage == 6 && b == Const._LF.toInt()) {
+            } else if (stage == 6 && b == Const._LF.code) {
                 stage = 7 // We completed, next step is to finish previous block, and then read headers
                 wsBuffer = null
                 if (content != null) { // First time don't do this
@@ -420,9 +420,9 @@ fun <M : MutableMap<String, DataSource>> InputStream.parseMultipartFormDataTo(
                 contentDisposition = null
                 headerLine = StringBuilder()
             } else if (stage == 7) {
-                if (b == Const._CR.toInt()) {
+                if (b == Const._CR.code) {
                     b = input.read()
-                    if (b != Const._LF.toInt()) {
+                    if (b != Const._LF.code) {
                         content?.close()
                         throw IllegalArgumentException("Header lines should be separated by CRLF, not CR only")
                     }
@@ -441,7 +441,7 @@ fun <M : MutableMap<String, DataSource>> InputStream.parseMultipartFormDataTo(
                         if (colonPos >= 1) {
                             val name = s.substring(0, colonPos).trim { it <= ' ' }
                             val value = s.substring(colonPos + 1).trim { it <= ' ' }
-                            val nmLC = name.toLowerCase()
+                            val nmLC = name.lowercase()
                             if ("content-disposition" == nmLC) {
                                 try {
                                     if (value.startsWith("form-data")) {
@@ -473,15 +473,15 @@ fun <M : MutableMap<String, DataSource>> InputStream.parseMultipartFormDataTo(
                 if (content != null) { // Ignore any preamble (it's legal that there is stuff so ignore it
                     // Reset
                     if (stage > 0) {
-                        content.write(Const._CR.toInt())
+                        content.write(Const._CR.code)
                         if (stage > 1) {
-                            content.write(Const._LF.toInt())
+                            content.write(Const._LF.code)
                             if (stage > 2) {
-                                content.write('-'.toInt())
+                                content.write('-'.code)
                                 if (stage > 3) {
-                                    content.write('-'.toInt())
+                                    content.write('-'.code)
                                     for (i in 0 until curPos) {
-                                        content.write(boundary[i].toInt())
+                                        content.write(boundary[i].code)
                                     }
                                     if (stage > 4) {
                                         val ws = if (wsBuffer == null) ByteArray(0) else wsBuffer.toByteArray()
@@ -489,7 +489,7 @@ fun <M : MutableMap<String, DataSource>> InputStream.parseMultipartFormDataTo(
                                             content.write(ws)
                                         }
                                         if (stage > 5) {
-                                            content.write(Const._CR.toInt())
+                                            content.write(Const._CR.code)
                                         }
                                     }
                                 }

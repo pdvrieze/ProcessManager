@@ -32,7 +32,7 @@ import javax.naming.NamingException
 import javax.sql.DataSource
 
 open class DbSet<TMP, T : Any, TR : DBTransaction>(
-    protected val transactionFactory: TransactionFactory<out TR>,
+    protected val transactionFactory: TransactionFactory<TR>,
     val database: Database,
     protected open val elementFactory: ElementFactory<TMP, T, TR>,
     val handleAssigner: (T, Handle<T>) -> T? = ::HANDLE_AWARE_ASSIGNER) : AutoCloseable, Closeable {

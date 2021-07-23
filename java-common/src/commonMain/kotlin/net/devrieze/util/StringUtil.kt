@@ -294,7 +294,7 @@ fun splitLines(str: String): Array<String> {
  * @param string The string to prefix.
  * @return The string resulting of prefixing the code.
  */
-fun prefixA(string: String) = when (string[0].toLowerCase()) {
+fun prefixA(string: String) = when (string[0].lowercaseChar()) {
     'a', 'e', 'i', 'o', 'u' -> "an $string"
     else                    -> "a $string"
 }

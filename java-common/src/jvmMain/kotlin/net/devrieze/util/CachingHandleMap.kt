@@ -217,7 +217,7 @@ open class CachingHandleMap<V : Any, T : Transaction>(
                 return value
             }
             value = delegate[transaction, handle]
-            return value?.apply { storeInCache(transaction, handle(handle), this) }
+            return value?.apply { storeInCache(transaction, handle.toComparableHandle(), this) }
         }
     }
 

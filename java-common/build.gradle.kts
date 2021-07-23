@@ -14,18 +14,19 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import multiplatform.androidAttribute
+import multiplatform.jvmAndroid
 import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import versions.*
+import versions.jaxbVersion
+import versions.jupiterVersion
+import versions.kotlinsqlVersion
 
 plugins {
     kotlin("multiplatform")
+    mpconsumer
 }
 
 base {
-    archivesBaseName = "java-common"
+    archivesName.set("java-common")
     version = "1.1.0"
     description = "A library with generic support classes"
 }
@@ -34,26 +35,15 @@ kotlin {
     targets {
         jvm {
             compilations.all {
-                tasks.getByName<KotlinCompile>(compileKotlinTaskName).kotlinOptions {
+                kotlinOptions {
                     jvmTarget = "1.8"
-                    freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental", "-Xjvm-default=enable")
                 }
                 tasks.withType<Test> {
                     useJUnitPlatform()
                 }
             }
-            attributes.attribute(androidAttribute, false)
         }
-        jvm("android") {
-            attributes.attribute(androidAttribute, true)
-            attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.androidJvm)
-            compilations.all {
-                tasks.getByName<KotlinCompile>(compileKotlinTaskName).kotlinOptions {
-                    jvmTarget = "1.6"
-                    freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental")
-                }
-            }
-        }
+        jvmAndroid()
         js(BOTH) {
             browser()
             nodejs()
@@ -65,33 +55,33 @@ kotlin {
                     metaInfo = true
                     moduleKind = "umd"
                     main = "call"
-                    freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental")
                 }
             }
         }
     }
 
     sourceSets {
+        all {
+            languageSettings {
+                useExperimentalAnnotation("kotlin.RequiresOptIn")
+            }
+        }
         val commonMain by getting {
             dependencies {
                 implementation(project(":multiplatform"))
-                implementation(kotlin("stdlib"))
 
                 compileOnly(project(":JavaCommonApi"))
+
                 api(project(":JavaCommonApi"))
                 api(project(":multiplatform"))
             }
         }
         val javaMain by creating {
             dependsOn(commonMain)
-            dependencies {
-                implementation(kotlin("stdlib"))
-            }
         }
         val jvmMain by getting {
             dependsOn(javaMain)
             dependencies {
-                implementation(kotlin("stdlib-jdk8"))
                 implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
                 api("net.devrieze:kotlinsql:$kotlinsqlVersion")
             }
@@ -100,7 +90,6 @@ kotlin {
             dependencies {
                 implementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
                 runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
-
             }
         }
         val androidMain by getting {
@@ -111,40 +100,6 @@ kotlin {
         }
         val jsMain by getting {
             dependsOn(commonMain)
-            dependencies {
-                implementation(kotlin("stdlib-js"))
-            }
         }
     }
-
 }
-
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
-
-//test {
-//    useJUnitPlatform()
-//}
-
-/*
-tasks.withType(KotlinCompile) {
-    kotlinOptions.freeCompilerArgs=[argJvmDefault]
-}
-*/
-
-/*
-dependencies {
-    api project(':JavaCommonApi')
-    api project(':multiplatform')
-    api(project(":java-common:java"))
-    api("net.devrieze:kotlinsql:$kotlinsqlVersion")
-
-    implementation "org.jetbrains:annotations:13.0"
-    api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    testImplementation "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
-    testRuntime "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"
-}
-*/

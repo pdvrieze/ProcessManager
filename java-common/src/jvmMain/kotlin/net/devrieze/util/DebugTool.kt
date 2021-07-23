@@ -23,7 +23,7 @@
 package net.devrieze.util
 
 import java.io.PrintStream
-import java.util.ArrayList
+import java.util.*
 
 
 /**
@@ -191,7 +191,7 @@ object DebugTool {
         val list = ArrayList<String>(pArgs.size)
         var i = 0
         while (i < pArgs.size) {
-            if (pArgs[i].toLowerCase().startsWith("--debug")) {
+            if (pArgs[i].lowercase().startsWith("--debug")) {
 
                 try {
                     if (i + 1 < pArgs.size) {
