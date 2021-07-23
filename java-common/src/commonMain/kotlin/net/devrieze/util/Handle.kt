@@ -16,8 +16,6 @@
 
 package net.devrieze.util
 
-import nl.adaptivity.util.multiplatform.JvmDefault
-
 
 interface Handle<out T : Any?> {
 
