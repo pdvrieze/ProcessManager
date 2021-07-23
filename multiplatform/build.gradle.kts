@@ -29,6 +29,7 @@ import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import java.util.Date
 import multiplatform.androidAttribute
+import multiplatform.jvmAndroid
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import versions.kotlin_version
 
@@ -51,14 +52,7 @@ kotlin {
                 }
             }
         }
-        jvm("android") {
-            attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.androidJvm)
-            compilations.all {
-                kotlinOptions {
-                    jvmTarget = "1.6"
-                }
-            }
-        }
+        jvmAndroid()
         js(BOTH) {
             browser()
             nodejs()
@@ -85,24 +79,15 @@ kotlin {
         }
         val javaShared by creating {
             dependsOn(commonMain)
-            dependencies {
-//                implementation(kotlin("stdlib-jdk7"))
-            }
         }
         val jvmMain by getting {
             dependsOn(javaShared)
-            dependencies {
-//                implementation(kotlin("stdlib-jdk8"))
-            }
         }
         val androidMain by getting {
             dependsOn(javaShared)
         }
         val jsMain by getting {
             dependsOn(commonMain)
-            dependencies {
-//                implementation("org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version")
-            }
         }
     }
 

@@ -21,6 +21,9 @@ import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.attributes.*
 import org.gradle.kotlin.dsl.dependencies
 import org.jetbrains.kotlin.gradle.targets.js.*
+import org.jetbrains.kotlin.gradle.dsl.KotlinTargetContainerWithPresetFunctions
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
+import org.jetbrains.kotlin.gradle.targets.jvm.KotlinJvmTarget
 
 val androidAttribute = Attribute.of("net.devrieze.android", Boolean::class.javaObjectType)
 
@@ -60,5 +63,17 @@ class AndroidDisambiguationRule : AttributeDisambiguationRule<Boolean> {
 fun ExternalModuleDependency.jsLegacyAttribute() {
     attributes {
         attribute(KotlinJsCompilerAttribute.jsCompilerAttribute, KotlinJsCompilerAttribute.legacy)
+    }
+}
+
+fun KotlinTargetContainerWithPresetFunctions.jvmAndroid(configure: KotlinJvmTarget.() -> Unit = { }) {
+    jvm("android") {
+        attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.androidJvm)
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = "1.6"
+            }
+        }
+        configure()
     }
 }
