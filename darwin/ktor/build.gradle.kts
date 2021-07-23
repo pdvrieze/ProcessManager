@@ -121,23 +121,18 @@ tasks.named<Jar>("jvmJar") {
     } else {
         "jsBrowserDevelopmentWebpack"
     }
-    logger.lifecycle(" - Creating jar file for the ktor app:\n    ${webPacks.files.joinToString()}")
-/*
-    val jsRtCP = configurations.named("jvmRuntimeClasspath")
-    jsRtCP.get().fileCollection().forEach { file ->
-        logger.lifecycle("Runtime classpath element: $file")
-    }
-*/
+
     val webpackTask = tasks.getByName<KotlinWebpack>(taskName)
     dependsOn(webpackTask) // make sure JS gets compiled first
+
     from(webPacks.map { zipTree(it) }) {
         this.include { it.path.endsWith(".js")/* && path.startsWith("META-INF/resources")*/ }
         eachFile {
-            logger.lifecycle("Webpack dependency: ${this.sourceName}")
+            logger.debug("Webpack dependency: ${this.sourceName}")
             val i = sourcePath.lastIndexOf('/')
             if (sourcePath.startsWith("META-INF") && i > 0) {
                 val myNewPath = "js/${sourcePath.substring(i + 1)}"
-                logger.lifecycle("Renaming $sourcePath to $myNewPath")
+                logger.debug("Renaming $sourcePath to $myNewPath")
                 path = myNewPath
             }
         }
@@ -146,8 +141,11 @@ tasks.named<Jar>("jvmJar") {
     from(File(webpackTask.destinationDirectory, webpackTask.outputFileName)) {// bring output file along into the JAR
         into("js/")
     }
+
+    duplicatesStrategy = DuplicatesStrategy.WARN
 }
 
+/*
 distributions {
     main {
         contents {
@@ -158,6 +156,7 @@ distributions {
         }
     }
 }
+*/
 
 tasks.named<JavaExec>("run") {
     classpath(configurations["jvmRuntimeClasspath"])

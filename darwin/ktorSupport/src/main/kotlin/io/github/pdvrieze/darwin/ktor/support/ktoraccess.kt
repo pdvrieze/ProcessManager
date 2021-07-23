@@ -84,7 +84,7 @@ public class KtorServletRequestInfo(private val call: ApplicationCall): RequestI
         return call.request.header(name)
     }
 
-    override fun isUserInRole(s: String): Boolean {
+    override fun isUserInRole(role: String): Boolean {
         return false // TODO use more extensive authentication
     }
 

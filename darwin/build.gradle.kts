@@ -23,6 +23,7 @@ import versions.*
 
 plugins {
     kotlin("multiplatform")
+    mpconsumer
 }
 
 base {
@@ -31,28 +32,14 @@ base {
     description = "Wrapper project for the main darwin web interface. This is not really process dependent."
 }
 
-val outDir = "$buildDir/kotlin2js/main/"
-
-lateinit var javascriptConfiguration: Configuration
-
-configurations {
-//    javascriptConfiguration = create("javascript")
-//    create("warConfig")
-}
-
-
-registerAndroidAttributeForDeps()
-
 kotlin {
     targets {
         jvm {
             compilations.all {
-                tasks.getByName<KotlinCompile>(compileKotlinTaskName).kotlinOptions {
+                kotlinOptions {
                     jvmTarget = "1.8"
-                    freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental")
                 }
             }
-            attributes.attribute(androidAttribute, false)
         }
         js(BOTH) {
             browser()
@@ -64,7 +51,6 @@ kotlin {
                     metaInfo = true
                     moduleKind = "umd"
                     main = "call"
-                    freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental")
                 }
             }
         }
@@ -80,19 +66,16 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":multiplatform"))
-                implementation(kotlin("stdlib"))
                 implementation("org.jetbrains.kotlinx:kotlinx-html:$kotlinx_html_version")
             }
         }
         val jvmMain by getting {
             dependencies {
-                implementation(kotlin("stdlib-jdk8"))
-                implementation("org.jetbrains.kotlinx:kotlinx-html:$kotlinx_html_version")
-
                 compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
                 compileOnly(project(":JavaCommonApi"))
                 compileOnly(project(":DarwinJavaApi"))
 
+                implementation(kotlin("stdlib-jdk8"))
             }
         }
         val jsMain by getting {
@@ -102,9 +85,4 @@ kotlin {
         }
     }
 
-}
-
-repositories {
-    mavenLocal()
-    mavenCentral()
 }

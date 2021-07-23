@@ -321,7 +321,7 @@ internal var dialogTitle: HTMLSpanElement? = null
 
 private var mBanner: Element? = null
 
-fun main(args: Array<String>) {
+fun main() {
   val newLocation = window.location.hash.let { if (it.isBlank()) window.location.pathname else it }
 
   (document.getElementById("xloginform") as? HTMLFormElement)?.let { form ->
@@ -564,7 +564,7 @@ private fun updateLinkItem(menuitem: HTMLAnchorElement) {
 private fun convertMenuToJS() {
   for (item in menu.childElements()) {
     if (item is HTMLAnchorElement) {
-      item.onclick = { event -> html.onLinkClick(event as MouseEvent) }
+      item.onclick = { event -> html.onLinkClick(event) }
       updateLinkItem(item)
     }
   }
@@ -618,8 +618,13 @@ private fun setAboutPanel() {
 
 
 private fun registerLoginPanel() {
-  (document.getElementById("logout") as? HTMLElement) ?.let { it.removeAttribute("href"); it.onclick = { ev -> onLoginOutClicked(ev as MouseEvent) } }
-  (document.getElementById("username") as? HTMLElement)?.let { /*it.removeAttribute("href");*/ it.onclick = { ev -> html.onLinkClick(ev as MouseEvent) } }
+  (document.getElementById("logout") as? HTMLElement) ?.let {
+      it.removeAttribute("href");
+      it.onclick = { ev -> onLoginOutClicked(ev) }
+  }
+  (document.getElementById("username") as? HTMLElement)?.let {
+      it.onclick = { ev -> html.onLinkClick(ev) }
+  }
 }
 
 

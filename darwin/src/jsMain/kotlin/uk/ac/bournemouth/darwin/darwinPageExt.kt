@@ -34,67 +34,90 @@ import uk.ac.bournemouth.darwin.util.visitDescendants
 
 const val accountsLoc = "/accountmgr/"
 
-class JSServiceContext: ServiceContext {
-  override val accountMgrPath: String
-    get() = accountsLoc
-  override val assetPath: String
-    get() = "/assets/"
-  override val cssPath: String
-    get() = "/css/"
-  override val jsGlobalPath: String
-    get() = "/js/"
-  override val jsLocalPath: String
-    get() = "js/"
+class JSServiceContext : ServiceContext {
+    override val accountMgrPath: String
+        get() = accountsLoc
+    override val assetPath: String
+        get() = "/assets/"
+    override val cssPath: String
+        get() = "/css/"
+    override val jsGlobalPath: String
+        get() = "/js/"
+    override val jsLocalPath: String
+        get() = "js/"
 }
 
-class LoginDialog private constructor (val element: HTMLElement) {
-  constructor(context:ServiceContext, errorMsg: String? = null, username: String? = null, password: String?=null, redirect: String? = null, visitConfirm: (HTMLElement) -> Unit, visitCancel: ((HTMLElement) -> Unit)?):
-    this(document.create.withContext(context).loginDialog(context=context, errorMsg=errorMsg, username=username, password =password, redirect=redirect, cancelEnabled = visitCancel!=null)) {
-    element.visitDescendants { descendant ->
-      if (descendant is HTMLElement) {
-        if (descendant.hasClass("dialogconfirm")) visitConfirm(descendant)
-        else if (descendant.hasClass("dialogcancel")) visitCancel?.invoke(descendant)
-      }
-    }
-  }
-
-  val form: HTMLFormElement by lazy {
-    val treeWalker = document.createTreeWalker(element, NodeFilter.SHOW_ELEMENT, { node -> if (node is HTMLFormElement) NodeFilter.FILTER_ACCEPT else NodeFilter.FILTER_SKIP })
-    treeWalker.nextNode() as HTMLFormElement
-  }
-
-  val errorMsgElem: HTMLElement by lazy {
-    val treeWalker = document.createTreeWalker(element, NodeFilter.SHOW_ELEMENT, { node -> if ((node as Element).hasClass("errorMsg")) NodeFilter.FILTER_ACCEPT else NodeFilter.FILTER_SKIP })
-    treeWalker.nextNode() as HTMLElement
-  }
-
-  var errorMsg:String?
-    get() = errorMsgElem.textContent
-    set(value) {
-      errorMsgElem.apply {
-        clear()
-        if (value.isNullOrBlank()) {
-          hidden=true
-        } else {
-          hidden=false
-          appendText(value!!)
+class LoginDialog private constructor(val element: HTMLElement) {
+    constructor(
+        context: ServiceContext,
+        errorMsg: String? = null,
+        username: String? = null,
+        password: String? = null,
+        redirect: String? = null,
+        visitConfirm: (HTMLElement) -> Unit,
+        visitCancel: ((HTMLElement) -> Unit)?
+    ) :
+        this(
+            document.create.withContext(context).loginDialog(
+                context = context,
+                errorMsg = errorMsg,
+                username = username,
+                password = password,
+                redirect = redirect,
+                cancelEnabled = visitCancel != null
+            )
+        ) {
+        element.visitDescendants { descendant ->
+            if (descendant is HTMLElement) {
+                if (descendant.hasClass("dialogconfirm")) visitConfirm(descendant)
+                else if (descendant.hasClass("dialogcancel")) visitCancel?.invoke(descendant)
+            }
         }
-      }
     }
 
-  var username:String?
-    set(value) {
-      (form["username"] as? HTMLInputElement) ?.let { it.value=username?:"" }
-    }
-    get() {
-      return (form["username"] as? HTMLInputElement) ?.value
+    val form: HTMLFormElement by lazy {
+        val treeWalker = document.createTreeWalker(
+            element,
+            NodeFilter.SHOW_ELEMENT,
+            { node -> if (node is HTMLFormElement) NodeFilter.FILTER_ACCEPT else NodeFilter.FILTER_SKIP })
+        treeWalker.nextNode() as HTMLFormElement
     }
 
-  var password:String?
-    set(value) {
-      (form["password"] as? HTMLInputElement) ?.let { it.value=username?:"" }
+    val errorMsgElem: HTMLElement by lazy {
+        val treeWalker = document.createTreeWalker(
+            element,
+            NodeFilter.SHOW_ELEMENT,
+            { node -> if ((node as Element).hasClass("errorMsg")) NodeFilter.FILTER_ACCEPT else NodeFilter.FILTER_SKIP })
+        treeWalker.nextNode() as HTMLElement
     }
-    get() {
-      return (form["password"] as? HTMLInputElement) ?.value
-    }
+
+    var errorMsg: String?
+        get() = errorMsgElem.textContent
+        set(value) {
+            errorMsgElem.apply {
+                clear()
+                if (value.isNullOrBlank()) {
+                    hidden = true
+                } else {
+                    hidden = false
+                    appendText(value)
+                }
+            }
+        }
+
+    var username: String?
+        set(value) {
+            (form["username"] as? HTMLInputElement)?.let { it.value = value ?: "" }
+        }
+        get() {
+            return (form["username"] as? HTMLInputElement)?.value
+        }
+
+    var password: String?
+        set(value) {
+            (form["password"] as? HTMLInputElement)?.let { it.value = value ?: "" }
+        }
+        get() {
+            return (form["password"] as? HTMLInputElement)?.value
+        }
 }

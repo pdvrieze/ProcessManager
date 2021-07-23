@@ -16,5 +16,5 @@
 
 
 fun main() {
-    nl.adaptivity.darwin.main(emptyArray())
+    nl.adaptivity.darwin.main()
 }

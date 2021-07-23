@@ -21,7 +21,7 @@ import java.security.Principal
 interface RequestInfo {
     fun getHeader(name: String): String?
 
-    fun isUserInRole(s: String): Boolean
+    fun isUserInRole(role: String): Boolean
 
     abstract val userPrincipal: Principal?
     val contextPath: String
