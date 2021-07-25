@@ -403,7 +403,7 @@ object MessagingSoapClientGenerator {
         val methodName: String = webMethod.operationName.let { if (it.isEmpty()) method.name else it }
 
         out.write("  @JvmStatic\n")
-        out.write("  @Throws(JAXBException::class, XmlException::class)")
+        out.write("  @Throws(JAXBException::class, XmlException::class)\n")
         out.write("  fun ")
         writeTypeParams(out, method.typeParameters, imports)
         out.write(methodName)
