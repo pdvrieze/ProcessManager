@@ -16,20 +16,6 @@
 
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
-buildscript {
-
-    repositories {
-        mavenLocal()
-        google()
-        mavenCentral()
-    }
-    dependencies {
-        classpath "com.android.tools.build:gradle:$androidPluginVersion" //1.5.0
-        classpath "com.bmuschko:gradle-tomcat-plugin:$tomcatPluginVersion"
-    }
-
-}
-
 plugins {
     id("idea")
     id("project-report")
@@ -42,102 +28,110 @@ plugins {
 //    id "net.devrieze.gradlecodegen" version "0.5.5"
 //}
 
-apply plugin: "idea"
-apply plugin: "project-report"
-
-
 description = "The overall project that manages all artefacts of the processmanager"
 
 ext {
-    androidCompatVersion = (androidTarget == 26) ? "26.1.0" : androidTarget == 27 ? "27.1.1" : "28.0.0-rc02"
-    dbcpSpec = "com.zaxxer:HikariCP:2.4.5"
-    collectDir = "${buildDir}/artifacts"
+    set("androidCompatVersion", "28.0.0-rc02")
+    set("dbcpSpec", "com.zaxxer:HikariCP:2.4.5")
+    set("collectDir", "${buildDir}/artifacts")
 
-    myJavaVersion = JavaVersion.VERSION_1_8
+    set("myJavaVersion", JavaVersion.VERSION_1_8)
 }
 
-def artifactType = Attribute.of("artifactType", String)
+val androidEnabled get() = (project.ext["androidEnabledProp"] as String).toBoolean()
+
+//def artifactType = Attribute.of("artifactType", String)
 
 configurations {
-    tomcatWars
-    tomcatClasspath {
+    register("tomcatWars")
+    register("tomcatClasspath") {
         attributes {
             attribute(KotlinPlatformType.attribute, KotlinPlatformType.jvm)
         }
     }
     if (androidEnabled) {
-        androidApps {
+        register("androidApps") {
             attributes {
 //                attribute(artifactType, "apk")
             }
         }
     }
-    wsDoc
+    register("wsDoc")
 }
 
+
 dependencies {
+/*
     tomcatWars project(path: ":ProcessEngine:servlet", configuration: "archives")
     tomcatWars project(path: ":PEUserMessageHandler", configuration: "archives")
     tomcatWars project(path: ":accountmgr", configuration: "archives")
     tomcatWars project(path: ":darwin:war", configuration: "warConfig")
     tomcatWars project(path: ":webeditor", configuration: "archives")
     tomcatWars project(path: ":DarwinServices", configuration: "archives")
+*/
 
 
+/*
     tomcatClasspath "mysql:mysql-connector-java:$mysqlConnectorVersion"
     tomcatClasspath project(":DarwinJavaApi")
     tomcatClasspath project(":JavaCommonApi")
     tomcatClasspath project(":DarwinRealm")
+*/
 
+/*
     if (Boolean.valueOf(androidEnabledProp)) {
         if (file("android-auth/build.gradle").exists()) {
-            androidApps project(path: ":android-auth", configuration: "debugRuntimeElements")
+            "androidApps"(project(path= ":android-auth", configuration= "debugRuntimeElements"))
         }
 //        androidApps project(path: ':PMEditor', configuration: 'debugRuntimeElements')
     }
+*/
 
+/*
     wsDoc project(path: "ProcessEngine:servlet", configuration: "wsDocOutput")
     wsDoc project(path: "PEUserMessageHandler", configuration: "wsDocOutput")
+*/
 }
 
-def soapTarget = file("wiki/SOAP")
-if (soapTarget.isDirectory()) {
-    task wsDoc(type: Copy) {
-        group = "documentation"
-        dependsOn configurations.wsDoc
-        destinationDir = file("wiki")
-
-        into(".") {
-            from files({ dependsOn.findAll { dep -> dep instanceof Configuration } })
+//def soapTarget = file("wiki/SOAP")
+//if (soapTarget.isDirectory()) {
+//    task wsDoc(type: Copy) {
+//        group = "documentation"
+//        dependsOn configurations.wsDoc
+//        destinationDir = file("wiki")
+//
+//        into(".") {
 //            from files({ dependsOn.findAll { dep -> dep instanceof Configuration } })
-            include "**/SOAP/*.md"
-            exclude "**/*InternalEndpointImpl.md"
-            rename { path ->
-                def file = path.substring(path.lastIndexOf('/') + 1)
-                def extPos = file.lastIndexOf('.')
-                def dotPos = file.lastIndexOf('.', extPos - 1) // we want the second last dot, the last is the extension one
-                if (dotPos >= 0) {
-                    file.substring(dotPos + 1, extPos) + "_SOAP.md"
-                } else file
-            }
-        }
+////            from files({ dependsOn.findAll { dep -> dep instanceof Configuration } })
+//            include "**/SOAP/*.md"
+//            exclude "**/*InternalEndpointImpl.md"
+//            rename { path ->
+//                def file = path.substring(path.lastIndexOf('/') + 1)
+//                def extPos = file.lastIndexOf('.')
+//                def dotPos = file.lastIndexOf('.', extPos - 1) // we want the second last dot, the last is the extension one
+//                if (dotPos >= 0) {
+//                    file.substring(dotPos + 1, extPos) + "_SOAP.md"
+//                } else file
+//            }
+//        }
+//
+//        into(".") {
+//            from files({ dependsOn.findAll { dep -> dep instanceof Configuration } })
+//            include "**/REST/*.md"
+//            rename { path ->
+//                def file = path.substring(path.lastIndexOf('/') + 1)
+//                def dotPos = file.lastIndexOf('.', file.lastIndexOf('.') - 1) // we want the second last dot, the last is the extension one
+//                def extPos = file.lastIndexOf('.')
+//                if (dotPos >= 0) {
+//                    file.substring(dotPos + 1, extPos) + "_REST.md"
+//                } else file
+//            }
+//        }
+//    }
+//}
 
-        into(".") {
-            from files({ dependsOn.findAll { dep -> dep instanceof Configuration } })
-            include "**/REST/*.md"
-            rename { path ->
-                def file = path.substring(path.lastIndexOf('/') + 1)
-                def dotPos = file.lastIndexOf('.', file.lastIndexOf('.') - 1) // we want the second last dot, the last is the extension one
-                def extPos = file.lastIndexOf('.')
-                if (dotPos >= 0) {
-                    file.substring(dotPos + 1, extPos) + "_REST.md"
-                } else file
-            }
-        }
-    }
-}
 
-
+/*
 tasks.wrapper {
     gradleVersion = "5.4.1"
 }
@@ -173,24 +167,29 @@ task dist {
         dependsOn copyAndroid
     }
 }
+*/
 
+/*
 task run(dependsOn: [":PE-server:tomcatRun"], type: DefaultTask) {
     group = "application"
     description = "Run the server in a simple configuration"
 }
+*/
 
 
 
+/*
 htmlDependencyReport {
     projects = project.allprojects
 }
+*/
 
 allprojects {
     repositories {
         mavenLocal()
         mavenCentral()
         google()
-        maven { url "https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven" }
+        maven { url = uri("https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven") }
     }
 //
 //    tasks.withType(KotlinCompile) {
@@ -198,6 +197,7 @@ allprojects {
 //    }
 }
 
+/*
 idea {
     project {
         languageLevel = JavaVersion.VERSION_1_8
@@ -207,3 +207,4 @@ idea {
         contentRoot = projectDir
     }
 }
+*/
