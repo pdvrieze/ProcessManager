@@ -77,7 +77,7 @@ kotlin {
     sourceSets {
         all {
             languageSettings {
-                useExperimentalAnnotation("kotlin.OptIn")
+                useExperimentalAnnotation("kotlin.RequiresOptIn")
             }
         }
         val commonMain by getting {

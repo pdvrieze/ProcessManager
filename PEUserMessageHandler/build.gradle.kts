@@ -53,15 +53,23 @@ sourceSets {
         resources {
             srcDir(genResourceDir)
         }
-//        compileClasspath.add(files(api.compileClasspath))
     }
-//    imageSource {
-//        output.dir(genImageDir, builtBy: 'generateImages')
-//        files('images/blackSplitPanel.svg',
-//                'images/arrow.svg')
-//    }
 }
 
+kotlin {
+    target {
+        sourceSets.all {
+            languageSettings {
+                useExperimentalAnnotation("kotlin.RequiresOptIn")
+            }
+        }
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = "1.8"
+            }
+        }
+    }
+}
 
 configurations {
     val apiImplementation by getting
@@ -74,69 +82,15 @@ configurations {
     val wsDocOutput by creating
 }
 
-/*
-class PngGenerator extends Exec {
-    @InputFile
-    File inputFile
-
-    @OutputFile
-    File outputFile
-
-    @Override
-    protected void exec() {
-        if (!outputFile.parentFile.exists()) {
-            outputFile.parentFile.mkdirs()
-        }
-        setExecutable('inkscape')
-        setArgs(['-e', outputFile, inputFile])
-        super.exec()
-    }
-}
-
-task generateSplitPanel(type: PngGenerator) {
-    inputFile = file('images/blackSplitPanel.svg')
-    outputFile = new File(genResourceDir, 'nl/adaptivity/process/userMessageHandler/client/blackSplitPanel.png')
-    description = "Generate ${outputFile} from ${inputFile}.svg"
-    group = "codegen"
-}
-
-['arrow', 'diagramBackground', 'endNode', 'startNode'].each { String file ->
-    task "generate${Character.toUpperCase(file.charAt(0))}${file.substring(1)}"(type: PngGenerator) {
-        description = "Generate ${file}.png from ${file}.svg"
-        group = "codegen"
-        inputFile = project.file("images/${file}.svg")
-        outputFile = new File(genImageDir + '/images', "${file}.png")
-    }
-
-}
-
-processResources.dependsOn(generateSplitPanel)
-
-task generateAll {
-    group 'codegen'
-    dependsOn generateSplitPanel
-    dependsOn project.tasks['generateArrow']
-    dependsOn project.tasks['generateDiagramBackground']
-    dependsOn project.tasks['generateEndNode']
-    dependsOn project.tasks['generateStartNode']
-}
-*/
 val tomcatRun by tasks.registering {
     dependsOn("war")
     group = "web application"
     description = "Do everything needed to be able to run as embedded tomcat"
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = "1.8"
-        freeCompilerArgs = listOf(argJvmDefault)
-    }
-}
-
 val apiJar by tasks.registering(Jar::class) {
     from(sourceSets["api"].output)
-    appendix = "api"
+    archiveAppendix.set("api")
 }
 
 tasks.named<Jar>("jar") {
@@ -147,12 +101,6 @@ tasks.named<Jar>("jar") {
 artifacts {
     add("api", apiJar)
 }
-/*
-
-tasks.named("buildApiElements") {
-    dependsOn(apiJar)
-}
-*/
 
 tasks.named<War>("war") {
     //    dependsOn generateAll
