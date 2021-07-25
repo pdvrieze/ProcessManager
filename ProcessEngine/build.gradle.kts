@@ -14,5 +14,5 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-version = '1.0.0'
-description = 'The Process engine module container'
+version = "1.0.0"
+description = "The Process engine module container"

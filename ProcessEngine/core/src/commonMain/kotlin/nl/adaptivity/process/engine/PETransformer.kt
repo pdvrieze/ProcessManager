@@ -333,7 +333,7 @@ class PETransformer private constructor(
 
         override fun resolveAttributeName(valueName: String): String {
             val data = getData(valueName)!!
-            return String(data.content.content)
+            return data.content.content.concatToString()
         }
 
     }
