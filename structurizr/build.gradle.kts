@@ -20,15 +20,15 @@ plugins {
     id("mpconsumer")
 }
 
-description = 'Structurizr architecture generation for the project'
+description = "Structurizr architecture generation for the project"
 
 ext {
-    structurizrVer= "1.9.5"
+    set("structurizrVer", "1.9.5")
     if (!hasProperty("structurizrWs1ApikeyProp")) {
-        structurizrWs1ApikeyProp="dummy"
+        set("structurizrWs1ApikeyProp", "dummy")
     }
     if (!hasProperty("structurizrWs1ApisecretProp")) {
-        structurizrWs1ApisecretProp="dummy"
+        set("structurizrWs1ApisecretProp", "dummy")
     }
 }
 
@@ -36,6 +36,10 @@ repositories {
     mavenLocal()
     mavenCentral()
 }
+
+val kotlin_version: String by project
+val structurizrVer: String by project
+val myJavaVersion: JavaVersion by project
 
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
@@ -45,14 +49,18 @@ dependencies {
     implementation(project(":darwin-sql"))
 }
 
-mainClassName= "uk.ac.bournemouth.darwin.architecture.StructurizrKt"
+application {
+    mainClass.set("uk.ac.bournemouth.darwin.architecture.StructurizrKt")
+}
 
-sourceCompatibility = myJavaVersion
-targetCompatibility = myJavaVersion
+java {
+    sourceCompatibility = myJavaVersion
+    targetCompatibility = myJavaVersion
+}
 
-run {
-    args "10541", structurizrWs1ApikeyProp, structurizrWs1ApisecretProp
-    workingDir = "${buildDir}/structurizr"
+tasks.named<JavaExec>("run") {
+    args ("10541", ext["structurizrWs1ApikeyProp"], ext["structurizrWs1ApisecretProp"])
+    workingDir = file("${buildDir}/structurizr")
     doFirst {
         file(workingDir).mkdir()
     }
