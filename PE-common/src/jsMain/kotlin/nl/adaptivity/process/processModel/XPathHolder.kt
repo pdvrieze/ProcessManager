@@ -23,7 +23,6 @@ import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.xmlutil.util.CombiningNamespaceContext
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.xmlserializable.deserializeHelper
 import org.w3c.dom.Document
 import org.w3c.dom.DocumentFragment
 import org.w3c.dom.Node
@@ -88,29 +87,7 @@ actual abstract class XPathHolder : XMLContainer {
         assert(value == null)
     }
 
-    actual override fun deserializeAttribute(
-        attributeNamespace: String?,
-        attributeLocalName: String,
-        attributeValue: String
-                                            ) =
-        when (attributeLocalName) {
-            "name"                       -> {
-                _name = attributeValue
-                true
-            }
-
-            "path", "xpath"              -> {
-                pathString = attributeValue
-                true
-            }
-
-            XMLConstants.XMLNS_ATTRIBUTE -> true
-
-            else                         -> false
-        }
-
-    actual
-    override fun deserializeChildren(reader: XmlReader) {
+    actual override fun deserializeChildren(reader: XmlReader) {
         super.deserializeChildren(reader)
         val namespaces = mutableMapOf<String, String>()
         val gatheringNamespaceContext = CombiningNamespaceContext(
@@ -189,13 +166,6 @@ actual abstract class XPathHolder : XMLContainer {
         }
     }
 
-
-    companion object {
-
-        fun <T : XPathHolder> deserialize(reader: XmlReader, result: T): T {
-            return result.deserializeHelper(reader)
-        }
-    }
 }
 
 

@@ -25,15 +25,12 @@
 package nl.adaptivity.process.engine.processModel
 
 import net.devrieze.util.Handle
-import net.devrieze.util.handle
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.engine.ProcessData
-import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.QName
+import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.ICompactFragment
-import nl.adaptivity.xmlutil.xmlserializable.SimpleXmlDeserializable
-import nl.adaptivity.xmlutil.xmlserializable.XmlDeserializer
-import nl.adaptivity.xmlutil.xmlserializable.deserializeHelper
 
 class XmlProcessNodeInstance {
 

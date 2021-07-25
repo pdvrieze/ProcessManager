@@ -20,7 +20,6 @@ import kotlinx.serialization.Transient
 import nl.adaptivity.process.engine.ProcessException
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
-import nl.adaptivity.util.multiplatform.JvmDefault
 
 @DslMarker
 annotation class ProcessModelDSL

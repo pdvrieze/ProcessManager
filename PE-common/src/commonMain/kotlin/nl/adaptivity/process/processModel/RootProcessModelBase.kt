@@ -21,29 +21,37 @@ import foo.FakeSerializer
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.internal.GeneratedSerializer
 import net.devrieze.util.*
 import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.ProcessConsts.Engine
-import nl.adaptivity.process.processModel.engine.*
-import nl.adaptivity.process.util.*
+import nl.adaptivity.process.processModel.engine.IProcessModelRef
+import nl.adaptivity.process.processModel.engine.ProcessModelRef
+import nl.adaptivity.process.processModel.engine.XmlProcessModel
+import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.IdentifiableSetSerializer
+import nl.adaptivity.process.util.IdentifyableSet
+import nl.adaptivity.process.util.MutableIdentifyableSet
+import nl.adaptivity.serialutil.encodeNullableStringElement
+import nl.adaptivity.serialutil.readNullableString
+import nl.adaptivity.serialutil.withName
 import nl.adaptivity.util.PrincipalSerializer
 import nl.adaptivity.util.UUIDSerializer
-import nl.adaptivity.util.multiplatform.*
+import nl.adaptivity.util.multiplatform.UUID
+import nl.adaptivity.util.multiplatform.toUUID
 import nl.adaptivity.util.security.Principal
-import nl.adaptivity.serialutil.*
-import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.serialization.*
-import nl.adaptivity.xmlutil.xmlserializable.writeChildren
-import kotlin.jvm.JvmStatic
+import nl.adaptivity.xmlutil.QName
+import nl.adaptivity.xmlutil.XmlReader
+import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.serialization.XmlDefault
+import nl.adaptivity.xmlutil.serialization.XmlPolyChildren
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @FakeSerializable
 abstract class RootProcessModelBase<NodeT : ProcessNode> :

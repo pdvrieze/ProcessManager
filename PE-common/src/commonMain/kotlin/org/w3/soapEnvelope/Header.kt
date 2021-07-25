@@ -26,11 +26,9 @@ package org.w3.soapEnvelope
 
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.ProcessConsts.Engine
-import nl.adaptivity.xmlutil.util.CompactFragment
-import nl.adaptivity.xmlutil.xmlserializable.SimpleXmlDeserializable
-import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
-import nl.adaptivity.xmlutil.xmlserializable.deserializeHelper
+import nl.adaptivity.xmlutil.util.CompactFragment
 
 
 /**

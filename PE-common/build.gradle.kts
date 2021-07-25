@@ -131,15 +131,19 @@ kotlin {
         }
         val jvmTest by getting {
             dependencies {
-                implementation(project(":ProcessEngine:core"))
+//                implementation(project(":ProcessEngine:core"))
+//                implementation(project(":JavaCommonApi"))
+                implementation(project(":DarwinJavaApi"))
+//                implementation(project(":TestSupport"))
                 implementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
-                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
+
 
                 implementation("org.xmlunit:xmlunit-core:2.6.0")
                 implementation("org.mockito:mockito-core:2.25.0")
                 implementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0")
                 implementation(kotlin("test-junit5"))
 
+                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
                 runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.1.0")
 
 /*
@@ -148,9 +152,6 @@ kotlin {
                 implementation("io.github.pdvrieze.xmlutil:serialization-jvm:$xmlutilVersion")
 */
 
-//                implementation(project(":JavaCommonApi"))
-                implementation(project(":DarwinJavaApi"))
-                implementation(project(":TestSupport"))
 
             }
         }

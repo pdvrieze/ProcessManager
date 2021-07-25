@@ -19,22 +19,16 @@ package nl.adaptivity.process.processModel
 import foo.FakeSerializable
 import foo.FakeSerializer
 import kotlinx.serialization.*
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.descriptors.element
-import kotlinx.serialization.descriptors.elementDescriptors
 import kotlinx.serialization.encoding.Encoder
 import net.devrieze.util.collection.replaceBy
-import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.processModel.engine.XmlActivity
 import nl.adaptivity.process.processModel.engine.XmlCondition
 import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.process.util.Identifier
-import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XmlDefault
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
-import nl.adaptivity.xmlutil.xmlserializable.SimpleXmlDeserializable
 
 
 /**

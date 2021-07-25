@@ -21,11 +21,8 @@ import nl.adaptivity.util.multiplatform.createUri
 import nl.adaptivity.xml.QName
 import nl.adaptivity.xml.localPart
 import nl.adaptivity.xml.namespaceURI
-import nl.adaptivity.xmlutil.QName as XmlQName
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.xmlserializable.SimpleXmlDeserializable
-import nl.adaptivity.xmlutil.xmlserializable.XmlDeserializer
-import nl.adaptivity.xmlutil.xmlserializable.deserializeHelper
+import nl.adaptivity.xmlutil.QName as XmlQName
 
 
 /**

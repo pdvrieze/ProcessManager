@@ -18,7 +18,6 @@ package nl.adaptivity.process.processModel
 
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.util.multiplatform.JvmDefault
 import nl.adaptivity.xmlutil.QName
 
 /**

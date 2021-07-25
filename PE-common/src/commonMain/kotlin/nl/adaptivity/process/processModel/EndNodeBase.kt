@@ -17,15 +17,10 @@
 package nl.adaptivity.process.processModel
 
 import foo.FakeSerializable
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
-import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
-import nl.adaptivity.xmlutil.xmlserializable.SimpleXmlDeserializable
-import nl.adaptivity.xmlutil.*
 
 
 /**

@@ -17,14 +17,7 @@
 package nl.adaptivity.process.processModel
 
 import foo.FakeSerializable
-import kotlinx.serialization.Serializable
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.util.multiplatform.Throws
-import nl.adaptivity.xmlutil.XmlException
-import nl.adaptivity.xmlutil.XmlReader
-import nl.adaptivity.xmlutil.XmlWriter
-import nl.adaptivity.xmlutil.xmlserializable.SimpleXmlDeserializable
-import nl.adaptivity.xmlutil.writeAttribute
 
 
 /**

@@ -99,25 +99,6 @@ actual abstract class XPathHolder : XMLContainer {
         path = null // invalidate the cached path expression
     }
 
-    actual override fun deserializeAttribute(
-        attributeNamespace: String?,
-        attributeLocalName: String,
-        attributeValue: String
-                                            ): Boolean {
-        when (attributeLocalName) {
-            "name"                       -> {
-                _name = attributeValue
-                return true
-            }
-            "path", "xpath"              -> {
-                pathString = attributeValue
-                return true
-            }
-            XMLConstants.XMLNS_ATTRIBUTE -> return true
-            else                         -> return false
-        }
-    }
-
     @Throws(XmlException::class)
     actual override fun deserializeChildren(reader: XmlReader) {
 
@@ -194,11 +175,6 @@ actual abstract class XPathHolder : XMLContainer {
 
         }
 
-        @JvmStatic
-        @Throws(XmlException::class)
-        fun <T : XPathHolder> deserialize(reader: XmlReader, result: T): T {
-            return result.deserializeHelper(reader)
-        }
     }
 }
 

@@ -17,12 +17,8 @@
 package nl.adaptivity.process.processModel
 
 import foo.FakeSerializable
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.xmlutil.XmlWriter
-import nl.adaptivity.xmlutil.xmlserializable.SimpleXmlDeserializable
-import nl.adaptivity.xmlutil.writeAttribute
 
 @FakeSerializable
 abstract class CompositeActivityBase : ActivityBase, CompositeActivity {

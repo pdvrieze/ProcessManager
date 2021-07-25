@@ -35,8 +35,6 @@ import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XmlPolyChildren
 import nl.adaptivity.serialutil.encodeNullableStringElement
 import nl.adaptivity.util.multiplatform.name
-import nl.adaptivity.xmlutil.xmlserializable.deserializeHelper
-import nl.adaptivity.xmlutil.xmlserializable.writeChildren
 import kotlin.jvm.JvmField
 
 /**
