@@ -78,12 +78,13 @@ tasks {
         dependsOn(":ProcessEngine:servlet:classes")
         group = "build"
         description = "Generate the client sources"
+        mainClass.set("nl.adaptivity.messaging.MessagingSoapClientGenerator")
+        classpath = files(configurations.named("codegen"))
 
         doFirst {
             println()
-            main = "nl.adaptivity.messaging.MessagingSoapClientGenerator"
 
-            classpath = configurations["codegen"]
+//            classpath = configurations["codegen"]
             val cp = configurations["codegenClasspath"]
 
             args("-gencp")
@@ -98,12 +99,12 @@ tasks {
         }
     }
 
-    val compileJava by existing {
+    val compileKotlin by existing {
         dependsOn(generate)
     }
 
     named<Jar>("jar") {
-        baseName="ProcessEngineClients"
+        archiveBaseName.set("ProcessEngineClients")
     }
 }
 
@@ -118,6 +119,7 @@ dependencies {
     "api"(project(":JavaCommonApi"))
     "api"(project(":java-common"))
     "api"(project(":PE-common"))
+    "api"(project(":ProcessEngine:core"))
 
     implementation(kotlin("stdlib-jdk8"))
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
