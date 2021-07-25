@@ -626,21 +626,21 @@ open class LayoutAlgorithm {
         }
 
 
-        private fun Iterable<DiagramNode<T>>.lowest(report: Boolean = true) = maxBy {
+        private fun Iterable<DiagramNode<T>>.lowest(report: Boolean = true) = maxByOrNull {
             it.bottom.onNaN(Double.NEGATIVE_INFINITY)
         }?.also { if (report) layoutStepper.reportLowest(this.toList(), it) }
 
 
-        private fun Iterable<DiagramNode<T>>.highest(report: Boolean = true) = minBy {
+        private fun Iterable<DiagramNode<T>>.highest(report: Boolean = true) = minByOrNull {
             it.top.onNaN(Double.POSITIVE_INFINITY)
         }?.also { if (report) layoutStepper.reportHighest(this.toList(), it) }
 
-        private fun Iterable<DiagramNode<T>>.leftMost(report: Boolean = true) = minBy {
+        private fun Iterable<DiagramNode<T>>.leftMost(report: Boolean = true) = minByOrNull {
             it.left.onNaN(Double.NEGATIVE_INFINITY)
         }?.also { if (report) layoutStepper.reportLeftmost(this.toList(), it) }
 
 
-        private fun Iterable<DiagramNode<T>>.rightMost(report: Boolean = true) = maxBy {
+        private fun Iterable<DiagramNode<T>>.rightMost(report: Boolean = true) = maxByOrNull {
             it.right.onNaN(Double.POSITIVE_INFINITY)
         }?.also { if (report) layoutStepper.reportRightmost(this.toList(), it) }
 

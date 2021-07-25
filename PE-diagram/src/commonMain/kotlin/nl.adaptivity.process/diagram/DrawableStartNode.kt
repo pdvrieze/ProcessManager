@@ -22,7 +22,6 @@ import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWI
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xmlutil.XmlReader
-import nl.adaptivity.xmlutil.deserializeHelper
 
 interface IDrawableStartNode : IDrawableProcessNode {
     override val leftExtent get() = REFERENCE_OFFSET_X
@@ -108,11 +107,6 @@ class DrawableStartNode(builder: StartNode.Builder,
         const val REFERENCE_OFFSET_X = STARTNODERADIUS + STROKEWIDTH / 2
         const val REFERENCE_OFFSET_Y = STARTNODERADIUS + STROKEWIDTH / 2
         const val IDBASE = "start"
-
-        @kotlin.jvm.JvmStatic
-        fun deserialize(reader: XmlReader): Builder {
-            return DrawableStartNode.Builder().deserializeHelper(reader)
-        }
 
         @kotlin.jvm.JvmStatic
         fun from(n: StartNode, compat: Boolean = false) = Builder(n).apply { this.isCompat = compat }.build()

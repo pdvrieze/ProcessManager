@@ -25,7 +25,6 @@ import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.JOINWIDT
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWIDTH
 import nl.adaptivity.process.processModel.JoinSplit
 import nl.adaptivity.process.processModel.ProcessNode
-import nl.adaptivity.util.multiplatform.JvmDefault
 import kotlin.math.PI
 import kotlin.math.abs
 

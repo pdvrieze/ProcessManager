@@ -24,10 +24,8 @@ import nl.adaptivity.process.diagram.DrawableJoinSplit.Companion.HORIZONTALDECOR
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.JOINWIDTH
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWIDTH
 import nl.adaptivity.process.processModel.*
-import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xmlutil.XmlReader
-import nl.adaptivity.xmlutil.deserializeHelper
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -133,11 +131,6 @@ class DrawableSplit(
         private val ARROWDNEAR = DrawableJoinSplit.ARROWLEN * cos(0.25 * PI - DrawableJoinSplit.ARROWHEADANGLE)
         private val INLEN = sqrt(ARROWHEADDX * ARROWHEADDX + ARROWHEADDY * ARROWHEADDY)
         const val IDBASE = "split"
-
-        @kotlin.jvm.JvmStatic
-        fun deserialize(reader: XmlReader): Builder {
-            return Builder().deserializeHelper(reader)
-        }
 
         fun from(elem: Split): DrawableSplit {
             return DrawableSplit.Builder(elem).build()

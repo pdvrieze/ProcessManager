@@ -20,7 +20,7 @@ import nl.adaptivity.diagram.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.isBetween
-import nl.adaptivity.util.multiplatform.JvmWildcard
+import kotlin.jvm.JvmWildcard
 
 interface IDrawableProcessNode: Drawable, Identifiable {
 

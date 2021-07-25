@@ -194,13 +194,6 @@ open class DrawableActivity @JvmOverloads constructor(
     override val idBase: String
         get() = IDBASE
 
-    override fun serializeCondition(out: XmlWriter) {
-        val condition = condition?.condition
-        if (!condition.isNullOrEmpty()) {
-            out.writeSimpleElement(Condition.ELEMENTNAME, condition)
-        }
-    }
-
     companion object {
         const val IDBASE = "ac"
 

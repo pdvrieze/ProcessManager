@@ -45,7 +45,7 @@ class NewLayoutAlgorithm: LayoutAlgorithm() {
           val leftMostPosition = node.right + horizSeparation
           val desiredMinX = node.rightNodes.asSequence().map {
             leftMostPosition + it.leftExtent
-          }.max()!!
+          }.maxOrNull()!!
 
           for (successor in node.rightNodes) {
             if (successor.x < desiredMinX - TOLERANCE) {
@@ -97,7 +97,7 @@ class NewLayoutAlgorithm: LayoutAlgorithm() {
         x overlaps (node.left - minHorizSeparation)..(node.right + minHorizSeparation)
       }
 
-      val lowestNode = consideredNodes.maxBy { it.bottom }
+      val lowestNode = consideredNodes.maxByOrNull { it.bottom }
       if (lowestNode!=null) {
         layoutStepper.reportLowest(consideredNodes, lowestNode)
         return lowestNode.bottom + vertSeparation

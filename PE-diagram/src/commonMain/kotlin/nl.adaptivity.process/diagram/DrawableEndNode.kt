@@ -22,12 +22,8 @@ import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ENDNODEI
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ENDNODEOUTERRADIUS
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ENDNODEOUTERSTROKEWIDTH
 import nl.adaptivity.process.processModel.*
-import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.util.multiplatform.JvmDefault
-import nl.adaptivity.util.multiplatform.isTypeOf
 import nl.adaptivity.xmlutil.XmlReader
-import nl.adaptivity.xmlutil.deserializeHelper
 import kotlin.math.abs
 
 interface IDrawableEndNode : IDrawableProcessNode {
@@ -141,11 +137,6 @@ class DrawableEndNode : EndNodeBase, DrawableProcessNode {
         private const val REFERENCE_OFFSET_X = ENDNODEOUTERRADIUS
         private const val REFERENCE_OFFSET_Y = ENDNODEOUTERRADIUS
         const val IDBASE = "end"
-
-        @kotlin.jvm.JvmStatic
-        fun deserialize(reader: XmlReader): DrawableEndNode.Builder {
-            return DrawableEndNode.Builder(state = Drawable.STATE_DEFAULT).deserializeHelper(reader)
-        }
 
         @Deprecated("Use the builder",
                     ReplaceWith("Builder(elem).build()", "nl.adaptivity.process.diagram.DrawableEndNode.Builder"))

@@ -732,7 +732,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         uuid = builder.uuid
         processModel = builder.processModel
         state = builder.state
-        handle = handle(builder.handle)
+        handle = builder.handle.toComparableHandle()
         parentActivity = builder.parentActivity
 
         val pending = builder.pendingChildren.asSequence().map { it as InstanceFuture<*, *> }

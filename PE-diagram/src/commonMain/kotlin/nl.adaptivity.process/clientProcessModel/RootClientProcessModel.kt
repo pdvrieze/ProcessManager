@@ -29,7 +29,7 @@ import nl.adaptivity.util.multiplatform.JvmOverloads
 import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.util.security.Principal
 
-abstract class RootClientProcessModel @JvmOverloads constructor(builder: RootProcessModelBase.Builder,
+abstract class RootClientProcessModel constructor(builder: RootProcessModelBase.Builder,
                                                                 nodeFactory: NodeFactory<DrawableProcessNode, DrawableProcessNode, ChildProcessModelBase<DrawableProcessNode>>,
                                                                 pedantic: Boolean)
     : RootProcessModelBase<DrawableProcessNode>(builder, nodeFactory, pedantic),

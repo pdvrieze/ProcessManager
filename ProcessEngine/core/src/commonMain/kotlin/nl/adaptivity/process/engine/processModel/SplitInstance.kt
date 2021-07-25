@@ -87,6 +87,7 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
     override val node: ExecutableSplit
         get() = super.node as ExecutableSplit
 
+    @Suppress("UNCHECKED_CAST")
     override val handle: Handle<SecureObject<SplitInstance>>
         get() = super.handle as Handle<SecureObject<SplitInstance>>
 

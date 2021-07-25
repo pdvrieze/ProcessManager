@@ -20,7 +20,6 @@ import nl.adaptivity.diagram.Positioned
 import nl.adaptivity.process.processModel.CompositeActivity
 import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessNode
-import nl.adaptivity.util.multiplatform.JvmDefault
 
 /**
  * Drawable version of the process model.
