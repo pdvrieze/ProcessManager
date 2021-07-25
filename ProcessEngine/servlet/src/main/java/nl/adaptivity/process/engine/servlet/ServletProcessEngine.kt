@@ -432,10 +432,10 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
                     val xef = XMLEventFactory.newInstance()
 
                     when (valueName) {
-                        "handle" -> out.add(
+                        "handle"         -> out.add(
                             xef.createAttribute(paramName ?: "handle", nodeInstance.getHandleValue().toString())
                         )
-                        "owner" -> out.add(xef.createAttribute(paramName ?: "owner", nodeInstance.owner.name))
+                        "owner"          -> out.add(xef.createAttribute(paramName ?: "owner", nodeInstance.owner.name))
                         "instancehandle" -> out.add(
                             xef.createAttribute(paramName ?: "instancehandle", nodeInstance.owner.name)
                         )
@@ -572,7 +572,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
             type = RestParamType.PRINCIPAL
         ) user: Principal?
     )
-            : ProcessModelRef<*, *> = translateExceptions {
+        : ProcessModelRef<*, *> = translateExceptions {
 
         if (user == null) throw AuthenticationNeededException("There is no user associated with this request")
 
@@ -626,7 +626,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
         @RestParam(type = RestParamType.PRINCIPAL)
         @WebParam(name = "principal", mode = Mode.IN, header = true) owner: Principal?
     )
-            : ProcessModelRef<*, *>? = translateExceptions {
+        : ProcessModelRef<*, *>? = translateExceptions {
 
         if (owner == null) throw AuthenticationNeededException("There is no user associated with this request")
 
@@ -681,9 +681,8 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
      * Create a new process instance and start it.
      *
      * @param handle The handle of the process to start.
-     * @param name The name that will allow the user to remember the instance. If
-     * `null` a name will be assigned. This name has no
-     * semantic meaning.
+     * @param name The name that will allow the user to remember the instance. If `null` a name will
+     *             be assigned. This name has no semantic meaning.
      * @param owner The owner of the process instance. (Who started it).
      * @return A handle to the process
      */
@@ -694,11 +693,10 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
         @WebParam(name = "name") @RestParam(name = "name", type = RestParamType.QUERY) name: String?,
         @WebParam(name = "uuid") @RestParam(name = "uuid", type = RestParamType.QUERY) uuid: String?,
         @WebParam(name = "owner", header = true) @RestParam(type = RestParamType.PRINCIPAL) owner: Principal
-    )
-            : XmlHandle<*> = translateExceptions {
+    ): SerializableData<HProcessInstance> = translateExceptions {
         processEngine.startTransaction().use { transaction ->
             val uuid: UUID = uuid?.let { UUID.fromString(it) } ?: UUID.randomUUID()
-            return transaction.commit(
+            return transaction.commitSerializable(
                 processEngine.startProcess(
                     transaction, owner, handle<ExecutableProcessModel>(handle),
                     name ?: "<unnamed>", uuid, null
@@ -716,7 +714,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     @RestMethod(method = HttpMethod.GET, path = "/processInstances")
     @XmlElementWrapper(name = "processInstances", namespace = Constants.PROCESS_ENGINE_NS)
     fun getProcesInstanceRefs(@RestParam(type = RestParamType.PRINCIPAL) owner: Principal?)
-            : Collection<ProcessInstanceRef> = translateExceptions {
+        : SerializableData<Collection<ProcessInstanceRef>> = translateExceptions {
 
         if (owner == null) throw AuthenticationNeededException()
         processEngine.startTransaction().use { transaction ->
@@ -724,7 +722,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
             for (pi in processEngine.getOwnedProcessInstances(transaction, owner)) {
                 list.add(pi.ref)
             }
-            transaction.commit(SerializableList(INSTANCEREFS_TAG, list))
+            transaction.commitSerializable(list, INSTANCEREFS_TAG)
         }
     }
 
@@ -892,7 +890,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
         @WebParam(name = "principal", mode = Mode.IN, header = true)
         user: Principal
     )
-            : NodeInstanceState = translateExceptions {
+        : NodeInstanceState = translateExceptions {
 
         val payloadNode = DomUtil.nodeToFragment(payload)
         processEngine.startTransaction().use { transaction ->
@@ -1023,8 +1021,8 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
 
     override fun isSameService(other: EndpointDescriptor?): Boolean {
         return Constants.PROCESS_ENGINE_NS == other!!.serviceName!!.namespaceURI &&
-                SERVICE_LOCALNAME == other.serviceName!!.localPart &&
-                endpointName == other.endpointName
+            SERVICE_LOCALNAME == other.serviceName!!.localPart &&
+            endpointName == other.endpointName
     }
 
     override fun initEndpoint(config: ServletConfig) {
