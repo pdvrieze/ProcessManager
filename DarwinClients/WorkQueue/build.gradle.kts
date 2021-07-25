@@ -52,6 +52,8 @@ configurations {
     create("codegenClasspath") {
         attributes {
             attribute(androidAttribute, false)
+            attribute(KotlinPlatformType.attribute, KotlinPlatformType.jvm)
+//            attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class, Usage.JAVA_RUNTIME))
         }
     }
 }
@@ -75,12 +77,12 @@ tasks {
         dependsOn(":PEUserMessageHandler:apiClasses")
         group = "build"
         description = "Generate the client sources"
+        mainClass.set("nl.adaptivity.messaging.MessagingSoapClientGenerator")
+        classpath = files(configurations.named("codegen"))
 
         doFirst {
             println()
-            main = "nl.adaptivity.messaging.MessagingSoapClientGenerator"
 
-            classpath = configurations["codegen"]
             val cp = configurations["codegenClasspath"]
 
             args("-gencp")
@@ -95,12 +97,12 @@ tasks {
         }
     }
 
-    val compileJava by existing {
+    val compileKotlin by existing {
         dependsOn(generate)
     }
 
     named<Jar>("jar") {
-        baseName="WorkQueueClients"
+        archiveBaseName.set("WorkQueueClients")
     }
 }
 

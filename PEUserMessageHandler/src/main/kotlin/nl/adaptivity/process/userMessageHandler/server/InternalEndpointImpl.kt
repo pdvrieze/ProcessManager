@@ -39,69 +39,72 @@ import javax.jws.WebParam.Mode
 import javax.servlet.ServletConfig
 
 
-class InternalEndpointImpl @JvmOverloads constructor(private val mService: UserMessageService<out Transaction> = UserMessageService.instance) : UserTaskServiceDescriptor(), InternalEndpoint {
+class InternalEndpointImpl @JvmOverloads constructor(private val service: UserMessageService<out Transaction> = UserMessageService.instance) :
+    UserTaskServiceDescriptor(), InternalEndpoint {
 
-  inner class TaskUpdateCompletionListener(internal var mTask: XmlTask) : CompletionListener<NodeInstanceState> {
+    inner class TaskUpdateCompletionListener(internal var task: XmlTask) : CompletionListener<NodeInstanceState> {
 
-    override fun onMessageCompletion(future: Future<out NodeInstanceState>) {
-      if (!future.isCancelled) {
-        try {
-          mTask.state = future.get()
-        } catch (e: InterruptedException) {
-          Logger.getAnonymousLogger().log(Level.INFO, "Messaging interrupted", e)
-        } catch (e: ExecutionException) {
-          Logger.getAnonymousLogger().log(Level.WARNING, "Error updating task", e)
+        override fun onMessageCompletion(future: Future<out NodeInstanceState>) {
+            if (!future.isCancelled) {
+                try {
+                    task.state = future.get()
+                } catch (e: InterruptedException) {
+                    Logger.getAnonymousLogger().log(Level.INFO, "Messaging interrupted", e)
+                } catch (e: ExecutionException) {
+                    Logger.getAnonymousLogger().log(Level.WARNING, "Error updating task", e)
+                }
+
+            }
         }
 
-      }
     }
 
-  }
-
-  private var endpointUri: URI? = null
+    private var endpointUri: URI? = null
 
     override val serviceName: QName
         get() = SERVICENAME
 
-  override val endpointLocation: URI?
-      get() {
-          // TODO Do this better
-          return endpointUri
-      }
+    override val endpointLocation: URI?
+        get() {
+            // TODO Do this better
+            return endpointUri
+        }
 
-  override fun initEndpoint(config: ServletConfig) {
-    val path = StringBuilder(config.servletContext.contextPath)
-    path.append("/internal")
-    try {
-      endpointUri = URI(null, null, path.toString(), null)
-    } catch (e: URISyntaxException) {
-      throw RuntimeException(e) // Should never happen
+    override fun initEndpoint(config: ServletConfig) {
+        val path = StringBuilder(config.servletContext.contextPath)
+        path.append("/internal")
+        try {
+            endpointUri = URI(null, null, path.toString(), null)
+        } catch (e: URISyntaxException) {
+            throw RuntimeException(e) // Should never happen
+        }
+
+        MessagingRegistry.getMessenger().registerEndpoint(this)
     }
 
-    MessagingRegistry.getMessenger().registerEndpoint(this)
-  }
+    @WebMethod
+    @Throws(SQLException::class)
+    override fun postTask(
+        @WebParam(name = "repliesParam", mode = Mode.IN) endPoint: EndpointDescriptorImpl,
+        @WebParam(name = "taskParam", mode = Mode.IN) @SoapSeeAlso(XmlTask::class)
+        task: UserTask<*>
+    ): ActivityResponse<Boolean, Boolean> {
+        try {
+            service.inTransaction {
+                task.setEndpoint(endPoint)
+                val result = postTask(get(task))
+                return commit { ActivityResponse.create(NodeInstanceState.Acknowledged, Boolean::class, result) }
 
-  @WebMethod
-  @Throws(SQLException::class)
-  override fun postTask(@WebParam(name = "repliesParam", mode = Mode.IN) endPoint: EndpointDescriptorImpl,
-                        @WebParam(name = "taskParam",
-                                  mode = Mode.IN) @SoapSeeAlso(XmlTask::class) task: UserTask<*>): ActivityResponse<Boolean> {
-    try {
-      mService.inTransaction {
-        task.setEndpoint(endPoint)
-        val result = postTask(get(task))
-        return commit {ActivityResponse.create(NodeInstanceState.Acknowledged, Boolean::class.java, result)}
+            }
+        } catch (e: Exception) {
+            Logger.getAnonymousLogger().log(Level.WARNING, "Error posting task", e)
+            throw e
+        }
 
-      }
-    } catch (e: Exception) {
-      Logger.getAnonymousLogger().log(Level.WARNING, "Error posting task", e)
-      throw e
     }
 
-  }
-
-  override fun destroy() {
-    mService.destroy()
-    MessagingRegistry.getMessenger().unregisterEndpoint(this)
-  }
+    override fun destroy() {
+        service.destroy()
+        MessagingRegistry.getMessenger().unregisterEndpoint(this)
+    }
 }

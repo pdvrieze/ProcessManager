@@ -52,7 +52,6 @@ configurations {
     }
     create("codegenClasspath") {
         attributes {
-            attribute(androidAttribute, false)
             attribute(KotlinPlatformType.attribute, KotlinPlatformType.jvm)
             attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class, Usage.JAVA_RUNTIME))
         }
@@ -84,7 +83,6 @@ tasks {
         doFirst {
             println()
 
-//            classpath = configurations["codegen"]
             val cp = configurations["codegenClasspath"]
 
             args("-gencp")

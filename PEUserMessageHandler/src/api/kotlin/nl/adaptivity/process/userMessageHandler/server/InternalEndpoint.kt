@@ -34,6 +34,6 @@ interface InternalEndpoint : GenericEndpoint {
   @WebMethod
   @Throws(SQLException::class)
   fun postTask(@WebParam(name = "repliesParam", mode = Mode.IN) endPoint: EndpointDescriptorImpl,
-               @WebParam(name = "taskParam", mode = Mode.IN) task: UserTask<*>): ActivityResponse<Boolean>
+               @WebParam(name = "taskParam", mode = Mode.IN) task: UserTask<*>): ActivityResponse<Boolean, Boolean>
 
 }
