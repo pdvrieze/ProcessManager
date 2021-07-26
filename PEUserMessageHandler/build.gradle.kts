@@ -58,15 +58,15 @@ sourceSets {
 
 kotlin {
     target {
-        sourceSets.all {
-            languageSettings {
-                useExperimentalAnnotation("kotlin.RequiresOptIn")
-            }
-        }
         compilations.all {
             kotlinOptions {
                 jvmTarget = "1.8"
             }
+        }
+    }
+    sourceSets.all {
+        languageSettings {
+            useExperimentalAnnotation("kotlin.RequiresOptIn")
         }
     }
 }

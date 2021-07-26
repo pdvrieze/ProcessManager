@@ -25,32 +25,22 @@ import versions.*
 plugins {
     kotlin("multiplatform")
     id("idea")
-//    id("net.devrieze.gradlecodegen")
     id("kotlinx-serialization")
+    mpconsumer
 }
 
 base {
-    archivesBaseName = "PE-common"
+    archivesName.set("PE-common")
     version = "1.0.0"
     description = "A library with process engine support classes"
 }
-
-registerAndroidAttributeForDeps()
-/*
-
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
-*/
 
 kotlin {
     targets {
         jvm {
             compilations.all {
-                tasks.getByName<KotlinCompile>(compileKotlinTaskName).kotlinOptions {
+                kotlinOptions {
                     jvmTarget = "1.8"
-                    freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental", "-Xjvm-default=enable")
                 }
                 tasks.withType<Test> {
                     useJUnitPlatform()
@@ -86,6 +76,11 @@ kotlin {
     }
 
     sourceSets {
+        all {
+            languageSettings {
+                useExperimentalAnnotation("kotlin.RequiresOptIn")
+            }
+        }
         val commonMain by getting {
             dependencies {
 
@@ -96,10 +91,6 @@ kotlin {
                 implementation("io.github.pdvrieze.xmlutil:core:$xmlutilVersion")
                 implementation("io.github.pdvrieze.xmlutil:xmlserializable:$xmlutilVersion")
                 compileOnly(project(":JavaCommonApi"))
-
-//                implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
-//                api("io.github.pdvrieze.xmlutil:serialization:$xmlutilVersion")
-
 
             }
         }
@@ -119,20 +110,11 @@ kotlin {
             dependsOn(javaMain)
             dependencies {
                 implementation(kotlin("stdlib-jdk8"))
-//                api("net.devrieze:kotlinsql:$kotlinsqlVersion")
-//                compileOnly(project(":DarwinJavaApi"))
-//                compileOnly(project(":JavaCommonApi"))
-//                compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
-
-//                implementation("io.github.pdvrieze.xmlutil:core:$xmlutilVersion")
-//                implementation("io.github.pdvrieze.xmlutil:serialization:$xmlutilVersion")
             }
         }
         val jvmTest by getting {
             dependencies {
                 implementation(kotlin("test-junit5"))
-//                implementation(kotlin("test-annotations-common"))
-//                implementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
                 runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.1.0")
                 runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
             }
@@ -143,28 +125,6 @@ kotlin {
                 runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
             }
         }
-/*
-        val jvmTest by getting {
-            dependencies {
-                implementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
-                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
-
-                implementation("org.xmlunit:xmlunit-core:2.6.0")
-                implementation("org.mockito:mockito-core:2.25.0")
-                implementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0")
-
-                runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.1.0")
-
-                implementation("io.github.pdvrieze.xmlutil:core:$xmlutilVersion")
-                implementation("io.github.pdvrieze.xmlutil:serialization:$xmlutilVersion")
-
-//                implementation(project(":JavaCommonApi"))
-                implementation(project(":DarwinJavaApi"))
-                implementation(project(":TestSupport"))
-
-            }
-        }
-*/
         val androidMain by getting {
             dependsOn(javaMain)
         }
@@ -188,27 +148,3 @@ tasks.create<Task>("test") {
     dependsOn(tasks.named("jvmTest"))
     group="verification"
 }
-
-//test {
-//    useJUnitPlatform()
-//}
-
-/*
-tasks.withType(KotlinCompile) {
-    kotlinOptions.freeCompilerArgs=[argJvmDefault]
-}
-*/
-
-/*
-dependencies {
-    api project(':JavaCommonApi')
-    api project(':multiplatform')
-    api(project(":java-common:java"))
-    api("net.devrieze:kotlinsql:$kotlinsqlVersion")
-
-    implementation "org.jetbrains:annotations:13.0"
-    api "org.jetbrains.kotlin:kotlin-stdlib-jdk7:$kotlin_version"
-    testImplementation "org.junit.jupiter:junit-jupiter-api:$jupiterVersion"
-    testRuntime "org.junit.jupiter:junit-jupiter-engine:$jupiterVersion"
-}
-*/
