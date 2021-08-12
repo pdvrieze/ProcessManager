@@ -28,7 +28,7 @@ base {
 
 dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
-    api("net.devrieze:kotlinsql:$kotlinsqlVersion")
+    api("io.github.pdvrieze.kotlinsql:kotlinsql-core:$kotlinsqlVersion")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")

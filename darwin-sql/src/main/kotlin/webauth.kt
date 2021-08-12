@@ -16,9 +16,9 @@
 
 package uk.ac.bournemouth.ac.db.darwin.webauth
 
+import io.github.pdvrieze.kotlinsql.ddl.Database
+import io.github.pdvrieze.kotlinsql.ddl.MutableTable
 
-import uk.ac.bournemouth.kotlinsql.Database
-import uk.ac.bournemouth.kotlinsql.MutableTable
 
 /**
  * Code definition of the webauth database.

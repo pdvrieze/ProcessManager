@@ -17,28 +17,47 @@
 import versions.*
 
 plugins {
-    id("org.jetbrains.kotlin.jvm")
-    id("java-library")
+    kotlin("jvm")
+    `java-library`
     mpconsumer
 }
 
 description = "A library that abstracts away the access to the account database through a nicer api"
 
 dependencies {
-    api("net.devrieze:kotlinsql:$kotlinsqlVersion")
+    api("io.github.pdvrieze.kotlinsql:kotlinsql-monadic:$kotlinsqlVersion")
 
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
     implementation(project(":darwin-sql"))
+    implementation("io.github.pdvrieze.xmlutil:core:$xmlutilVersion")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
 
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
-    testRuntimeOnly("mysql:mysql-connector-java:$mysqlConnectorVersion")
+    testRuntimeOnly("org.mariadb.jdbc:mariadb-java-client:$mariaDbConnectorVersion")
 }
 
 java {
     sourceCompatibility = myJavaVersion
     targetCompatibility = myJavaVersion
+}
+
+kotlin {
+    explicitApiWarning()
+    target {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = "1.8"
+            }
+        }
+    }
+    sourceSets.all {
+        languageSettings.apply {
+            languageVersion = "1.5"
+            apiVersion = "1.5"
+            useExperimentalAnnotation("kotlin.RequiresOptIn")
+        }
+    }
 }
 
 

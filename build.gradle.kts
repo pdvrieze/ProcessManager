@@ -72,7 +72,7 @@ dependencies {
 
 
 /*
-    tomcatClasspath "mysql:mysql-connector-java:$mysqlConnectorVersion"
+    tomcatClasspath "org.mariadb.jdbc:mariadb-java-client:$mariaDbConnectorVersion"
     tomcatClasspath project(":DarwinJavaApi")
     tomcatClasspath project(":JavaCommonApi")
     tomcatClasspath project(":DarwinRealm")

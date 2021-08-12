@@ -83,7 +83,7 @@ kotlin {
             dependsOn(javaMain)
             dependencies {
                 implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
-                api("net.devrieze:kotlinsql:$kotlinsqlVersion")
+                api("io.github.pdvrieze.kotlinsql:kotlinsql-monadic:$kotlinsqlVersion")
             }
         }
         val jvmTest by getting {

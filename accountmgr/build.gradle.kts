@@ -49,16 +49,19 @@ dependencies {
     implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
     implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:$kotlinx_html_version")
     implementation("com.sun.mail:javax.mail:1.5.5")
+    implementation("io.github.pdvrieze.kotlinsql:kotlinsql-monadic:$kotlinsqlVersion")
+    implementation("io.github.pdvrieze.xmlutil:core:$xmlutilVersion")
     implementation(project(":accountcommon"))
-    implementation("net.devrieze:kotlinsql:$kotlinsqlVersion")
     implementation(project(":darwin:servletSupport"))
+    implementation(project(":darwin-sql"))
+
     compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
     compileOnly(project(":JavaCommonApi"))
     compileOnly(project(":DarwinJavaApi"))
+
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
-    implementation(project(":darwin-sql"))
     testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
-    testRuntimeOnly("mysql:mysql-connector-java:5.1.36")
+    testRuntimeOnly("org.mariadb.jdbc:mariadb-java-client:$mariaDbConnectorVersion")
 
     "javascript"(project(":accountmgr:js"))
 }

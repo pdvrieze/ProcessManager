@@ -114,7 +114,7 @@ kotlin {
             dependsOn(javaMain)
             dependencies {
                 implementation(kotlin("stdlib-jdk8"))
-                api("net.devrieze:kotlinsql:$kotlinsqlVersion")
+                api("io.github.pdvrieze.kotlinsql:kotlinsql-core:$kotlinsqlVersion")
                 compileOnly(project(":DarwinJavaApi"))
                 compileOnly(project(":JavaCommonApi"))
                 compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")

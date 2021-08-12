@@ -95,7 +95,7 @@ include(":JavaCommonApi")
 if(file("kotlinsql").exists()) {
     includeBuild("kotlinsql") {
         dependencySubstitution {
-            substitute module("net.devrieze:kotlinsql:") with project(":")
+            substitute module("io.github.pdvrieze.kotlinsql:kotlinsql-monadic:") with project(":")
         }
     }
 }
@@ -125,9 +125,9 @@ include(":ProcessEngine:core")
 include(":ProcessEngine:servlet")
 
 include(":DarwinClients:ProcessEngine")
-include(":DarwinClients:WorkQueue")
 
 include(":PEUserMessageHandler")
+include(":DarwinClients:WorkQueue")
 
 // No actual implementation yet
 // include(":PE-dataservices")
