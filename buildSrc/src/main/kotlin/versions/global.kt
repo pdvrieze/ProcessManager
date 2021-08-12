@@ -39,6 +39,7 @@ val Project.testngVersion: String get() = project.property("testngVersion") as S
 val Project.tomcatPluginVersion: String get() = project.property("tomcatPluginVersion") as String
 val Project.tomcatVersion: String get() = project.property("tomcatVersion") as String
 val Project.mysqlConnectorVersion: String get() = project.property("mysqlConnectorVersion") as String
+val Project.mariaDbConnectorVersion: String get() = project.property("mariaDbConnectorVersion") as String
 val Project.androidTarget: String get() = project.property("androidTarget") as String
 val Project.androidCompatVersion: String get() = project.property("androidCompatVersion") as String
 val Project.androidCoroutinesVersion: String get() = project.property("androidCoroutinesVersion") as String

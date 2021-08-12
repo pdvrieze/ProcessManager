@@ -113,11 +113,12 @@ kotlin {
                 dependencies {
                     implementation(project(":PE-common"))
                     implementation(kotlin("stdlib-jdk8"))
+                    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
 
                     implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
 
-//                    implementation("org.spekframework.spek2:spek-dsl-jvm:${spek2Version}")
-//                    runtimeOnly("org.spekframework.spek2:spek-runtime-jvm:${spek2Version}")
+                    implementation("org.spekframework.spek2:spek-dsl-jvm:${spek2Version}")
+                    runtimeOnly("org.spekframework.spek2:spek-runtime-jvm:${spek2Version}")
 
                     implementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
 
@@ -131,10 +132,10 @@ kotlin {
                     runtimeOnly("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
                     runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
 
-//                    runtimeOnly("org.spekframework.spek2:spek-runner-junit5:${spek2Version}") {
-//                        exclude(group = "org.junit.platform")
-//                        exclude(group = "org.jetbrains.kotlin")
-//                    }
+                    runtimeOnly("org.spekframework.spek2:spek-runner-junit5:${spek2Version}") {
+                        exclude(group = "org.junit.platform")
+                        exclude(group = "org.jetbrains.kotlin")
+                    }
                 }
             }
         }
