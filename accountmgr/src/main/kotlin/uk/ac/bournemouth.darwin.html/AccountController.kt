@@ -23,11 +23,14 @@ import io.github.pdvrieze.darwin.servlet.support.htmlAccepted
 import kotlinx.html.*
 import net.devrieze.util.nullIfNot
 import net.devrieze.util.overrideIf
+import nl.adaptivity.xmlutil.XmlStreaming
+import nl.adaptivity.xmlutil.XmlWriter
+import nl.adaptivity.xmlutil.smartStartTag
+import nl.adaptivity.xmlutil.writeAttribute
 import uk.ac.bournemouth.darwin.accounts.*
 import uk.ac.bournemouth.darwin.sharedhtml.darwinDialog
 import uk.ac.bournemouth.darwin.sharedhtml.loginDialog
 import uk.ac.bournemouth.darwin.sharedhtml.setAliasDialog
-import uk.ac.bournemouth.util.kotlin.sql.useHelper
 import java.net.URI
 import java.net.URLEncoder
 import java.security.MessageDigest
@@ -48,8 +51,6 @@ import javax.servlet.http.Cookie
 import javax.servlet.http.HttpServlet
 import javax.servlet.http.HttpServletRequest
 import javax.servlet.http.HttpServletResponse
-import javax.xml.stream.XMLOutputFactory
-import javax.xml.stream.XMLStreamWriter
 
 
 //internal const val MAXTOKENLIFETIME = 864000 /* Ten days */
@@ -176,9 +177,8 @@ class AccountController : HttpServlet() {
         val isLocalPassword: Boolean,
         val keys: List<KeyInfo>) {
 
-        fun toXmlWriter(writer: XMLStreamWriter) {
-            with(writer) {
-                writeStartElement("account")
+        fun toXmlWriter(writer: XmlWriter) {
+            writer.smartStartTag(null, "account") {
                 writeAttribute("username", username)
                 alias?.let { writeAttribute("alias", it) }
                 fullname?.let { writeAttribute("fullname", it) }
@@ -187,7 +187,6 @@ class AccountController : HttpServlet() {
                     key.toXmlWriter(writer)
                 }
 
-                writeEndElement()
             }
         }
     }
@@ -266,10 +265,10 @@ class AccountController : HttpServlet() {
                 resp.contentType = "text/xml"
                 resp.characterEncoding="UTF8"
                 resp.outputStream.use {
-                    XMLOutputFactory.newFactory().createXMLStreamWriter(it, "UTF8").useHelper({it.close()}) { writer ->
-                        writer.writeStartDocument()
+                    XmlStreaming.newWriter(it, "UTF8").use { writer ->
+                        writer.startDocument(null, null, null)
                         info.toXmlWriter(writer)
-                        writer.writeEndDocument()
+                        writer.endDocument()
                     }
 
                 }

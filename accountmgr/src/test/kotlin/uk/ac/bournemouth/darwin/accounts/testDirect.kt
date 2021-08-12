@@ -20,11 +20,7 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import uk.ac.bournemouth.ac.db.darwin.webauth.WebAuthDB
 import uk.ac.bournemouth.kotlinsql.Database
-import uk.ac.bournemouth.kotlinsql.Table
-import uk.ac.bournemouth.util.kotlin.sql.DBConnection
-import uk.ac.bournemouth.util.kotlin.sql.DBConnection2
-import uk.ac.bournemouth.util.kotlin.sql.DBTransaction
-import uk.ac.bournemouth.util.kotlin.sql.DBTransactionBase
+import uk.ac.bournemouth.util.kotlin.sql.impl.DBConnection2
 import java.io.OutputStreamWriter
 import java.io.PrintWriter
 import java.math.BigInteger
@@ -144,6 +140,11 @@ class TestAccountControllerDirect {
 
     @BeforeEach
     fun setupDatabase() {
+        accountDb {
+            ensureTables()
+        }
+
+/*
         try {
             WebAuthDB.connect2(MyDataSource()) {
                 val conn = this
@@ -163,12 +164,22 @@ class TestAccountControllerDirect {
             e.printStackTrace()
             throw e
         }
+*/
     }
 
     @AfterEach
     fun emptyDatabase() {
         WebAuthDB.connect2(MyDataSource()) {
-            WebAuthDB._tables.forEach { table ->
+            val tables = arrayOf(
+                WebAuthDB.tokens,
+                WebAuthDB.challenges,
+                WebAuthDB.pubkeys,
+                WebAuthDB.app_perms,
+                WebAuthDB.user_roles,
+                WebAuthDB.roles,
+                WebAuthDB.users,
+            )
+            tables.forEach { table ->
                 db.DELETE_FROM(table).executeUpdate(this)
 //                table.dropTransitive(this, true)
             }
