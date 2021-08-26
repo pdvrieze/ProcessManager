@@ -16,107 +16,153 @@
 
 package net.devrieze.util.db
 
+import io.github.pdvrieze.kotlinsql.ddl.Database
+import io.github.pdvrieze.kotlinsql.monadic.DBReceiver
+import io.github.pdvrieze.kotlinsql.monadic.actions.DBAction
+import io.github.pdvrieze.kotlinsql.monadic.actions.mapSeq
 import net.devrieze.util.*
-import uk.ac.bournemouth.kotlinsql.Database
-import uk.ac.bournemouth.kotlinsql.getSingleList
-import uk.ac.bournemouth.kotlinsql.getSingleListOrNull
 import java.sql.SQLException
 import java.util.*
 
-open class DBHandleMap<TMP, V : Any, TR : DBTransaction>(
-    transactionFactory: TransactionFactory<TR>,
-    database: Database,
-    elementFactory: HMElementFactory<TMP, V, TR>,
+open class DBHandleMap<TMP, V : Any, TR : MonadicDBTransaction<DB>, DB : Database>(
+    transactionFactory: DBTransactionFactory<TR, DB>,
+    elementFactory: HMElementFactory<TMP, V, TR, DB>,
     handleAssigner: (V, Handle<V>) -> V? = ::HANDLE_AWARE_ASSIGNER
-) :
-    DbSet<TMP, V, TR>(transactionFactory, database, elementFactory, handleAssigner),
+) : DbSet<TMP, V, TR, DB>(transactionFactory, elementFactory, handleAssigner),
     MutableTransactionedHandleMap<V, TR> {
 
+    override val elementFactory: HMElementFactory<TMP, V, TR, DB>
+        get() = super.elementFactory as HMElementFactory<TMP, V, TR, DB>
 
-    private inner class TransactionIterable(private val transaction: TR) : MutableIterable<V> {
-
-        override fun iterator(): MutableIterator<V> {
-            return this@DBHandleMap.iterator(transaction, false)
-        }
-
-    }
-
-    private val mPendingCreates = TreeMap<ComparableHandle<V>, TMP>()
+    private val pendingCreates = TreeMap<ComparableHandle<V>, TMP>()
 
     protected fun isPending(handle: ComparableHandle<V>): Boolean {
-        return mPendingCreates.containsKey(handle)
+        return pendingCreates.containsKey(handle)
     }
 
 
     fun pendingValue(handle: ComparableHandle<V>): TMP? {
-        return mPendingCreates[handle]
+        return pendingCreates[handle]
     }
 
-
-    override val elementFactory: HMElementFactory<TMP, V, TR>
-        get() = super.elementFactory as HMElementFactory<TMP, V, TR>
-
-    @Throws(SQLException::class)
-    override fun <W : V> put(transaction: TR, value: W): ComparableHandle<W> {
-        return addWithKey(transaction, value) ?: throw RuntimeException("Adding element $value failed")
+    fun <W : V> put(value: W): ComparableHandle<W> = withDB { dbReceiver ->
+        put(dbReceiver, value)
     }
 
-    @Throws(SQLException::class)
+    fun <W : V> put(receiver: DBReceiver<DB>, value: W): DBAction<DB, ComparableHandle<W>> {
+        return addWithKey(receiver, value).map { it ?: throw RuntimeException("Adding element $value failed") }
+    }
+
+    @Deprecated("Use monadic function")
+    override fun <W : V> put(transaction: TR, value: W): ComparableHandle<W> =
+        with(transaction) {
+            put(receiver = this, value = value).evaluateNow()
+        }
+
+    fun get(handle: Handle<V>): V? = withDB { dbReceiver ->
+        get(dbReceiver, handle)
+    }
+
     override fun get(transaction: TR, handle: Handle<V>): V? {
-        val comparableHandle = handle.toComparableHandle()
-        if (mPendingCreates.containsKey(comparableHandle)) {
-            throw IllegalArgumentException("Pending create") // XXX This is not the best way
-//      return mPendingCreates[comparableHandle]
-        }
-
-        val factory = elementFactory
-        val result = database
-            .SELECT(factory.createColumns)
-            .WHERE { factory.getHandleCondition(this, comparableHandle) AND factory.filter(this) }
-            .getSingleListOrNull(transaction.connection) { columns, values ->
-                elementFactory.create(transaction, columns, values)
-            } ?: return null
-        mPendingCreates.put(comparableHandle, result)
-        try {
-            return factory.postCreate(transaction, result)
-        } finally {
-            mPendingCreates.remove(comparableHandle)
+        return with(transaction) {
+            get(dbReceiver = transaction, handle).evaluateNow()
         }
     }
 
-    @Throws(SQLException::class)
+    fun get(dbReceiver: DBReceiver<DB>, handle: Handle<V>): DBAction<DB, V?> {
+        dbReceiver.transaction {
+            val tr = this
+            val comparableHandle = handle.toComparableHandle()
+            if (pendingCreates.containsKey(comparableHandle)) {
+                throw IllegalArgumentException("Pending create") // XXX This is not the best way
+            }
+
+            val factory = elementFactory
+
+            return SELECT(factory.createColumns)
+                .WHERE { factory.getHandleCondition(this, comparableHandle) AND factory.filter(this) }
+                .flatMapEach { rowData ->
+                    sequence {
+                        yield(elementFactory.createBuilder(tr, rowData))
+                    }.asIterable()
+                }.then {
+                    it.singleOrNull()?.let { result ->
+                        factory.createFromBuilder(tr, FactoryAccess(), result as TMP)
+                    } ?: value(null)
+                }
+        }
+    }
+
+    fun castOrGet(handle: Handle<V>): V? = withDB { dbReceiver ->
+        castOrGet(dbReceiver, handle)
+    }
+
     override fun castOrGet(transaction: TR, handle: Handle<V>): V? {
+        return with(transaction) { castOrGet(dbReceiver = this, handle).evaluateNow() }
+    }
+
+    fun castOrGet(dbReceiver: DBReceiver<DB>, handle: Handle<V>): DBAction<DB, V?> {
         val element = elementFactory.asInstance(handle)
         if (element != null) {
-            return element
+            return dbReceiver.value(element)
         } // If the element is it's own handle, don't bother looking it up.
-        return get(transaction, handle)
+        return get(dbReceiver, handle)
+    }
+
+    fun set(handle: Handle<V>, value: V): V? = withDB { dbReceiver ->
+        set(dbReceiver, handle, value)
     }
 
     @Throws(SQLException::class)
     override fun set(transaction: TR, handle: Handle<V>, value: V): V? {
-        val oldValue = get(transaction, handle)
 
-        return set(transaction, handle, oldValue, value)
+        return with(transaction) {
+            get(dbReceiver = transaction, handle).then { oldValue ->
+                set(transaction, handle, oldValue, value)
+            }.evaluateNow()
+        }
     }
 
+    fun set(dbReceiver: DBReceiver<DB>, handle: Handle<V>, value: V): DBAction<DB, V?> {
+        return get(dbReceiver, handle).then { oldValue ->
+            set(dbReceiver, handle, oldValue, value)
+        }
+    }
+
+
     @Throws(SQLException::class)
-    protected operator fun set(transaction: TR, handle: Handle<V>, oldValue: V?, newValue: V): V? {
+    protected operator fun set(
+        dbReceiver: DBReceiver<DB>,
+        handle: Handle<V>,
+        oldValue: V?,
+        newValue: V
+    ): DBAction<DB, V?> {
         if (elementFactory.isEqualForStorage(oldValue, newValue)) {
-            return newValue
+            return dbReceiver.value(newValue)
         }
 
         val newValueWithHandle = handleAssigner(newValue, handle) ?: newValue
 
-        database
-            .UPDATE { elementFactory.store(this, newValueWithHandle) }
-            .WHERE { elementFactory.filter(this) AND elementFactory.getHandleCondition(this, handle) }
-            .executeUpdate(transaction.connection)
-        elementFactory.postStore(transaction.connection, handle, oldValue, newValueWithHandle)
-        return oldValue
+        return dbReceiver.transaction {
+            val tr = this
+            UPDATE { elementFactory.store(this, newValueWithHandle) }
+                .WHERE { elementFactory.filter(this) AND elementFactory.getHandleCondition(this, handle) }
+                .then {
+                    elementFactory.postStore(tr, handle, oldValue, newValueWithHandle)
+                        .then(value(oldValue))
+
+                }
+        }
     }
 
-    override fun iterator(transaction: TR, readOnly: Boolean): MutableAutoCloseableIterator<V> {
+    override fun iterator(transaction: TR, readOnly: Boolean): MutableIterator<V> {
+        return with(transaction) {
+            super.iterator(dbReceiver = transaction).evaluateNow()
+        }
+    }
+
+    /*
+    override fun iterator2(transaction: TR, readOnly: Boolean): MutableAutoCloseableIterator<V> {
         try {
             return super.iterator(transaction, readOnly)
         } catch (e: SQLException) {
@@ -124,31 +170,65 @@ open class DBHandleMap<TMP, V : Any, TR : DBTransaction>(
         }
 
     }
+*/
 
     override fun iterable(transaction: TR): MutableIterable<V> {
-        return TransactionIterable(transaction)
-    }
-
-    @Throws(SQLException::class)
-    override fun containsElement(transaction: TR, element: Any): Boolean {
-        if (element is Handle<*>) {
-            return containsElement(transaction, element.handleValue)
+        return with(transaction) {
+            iterable(dbReceiver = this).evaluateNow()
         }
-        return super.contains(transaction, element)
     }
 
-    @Throws(SQLException::class)
-    override fun containsAll(transaction: TR, c: Collection<*>): Boolean {
-        for (o in c) {
-            if (o == null || !containsElement(transaction, o)) {
-                return false
+    fun iterable(dbReceiver: DBReceiver<DB>): DBAction<DB, MutableIterable<V>> {
+        return with(dbReceiver) {
+            iterator(this).map {
+                object : MutableIterable<V> {
+                    override fun iterator(): MutableIterator<V> = it
+                }
             }
         }
-        return true
     }
 
-    @Throws(SQLException::class)
+    fun containsElement(element: Any): Boolean {
+        if (element is Handle<*>) {
+            return containsElement(element.handleValue)
+        }
+        return super.contains(element)
+    }
+
+    override fun containsElement(transaction: TR, element: Any): Boolean {
+        return with(transaction) { containsElement(dbReceiver = this, element).evaluateNow() }
+    }
+
+    fun containsElement(dbReceiver: DBReceiver<DB>, element: Any): DBAction<DB, Boolean> {
+        if (element is Handle<*>) {
+            return containsElement(dbReceiver, element.handleValue)
+        }
+        return super.contains(dbReceiver, element)
+    }
+
     override fun contains(transaction: TR, handle: Handle<V>): Boolean {
+        return with(transaction) { contains(dbReceiver = this, handle).evaluateNow() }
+    }
+
+    override fun contains(dbReceiver: DBReceiver<DB>, element: Any): DBAction<DB, Boolean> {
+        @Suppress("UNCHECKED_CAST")
+        return when (element) {
+            is Handle<*> -> contains(dbReceiver, handle = element as Handle<V>)
+            else         -> super.contains(dbReceiver, element)
+        }
+    }
+
+    fun contains(dbReceiver: DBReceiver<DB>, handle: Handle<V>): DBAction<DB, Boolean> {
+        return with(dbReceiver) {
+            SELECT(COUNT(elementFactory.createColumns[0]))
+                .WHERE { elementFactory.getHandleCondition(this, handle) AND elementFactory.filter(this) }
+                .mapSeq { it.single()!! > 0 }
+        }
+    }
+
+/*
+    @Throws(SQLException::class)
+    override fun contains2(transaction: TR, handle: Handle<V>): Boolean {
         val query = database
             .SELECT(database.COUNT(elementFactory.createColumns[0]))
             .WHERE { elementFactory.getHandleCondition(this, handle) AND elementFactory.filter(this) }
@@ -161,20 +241,68 @@ open class DBHandleMap<TMP, V : Any, TR : DBTransaction>(
             return false
         }
     }
+*/
 
-    @Throws(SQLException::class)
+    fun containsAll(c: Collection<*>): Boolean = withDB { dbReceiver ->
+        containsAll(dbReceiver, c)
+    }
+
+    override fun containsAll(transaction: TR, c: Collection<*>): Boolean {
+        return with(transaction) { containsAll(dbReceiver = this, c).evaluateNow() }
+    }
+
+    fun containsAll(dbReceiver: DBReceiver<DB>, c: Collection<*>): DBAction<DB, Boolean> {
+        return with(dbReceiver) {
+            c.fold(value(true)) { i: DBAction<DB, Boolean>, elem: Any? ->
+                when (elem) {
+                    null -> value(false)
+                    else -> i.then { acc ->
+                        when (acc) {
+                            true -> contains(dbReceiver = dbReceiver, elem)
+                            else -> value(false)
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    fun remove(handle: Handle<V>): Boolean {
+        return withTransaction { remove(dbReceiver = this, handle).commit() }
+    }
+
     override fun remove(transaction: TR, handle: Handle<V>): Boolean {
-        elementFactory.preRemove(transaction, handle)
-        return database
-            .DELETE_FROM(elementFactory.table)
-            .WHERE { elementFactory.getHandleCondition(this, handle) AND elementFactory.filter(this) }
-            .executeUpdate(transaction.connection) > 0
+        return with(transaction) { remove(dbReceiver = this, handle).evaluateNow() }
+    }
+
+    fun remove(dbReceiver: DBReceiver<DB>, handle: Handle<V>): DBAction<DB, Boolean> {
+        return dbReceiver.transaction {
+            elementFactory.preRemove(this, handle)
+                .then {
+                    DELETE_FROM(elementFactory.table)
+                        .WHERE { elementFactory.getHandleCondition(this, handle) AND elementFactory.filter(this) }
+                        .map { it > 0 }
+                }
+        }
+    }
+
+    override fun clear(transaction: TR) {
+        return with(transaction) { clear(dbReceiver = this).evaluateNow() }
     }
 
     override fun invalidateCache(handle: Handle<V>) =// No-op, there is no cache
         Unit
 
-    override fun invalidateCache() { /* No-op, no cache */
+    override fun invalidateCache() {
+        /* No-op, no cache */
+    }
+
+    private inline fun <R> withDB(crossinline action: (DBReceiver<DB>) -> DBAction<DB, R>): R {
+        return withTransaction { action(this).commit() }
+    }
+
+    private inner class FactoryAccess() : DBSetAccess<TMP> {
+
     }
 
 }

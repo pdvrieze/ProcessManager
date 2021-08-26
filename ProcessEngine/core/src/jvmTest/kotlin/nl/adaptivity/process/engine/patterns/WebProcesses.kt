@@ -54,11 +54,13 @@ class WebProcess1 : ModelSpek(run {
             max = 1
         }
 
-        val join1 by join(split2, split3) {
-            conditions[split2] = ExecutableXSLTCondition("coverage_exists")
-            conditions[split3] = ExecutableXSLTCondition("accepted")
-            min = 2
-            max = 2
+        val join1 by this.let { tcm ->
+            join(split2, split3) {
+                conditions[tcm.split2] = ExecutableXSLTCondition("coverage_exists")
+                conditions[tcm.split3] = ExecutableXSLTCondition("accepted")
+                min = 2
+                max = 2
+            }
         }
 
         val ac3 by activity(split2) {

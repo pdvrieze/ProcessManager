@@ -93,7 +93,7 @@ open class MemTransactionedHandleMap<T : Any, TR : StubTransaction>(private val 
         return this
     }
 
-    override fun iterator(transaction: TR, readOnly: Boolean): MutableAutoCloseableIterator<T> {
+    override fun iterator(transaction: TR, readOnly: Boolean): MutableIterator<T> {
         assigner.transaction = transaction
         return IteratorWrapper(iterator(), readOnly)
     }

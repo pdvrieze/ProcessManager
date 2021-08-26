@@ -28,6 +28,7 @@ import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.Gettable
 import nl.adaptivity.util.Getter
 import nl.adaptivity.xmlutil.XmlStreaming
+import nl.adaptivity.xmlutil.serialization.XML
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
 
@@ -155,9 +156,9 @@ fun ProcessInstance.toDebugString(transaction: StubProcessTransaction): String {
             val inst = it.withPermission()
             "${inst.node.id}[${inst.entryNo}]:${inst.state}"
         }
-        appendln("])\n\nModel:")
-        XmlStreaming.newWriter(this.writer()).use { processModel.rootModel.serialize(it) }
-        appendln("\n")
+        appendLine("])\n\nModel:")
+        XmlStreaming.newWriter(this.writer()).use { XML.encodeToWriter(it, processModel.rootModel) }
+        appendLine("\n")
     }
 }
 

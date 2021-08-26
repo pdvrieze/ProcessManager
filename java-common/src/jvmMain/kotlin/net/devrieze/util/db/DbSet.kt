@@ -16,26 +16,31 @@
 
 package net.devrieze.util.db
 
+import io.github.pdvrieze.kotlinsql.ddl.Database
+import io.github.pdvrieze.kotlinsql.dml.Insert
+import io.github.pdvrieze.kotlinsql.dml.WhereClause
+import io.github.pdvrieze.kotlinsql.dml.impl._MaybeWhere
+import io.github.pdvrieze.kotlinsql.monadic.DBReceiver
+import io.github.pdvrieze.kotlinsql.monadic.actions.DBAction
+import io.github.pdvrieze.kotlinsql.monadic.actions.InsertAction
+import io.github.pdvrieze.kotlinsql.monadic.actions.InsertActionCommon
+import io.github.pdvrieze.kotlinsql.monadic.actions.mapSeq
 import net.devrieze.util.*
-import uk.ac.bournemouth.kotlinsql.Column
-import uk.ac.bournemouth.kotlinsql.Database
-import uk.ac.bournemouth.kotlinsql.Database.WhereClause
-import uk.ac.bournemouth.kotlinsql.Database._Where
-import uk.ac.bournemouth.kotlinsql.getSingleList
-import uk.ac.bournemouth.util.kotlin.sql.StatementHelper
 import java.io.Closeable
-import java.sql.*
-import java.util.*
+import java.sql.SQLException
 import javax.naming.Context
 import javax.naming.InitialContext
 import javax.naming.NamingException
 import javax.sql.DataSource
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
-open class DbSet<TMP, T : Any, TR : DBTransaction>(
-    protected val transactionFactory: TransactionFactory<TR>,
-    val database: Database,
-    protected open val elementFactory: ElementFactory<TMP, T, TR>,
-    val handleAssigner: (T, Handle<T>) -> T? = ::HANDLE_AWARE_ASSIGNER) : AutoCloseable, Closeable {
+open class DbSet<TMP, T : Any, TR: MonadicDBTransaction<DB>, DB : Database>(
+    protected val transactionFactory: DBTransactionFactory<TR, DB>,
+    protected open val elementFactory: ElementFactory<TMP, T, TR, DB>,
+    val handleAssigner: (T, Handle<T>) -> T? = ::HANDLE_AWARE_ASSIGNER
+) {
 
 
     /**
@@ -44,328 +49,256 @@ open class DbSet<TMP, T : Any, TR : DBTransaction>(
      */
     inner class ClosingIterable : Iterable<T>, AutoCloseable, Closeable {
 
-        override fun close() {
-            this@DbSet.close()
-        }
+        override fun close() {}
 
-        override fun iterator(): MutableIterator<T> {
+        override fun iterator(): Iterator<T> {
             @Suppress("DEPRECATION")
-            return this@DbSet.unsafeIterator(false)
+            return this@DbSet.iterator()
         }
 
     }
 
-    private inner class ResultSetIterator @Throws(SQLException::class)
-    constructor(private val transaction: TR,
-                private val statement: PreparedStatement,
-                private val columns: List<Column<*, *, *>>,
-                private val resultSet: ResultSet,
-                private val readOnly: Boolean=false) : MutableAutoCloseableIterator<T> {
-        private var nextElem: T? = null
-        private var isFinished = false
-        private val doCloseOnFinish: Boolean= false
-
-        init {
-            resultSet.metaData
-        }
-
-        @Throws(SQLException::class)
-        fun size(): Int {
-            val pos = resultSet.row
-            try {
-                resultSet.last()
-                return resultSet.row
-            } finally {
-                resultSet.absolute(pos)
-            }
-        }
-
-        override fun hasNext(): Boolean {
-            if (isFinished) {
-                return false
-            }
-            if (nextElem != null) {
-                return true
-            }
-
-            try {
-
-                val nextTmp = if (resultSet.next()) {
-                    val values = columns.mapIndexed { i, column -> column.type.fromResultSet(resultSet, i + 1) }
-                    elementFactory.create(transaction, columns, values)
-                } else {
-                    isFinished = true
-                    transaction.commit()
-                    if (doCloseOnFinish) {
-                        closeResultSet(transaction, statement, resultSet)
-                    } else {
-                        closeResultSet(null, statement, resultSet)
-                    }
-                    return false
-                }
-                nextElem = elementFactory.postCreate(transaction, nextTmp)
-                return true
-            } catch (ex: SQLException) {
-                closeResultSet(transaction, statement, resultSet)
-                throw RuntimeException(ex)
-            }
-
-        }
-
-        override fun next(): T {
-            val currentElem = nextElem
-            nextElem = null
-
-            if (currentElem != null) return currentElem
-
-            if (!hasNext()) { // hasNext will actually update mNextElem;
-                throw IllegalStateException("Reading beyond iterator")
-            }
-            return nextElem!!
-        }
-
-        override fun remove() {
-            if (readOnly) throw UnsupportedOperationException("The iterator is read only")
-            try {
-                resultSet.deleteRow()
-            } catch (ex: SQLException) {
-                closeResultSet(transaction, statement, resultSet)
-                throw ex
-            }
-
-        }
-
-        override fun close() {
-            try {
-                try {
-                    resultSet.close()
-                } finally {
-                    statement.close()
-                }
-            } finally {
-                iterators.remove(this)
-                if (iterators.isEmpty()) {
-                    this@DbSet.close()
-                }
-            }
-
-        }
-    }
-
-
-    private val iterators = ArrayList<ResultSetIterator>()
-
+    @Deprecated("Don't use")
     fun closingIterable(): ClosingIterable {
         return ClosingIterable()
     }
 
+    @OptIn(ExperimentalStdlibApi::class)
     @Deprecated("Use a Kotlin safe wrapper")
     @SuppressWarnings("resource")
-    fun unsafeIterator(readOnly: Boolean): MutableAutoCloseableIterator<T> {
-        val transaction: TR
-        var statement: StatementHelper? = null
-        try {
-            transaction = transactionFactory.startTransaction()
-            //      connection = mTransactionFactory.getConnection();
-            //      connection.setAutoCommit(false);
-            val columns = elementFactory.createColumns
+    fun unsafeIterator(readOnly: Boolean): Iterator<T> {
+        val columns = elementFactory.createColumns
 
-            val query = database.SELECT(columns).WHERE { elementFactory.filter(this) }
+        return withTransaction {
+            SELECT(columns)
+                .maybeWHERE { elementFactory.filter(this) }
+                .flatMapEach { row ->
+                    sequence {
+                        yield(elementFactory.createBuilder(this@withTransaction, row))
+                    }.asIterable()
+                }.flatMap { builders ->
+                    builders.map { builder ->
+                        elementFactory.createFromBuilder(this@withTransaction, SetAccessImpl(), builder)
+                    }
+                }.commit()
+        }.iterator()
+    }
 
-            statement = query.toSQL().let { sql: String ->
-                StatementHelper(transaction.connection.rawConnection.prepareStatement(sql), sql)
-            }
-
-            query.setParams(statement)
-
-            val rs = statement.statement.executeQuery()
-            val it = ResultSetIterator(transaction, statement.statement, columns, rs, readOnly)
-            iterators.add(it)
-            return it
-        } catch (e: Exception) {
-            try {
-                if (statement != null) {
-                    statement.close()
-                }
-            } catch (ex: SQLException) {
-                val runtimeException = RuntimeException(ex)
-                @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
-                (runtimeException as java.lang.Throwable).addSuppressed(e)
-                throw runtimeException
-            }
-
-            if (e is RuntimeException) {
-                throw e
-            }
-            throw RuntimeException(e)
+    open fun iterator(): MutableIterator<T> {
+        return withTransaction {
+            iterator(this).commit()
         }
-
     }
 
     @SuppressWarnings("resource")
     @Throws(SQLException::class)
-    open fun iterator(transaction: TR, readOnly: Boolean): MutableAutoCloseableIterator<T> {
-        try {
-            val columns = elementFactory.createColumns
+    open fun iterator(dbReceiver: DBReceiver<DB>): DBAction<DB, MutableIterator<T>> {
+        val columns = elementFactory.createColumns
 
-            val query = database.SELECT(columns).WHERE { elementFactory.filter(this) }
-
-            val statement = query.toSQL().let { sql: String ->
-                StatementHelper(transaction.connection.rawConnection.prepareStatement(sql, ResultSet.TYPE_FORWARD_ONLY,
-                                                                                      if (readOnly) ResultSet.CONCUR_READ_ONLY else ResultSet.CONCUR_UPDATABLE),
-                                sql)
-            }
-
-            query.setParams(statement)
-
-            val rs = statement.statement.executeQuery()
-            val it = ResultSetIterator(transaction, statement.statement, columns, rs)
-            iterators.add(it)
-            return it
-        } catch (e: RuntimeException) {
-            rollbackConnection(transaction, e)
-            close()
-            throw e
-        } catch (e: SQLException) {
-            close()
-            throw e
+        return dbReceiver.transaction {
+            val tr = this
+            SELECT(columns)
+                .maybeWHERE { elementFactory.filter(this) }
+                .flatMapEach { rs ->
+                    sequence {
+                        yield(elementFactory.createBuilder(tr, rs))
+                    }.asIterable()
+                }.flatMap { builders ->
+                    builders.map { builder ->
+                        elementFactory.createFromBuilder(tr, SetAccessImpl(), builder)
+                    }
+                }.map { MutableDbSetIterator(it) }
         }
-
     }
 
+    val size: Int
+        get() = withTransaction {
+            size(this).commit()
+        }
+
     @Throws(SQLException::class)
-    fun size(connection: DBTransaction): Int {
+    fun size(dbReceiver: DBReceiver<DB>): DBAction<DB, Int> {
         val column = elementFactory.createColumns[0]
-        val select = database.SELECT(database.COUNT(column))
-        val filter = elementFactory.filter(_Where())
-        val query = if (filter == null) select else select.WHERE { filter }
-        return query.getSingleList(connection.connection) { _, values -> values[0] as Int }
-    }
-
-    @Throws(SQLException::class)
-    open fun contains(transaction: DBTransaction, element: Any): Boolean {
-        val instance = elementFactory.asInstance(element) ?: return false
-
-        val query = database
-            .SELECT(database.COUNT(elementFactory.createColumns[0]))
-            .WHERE { elementFactory.getPrimaryKeyCondition(this, instance) AND elementFactory.filter(this) }
-
-        try {
-            return query.getSingleList(transaction.connection) { _, data ->
-                data[0] as Int > 0
-            }
-        } catch (e: RuntimeException) {
-            return false
+        return with(dbReceiver) {
+            SELECT(COUNT(column))
+                .maybeWHERE { elementFactory.filter(this) }
+                .mapSeq { it.single()!! }
         }
     }
 
-    fun add(transaction: DBTransaction, elem: T): Boolean {
-        assert(transactionFactory.isValidTransaction(transaction))
-
-        val stmt = elementFactory.insertStatement(elem)
-        return stmt.execute(transaction.connection, elementFactory.keyColumn) { handle ->
-            if (handle != null) {
-                val newElem = handleAssigner(elem, handle) ?: elem // No assignment we keep the element
-                elementFactory.postStore(transaction.connection, handle, null, newElem)
-                true
-            } else false
-        }.let { it.isNotEmpty() && it.all { it } }
-    }
-
-    @Throws(SQLException::class)
-    fun addAll(transaction: DBTransaction, collection: Collection<T>): Boolean {
-        return collection
-            .asSequence()
-            .map { elem ->
-                add(transaction, elem)
-            }.reduce { b1, b2 -> b1 || b2 }
-    }
-
-    @Throws(SQLException::class)
-    fun remove(transaction: TR, value: Any): Boolean {
-        elementFactory.asInstance(value)?.let { elem ->
-            elementFactory.preRemove(transaction, elem)
-            val delete = database.DELETE_FROM(elementFactory.table).WHERE {
-                elementFactory.getPrimaryKeyCondition(this, elem)
-            }
-            return delete.executeUpdate(transaction.connection) > 0
-        } ?: return false
-    }
-
-    @Throws(SQLException::class)
-    fun clear(transaction: TR) {
-        elementFactory.preClear(transaction)
-        val delete = database
-            .DELETE_FROM(elementFactory.table)
-            .WHERE { elementFactory.filter(this) }
-
-        delete.executeUpdate(transaction.connection)
-    }
-
-    override fun close() {
-        var errors: MutableList<RuntimeException>? = null
-        for (iterator in iterators) {
-            try {
-                iterator.close()
-            } catch (e: RuntimeException) {
-                if (errors == null) {
-                    errors = ArrayList<RuntimeException>()
-                }
-                errors.add(e)
-            }
-
-        }
-        if (errors != null) {
-            val it = errors.iterator()
-            val ex = it.next()
-            while (it.hasNext()) {
-                @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
-                (ex as java.lang.Throwable).addSuppressed(it.next())
-            }
-            throw ex
+    operator fun contains(element: Any): Boolean {
+        return withTransaction {
+            contains(this, element).commit()
         }
     }
 
     @Throws(SQLException::class)
-    fun isEmpty(pTransaction: TR): Boolean {
-        @Suppress("UNCHECKED_CAST")
-        (iterator(pTransaction, true) as DbSet<TMP, T, TR>.ResultSetIterator).use { it -> return it.hasNext() }
+    open fun contains(dbReceiver: DBReceiver<DB>, element: Any): DBAction<DB, Boolean> {
+        val instance = elementFactory.asInstance(element) ?: return dbReceiver.value(false)
+
+        return with(dbReceiver) {
+            SELECT(COUNT(elementFactory.createColumns[0]))
+                .maybeWHERE { elementFactory.getPrimaryKeyCondition(this, instance) AND elementFactory.filter(this) }
+                .mapSeq { it.single()!! > 0 }
+        }
     }
 
-    @Throws(SQLException::class)
-    fun removeAll(transaction: TR, selection: _Where.() -> WhereClause?): Boolean {
-        run {
-            database
-                .SELECT(elementFactory.createColumns)
-                .WHERE { elementFactory.filter(this) AND this.selection() }
-                .executeList(transaction.connection) { columns, values ->
-                    elementFactory.preRemove(transaction, columns, values)
+    fun add(elem: T): Boolean {
+        return withTransaction {
+            add(this, elem).commit()
+        }
+    }
+
+    fun add(dbReceiver: DBReceiver<DB>, elem: T): DBAction<DB, Boolean> {
+        return dbReceiver.transaction {
+            elementFactory.insertStatement(this, elem)
+                .keys(elementFactory.keyColumn)
+                .then {
+                    when (val handle = it.singleOrNull()) {
+                        null -> value(false)
+                        else -> {
+                            val newElem = handleAssigner(elem, handle) ?: elem // No assignment we keep the element
+                            elementFactory.postStore(this@transaction, handle, null, newElem)
+                        }
+                    }
                 }
         }
+    }
 
-        run {
-            return database
-                       .DELETE_FROM(elementFactory.table)
-                       .WHERE { elementFactory.filter(this) AND this.selection() }
-                       .executeUpdate(transaction.connection) > 0
+    fun addAll(collection: Collection<T>): Boolean {
+        return withTransaction {
+            addAll(this, collection).commit()
         }
     }
 
     @Throws(SQLException::class)
-    protected fun <W : T> addWithKey(transaction: TR, elem: W): ComparableHandle<W>? {
-        val stmt = elementFactory.insertStatement(elem)
-        return stmt.execute(transaction.connection, elementFactory.keyColumn) {
-            it?.let { handle ->
-                val newElem = handleAssigner(elem, handle) ?: elem
-                handle<W>(handle= handle.handleValue).apply {
-                    elementFactory.postStore(transaction.connection, this, null, newElem)
+    fun addAll(dbReceiver: DBReceiver<DB>, collection: Collection<T>): DBAction<DB, Boolean> {
+        if (collection.isEmpty()) return dbReceiver.value(false)
+        return dbReceiver.transaction {
+            val tr = this
+            val insert = elementFactory.insertStatement(this)
+            (collection.fold<T, InsertActionCommon<DB, Insert>>(insert) { i, value ->
+                elementFactory.insertValues(tr, i, value)
+            } as InsertAction<DB, Insert>)
+                .keys(elementFactory.keyColumn)
+                .flatMap { handles ->
+                    collection.zip(handles).map { (elem, handle) ->
+                        when (handle) {
+                            null -> value(false)
+                            else -> {
+                                val newElem = handleAssigner(elem, handle) ?: elem // No assignment we keep the element
+                                elementFactory.postStore(tr, handle, null, newElem)
+                            }
+                        }
+                        value(true)
+                    }
                 }
-            }
-        }.firstOrNull()
+                .map { it.any() }
+        }
+    }
+
+    fun remove(value: Any): Boolean {
+        return withTransaction {
+            remove(this, value).commit()
+        }
+    }
+
+    fun remove(dbReceiver: DBReceiver<DB>, value: Any): DBAction<DB, Boolean> {
+        dbReceiver.transaction {
+            val elem = elementFactory.asInstance(value) ?: return dbReceiver.value(false)
+            return elementFactory.preRemove(this, elem)
+                .then(DELETE_FROM(elementFactory.table)
+                          .maybeWHERE { elementFactory.getPrimaryKeyCondition(this, elem) }
+                ).map { it > 0 }
+        }
+    }
+
+    fun clear() {
+        withTransaction {
+            clear(this).commit()
+        }
+    }
+
+    @Throws(SQLException::class)
+    fun clear(dbReceiver: DBReceiver<DB>): DBAction<DB, Int> {
+        dbReceiver.transaction {
+            return elementFactory.preClear(this)
+                .then(DELETE_FROM(elementFactory.table))
+        }
+    }
+
+    @Throws(SQLException::class)
+    fun isEmpty(dbReceiver: DBReceiver<DB>): DBAction<DB, Boolean> {
+        return size(dbReceiver).map { it == 0 }
+    }
+
+    fun removeAll(selection: _MaybeWhere.() -> WhereClause?): Boolean {
+        return withTransaction { removeAll(this, selection).commit() }
+    }
+
+    @Throws(SQLException::class)
+    fun removeAll(dbReceiver: DBReceiver<DB>, selection: _MaybeWhere.() -> WhereClause?): DBAction<DB, Boolean> {
+        return dbReceiver.transaction {
+            SELECT(elementFactory.createColumns)
+                .maybeWHERE(selection)
+                .mapEach { valueRow ->
+                    val values = columns.mapIndexed { i, col ->
+                        valueRow.value(col, i + 1)
+//                        col.type.fromResultSet(valueRow.rawResultSet, i + 1)
+                    }
+                    elementFactory.preRemove(this@transaction, columns, values)
+                }.then(
+                    DELETE_FROM(elementFactory.table)
+                        .maybeWHERE(selection)
+                        .map { it > 0 }
+                )
+        }
+    }
+
+    @Throws(SQLException::class)
+    protected fun <W : T> addWithKey(dbReceiver: DBReceiver<DB>, elem: W): DBAction<DB, ComparableHandle<W>?> {
+        dbReceiver.transaction {
+            val tr = this
+            val stmt = elementFactory.insertStatement(tr, elem)
+            return stmt.keys(elementFactory.keyColumn)
+                .then { handles ->
+                    @Suppress("UNCHECKED_CAST")
+                    when (val handle = handles.singleOrNull() as Handle<W>?) {
+                        null -> dbReceiver.value(null)
+                        else -> {
+                            val newElem = handleAssigner(elem, handle) ?: elem
+                            elementFactory.postStore(tr, handle, null, newElem)
+                                .then(dbReceiver.value(handle.toComparableHandle()))
+                        }
+                    }
+                }
+        }
     }
 
     override fun toString(): String {
         return "DbSet <SELECT * FROM `" + elementFactory.table._name + "`>"
+    }
+
+    @OptIn(ExperimentalContracts::class)
+    protected inline fun <R> withTransaction(action: TR.() -> R): R {
+        contract {
+            callsInPlace(action, InvocationKind.EXACTLY_ONCE)
+        }
+        val tr = transactionFactory.startTransaction()
+        try {
+            return tr.action()
+        } finally {
+            tr.close()
+        }
+    }
+
+    @OptIn(ExperimentalContracts::class)
+    protected inline fun <R> DBReceiver<DB>.transaction(action: TR.()->R): R {
+        contract {
+            callsInPlace(action, InvocationKind.EXACTLY_ONCE)
+        }
+
+        return transactionFactory.asTransaction(this).action()
     }
 
     companion object {
@@ -390,10 +323,12 @@ open class DbSet<TMP, T : Any, TR : DBTransaction>(
         }
 
         @JvmStatic
-        fun join(pList1: List<CharSequence>,
-                 pList2: List<CharSequence>,
-                 pOuterSeparator: CharSequence,
-                 pInnerSeparator: CharSequence): CharSequence {
+        fun join(
+            pList1: List<CharSequence>,
+            pList2: List<CharSequence>,
+            pOuterSeparator: CharSequence,
+            pInnerSeparator: CharSequence
+        ): CharSequence {
             if (pList1.size != pList2.size) {
                 throw IllegalArgumentException("List sizes must match")
             }
@@ -412,101 +347,10 @@ open class DbSet<TMP, T : Any, TR : DBTransaction>(
         }
 
         @JvmStatic
-        protected fun rollbackConnection(pConnection: DBTransaction, pCause: Throwable) {
-            rollbackConnection(pConnection, null, pCause)
-        }
-
-        private fun rollbackConnection(pConnection: DBTransaction, savepoint: Savepoint?, pCause: Throwable?) {
-            try {
-                if (savepoint == null) {
-                    pConnection.rollback()
-                } else {
-                    pConnection.rollback(savepoint)
-                }
-            } catch (ex: SQLException) {
-                if (pCause != null) {
-                    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
-                    (pCause as java.lang.Throwable).addSuppressed(ex)
-                } else {
-                    throw RuntimeException(ex)
-                }
-            }
-
-            if (pCause is RuntimeException) {
-                throw pCause
-            }
-            throw RuntimeException(pCause)
-        }
-
-        @JvmStatic
-        internal fun rollbackConnection(pConnection: Connection, pSavepoint: Savepoint?, pCause: Throwable?) {
-            try {
-                if (pSavepoint == null) {
-                    pConnection.rollback()
-                } else {
-                    pConnection.rollback(pSavepoint)
-                }
-            } catch (ex: SQLException) {
-                if (pCause != null) {
-                    @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
-                    (pCause as java.lang.Throwable).addSuppressed(ex)
-                } else {
-                    throw RuntimeException(ex)
-                }
-            }
-
-            if (pCause is RuntimeException) {
-                throw pCause
-            }
-            throw RuntimeException(pCause)
-        }
-
-
-        @JvmStatic
-        @Deprecated("Use try-with")
-        protected fun closeConnection(pConnection: Connection?, e: Exception) {
-            try {
-                pConnection?.close()
-            } catch (ex: Exception) {
-                @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
-                (e as java.lang.Throwable).addSuppressed(ex)
-            }
-
-        }
-
-        @JvmStatic
-        protected fun closeResultSet(pConnection: DBTransaction?,
-                                     pStatement: PreparedStatement,
-                                     pResultSet: ResultSet) {
-            try {
-                try {
-                    try {
-                        try {
-                            pResultSet.close()
-                        } finally {
-                            pStatement.close()
-                        }
-                    } finally {
-                        if (pConnection != null) {
-                            if (!pConnection.isClosed) {
-                                pConnection.rollback()
-                            }
-                        }
-                    }
-                } finally {
-                    pConnection?.close()
-                }
-            } catch (e: SQLException) {
-                throw RuntimeException(e)
-            }
-
-        }
-
-
-        @JvmStatic
         @Deprecated(
             "use {@link #resourceNameToDataSource(Context, String)}, that is more reliable as the context can be gained earlier",
-            ReplaceWith("resourceNameToDataSource(context, pResourceName)"))
+            ReplaceWith("resourceNameToDataSource(context, pResourceName)")
+        )
         fun resourceNameToDataSource2(pResourceName: String): DataSource {
             try {
                 return InitialContext().lookup(pResourceName) as DataSource
@@ -528,6 +372,28 @@ open class DbSet<TMP, T : Any, TR : DBTransaction>(
 
                 else -> pContext.lookup(pDbresourcename) as DataSource
             }
+        }
+    }
+
+    interface DBSetAccess<TMP> {
+
+    }
+
+    private inner class SetAccessImpl<TMP> : DBSetAccess<TMP>
+
+    private inner class MutableDbSetIterator(private val data: List<T>) : MutableIterator<T> {
+        private var nextPos = 0
+
+        override fun hasNext(): Boolean {
+            return nextPos < data.size
+        }
+
+        override fun next(): T {
+            return data[nextPos++]
+        }
+
+        override fun remove() {
+            remove(data[nextPos - 1]) // As the iterator uses a copy of the list this is valid.
         }
     }
 }

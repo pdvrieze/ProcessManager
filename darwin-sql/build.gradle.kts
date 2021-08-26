@@ -17,8 +17,8 @@
 import versions.*
 
 plugins {
-    id("kotlin")
     id("java-library")
+    id("kotlin")
     id("mpconsumer")
 }
 
@@ -27,7 +27,6 @@ base {
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
     api("io.github.pdvrieze.kotlinsql:kotlinsql-core:$kotlinsqlVersion")
 
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")

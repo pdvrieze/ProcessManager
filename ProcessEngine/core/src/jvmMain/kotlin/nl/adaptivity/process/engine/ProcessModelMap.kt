@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine
 
+import io.github.pdvrieze.kotlinsql.monadic.actions.mapSeq
 import net.devrieze.util.*
 import net.devrieze.util.db.DBHandleMap
 import net.devrieze.util.security.SecureObject
@@ -26,24 +27,32 @@ import nl.adaptivity.process.processModel.engine.XmlProcessModel
 import java.util.*
 
 
-internal class ProcessModelMap(transactionFactory: TransactionFactory<ProcessDBTransaction>, stringCache: StringCache = StringCache.NOPCACHE) : DBHandleMap<XmlProcessModel.Builder, SecureObject<ExecutableProcessModel>, ProcessDBTransaction>(
-      transactionFactory, ProcessEngineDB, ProcessModelFactory(stringCache)), IMutableProcessModelMap<ProcessDBTransaction> {
+internal class ProcessModelMap(
+    transactionFactory: DBTransactionFactory<ProcessDBTransaction, ProcessEngineDB>,
+    stringCache: StringCache = StringCache.NOPCACHE
+) : DBHandleMap<XmlProcessModel.Builder, SecureObject<ExecutableProcessModel>, ProcessDBTransaction, ProcessEngineDB>(
+    transactionFactory,
+    ProcessModelFactory()
+), IMutableProcessModelMap<ProcessDBTransaction> {
 
-  override fun getModelWithUuid(transaction: ProcessDBTransaction, uuid: UUID): Handle<SecureObject<ExecutableProcessModel>>? {
-    val candidates = ProcessEngineDB
-          .SELECT(processModels.pmhandle)
-          .WHERE { processModels.model LIKE "%$uuid%" }
-          .getList(transaction.connection)
-
-    return candidates.asSequence()
-          .filterNotNull()
-          .map { handle(it) }
-          .firstOrNull {
-      val candidate:ExecutableProcessModel? = get(transaction, it)?.withPermission()
-      uuid == candidate?.uuid
+    override fun getModelWithUuid(
+        transaction: ProcessDBTransaction,
+        uuid: UUID
+    ): Handle<SecureObject<ExecutableProcessModel>>? {
+        return with(transaction) {
+            SELECT(processModels.pmhandle)
+                .WHERE { processModels.model LIKE "%$uuid%" }
+                .mapSeq {
+                    it.filterNotNull()
+                        .firstOrNull { h ->
+                            val handle = h.toComparableHandle()
+                            val candidate: ExecutableProcessModel? = get(transaction, handle)?.withPermission()
+                            uuid == candidate?.uuid
+                        }
+                }.evaluateNow()
+        }
     }
-  }
 
-  override val elementFactory: ProcessModelFactory
-    get() = super.elementFactory as ProcessModelFactory
+    override val elementFactory: ProcessModelFactory
+        get() = super.elementFactory as ProcessModelFactory
 }

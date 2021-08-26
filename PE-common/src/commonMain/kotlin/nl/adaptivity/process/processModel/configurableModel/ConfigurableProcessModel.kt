@@ -154,12 +154,11 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
         T.getValue(thisRef: ConfigurableProcessModel<*>, property: KProperty<*>): T = this
 
     @ConfigurationDsl
-    internal abstract inner class ConfigurableCompositeActivity(
+    public abstract inner class ConfigurableCompositeActivity(
         predecessor: Identified,
         childId: String? = null,
         id: String? = null
-                                                                ) :
-        Identified,
+    ) : Identified,
         ConfigurableNodeContainer<NodeT> /*: ChildProcessModel.Builder<ExecutableProcessNode, ExecutableModelCommon>*/ {
 
         private inline fun rootBuilder() = this@ConfigurableProcessModel.configurationBuilder

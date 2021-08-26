@@ -16,19 +16,25 @@
 
 package net.devrieze.util.db
 
+import io.github.pdvrieze.kotlinsql.ddl.Database
+import io.github.pdvrieze.kotlinsql.dml.WhereClause
+import io.github.pdvrieze.kotlinsql.dml.impl._MaybeWhere
+import io.github.pdvrieze.kotlinsql.dml.impl._Where
+import io.github.pdvrieze.kotlinsql.monadic.DBActionReceiver
+import io.github.pdvrieze.kotlinsql.monadic.actions.DBAction
 import net.devrieze.util.Handle
-import uk.ac.bournemouth.kotlinsql.Database
 import java.sql.SQLException
 
-interface HMElementFactory<BUILDER, T:Any, TR:DBTransaction> : ElementFactory<BUILDER, T, TR> {
-  fun getHandleCondition(where: Database._Where,
-                         handle: Handle<T>): Database.WhereClause?
+interface HMElementFactory<BUILDER, T : Any, in TR : MonadicDBTransaction<DB>, DB : Database> :
+    ElementFactory<BUILDER, T, TR, DB> {
 
-  /**
-   * Called before removing an element with the given handle
-   * @throws SQLException When something goes wrong.
-   */
-  @Throws(SQLException::class)
-  fun preRemove(transaction: TR, handle: Handle<T>)
+    fun getHandleCondition(where: _Where, handle: Handle<T>): WhereClause
+
+    /**
+     * Called before removing an element with the given handle
+     * @throws SQLException When something goes wrong.
+     */
+    @Throws(SQLException::class)
+    fun preRemove(transaction: TR, handle: Handle<T>): DBAction<DB, Boolean>
 
 }

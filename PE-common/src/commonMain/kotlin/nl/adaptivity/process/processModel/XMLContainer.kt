@@ -94,7 +94,7 @@ abstract class XMLContainer private constructor(
         namespaces = if (namespaces.size == 0) namespaceContext else (namespaces + namespaceContext)
     }
 
-    @Deprecated("Don't use")
+    @Deprecated("Don't use", ReplaceWith("XML.encodeToWriter(out, this)", "nl.adaptivity.xmlutil.serialization.XML"))
     override fun serialize(out: XmlWriter) {
         return XML.encodeToWriter(out, this)
     }

@@ -35,7 +35,7 @@ import versions.kotlin_version
 
 plugins {
     kotlin("multiplatform")
-    mpconsumer
+//    mpconsumer
 }
 
 base {

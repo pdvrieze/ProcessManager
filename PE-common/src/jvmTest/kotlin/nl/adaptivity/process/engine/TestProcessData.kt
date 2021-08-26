@@ -24,8 +24,6 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
 import net.devrieze.util.readString
-import nl.adaptivity.process.engine.impl.dom.toDocumentFragment
-import nl.adaptivity.process.engine.processModel.applyData
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Constants
@@ -152,18 +150,6 @@ class TestProcessData {
         val snc2 = SimpleNamespaceContext.from(result2.originalNSContext)
         assertEquals(1, snc2.size)
         assertEquals("umh", snc2.getPrefix(0))
-
-        val testData = CompactFragment(
-            "<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>"
-                                      )
-
-
-        val result1Apply = result1.applyData(testData).content
-        assertEquals("Paul", result1Apply.contentString)
-
-        val result2Apply = result2.applyData(testData).content
-        assertXMLEqual("<user><fullname>Paul</fullname></user>", result2Apply.contentString)
-
     }
 
     @Test
@@ -172,25 +158,6 @@ class TestProcessData {
         val expression = "/umh:result/umh:value[@name='user']/text()"
         val result = XmlResultType("foo", expression, null as CharArray?, nsContext)
         assertEquals(1, SimpleNamespaceContext.from(result.originalNSContext).size)
-
-        val testData = CompactFragment(
-            "<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>"
-                                      )
-        val xPath = XPathFactory.newInstance().newXPath()
-        xPath.namespaceContext = SimpleNamespaceContext.from(result.originalNSContext)
-        val pathExpression = xPath.compile(expression)
-        val apply2 = pathExpression.evaluate(testData.toDocumentFragment(), XPathConstants.NODESET) as NodeList
-        assertNotNull(apply2)
-        assertTrue(apply2.item(0) is Text)
-        assertEquals("Paul", apply2.item(0).textContent)
-
-        val apply3 = pathExpression.evaluate(testData.toDocumentFragment(), XPathConstants.NODE) as Node
-        assertNotNull(apply3)
-        assertTrue(apply3 is Text)
-        assertEquals("Paul", apply3.textContent)
-
-        val apply1 = result.applyData(testData)
-        assertEquals("Paul", apply1.content.contentString)
     }
 
     @Test
@@ -216,45 +183,11 @@ class TestProcessData {
     }
 
     @Test
-    @Throws(XmlException::class, IOException::class, SAXException::class)
-    fun testTransform() {
-        val endpoint = ProcessData("endpoint", createEndpoint())
-        val transformer = PETransformer.create(
-            SimpleNamespaceContext.from(emptyList()),
-            endpoint
-                                              )
-        val input = "<umh:postTask xmlns:umh=\"http://adaptivity.nl/userMessageHandler\">\n" +
-            "  <jbi:element value=\"endpoint\"/>\n" +
-            "</umh:postTask>"
-        val cf = CompactFragment(
-            SimpleNamespaceContext(Collections.singletonMap("jbi", Constants.MODIFY_NS_STR)),
-            input.toCharArray()
-                                )
-        val caw = CharArrayWriter()
-        val out = XmlStreaming.newWriter(caw, true)
-        transformer.transform(cf.getXmlReader(), out)
-        out.close()
-        run {
-            val control =
-                "<umh:postTask xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><jbi:endpointDescriptor xmlns:jbi=\"http://adaptivity.nl/jbi\" endpointLocation=\"http://localhost\" endpointName=\"internal\" serviceLocalName=\"foobar\" serviceNS=\"http://foo.bar\"/></umh:postTask>"
-            val test = caw.toString()
-            try {
-                assertXMLEqual(control, test)
-            } catch (e: SAXParseException) {
-                assertEquals(control, test)
-            } catch (e: AssertionError) {
-                assertEquals(control, test)
-            }
-        }
-    }
-
-    @Test
     @Throws(Exception::class)
     fun testRoundTripProcessModel1_ac1_result1() {
         val xpm = getProcessModel("testModel2.xml")
         run {
             val caw = CharArrayWriter()
-            val xsw = XmlStreaming.newWriter(caw)
 
             val ac1 = run {
                 val modelNodes = xpm.modelNodes
@@ -267,8 +200,10 @@ class TestProcessData {
             val ac1Results = ArrayList(ac1.results)
 
             val result = ac1Results[0] as XmlResultType
-            result.serialize(xsw)
-            xsw.close()
+
+            XmlStreaming.newWriter(caw).use { xsw ->
+                XML.encodeToWriter(xsw, result)
+            }
 
             val expected =
                 "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>"

@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination
 
-import kotlinx.serialization.ImplicitReflectionSerializer
 import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.get
@@ -75,7 +74,6 @@ class TestLoanOrigination : ProcessEngineTestSupport() {
 
 }
 
-@OptIn(ImplicitReflectionSerializer::class)
 private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProcessNode>(
     "testLoanOrigination",
     owner, UUID.fromString("fbb730ab-f1c4-4af5-979b-7e04a399d75a")
@@ -136,30 +134,35 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
                 signingService.signDocument(signingToken, Approval(true))
             }
         }
-        val verifyCustomerApproval by configureRunnableActivity<VerifyCustomerApprovalInput, SignedDocument<SignedDocument<Approval>>>(
-            getCustomerApproval,
-            SignedDocument.serializer(SignedDocument.serializer(Approval.serializer()))
-        ) {
-            val custIn = defineInput("customer", null, "customerId", LoanCustomer.serializer())
-            val approvalIn =
-                defineInput("approval", getCustomerApproval, SignedDocument.serializer(Approval.serializer()))
-            inputCombiner = InputCombiner { VerifyCustomerApprovalInput(custIn(), approvalIn()) }
-            action = { (customer, approval) ->
-                registerTaskPermission(customerFile, QUERY_CUSTOMER_DATA(customer.customerId))
-                registerTaskPermission(signingService, SIGN)
 
-                acceptBrowserActivity(postProcClerk) {
-                    val customerData = customerFile.getCustomerData(loginToService(customerFile), customer.customerId)
+        val verifyCustomerApproval by let { m ->
+            configureRunnableActivity<VerifyCustomerApprovalInput, SignedDocument<SignedDocument<Approval>>>(
+                getCustomerApproval,
+                SignedDocument.serializer(SignedDocument.serializer(Approval.serializer()))
+            ) {
+                val custIn = defineInput("customer", null, "customerId", LoanCustomer.serializer())
+                val approvalIn =
+                    defineInput("approval", m.getCustomerApproval, SignedDocument.serializer(Approval.serializer()))
+                inputCombiner = InputCombiner { VerifyCustomerApprovalInput(custIn(), approvalIn()) }
+                action = { (customer, approval) ->
+                    registerTaskPermission(customerFile, QUERY_CUSTOMER_DATA(customer.customerId))
+                    registerTaskPermission(signingService, SIGN)
 
-                    if (customerData?.name != approval.signedBy) {
-                        throw IllegalArgumentException("Customer and signature mismatch: ${customerData?.name} != ${approval.signedBy}")
+                    acceptBrowserActivity(postProcClerk) {
+                        val customerData =
+                            customerFile.getCustomerData(loginToService(customerFile), customer.customerId)
+
+                        if (customerData?.name != approval.signedBy) {
+                            throw IllegalArgumentException("Customer and signature mismatch: ${customerData?.name} != ${approval.signedBy}")
+                        }
+
+                        val signAuth = loginToService(signingService)
+                        signingService.signDocument(signAuth, approval)
                     }
-
-                    val signAuth = loginToService(signingService)
-                    signingService.signDocument(signAuth, approval)
                 }
             }
         }
+
         val getCreditReport by runnableActivity(
             verifyCustomerApproval,
             CreditReport.serializer(),
@@ -202,38 +205,41 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
                 creditBureau.getCreditReport(creditAuthToken, customerData)
             }
         }
-        val getLoanEvaluation by configureRunnableActivity<Pair<LoanApplication, CreditReport>, LoanEvaluation>(
-            getCreditReport,
-            LoanEvaluation.serializer()
-        ) {
-            val apIn = defineInput("application", null, "loanApplication", LoanApplication.serializer())
-            val credIn = defineInput("creditReport", getCreditReport, CreditReport.serializer())
-            inputCombiner = InputCombiner {
-                Pair(apIn(), credIn())
-            }
 
-            action = { (application, creditReport) ->
-                registerTaskPermission(creditApplication, EVALUATE_LOAN(application.customerId))
-                registerTaskPermission(
-                    creditApplication.serviceId,
-                    customerFile,
-                    QUERY_CUSTOMER_DATA(application.customerId)
-                )
+        val getLoanEvaluation by let { m ->
+            configureRunnableActivity<Pair<LoanApplication, CreditReport>, LoanEvaluation>(
+                getCreditReport,
+                LoanEvaluation.serializer()
+            ) {
+                val apIn = defineInput("application", null, "loanApplication", LoanApplication.serializer())
+                val credIn = defineInput("creditReport", m.getCreditReport, CreditReport.serializer())
+                inputCombiner = InputCombiner {
+                    Pair(apIn(), credIn())
+                }
 
-                generalClientService.runWithAuthorization(ctx.serviceTask()) { taskIdToken ->
-
-                    val delegateAuthorization = authService.createAuthorizationCode(
-                        taskIdToken,
+                action = { (application, creditReport) ->
+                    registerTaskPermission(creditApplication, EVALUATE_LOAN(application.customerId))
+                    registerTaskPermission(
                         creditApplication.serviceId,
                         customerFile,
                         QUERY_CUSTOMER_DATA(application.customerId)
                     )
 
-                    val authToken = getServiceToken(
-                        creditApplication,
-                        EVALUATE_LOAN(application.customerId, application.amount)
-                    )
-                    creditApplication.evaluateLoan(authToken, delegateAuthorization, application, creditReport)
+                    generalClientService.runWithAuthorization(ctx.serviceTask()) { taskIdToken ->
+
+                        val delegateAuthorization = authService.createAuthorizationCode(
+                            taskIdToken,
+                            creditApplication.serviceId,
+                            customerFile,
+                            QUERY_CUSTOMER_DATA(application.customerId)
+                        )
+
+                        val authToken = getServiceToken(
+                            creditApplication,
+                            EVALUATE_LOAN(application.customerId, application.amount)
+                        )
+                        creditApplication.evaluateLoan(authToken, delegateAuthorization, application, creditReport)
+                    }
                 }
             }
         }
@@ -244,6 +250,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
             output("creditReport", getCreditReport)
         }
     }
+
     val chooseBundledProduct by runnableActivity(
         evaluateCredit,
         LoanProductBundle.serializer(),

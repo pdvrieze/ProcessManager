@@ -307,7 +307,7 @@ open class CachingHandleMap<V : Any, T : Transaction>(
         delegate.clear(transaction)
     }
 
-    override fun iterator(transaction: T, readOnly: Boolean): MutableAutoCloseableIterator<V> {
+    override fun iterator(transaction: T, readOnly: Boolean): MutableIterator<V> {
         return WrappingIterator(transaction, delegate.iterator(transaction, readOnly))
     }
 

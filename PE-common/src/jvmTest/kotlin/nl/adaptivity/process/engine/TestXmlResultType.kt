@@ -16,8 +16,6 @@
 
 package nl.adaptivity.process.engine
 
-import nl.adaptivity.process.engine.impl.dom.toFragment
-import nl.adaptivity.process.engine.processModel.applyData
 import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.XmlResultType
 import nl.adaptivity.util.DomUtil
@@ -113,47 +111,6 @@ class TestXmlResultType {
                        )
                                )
         assertEquals("Some test value", expr.evaluate(testData))
-    }
-
-    @Test
-    @Throws(ParserConfigurationException::class, IOException::class, SAXException::class)
-    fun testApplySimple() {
-        val testData = CompactFragment("<result><value name='user'>Paul</value></result>")
-        val xrt = XmlResultType("user", "/result/value[@name='user']/text()")
-
-        val actual = xrt.applyData(testData)
-
-        val expected = ProcessData("user", CompactFragment(emptyList(), "Paul".toCharArray()))
-        assertEquals(expected.name, actual.name)
-        assertEquals(expected.content, actual.content)
-        //    assertXMLEqual(XmlUtil.toString(expected.getDocumentFragment()), XmlUtil.toString(actual.getDocumentFragment()));
-    }
-
-    @Test
-    @Throws(ParserConfigurationException::class, IOException::class, SAXException::class)
-    fun testApplySimpleNS() {
-        val testData = db.newDocument()
-        val result = testData.createElementNS(USER_MESSAGE_HANDLER_NS, "umh:result")
-        testData.appendChild(result)
-        val value = result.appendChild(
-            testData.createElementNS(USER_MESSAGE_HANDLER_NS, "umh:value")
-                                      ) as Element
-        value.setAttribute("name", "user")
-        value.appendChild(testData.createTextNode("Paul"))
-
-        assertEquals(
-            "<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>",
-            DomUtil.toString(testData)
-                    )
-
-
-        val xrt = XmlResultType("user", "/*[local-name()='result']/*[@name='user']/text()")
-
-        val expected = ProcessData("user", CompactFragment("Paul"))
-        val actual = xrt.applyData(testData.toFragment())
-        assertEquals(expected.name, actual.name)
-        assertEquals(expected.content, actual.content)
-        //    assertXMLEqual(XmlUtil.toString(expected.getDocumentFragment()), XmlUtil.toString(actual.getDocumentFragment()));
     }
 
     @Test

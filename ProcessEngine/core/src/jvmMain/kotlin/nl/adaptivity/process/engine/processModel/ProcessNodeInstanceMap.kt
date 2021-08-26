@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine.processModel
 
+import net.devrieze.util.DBTransactionFactory
 import net.devrieze.util.TransactionFactory
 import net.devrieze.util.db.DBHandleMap
 import net.devrieze.util.security.SecureObject
@@ -23,7 +24,13 @@ import nl.adaptivity.process.engine.ProcessDBTransaction
 import nl.adaptivity.process.engine.ProcessEngine
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.engine.db.ProcessEngineDB
+import javax.sql.DataSource
 
 
-class ProcessNodeInstanceMap(transactionFactory: TransactionFactory<out ProcessDBTransaction>, processEngine: ProcessEngine<*, *>) :
-      DBHandleMap<ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>>, SecureObject<ProcessNodeInstance<*>>, ProcessDBTransaction>(transactionFactory, ProcessEngineDB, ProcessNodeInstanceFactory(processEngine))
+class ProcessNodeInstanceMap(
+    transactionFactory: DBTransactionFactory<ProcessDBTransaction, ProcessEngineDB>,
+    processEngine: ProcessEngine<*, *>
+) : DBHandleMap<ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>>,
+    SecureObject<ProcessNodeInstance<*>>,
+    ProcessDBTransaction,
+    ProcessEngineDB>(transactionFactory, ProcessNodeInstanceFactory(processEngine))

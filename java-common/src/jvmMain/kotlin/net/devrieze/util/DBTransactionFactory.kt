@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018.
+ * Copyright (c) 2021.
  *
  * This file is part of ProcessManager.
  *
@@ -14,19 +14,13 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.util
+package net.devrieze.util
 
-import kotlin.properties.ReadOnlyProperty
-import kotlin.reflect.KProperty
+import io.github.pdvrieze.kotlinsql.ddl.Database
+import io.github.pdvrieze.kotlinsql.monadic.DBReceiver
+import net.devrieze.util.db.MonadicDBTransaction
 
-class ObjGetter<R,T>(val getter: R.()->T) : ReadOnlyProperty<R, T> {
-  override fun getValue(thisRef: R, property: KProperty<*>) = thisRef.getter()
+interface DBTransactionFactory<out TR: MonadicDBTransaction<DB>, DB: Database>: TransactionFactory<TR> {
+
+    fun asTransaction(dbReceiver: DBReceiver<DB>): TR
 }
-fun <R,T> objGetter(getter: R.() -> T) = ObjGetter<R, T>(getter)
-
-class Getter<T>(val getter: ()->T) : ReadOnlyProperty<Any?, T> {
-    operator fun getValue(nothing: Nothing?, property: KProperty<*>): T = getter()
-  override fun getValue(thisRef: Any?, property: KProperty<*>) = getter()
-  operator fun invoke() = getter()
-}
-fun <T> getter(getter: () -> T) = Getter<T>(getter)

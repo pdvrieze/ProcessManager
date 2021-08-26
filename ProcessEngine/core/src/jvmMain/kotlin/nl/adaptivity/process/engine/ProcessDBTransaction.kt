@@ -16,18 +16,31 @@
 
 package nl.adaptivity.process.engine
 
-import net.devrieze.util.db.DBTransaction
-import uk.ac.bournemouth.kotlinsql.Database
+import io.github.pdvrieze.kotlinsql.ddl.Database
+import io.github.pdvrieze.kotlinsql.monadic.DBTransactionContext
+import io.github.pdvrieze.kotlinsql.monadic.MonadicDBConnection
+import net.devrieze.util.ComparableHandle
+import net.devrieze.util.db.MonadicDBTransaction
+import net.devrieze.util.security.SecureObject
+import nl.adaptivity.process.engine.db.ProcessEngineDB
 import javax.sql.DataSource
 
 /**
  * A process transaction that uses the database to store the data.
  */
-class ProcessDBTransaction(dataSource: DataSource,
-                           db: Database, private val engineData: IProcessEngineData<ProcessDBTransaction>)
-  : DBTransaction(dataSource, db), ProcessTransaction {
-  override val readableEngineData: ProcessEngineDataAccess
-    get() = engineData.createReadDelegate(this)
-  override val writableEngineData: MutableProcessEngineDataAccess
-    get() = engineData.createWriteDelegate(this)
+class ProcessDBTransaction(
+    dbTransactionContext: DBTransactionContext<ProcessEngineDB>,
+    private val engineData: IProcessEngineData<ProcessDBTransaction>
+) : MonadicDBTransaction<ProcessEngineDB>(dbTransactionContext), ProcessTransaction {
+    private val pendingProcessInstances =
+        mutableMapOf<ComparableHandle<SecureObject<ProcessInstance>>, ProcessInstance.ExtBuilder>()
+
+    fun pendingProcessInstance(pihandle: ComparableHandle<SecureObject<ProcessInstance>>): ProcessInstance.ExtBuilder? {
+        return pendingProcessInstances[pihandle]
+    }
+
+    override val readableEngineData: ProcessEngineDataAccess
+        get() = engineData.createReadDelegate(this)
+    override val writableEngineData: MutableProcessEngineDataAccess
+        get() = engineData.createWriteDelegate(this)
 }

@@ -107,7 +107,7 @@ class XmlProcessModel : RootProcessModelBase<@UseContextualSerialization XmlProc
     }
 
 
-    @FakeSerializable
+    @Serializable(Builder.Companion::class)
     @XmlSerialName(ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     class Builder : RootProcessModelBase.Builder {
 
@@ -129,7 +129,7 @@ class XmlProcessModel : RootProcessModelBase<@UseContextualSerialization XmlProc
         constructor(base: XmlProcessModel) : super(base)
 
         @OptIn(InternalSerializationApi::class)
-        @FakeSerializer(forClass = Builder::class)
+        @Serializer(forClass = Builder::class)
         companion object : RootProcessModelBase.Builder.BaseSerializer<Builder>() {
             //            override val descriptor: SerialDescriptor = SerialClassDescImpl(XmlProcessModel.descriptor, Builder::class.name)
             override val descriptor: SerialDescriptor

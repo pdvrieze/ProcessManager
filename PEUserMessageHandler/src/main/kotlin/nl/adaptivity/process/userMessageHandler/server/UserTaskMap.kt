@@ -119,7 +119,7 @@ class UserTaskMap(connectionProvider: TransactionFactory<DBTransaction>) :
         }
 
         @Throws(SQLException::class)
-        override fun postCreate(transaction: DBTransaction, builder: XmlTask): XmlTask {
+        override fun postCreate(transaction: Any, setAccess: DBSetAccess<Any>, builder: XmlTask): XmlTask {
             UserTaskDB.SELECT(nd.name, nd.data).WHERE { nd.taskhandle eq builder.handle }
                 .execute(transaction.connection) { name, data ->
                     if (name != null) {

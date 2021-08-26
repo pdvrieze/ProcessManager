@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.engine
 
-import kotlinx.serialization.UnstableDefault
+import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
 import kotlinx.serialization.json.JsonConfiguration
 import nl.adaptivity.process.engine.processModel.CompositeInstance
@@ -150,7 +150,6 @@ open class EngineSuite(val delegate: Suite) : LifecycleAware by delegate {
 
 }
 
-@OptIn(UnstableDefault::class)
 abstract class ModelSpek(
     val modelData: ModelData,
     custom: (CustomDsl.() -> Unit)? = null,
@@ -160,7 +159,10 @@ abstract class ModelSpek(
 ) : Spek(
     {
 
-        val myJsonConfiguration = JsonConfiguration(strictMode = false, encodeDefaults = false)
+        val json = Json {
+            encodeDefaults = false
+            isLenient = true
+        }
 
         val model by memoized(CachingMode.SCOPE) { modelData.model }
         val valid = modelData.valid.selectN(maxValid)
@@ -212,7 +214,7 @@ abstract class ModelSpek(
 
                     it("${model.name} should be able to be serialized to JSON") {
                         Assertions.assertDoesNotThrow {
-                            jsonSerialization = Json(myJsonConfiguration).stringify(
+                            jsonSerialization = json.encodeToString(
                                 XmlProcessModel.serializer(),
                                 XmlProcessModel(model.builder())
                             )
@@ -226,7 +228,7 @@ abstract class ModelSpek(
                     it("${model.name} should also be able to be deserialized from JSON") {
                         lateinit var deserializedModel: XmlProcessModel.Builder
                         Assertions.assertDoesNotThrow {
-                            deserializedModel = Json(myJsonConfiguration).parse(
+                            deserializedModel = json.decodeFromString(
                                 XmlProcessModel.Builder.serializer(),
                                 jsonSerialization
                             )
@@ -269,7 +271,7 @@ internal fun EngineSuite.testValidTrace(
     validTrace: Trace
 ) {
     context("For valid trace [${validTrace.joinToString()}]") {
-        val traceTransaction by memoized(CachingMode.GROUP) { engineData.engine.startTransaction() }
+        val traceTransaction by memoized(CachingMode.EACH_GROUP) { engineData.engine.startTransaction() }
 
         val transaction = getter { traceTransaction }
         val hinstance = startProcess(

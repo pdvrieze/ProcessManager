@@ -27,12 +27,11 @@ internal abstract class TestConfigurableModel(
     name: String? = null,
     owner: Principal = EngineTestData.principal,
     uuid: UUID = UUID.randomUUID()
-                                             ) :
-    ConfigurableProcessModel<ExecutableProcessNode>(
+) : ConfigurableProcessModel<ExecutableProcessNode>(
         name,
         owner,
         uuid
-                                                   ) {
+    ) {
 
     override val rootModel: ExecutableProcessModel by lazy {
         buildModel {

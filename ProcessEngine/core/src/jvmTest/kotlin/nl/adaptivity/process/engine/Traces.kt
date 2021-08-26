@@ -92,7 +92,7 @@ class TraceElement(val nodeId: String, val instanceNo: Int, val outputs: List<Pr
     fun getNodeInstance(transaction: StubProcessTransaction, instance: ProcessInstance): ProcessNodeInstance<*>? {
         return when (instanceNo) {
             ANYINSTANCE    -> instance.allChildren(transaction).firstOrNull { it.node.id == nodeId }
-            LASTINSTANCE   -> instance.allChildren(transaction).filter { it.node.id == nodeId }.maxBy { it.entryNo }
+            LASTINSTANCE   -> instance.allChildren(transaction).filter { it.node.id == nodeId }.maxByOrNull { it.entryNo }
             SINGLEINSTANCE -> instance.allChildren(transaction).filter { it.node.id == nodeId }.also {
                 if (it.count() > 1) throw ProcessTestingException(
                     "Only one instance is allowed with this trace: $this found: [${it.joinToString()}]")

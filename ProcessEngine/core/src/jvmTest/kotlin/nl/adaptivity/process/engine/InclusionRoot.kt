@@ -16,10 +16,7 @@
 
 package nl.adaptivity.process.engine
 
-import org.spekframework.spek2.dsl.GroupBody
-import org.spekframework.spek2.dsl.Root
-import org.spekframework.spek2.dsl.Skip
-import org.spekframework.spek2.dsl.TestBody
+import org.spekframework.spek2.dsl.*
 import org.spekframework.spek2.lifecycle.CachingMode
 import org.spekframework.spek2.lifecycle.LifecycleListener
 import org.spekframework.spek2.lifecycle.MemoizedValue
@@ -45,6 +42,14 @@ class InclusionRoot(val group: GroupBody): Root {
 
     override fun afterGroup(callback: () -> Unit) {
         group.afterGroup(callback)
+    }
+
+    override fun afterEachGroup(fixture: Fixture) {
+        group.afterEachGroup(fixture)
+    }
+
+    override fun beforeEachGroup(fixture: Fixture) {
+        group.beforeEachGroup(fixture)
     }
 
     override fun beforeEachTest(callback: () -> Unit) {
