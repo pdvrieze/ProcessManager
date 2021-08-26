@@ -35,8 +35,8 @@ class MPConsumerPlugin: Plugin<Project> {
     override fun apply(project: Project) {
         with(project) {
             logger.lifecycle("Multiplatform consumer plugin applied!")
-            if (plugins.hasPlugin(KotlinMultiplatformPlugin::class)) {
-                logger.warn("Applying multiplatform consumer plugin on a multiplatform project")
+            if (pluginManager.hasPlugin("kotlin-multiplatform")) {
+                logger.warn("Applying multiplatform consumer plugin on a multiplatform project, this has no effect")
             } else {
                 val platformType = when {
                     // Don't use classes for the android plugins as we don't want to pull in the android plugin into the
