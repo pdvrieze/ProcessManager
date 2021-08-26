@@ -35,7 +35,7 @@ val kotlin_version: String by project
 val androidPluginVersion: String by project
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.21")
+    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.30")
     runtimeOnly("com.android.tools.build:gradle:$androidPluginVersion")
 }
 

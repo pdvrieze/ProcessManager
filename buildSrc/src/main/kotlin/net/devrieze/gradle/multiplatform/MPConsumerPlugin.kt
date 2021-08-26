@@ -18,8 +18,11 @@ package multiplatform.net.devrieze.gradle.multiplatform
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
+import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.attributes.AttributeDisambiguationRule
 import org.gradle.api.attributes.MultipleCandidatesDetails
+import org.gradle.kotlin.dsl.closureOf
 import org.gradle.kotlin.dsl.hasPlugin
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformAndroidPlugin
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformJsPlugin
@@ -48,12 +51,8 @@ class MPConsumerPlugin: Plugin<Project> {
 
                     else -> KotlinPlatformType.jvm
                 }
-
-                configurations.all {
-                    if (isCanBeResolved) {
-                        logger.debug("Skipping configuration $name because it is resolvable")
-                    } else {
-                        // All should defer actual application
+                configurations.configureEach {
+                    if (! isCanBeConsumed) {
                         attributes {
                             if (!contains(KotlinPlatformType.attribute)) {
                                 logger.info("Adding kotlin usage attribute $platformType to configuration: ${name}")
