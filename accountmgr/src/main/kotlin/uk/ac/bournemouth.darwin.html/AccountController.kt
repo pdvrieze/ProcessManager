@@ -296,14 +296,14 @@ class AccountController : HttpServlet() {
                     if (pubkey.isNullOrBlank()) {
                         resp.contentType = "text/plain"
                         resp.writer.use {
-                            it.append("authenticated:").appendln(username)
+                            it.append("authenticated:").appendLine(username)
                             log.warning("registerkey: User authenticated but missing public key to register")
                         }
                     } else {
                         try {
                             val newKeyId = registerkey(username, pubkey, appname, keyid?.toInt())
                             resp.contentType = "text/plain"
-                            resp.writer.use { it.append("key:").appendln(newKeyId.toString()) }
+                            resp.writer.use { it.append("key:").appendLine(newKeyId.toString()) }
                             log.fine("registerkey: registered key with id: $newKeyId")
                         } catch (e: NumberFormatException) {
                             resp.darwinError(
@@ -375,7 +375,7 @@ class AccountController : HttpServlet() {
                         if (req.htmlAccepted) {
                             loginSuccess(req, resp)
                         } else {
-                            resp.writer.use { it.append("login:").appendln(username) }
+                            resp.writer.use { it.append("login:").appendLine(username) }
                         }
                     }
                 }
@@ -414,7 +414,7 @@ class AccountController : HttpServlet() {
                 loginScreen(req, resp)
             } else {
                 resp.status = HttpServletResponse.SC_UNAUTHORIZED
-                resp.writer.use { it.appendln("error:Login is required\n") }
+                resp.writer.use { it.appendLine("error:Login is required\n") }
             }
         }
     }
@@ -430,7 +430,7 @@ class AccountController : HttpServlet() {
                 loginScreen(req, resp)
             } else {
                 resp.status = HttpServletResponse.SC_UNAUTHORIZED
-                resp.writer.use { it.appendln("error:Login is required\n") }
+                resp.writer.use { it.appendLine("error:Login is required\n") }
             }
         }
     }
@@ -454,7 +454,7 @@ class AccountController : HttpServlet() {
             loginScreen(req, resp)
         } else {
             resp.contentType = "text/plain"
-            resp.writer.use { it.appendln("logout") }
+            resp.writer.use { it.appendLine("logout") }
         }
     }
 
@@ -506,7 +506,7 @@ class AccountController : HttpServlet() {
             } catch (e: AuthException) {
                 resp.contentType = "text/plain"
                 resp.status = e.errorCode
-                resp.writer.use { it.appendln("INVALID REQUEST") }
+                resp.writer.use { it.appendLine("INVALID REQUEST") }
                 if (e.errorCode == HttpServletResponse.SC_NOT_FOUND) { // missing code
                     return
                 }
@@ -514,7 +514,7 @@ class AccountController : HttpServlet() {
             }
             resp.contentType = "text/plain"
             resp.setHeader(HEADER_CHALLENGE_VERSION, CHALLENGE_VERSION)
-            resp.writer.use { it.appendln(challenge) }
+            resp.writer.use { it.appendLine(challenge) }
         }
     }
 
@@ -657,7 +657,7 @@ class AccountController : HttpServlet() {
                     p { +"Congratulations with successfully authenticating on darwin." }
                 }
             } else {
-                resp.writer.use { it.append("login:").appendln(userName) }
+                resp.writer.use { it.append("login:").appendLine(userName) }
             }
         }
     }
@@ -667,7 +667,7 @@ class AccountController : HttpServlet() {
         if (req.htmlAccepted) {
             loginScreen(req, resp, "Username or password not correct")
         } else {
-            resp.writer.use { it.appendln("invalid:Invalid credentials") }
+            resp.writer.use { it.appendLine("invalid:Invalid credentials") }
         }
     }
 
