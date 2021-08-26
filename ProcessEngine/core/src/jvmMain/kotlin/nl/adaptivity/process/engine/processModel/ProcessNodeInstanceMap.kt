@@ -29,7 +29,7 @@ import javax.sql.DataSource
 
 class ProcessNodeInstanceMap(
     transactionFactory: DBTransactionFactory<ProcessDBTransaction, ProcessEngineDB>,
-    processEngine: ProcessEngine<*, *>
+    processEngine: ProcessEngine<ProcessDBTransaction, *>
 ) : DBHandleMap<ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>>,
     SecureObject<ProcessNodeInstance<*>>,
     ProcessDBTransaction,

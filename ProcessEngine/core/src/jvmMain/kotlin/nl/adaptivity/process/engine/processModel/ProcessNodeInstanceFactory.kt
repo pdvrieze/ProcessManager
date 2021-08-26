@@ -18,12 +18,18 @@ package nl.adaptivity.process.engine.processModel
 
 import io.github.pdvrieze.kotlinsql.ddl.Column
 import io.github.pdvrieze.kotlinsql.ddl.Table
+import io.github.pdvrieze.kotlinsql.ddl.columns.CustomColumnType
+import io.github.pdvrieze.kotlinsql.ddl.columns.NumberColumnConfiguration
+import io.github.pdvrieze.kotlinsql.ddl.columns.NumericColumn
+import io.github.pdvrieze.kotlinsql.ddl.columns.NumericColumnType
+import io.github.pdvrieze.kotlinsql.dml.Insert
+import io.github.pdvrieze.kotlinsql.dml.Select1
 import io.github.pdvrieze.kotlinsql.dml.WhereClause
 import io.github.pdvrieze.kotlinsql.dml.impl._ListSelect
-import io.github.pdvrieze.kotlinsql.dml.impl._MaybeWhere
+import io.github.pdvrieze.kotlinsql.dml.impl._UpdateBuilder
 import io.github.pdvrieze.kotlinsql.dml.impl._Where
-import io.github.pdvrieze.kotlinsql.monadic.DBReceiver
-import io.github.pdvrieze.kotlinsql.monadic.actions.DBAction
+import io.github.pdvrieze.kotlinsql.monadic.VALUES
+import io.github.pdvrieze.kotlinsql.monadic.actions.*
 import io.github.pdvrieze.kotlinsql.monadic.impl.SelectResultSetRow
 import net.devrieze.util.*
 import net.devrieze.util.collection.replaceBy
@@ -38,7 +44,6 @@ import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.processModel.engine.ExecutableSplit
 import nl.adaptivity.xmlutil.util.CompactFragment
-import java.sql.SQLException
 
 /**
  * Factory object to help with process node creation from a database.
@@ -76,7 +81,7 @@ internal class ProcessNodeInstanceFactory(val processEngine: ProcessEngine<Proce
         val state = tbl_pni.state.value(row)
         val entryNo = tbl_pni.entryno.nullableValue(row) ?: 1
 
-        with (transaction) {
+        with(transaction) {
             val processInstanceBuilder = transaction.pendingProcessInstance(pihandle)
                 ?: processEngine.getProcessInstance(transaction, pihandle, SYSTEMPRINCIPAL).builder()
 
@@ -84,64 +89,66 @@ internal class ProcessNodeInstanceFactory(val processEngine: ProcessEngine<Proce
 
             val node = processModel.requireNode(nodeId)
 
-            SELECT(tbl_pred.predecessor)
+            val predecessorHandles = SELECT(tbl_pred.predecessor)
                 .WHERE { tbl_pred.pnihandle eq pnihandle }
-                .mapEach {  }
-                .getList(transaction.connection)
-                .map { it?.let { handle(it) } }
-                .requireNoNulls()
+                .mapEach { it!!.toComparableHandle() }
 
-        }
+            return when (node) {
+                is ExecutableJoin              -> predecessorHandles.map { predecessors ->
+                    JoinInstance.BaseBuilder(
+                        node, predecessors, processInstanceBuilder, processInstanceBuilder.owner, entryNo,
+                        handle(handle = pnihandle.handleValue), state
+                    )
+                }
+                is ExecutableSplit             -> predecessorHandles.map { predecessors ->
+                    SplitInstance.BaseBuilder(
+                        node, predecessors.single(), processInstanceBuilder, processInstanceBuilder.owner,
+                        entryNo, handle(handle = pnihandle.handleValue), state
+                    )
+                }
+                is ExecutableCompositeActivity -> {
+                    predecessorHandles.then<Pair<List<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>, ComparableHandle<SecureObject<ProcessInstance>>>> { predecessors ->
+                        SELECT(tbl_pi.pihandle)
+                            .WHERE { tbl_pi.parentActivity eq pnihandle }
+                            .mapSeq<ProcessEngineDB, Select1<Handle<SecureObject<ProcessInstance>>, CustomColumnType<Handle<SecureObject<ProcessInstance>>, Long, NumericColumnType.BIGINT_T, NumericColumn<Long, NumericColumnType.BIGINT_T>, NumberColumnConfiguration<Long, NumericColumnType.BIGINT_T>>, CustomColumnType<Handle<SecureObject<ProcessInstance>>, Long, NumericColumnType.BIGINT_T, NumericColumn<Long, NumericColumnType.BIGINT_T>, NumberColumnConfiguration<Long, NumericColumnType.BIGINT_T>>.CustomColumn>, Pair<List<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>, ComparableHandle<SecureObject<ProcessInstance>>>, Handle<SecureObject<ProcessInstance>>, CustomColumnType<Handle<SecureObject<ProcessInstance>>, Long, NumericColumnType.BIGINT_T, NumericColumn<Long, NumericColumnType.BIGINT_T>, NumberColumnConfiguration<Long, NumericColumnType.BIGINT_T>>, CustomColumnType<Handle<SecureObject<ProcessInstance>>, Long, NumericColumnType.BIGINT_T, NumericColumn<Long, NumericColumnType.BIGINT_T>, NumberColumnConfiguration<Long, NumericColumnType.BIGINT_T>>.CustomColumn> {
+                                Pair(
+                                    predecessors,
+                                    it.singleOrNull<Handle<SecureObject<ProcessInstance>>?>()
+                                        ?.toComparableHandle<SecureObject<ProcessInstance>>()
+                                        ?: getInvalidHandle<SecureObject<ProcessInstance>>()
+                                )
+                            }
+                    }.map { (predecessors, childInstance) ->
+                        CompositeInstance.BaseBuilder(
+                            node,
+                            predecessors.single(),
+                            processInstanceBuilder,
+                            childInstance,
+                            processInstanceBuilder.owner,
+                            entryNo,
+                            handle(handle = pnihandle.handleValue),
+                            state
+                        )
 
-        val predecessors = ProcessEngineDB
-            .SELECT(tbl_pred.predecessor)
-            .WHERE { tbl_pred.pnihandle eq pnihandle }
-            .getList(transaction.connection)
-            .map { it?.let { handle(it) } }
-            .requireNoNulls()
-
-        return when {
-            node is ExecutableJoin              -> {
-                JoinInstance.BaseBuilder(
-                    node, predecessors, processInstanceBuilder, processInstanceBuilder.owner, entryNo,
-                    handle<SecureObject<ProcessNodeInstance<*>>>(handle = pnihandle.handleValue), state
-                )
-            }
-            node is ExecutableSplit             -> {
-                SplitInstance.BaseBuilder(
-                    node, predecessors.single(), processInstanceBuilder, processInstanceBuilder.owner,
-                    entryNo, handle<SecureObject<ProcessNodeInstance<*>>>(handle = pnihandle.handleValue), state
-                )
-            }
-            node is ExecutableCompositeActivity -> {
-                val childInstance = ProcessEngineDB
-                    .SELECT(tbl_pi.pihandle)
-                    .WHERE { tbl_pi.parentActivity eq pnihandle }
-                    .getSingleOrNull(transaction.connection)?.let { handle<SecureObject<ProcessInstance>>(it) }
-                    ?: getInvalidHandle()
-
-                CompositeInstance.BaseBuilder(
-                    node, predecessors.single(), processInstanceBuilder, childInstance, processInstanceBuilder.owner,
-                    entryNo,
-                    handle<SecureObject<ProcessNodeInstance<*>>>(handle = pnihandle.handleValue), state
-                )
-            }
-            else                                -> {
-                DefaultProcessNodeInstance.BaseBuilder(
-                    node, predecessors, processInstanceBuilder,
-                    processInstanceBuilder.owner, entryNo,
-                    handle<SecureObject<DefaultProcessNodeInstance>>(handle = pnihandle.handleValue), state
-                )
+                    }
+                }
+                else                           -> predecessorHandles.map { predecessors ->
+                    DefaultProcessNodeInstance.BaseBuilder(
+                        node, predecessors, processInstanceBuilder,
+                        processInstanceBuilder.owner, entryNo,
+                        handle(handle = pnihandle.handleValue), state
+                    )
+                }
             }
         }
     }
 
     override fun createFromBuilder(
-        dbReceiver: DBReceiver<ProcessEngineDB>,
-        setAccess: DbSet.DBSetAccess<ProcessEngineDB>,
+        transaction: ProcessDBTransaction,
+        setAccess: DbSet.DBSetAccess<ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>>>,
         builder: ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>>
     ): DBAction<ProcessEngineDB, SecureObject<ProcessNodeInstance<*>>> {
-        return with(dbReceiver) {
+        return with(transaction) {
             SELECT(tbl_nd.name, tbl_nd.data)
                 .WHERE { tbl_nd.pnihandle eq builder.handle }
                 .mapEach { name, data ->
@@ -159,17 +166,14 @@ internal class ProcessNodeInstanceFactory(val processEngine: ProcessEngine<Proce
         }
     }
 
-    override fun getPrimaryKeyCondition(
-        where: Database._Where,
-        instance: SecureObject<ProcessNodeInstance<*>>
-    ): Database.WhereClause? {
+    override fun getPrimaryKeyCondition(where: _Where, instance: SecureObject<ProcessNodeInstance<*>>): WhereClause {
         return getHandleCondition(where, instance.withPermission().handle)
     }
 
     @Suppress("UNCHECKED_CAST")
     override fun asInstance(obj: Any) = obj as? DefaultProcessNodeInstance
 
-    override fun store(update: Database._UpdateBuilder, value: SecureObject<ProcessNodeInstance<*>>) {
+    override fun store(update: _UpdateBuilder, value: SecureObject<ProcessNodeInstance<*>>) {
         update.run {
             value.withPermission().let { value ->
                 SET(tbl_pni.nodeid, value.node.id)
@@ -180,94 +184,99 @@ internal class ProcessNodeInstanceFactory(val processEngine: ProcessEngine<Proce
     }
 
     override fun postStore(
-        connection: DBConnection,
+        transaction: ProcessDBTransaction,
         handle: Handle<SecureObject<ProcessNodeInstance<*>>>,
         oldValue: SecureObject<ProcessNodeInstance<*>>?,
         newValue: SecureObject<ProcessNodeInstance<*>>
-    ) {
-        if (oldValue != null) { // update
-            ProcessEngineDB
-                .DELETE_FROM(tbl_pred)
-                .WHERE { tbl_pred.pnihandle eq handle }
-                .executeUpdate(connection)
-        }
-        newValue.withPermission().let { newValue ->
-            if (newValue.predecessors.isNotEmpty()) {
-                val insert = ProcessEngineDB
-                    .INSERT(tbl_pred.pnihandle, tbl_pred.predecessor)
+    ): DBAction<ProcessEngineDB, Boolean> {
+        return with(transaction) {
 
-                for (predecessor in newValue.predecessors) {
-                    insert.VALUES(handle, predecessor)
+            var deleteAction: DBAction<ProcessEngineDB, *> = oldValue?.let { oldValue ->
+                DELETE_FROM(tbl_pred)
+                    .WHERE { tbl_pred.pnihandle eq oldValue.withPermission().handle }
+            } ?: value(Unit)
+
+            newValue.withPermission().let { newValue ->
+                var action: DBAction<ProcessEngineDB, Any?> = deleteAction
+                if (newValue.predecessors.isNotEmpty()) {
+                    action = action.then(
+                        INSERT(tbl_pred.pnihandle, tbl_pred.predecessor)
+                            .VALUES(newValue.predecessors) { pred ->
+                                VALUES(handle, pred)
+                            })
                 }
 
-                insert.executeUpdate(connection)
-            }
+                val isFailure =
+                    newValue.state == NodeInstanceState.Failed || newValue.state == NodeInstanceState.FailRetry
+                val results = newValue.results
+                if (results.isNotEmpty() || (isFailure && newValue.failureCause != null)) {
+                    if (results.isNotEmpty()) {
+                        val insertResult = INSERT_OR_UPDATE(tbl_nd.pnihandle, tbl_nd.name, tbl_nd.data)
+                            .VALUES(results) { data -> VALUES(newValue.handle, data.name, data.content.contentString) }
+                        val fc = newValue.failureCause
 
-            val isFailure = newValue.state == NodeInstanceState.Failed || newValue.state == NodeInstanceState.FailRetry
-            val results = newValue.results
-            if (results.isNotEmpty() || (isFailure && newValue.failureCause != null)) {
-                val insert = ProcessEngineDB.INSERT_OR_UPDATE(tbl_nd.pnihandle, tbl_nd.name, tbl_nd.data)
-                for (data in results) {
-                    insert.VALUES(newValue.handle, data.name, data.content.contentString)
-                }
-                if (isFailure) {
-                    newValue.failureCause?.let { cause ->
-                        insert.VALUES(newValue.handle, FAILURE_CAUSE, cause.message)
+                        if (isFailure && fc!=null) {
+                            insertResult.VALUES(newValue.handle, FAILURE_CAUSE, fc.message)
+                        }
+
+                        action = action.then(insertResult)
                     }
                 }
-                insert.executeUpdate(connection)
+                action.map { true }
             }
         }
     }
 
-    override fun insertStatement(value: SecureObject<ProcessNodeInstance<*>>): Database.Insert {
-        return value.withPermission().let { value ->
-            ProcessEngineDB
-                .INSERT(tbl_pni.nodeid, tbl_pni.pihandle, tbl_pni.state)
-                .VALUES(value.node.id, value.hProcessInstance, value.state)
-        }
+    override fun insertStatement(transaction: ProcessDBTransaction): ValuelessInsertAction<ProcessEngineDB, Insert> {
+        return transaction.INSERT(tbl_pni.nodeid, tbl_pni.pihandle, tbl_pni.state)
+    }
+
+    override fun insertValues(
+        transaction: ProcessDBTransaction,
+        insert: InsertActionCommon<ProcessEngineDB, Insert>,
+        value: SecureObject<ProcessNodeInstance<*>>
+    ): InsertAction<ProcessEngineDB, Insert> {
+        val v = value.withPermission()
+        return insert.listVALUES(v.node.id, v.hProcessInstance, v.state)
     }
 
     override val keyColumn get() = tbl_pni.pnihandle
 
-    override fun preRemove(transaction: ProcessDBTransaction, handle: Handle<SecureObject<ProcessNodeInstance<*>>>) {
-
-        val connection = transaction.connection
-        ProcessEngineDB
-            .DELETE_FROM(tbl_pred)
-            .WHERE { tbl_pred.pnihandle eq handle }
-            .executeUpdate(connection)
-
-        ProcessEngineDB
-            .DELETE_FROM(tbl_nd)
-            .WHERE { tbl_nd.pnihandle eq handle }
-            .executeUpdate(connection)
+    override fun preRemove(
+        transaction: ProcessDBTransaction,
+        handle: Handle<SecureObject<ProcessNodeInstance<*>>>
+    ): DBAction<ProcessEngineDB, Boolean> {
+        return with(transaction) {
+            DELETE_FROM(tbl_pred)
+                .WHERE { tbl_pred.pnihandle eq handle }
+                .then(DELETE_FROM(tbl_nd)
+                          .WHERE { tbl_nd.pnihandle eq handle })
+                .map { true }
+        }
     }
 
-    override fun preRemove(transaction: ProcessDBTransaction, element: SecureObject<ProcessNodeInstance<*>>) {
-        preRemove(transaction, element.withPermission().handle)
+    override fun preRemove(
+        transaction: ProcessDBTransaction,
+        element: SecureObject<ProcessNodeInstance<*>>
+    ): DBAction<ProcessEngineDB, Boolean> {
+        return preRemove(transaction, element.withPermission().handle)
     }
 
-    override fun preRemove(transaction: ProcessDBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>) {
+    override fun preRemove(
+        transaction: ProcessDBTransaction,
+        columns: List<Column<*, *, *>>,
+        values: List<Any?>
+    ): DBAction<ProcessEngineDB, Boolean> {
         val handle = tbl_pni.pnihandle.value(columns, values)
-        preRemove(transaction, handle)
+        return preRemove(transaction, handle)
     }
 
-    @Throws(SQLException::class)
-    override fun preClear(transaction: ProcessDBTransaction) {
-
-        val connection = transaction.connection
-
-        ProcessEngineDB
-            .DELETE_FROM(tbl_pred)
-            .WHERE { filter(this) }
-            .executeUpdate(connection)
-
-        ProcessEngineDB
-            .DELETE_FROM(tbl_nd)
-            .WHERE { filter(this) }
-            .executeUpdate(connection)
-
+    override fun preClear(transaction: ProcessDBTransaction): DBAction<ProcessEngineDB, Any> {
+        return with(transaction) {
+            DELETE_FROM(tbl_pred)
+                .maybeWHERE { filter(this) }
+                .then(DELETE_FROM(tbl_nd).maybeWHERE { filter(this) })
+        }
     }
 
 }

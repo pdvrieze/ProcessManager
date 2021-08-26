@@ -269,7 +269,7 @@ class ProcessEngine<TR : ProcessTransaction, PIC : ActivityInstanceContext> {
             }
         }
 
-        lateinit var engine: ProcessEngine<*, *>
+        lateinit var engine: ProcessEngine<ProcessDBTransaction, *>
 
         override val processInstances by lazy {
             wrapDBInstanceCache(ProcessInstanceMap(this, engine), INSTANCE_CACHE_SIZE)

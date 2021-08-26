@@ -25,7 +25,7 @@ import javax.sql.DataSource
 
 internal class ProcessInstanceMap(
     transactionFactory: DBTransactionFactory<ProcessDBTransaction, ProcessEngineDB>,
-    processEngine: ProcessEngine<*, *>
+    processEngine: ProcessEngine<ProcessDBTransaction, *>
 ) : DBHandleMap<ProcessInstance.BaseBuilder, SecureObject<ProcessInstance>, ProcessDBTransaction, ProcessEngineDB>(
     transactionFactory,
     ProcessInstanceElementFactory(processEngine)

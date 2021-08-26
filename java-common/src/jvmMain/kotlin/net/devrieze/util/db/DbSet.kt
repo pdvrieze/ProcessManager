@@ -241,7 +241,7 @@ open class DbSet<TMP, T : Any, TR: MonadicDBTransaction<DB>, DB : Database>(
         return dbReceiver.transaction {
             SELECT(elementFactory.createColumns)
                 .maybeWHERE(selection)
-                .mapEach { valueRow ->
+                .mapEachRS { valueRow ->
                     val values = columns.mapIndexed { i, col ->
                         valueRow.value(col, i + 1)
 //                        col.type.fromResultSet(valueRow.rawResultSet, i + 1)
