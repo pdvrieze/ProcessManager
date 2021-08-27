@@ -101,7 +101,7 @@ class DBConnectionTest {
 
     private fun makeConnection() = DriverManager.getConnection(JDBCURL, USERNAME, PASSWORD)
 
-//    @AfterEach
+    @AfterEach
     fun removeTempTable() {
         val c = conn
         if (c != null && !c.isClosed) {

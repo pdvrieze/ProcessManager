@@ -16,11 +16,13 @@
 
 package uk.ac.bournemouth.darwin.accounts
 
+import io.github.pdvrieze.kotlinsql.ddl.Database
+import io.github.pdvrieze.kotlinsql.monadic.MonadicDBConnection
+import io.github.pdvrieze.kotlinsql.monadic.actions.mapSeq
+import io.github.pdvrieze.kotlinsql.monadic.invoke
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import uk.ac.bournemouth.ac.db.darwin.webauth.WebAuthDB
-import uk.ac.bournemouth.kotlinsql.Database
-import uk.ac.bournemouth.util.kotlin.sql.impl.DBConnection2
 import java.io.OutputStreamWriter
 import java.io.PrintWriter
 import java.math.BigInteger
@@ -92,8 +94,8 @@ private class MyDataSource : DataSource {
 }
 
 @Suppress("UNCHECKED_CAST")
-inline fun <D: Database, R> D.connect2(datasource: DataSource, block: DBConnection2<D>.() -> R): R =
-    connect(datasource) { (this as DBConnection2<D>).block() }
+inline fun <D: Database, R> D.connect2(datasource: DataSource, crossinline block: MonadicDBConnection<D>.() -> R): R =
+    invoke(datasource) { (this as MonadicDBConnection<D>).block() }
 
 /**
  * A test suite for the account manager.
@@ -169,7 +171,7 @@ class TestAccountControllerDirect {
 
     @AfterEach
     fun emptyDatabase() {
-        WebAuthDB.connect2(MyDataSource()) {
+        WebAuthDB(MyDataSource()) {
             val tables = arrayOf(
                 WebAuthDB.tokens,
                 WebAuthDB.challenges,
@@ -179,9 +181,12 @@ class TestAccountControllerDirect {
                 WebAuthDB.roles,
                 WebAuthDB.users,
             )
-            tables.forEach { table ->
-                db.DELETE_FROM(table).executeUpdate(this)
+            transaction {
+                tables.forEach { table ->
+                    DELETE_FROM(table).evaluateNow()
 //                table.dropTransitive(this, true)
+                }
+                commit()
             }
         }
     }
@@ -191,8 +196,8 @@ class TestAccountControllerDirect {
         accountDb(RESOURCE) {
             doCreateUser()
         }
-        val users = WebAuthDB.connect2(MyDataSource()) {
-            WebAuthDB.SELECT(WebAuthDB.users.user).getList(this)
+        val users = WebAuthDB(MyDataSource()) {
+            SELECT(WebAuthDB.users.user).mapSeq { it.toList() }.commit()
         }
         assertEquals(listOf(testUser), users)
     }
@@ -260,26 +265,25 @@ class TestAccountControllerDirect {
     fun testPasswdHashBinary() {
         val u = WebAuthDB.users
         accountDb { createUser() }
-        WebAuthDB.connect2(MyDataSource()) {
-            val hash = WebAuthDB.SELECT(u.password).WHERE { u.user eq testUser }.getSingleOrNull(this)
+        WebAuthDB(MyDataSource()) {
+            val hash = SELECT(u.password).WHERE { u.user eq testUser }.mapSingleOrNull { it }
+                .evaluateNow()
             assertNotNull(hash);
             hash!!
 
-            val hashUpper = hash.toUpperCase()
-            val hashLower = hash.toLowerCase()
+            val hashUpper = hash.uppercase()
+            val hashLower = hash.uppercase()
             assertNotEquals(hashUpper, hash)
             assertNotEquals(hashLower, hash)
 
             assertNotNull(
-                WebAuthDB.SELECT(u.user).WHERE { (u.user eq testUser) AND (u.password eq hash) }.getSingleOrNull(this))
+                SELECT(u.user).WHERE { (u.user eq testUser) AND (u.password eq hash) }.mapSingleOrNull { it }.evaluateNow())
 
             assertNull(
-                WebAuthDB.SELECT(u.user).WHERE { (u.user eq testUser) AND (u.password eq hashLower) }.getSingleOrNull(
-                    this))
+                SELECT(u.user).WHERE { (u.user eq testUser) AND (u.password eq hashLower) }.mapSingleOrNull { it }.evaluateNow())
 
             assertNull(
-                WebAuthDB.SELECT(u.user).WHERE { (u.user eq testUser) AND (u.password eq hashUpper) }.getSingleOrNull(
-                    this))
+                SELECT(u.user).WHERE { (u.user eq testUser) AND (u.password eq hashUpper) }.mapSeq { it.singleOrNull() }.evaluateNow())
         }
 
     }
@@ -289,13 +293,17 @@ class TestAccountControllerDirect {
         val genToken = accountDb {
             doNewAuthToken()
         }
-        WebAuthDB.connect2(MyDataSource()) {
-            WebAuthDB.SELECT(WebAuthDB.tokens.token, WebAuthDB.tokens.ip)
+        WebAuthDB(MyDataSource()) {
+            SELECT(WebAuthDB.tokens.token, WebAuthDB.tokens.ip)
                 .WHERE { WebAuthDB.users.user eq testUser }
-                .getSingle(this) { token, ip ->
+                .map { rs ->
+                    assertTrue(rs.next())
+                    val (token, ip) = rs.rowData
                     assertEquals(genToken, token)
                     assertEquals("127.0.0.1", ip)
-                } ?: AssertionError("Result expected")
+                    assertFalse(rs.next())
+                }
+                .commit()
         }
     }
 
@@ -356,13 +364,17 @@ class TestAccountControllerDirect {
             registerkey(testUser, "$testModulusEnc:$testPubExpEnc", "Test system")
         }
         val p = WebAuthDB.pubkeys
-        WebAuthDB.connect2(MyDataSource()) {
-            WebAuthDB.SELECT(p.pubkey, p.user)
+        WebAuthDB(MyDataSource()) {
+            SELECT(p.pubkey, p.user)
                 .WHERE { (p.keyid eq keyId) }
-                .getSingle(this) { pubkey, user ->
+                .map { rs ->
+                    assertTrue(rs.next())
+                    val (pubkey, user) = rs.rowData
                     assertEquals(testUser, user)
                     assertEquals("$testModulusEnc:$testPubExpEnc", pubkey)
-                } ?: AssertionError("Result expected")
+                    assertFalse(rs.next())
+                }
+                .commit()
         }
 
         val keyInfo = accountDb { keyInfo(testUser) }
