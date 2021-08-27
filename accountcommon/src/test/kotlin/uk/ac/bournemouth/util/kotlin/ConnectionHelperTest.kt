@@ -16,13 +16,18 @@
 
 package uk.ac.bournemouth.util.kotlin
 
+import io.github.pdvrieze.kotlinsql.ddl.Database
+import io.github.pdvrieze.kotlinsql.monadic.ConnectionSource
+import io.github.pdvrieze.kotlinsql.monadic.DBReceiver
+import io.github.pdvrieze.kotlinsql.monadic.DBTransactionContext
+import io.github.pdvrieze.kotlinsql.monadic.invoke
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
-import uk.ac.bournemouth.kotlinsql.Database
-import uk.ac.bournemouth.kotlinsql.query
-import uk.ac.bournemouth.util.kotlin.sql.*
+import java.io.PrintWriter
 import java.sql.Connection
 import java.sql.DriverManager
+import java.util.logging.Logger
+import javax.sql.DataSource
 
 
 /**
@@ -30,183 +35,244 @@ import java.sql.DriverManager
  */
 class DBConnectionTest {
 
-  object db: Database(1) {}
+    object db : Database(1) {}
 
-  companion object {
-    const val JDBCURL = "jdbc:mysql://localhost/test"
-    const val USERNAME="test"
-    const val PASSWORD="DAGHYbH6Wb"
-    const val TABLENAME="testTable"
-  }
+    companion object {
+        const val JDBCURL = "jdbc:mysql://localhost/test"
+        const val USERNAME = "test"
+        const val PASSWORD = "DAGHYbH6Wb"
+        const val TABLENAME = "testTable"
+    }
 
-  var conn: Connection? = null
+    var conn: Connection? = null
 
-  @BeforeEach
-  fun makeConnectionAndTable() {
-    makeConnection().apply {
-        conn = this
+    val dataSource = object : DataSource {
+        private var logWriter: PrintWriter = PrintWriter(System.err)
+        private var loginTimeout: Int = 5
 
-        System.err.println("Creating temporary table")
-        prepareStatement("DROP TABLE IF EXISTS $TABLENAME").use { it.execute() }
-        prepareStatement("CREATE TABLE $TABLENAME ( col1 INT AUTO_INCREMENT PRIMARY KEY, col2 VARCHAR(10), col3 VARCHAR(10), col4 BOOLEAN ) ENGINE = InnoDB").use {
-            it.execute()
+        override fun getLogWriter(): PrintWriter = logWriter
+
+        override fun setLogWriter(out: PrintWriter?) {
+            logWriter = out ?: PrintWriter(System.err)
+        }
+
+        override fun setLoginTimeout(seconds: Int) {
+            loginTimeout = seconds
+        }
+
+        override fun getLoginTimeout(): Int = loginTimeout
+
+        override fun getParentLogger(): Logger {
+            TODO("not implemented")
+        }
+
+        override fun <T : Any?> unwrap(iface: Class<T>?): T {
+            TODO("not implemented")
+        }
+
+        override fun isWrapperFor(iface: Class<*>?): Boolean {
+            TODO("not implemented")
+        }
+
+        override fun getConnection(): Connection {
+            if (conn!!.isClosed) {
+                conn = makeConnection()
+            }
+            return conn!!
+        }
+
+        override fun getConnection(username: String?, password: String?): Connection {
+            return connection
         }
     }
-  }
 
-  private fun makeConnection() = DriverManager.getConnection(JDBCURL, USERNAME, PASSWORD)
+    @BeforeEach
+    fun makeConnectionAndTable() {
+        makeConnection().apply {
+            conn = this
 
-  @AfterEach
-  fun removeTempTable() {
-    val c = conn
-    if (c!=null && ! c.isClosed) {
-      System.err.println("Removing temporary table")
-      if (!c.autoCommit) c.rollback()
-      c.prepareStatement("DROP TABLE ${TABLENAME}").use {
-        it.execute()
-      }
-      if (!c.autoCommit) {
-        c.commit()
-      }
-      c.close()
-      conn = null
-    }
-  }
-
-  @Test
-  fun testUse() {
-    DBConnection(conn!!, db).use {
-      simpleInsert(it)
-      verifyRows(DBConnection(conn!!, db))
-    }
-    assertTrue(conn!!.isClosed)
-  }
-
-  @Test
-  fun testUseThrow() {
-    try {
-      DBConnection(conn!!, db).transaction {
-        simpleInsert(it)
-        throw UnsupportedOperationException("test")
-      }
-    } catch(e:UnsupportedOperationException) {
-        assertEquals("test", e.message)
-    }
-    verifyNoRows(DBConnection(conn!!, db))
-    assertFalse(conn!!.isClosed)
-  }
-
-  @Test
-  fun testOuterUse() {
-    conn!!.use {
-      simpleInsert(DBConnection(it, db))
-      it.prepareStatement("DROP TABLE ${TABLENAME}").use { it.execute() }
-    }
-    assertTrue(conn!!.isClosed)
-  }
-
-  @Test
-  fun testCommit() {
-    val c = conn!!
-    DBConnection(c, db).use {
-      simpleInsert(it)
-      it.commit()
-      verifyRows(it)
-    }
-  }
-
-  @Test
-  fun testRollback() {
-    val c = conn!!
-    DBConnection(c, db).use {
-      simpleInsert(it)
-      it.rollback()
-      verifyNoRows(it)
-    }
-
-  }
-
-
-  @Test
-  fun testAutoRollback() {
-    val c = conn!!
-    try {
-      DBConnection(c, db).use { it ->
-        simpleInsert(it)
-        throw UnsupportedOperationException("Test")
-      }
-    } catch (e:UnsupportedOperationException) {
-        assertEquals("Test", e.message)
-    }
-    DBConnection(makeConnection(), db).use {
-      verifyNoRows(it)
-    }
-  }
-
-
-  @Test
-  fun testAutoRollbackTransaction() {
-    val c = conn!!
-    DBConnection(c, db).use { it ->
-      try {
-        it.transaction {
-          simpleInsert(it)
-          throw UnsupportedOperationException("Test")
+            System.err.println("Creating temporary table")
+            prepareStatement("DROP TABLE IF EXISTS $TABLENAME").use { it.execute() }
+            prepareStatement("CREATE TABLE $TABLENAME ( col1 INT AUTO_INCREMENT PRIMARY KEY, col2 VARCHAR(10), col3 VARCHAR(10), col4 BOOLEAN ) ENGINE = InnoDB").use {
+                it.execute()
+            }
         }
-      } catch (e:UnsupportedOperationException) {
-          assertEquals("Test", e.message)
-      }
-      verifyNoRows(it)
-
     }
 
-  }
+    private fun makeConnection() = DriverManager.getConnection(JDBCURL, USERNAME, PASSWORD)
 
-  private fun verifyNoRows(connectionHelper: DBConnection) {
-    connectionHelper.prepareStatement("SELECT col1, col2, col3, col4 FROM $TABLENAME") {
-      execute {
-        assertFalse(it.next())
-      }
-    }
-  }
-
-  private fun verifyRows(connectionHelper: DBConnection) {
-    connectionHelper.prepareStatement("SELECT col1, col2, col3, col4 FROM $TABLENAME") {
-      execute {
-        assertTrue(it.next())
-          assertEquals(1, it.getInt(1))
-          assertEquals("r1c2", it.getString(2))
-          assertEquals("r1c3", it.getString(3))
-          assertEquals(true, it.getBoolean(4))
-
-        assertTrue(it.next())
-          assertEquals(2, it.getInt(1))
-          assertEquals("r2c2", it.getString(2))
-          assertEquals("r2c3", it.getString(3))
-          assertEquals(false, it.getBoolean(4))
-
-        assertFalse(it.next())
-      }
-    }
-  }
-
-  private fun simpleInsert(connectionHelper: DBConnection) {
-    connectionHelper.prepareStatement("INSERT INTO $TABLENAME (col1, col2, col3, col4) VALUES ( ?, ?, ?, ? ), (?, ?, ? ,?)") {
-        @Suppress("USELESS_CAST")
-        params(intValue = 1) + "r1c2" + "r1c3" + true + 2.i + "r2c2" + "r2c3" + false
-        assertEquals(2, executeUpdate())
-    }
-  }
-  /*
-
-    @Test
-    fun testPrepareStatement() {
-
+//    @AfterEach
+    fun removeTempTable() {
+        val c = conn
+        if (c != null && !c.isClosed) {
+            System.err.println("Removing temporary table")
+            if (!c.autoCommit) c.rollback()
+            c.prepareStatement("DROP TABLE ${TABLENAME}").use {
+                it.execute()
+            }
+            if (!c.autoCommit) {
+                c.commit()
+            }
+            c.close()
+            conn = null
+        }
     }
 
     @Test
-    fun testGetConnection() {
-
+    fun testUse() {
+        db.invoke(dataSource) {
+            transaction {
+                simpleInsert()
+                commit()
+            }
+            verifyRows()
+        }
+        assertTrue(conn!!.isClosed)
     }
-    */
+
+    @Test
+    fun testUseThrow() {
+        db(dataSource) {
+            try {
+                transaction {
+                    simpleInsert()
+                    throw UnsupportedOperationException("test")
+                }
+            } catch (e: UnsupportedOperationException) {
+                assertEquals("test", e.message)
+            }
+            verifyNoRows()
+        }
+        assertTrue(conn!!.isClosed)
+    }
+
+    @Test
+    fun testOuterUse() {
+        db(dataSource) {
+            transaction {
+                simpleInsert()
+                commit()
+            }
+            genericAction { it.prepareStatement("DROP TABLE $TABLENAME") { statement.execute() } }
+                .evaluateNow()
+        }
+        assertTrue(conn!!.isClosed)
+    }
+
+    @Test
+    fun testCommit() {
+        db(dataSource) {
+            transaction {
+                simpleInsert()
+                commit()
+            }
+        }
+        db(dataSource) {
+            verifyRows()
+        }
+    }
+
+    @Test
+    fun testRollback() {
+        db(dataSource) {
+            transaction {
+                simpleInsert()
+                rollback()
+            }
+        }
+        db(dataSource) {
+            verifyNoRows()
+        }
+    }
+
+
+    @Test
+    fun testAutoRollback() {
+        try {
+            db(dataSource) {
+                transaction {
+                    simpleInsert()
+                    throw UnsupportedOperationException("Test")
+                }
+            }
+        } catch (e: UnsupportedOperationException) {
+            assertEquals("Test", e.message)
+        }
+        db(dataSource) {
+            verifyNoRows()
+        }
+    }
+
+
+    @Test
+    fun testAutoRollbackTransaction() {
+        db(dataSource) {
+            try {
+                transaction {
+                    simpleInsert()
+                    throw UnsupportedOperationException("Test")
+                }
+            } catch (e: UnsupportedOperationException) {
+                assertEquals("Test", e.message)
+            }
+            verifyNoRows()
+        }
+    }
+
+    private fun DBReceiver<db>.verifyNoRows() {
+        genericAction { conn ->
+            conn.prepareStatement("SELECT col1, col2, col3, col4 FROM $TABLENAME") {
+                statement.executeQuery().use { rs ->
+                    assertFalse(rs.next())
+                }
+            }
+        }
+    }
+
+    private fun DBReceiver<db>.verifyRows() {
+        genericAction { conn ->
+            conn.prepareStatement("SELECT col1, col2, col3, col4 FROM $TABLENAME") {
+                statement.executeQuery().use { rs ->
+                    assertTrue(rs.next(), "There should be 2 rows, not 0")
+                    assertEquals(1, rs.getInt(1))
+                    assertEquals("r1c2", rs.getString(2))
+                    assertEquals("r1c3", rs.getString(3))
+                    assertEquals(true, rs.getBoolean(4))
+
+                    assertTrue(rs.next(), "There should be 2 rows, not 1")
+                    assertEquals(2, rs.getInt(1))
+                    assertEquals("r2c2", rs.getString(2))
+                    assertEquals("r2c3", rs.getString(3))
+                    assertEquals(false, rs.getBoolean(4))
+
+                    assertFalse(rs.next(), "There should be 2 rows, not more")
+                }
+            }
+
+        }.evaluateNow()
+    }
+
+    private fun DBTransactionContext<db>.simpleInsert() {
+        val x = genericAction { conn ->
+            conn.prepareStatement("INSERT INTO $TABLENAME (col1, col2, col3, col4) VALUES ( ?, ?, ?, ? ), (?, ?, ? ,?)") {
+                @Suppress("USELESS_CAST")
+                params(intValue = 1) + "r1c2" + "r1c3" + true + 2.i + "r2c2" + "r2c3" + false
+                assertEquals(2, statement.executeUpdate())
+                3
+            }
+        }.evaluateNow()
+        assertEquals(3, x)
+    }
+    /*
+
+      @Test
+      fun testPrepareStatement() {
+
+      }
+
+      @Test
+      fun testGetConnection() {
+
+      }
+      */
 }
