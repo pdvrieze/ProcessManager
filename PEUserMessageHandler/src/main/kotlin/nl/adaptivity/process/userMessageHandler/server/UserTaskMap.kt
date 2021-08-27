@@ -16,35 +16,40 @@
 
 package nl.adaptivity.process.userMessageHandler.server
 
-import net.devrieze.util.*
+import io.github.pdvrieze.kotlinsql.ddl.Column
+import io.github.pdvrieze.kotlinsql.ddl.Table
+import io.github.pdvrieze.kotlinsql.dml.Insert
+import io.github.pdvrieze.kotlinsql.dml.WhereClause
+import io.github.pdvrieze.kotlinsql.dml.impl._ListSelect
+import io.github.pdvrieze.kotlinsql.dml.impl._UpdateBuilder
+import io.github.pdvrieze.kotlinsql.dml.impl._Where
+import io.github.pdvrieze.kotlinsql.monadic.actions.*
+import io.github.pdvrieze.kotlinsql.monadic.impl.SelectResultSetRow
+import net.devrieze.util.DBTransactionFactory
+import net.devrieze.util.Handle
+import net.devrieze.util.HandleNotFoundException
 import net.devrieze.util.db.AbstractElementFactory
 import net.devrieze.util.db.DBHandleMap
-import net.devrieze.util.db.DBTransaction
+import net.devrieze.util.db.MonadicDBTransaction
 import net.devrieze.util.security.SYSTEMPRINCIPAL
+import net.devrieze.util.toComparableHandle
 import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.client.ServletProcessEngineClient
 import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance
 import nl.adaptivity.xmlutil.serialization.XML
 import org.w3.soapEnvelope.Envelope
 import uk.ac.bournemouth.ac.db.darwin.usertasks.UserTaskDB
-import uk.ac.bournemouth.ac.db.darwin.webauth.WebAuthDB
-import uk.ac.bournemouth.kotlinsql.Column
-import uk.ac.bournemouth.kotlinsql.Database
-import uk.ac.bournemouth.kotlinsql.Table
-import uk.ac.bournemouth.util.kotlin.sql.DBConnection
-import java.sql.SQLException
 import java.util.concurrent.ExecutionException
 import java.util.concurrent.TimeUnit
 
 
-class UserTaskMap(connectionProvider: TransactionFactory<DBTransaction>) :
-    DBHandleMap<XmlTask, XmlTask, DBTransaction>(connectionProvider, UserTaskDB, UserTaskFactory()),
-    IMutableUserTaskMap<DBTransaction> {
+class UserTaskMap(connectionProvider: DBTransactionFactory<MonadicDBTransaction<UserTaskDB>, UserTaskDB>) :
+    DBHandleMap<XmlTask, XmlTask, MonadicDBTransaction<UserTaskDB>, UserTaskDB>(connectionProvider, UserTaskFactory()),
+    IMutableUserTaskMap<MonadicDBTransaction<UserTaskDB>> {
 
 
-    private class UserTaskFactory : AbstractElementFactory<XmlTask, XmlTask, DBTransaction>() {
-        private var colNoHandle: Int = 0
-        private var colNoRemoteHandle: Int = 0
+    private class UserTaskFactory :
+        AbstractElementFactory<XmlTask, XmlTask, MonadicDBTransaction<UserTaskDB>, UserTaskDB>() {
 
         override val table: Table
             get() {
@@ -59,38 +64,13 @@ class UserTaskMap(connectionProvider: TransactionFactory<DBTransaction>) :
         override val keyColumn: Column<Handle<XmlTask>, *, *>
             get() = u.taskhandle
 
+
         // XXX  This needs some serious overhaul
-        override fun create(transaction: DBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>): XmlTask {
-            val handle = u.taskhandle.value(columns, values)
-            val remoteHandle = u.remotehandle.value(columns, values)
-
-            val instance: XmlProcessNodeInstance?
-            try {
-                val future = ServletProcessEngineClient
-                    .getProcessNodeInstance(
-                        remoteHandle.handleValue,
-                        SYSTEMPRINCIPAL,
-                        null,
-                        XmlTask::class.java,
-                        Envelope::class.java
-                                           )
-                instance = future.get(TASK_LOOKUP_TIMEOUT_MILIS.toLong(), TimeUnit.MILLISECONDS)
-            } catch (e: ExecutionException) {
-
-                var f: Throwable = e
-                while (f.cause != null && (f.cause is ExecutionException || f.cause is MessagingException)) {
-                    f = f.cause!!
-                }
-                val cause = f.cause
-                if (cause is HandleNotFoundException) {
-                    throw cause
-                } else if (cause is RuntimeException) {
-                    throw cause
-                } else if (f is ExecutionException || f is MessagingException) {
-                    throw f
-                }
-                throw e
-            } catch (e: MessagingException) {
+        override fun createBuilder(
+            transaction: MonadicDBTransaction<UserTaskDB>,
+            row: SelectResultSetRow<_ListSelect>
+        ): DBAction<UserTaskDB, XmlTask> {
+            fun handleException(e: Exception): Nothing {
                 var f: Throwable = e
                 while (f.cause != null && (f.cause is ExecutionException || f.cause is MessagingException)) {
                     f = f.cause!!
@@ -99,90 +79,139 @@ class UserTaskMap(connectionProvider: TransactionFactory<DBTransaction>) :
                 when {
                     cause is HandleNotFoundException -> throw cause
                     cause is RuntimeException        -> throw cause
-                    f is ExecutionException            -> throw f
-                    f is MessagingException            -> throw f
-                    else                               -> throw e
+                    f is ExecutionException ||
+                        f is MessagingException      -> throw f
+                    else                             -> throw e
                 }
+
             }
 
-            instance?.body?.let { body ->
-                val env = XML.decodeFromReader<Envelope<XmlTask>>(body.getXmlReader())
-                val task = env.body?.bodyContent?.apply {
-                    setHandleValue(handle.handleValue)
-                    this.remoteHandle = remoteHandle
-                    state = instance.state
-                } ?: throw IllegalStateException("Could not properly deserialize the task")
-                return task
-            }
+            val handle = row.value(u.taskhandle, 1)!!
+            val remoteHandle = row.value(u.remotehandle, 2)!!
 
-            return XmlTask(handle.handleValue)
-        }
-
-        @Throws(SQLException::class)
-        override fun postCreate(transaction: Any, setAccess: DBSetAccess<Any>, builder: XmlTask): XmlTask {
-            UserTaskDB.SELECT(nd.name, nd.data).WHERE { nd.taskhandle eq builder.handle }
-                .execute(transaction.connection) { name, data ->
-                    if (name != null) {
-                        builder[name]?.let { it.value = data }
-                    }
+            val instanceFuture = ServletProcessEngineClient
+                .getProcessNodeInstance(
+                    remoteHandle.handleValue,
+                    SYSTEMPRINCIPAL,
+                    null,
+                    XmlTask::class.java,
+                    Envelope::class.java
+                )
+            return transaction.value {
+                val instance: XmlProcessNodeInstance?
+                try {
+                    instance = instanceFuture.get(TASK_LOOKUP_TIMEOUT_MILIS.toLong(), TimeUnit.MILLISECONDS)
+                } catch (e: ExecutionException) {
+                    handleException(e)
+                } catch (e: MessagingException) {
+                    handleException(e)
                 }
-            return builder
+                instance?.body?.let { body ->
+                    val env = XML.decodeFromReader<Envelope<XmlTask>>(body.getXmlReader())
+                    env.body?.bodyContent?.apply {
+                        setHandleValue(handle.handleValue)
+                        this.remoteHandle = remoteHandle
+                        state = instance.state
+                    } ?: throw IllegalStateException("Could not properly deserialize the task")
+                }
+
+                XmlTask(handle.handleValue)
+
+            }
         }
 
-        override fun getPrimaryKeyCondition(where: Database._Where, instance: XmlTask) =
+        override fun createFromBuilder(
+            transaction: MonadicDBTransaction<UserTaskDB>,
+            setAccess: DBSetAccess<XmlTask>,
+            builder: XmlTask
+        ): DBAction<UserTaskDB, XmlTask> {
+            return with(transaction) {
+                SELECT(nd.name, nd.data)
+                    .WHERE { nd.taskhandle eq builder.handle }
+                    .mapSingleOrNull { name, data ->
+                        if (name!=null) builder[name]?.let { it.value = data }
+                        builder
+                    }.map { it!! }
+            }
+        }
+
+        override fun getPrimaryKeyCondition(where: _Where, instance: XmlTask): WhereClause =
             getHandleCondition(where, instance.handle)
 
-        override fun getHandleCondition(where: Database._Where, handle: Handle<XmlTask>) = where.run {
-            u.taskhandle eq handle
+        override fun getHandleCondition(where: _Where, handle: Handle<XmlTask>): WhereClause {
+            return with (where) { u.taskhandle eq handle }
         }
 
         override fun asInstance(obj: Any) = obj as? XmlTask
 
-        override fun insertStatement(value: XmlTask): Database.Insert {
-            return UserTaskDB.INSERT(u.remotehandle).VALUES(value.remoteHandle)
+        override fun insertStatement(transaction: MonadicDBTransaction<UserTaskDB>): ValuelessInsertAction<UserTaskDB, Insert> {
+            return transaction.INSERT(u.remotehandle)
         }
 
-        override fun store(update: Database._UpdateBuilder, value: XmlTask) {
+        override fun insertValues(
+            transaction: MonadicDBTransaction<UserTaskDB>,
+            insert: InsertActionCommon<UserTaskDB, Insert>,
+            value: XmlTask
+        ): InsertAction<UserTaskDB, Insert> {
+            return insert.listVALUES(value.remoteHandle)
+        }
+
+        override fun store(update: _UpdateBuilder, value: XmlTask) {
             update.run { SET(u.remotehandle, value.remoteHandle) }
         }
 
         override fun postStore(
-            connection: DBConnection,
+            transaction: MonadicDBTransaction<UserTaskDB>,
             handle: Handle<XmlTask>,
             oldValue: XmlTask?,
             newValue: XmlTask
-                              ) {
-            val insert = UserTaskDB.INSERT_OR_UPDATE(nd.taskhandle, nd.name, nd.data)
-            for (item in newValue.items) {
-                val itemName = item.name
-                if (itemName != null && item.type != "label") {
-                    oldValue?.getItem(itemName)?.let { oldItem ->
-                        if (!(oldItem.value == null && item.value == null)) {
-                            insert.VALUES(handle, itemName, item.value)
+        ): DBAction<UserTaskDB, Boolean> {
+
+            val values = sequence {
+                for (item in newValue.items) {
+                    val itemName = item.name
+                    if (itemName != null && item.type != "label") {
+                        oldValue?.getItem(itemName)?.let { oldItem ->
+                            if (!(oldItem.value == null && item.value == null)) {
+                                yield(item)
+                            }
                         }
                     }
                 }
             }
-            insert.executeUpdate(connection)
+
+            val insert = transaction.INSERT_OR_UPDATE(nd.taskhandle, nd.name, nd.data)
+                .VALUES(values) { item ->
+                    VALUES(handle, item.name, item.value)
+                }
+            return insert.map { it.sum() > 0 }
         }
 
-        @Throws(SQLException::class)
-        override fun preClear(transaction: DBTransaction) {
-            WebAuthDB.DELETE_FROM(nd).executeUpdate(transaction.connection)
+        override fun preClear(transaction: MonadicDBTransaction<UserTaskDB>): DBAction<UserTaskDB, Any> {
+            return transaction.DELETE_FROM(nd)
         }
 
-        override fun preRemove(transaction: DBTransaction, handle: Handle<XmlTask>) {
-            WebAuthDB.DELETE_FROM(nd).WHERE { nd.taskhandle eq handle }.executeUpdate(transaction.connection)
+        override fun preRemove(
+            transaction: MonadicDBTransaction<UserTaskDB>,
+            handle: Handle<XmlTask>
+        ): DBAction<UserTaskDB, Boolean> {
+            return transaction.DELETE_FROM(nd).WHERE { nd.taskhandle eq handle }.map { it > 0 }
         }
 
-        @Throws(SQLException::class)
-        override fun preRemove(transaction: DBTransaction, element: XmlTask) {
-            preRemove(transaction, element.handle)
+        override fun preRemove(
+            transaction: MonadicDBTransaction<UserTaskDB>,
+            element: XmlTask
+        ): DBAction<UserTaskDB, Boolean> {
+            return preRemove(transaction, element.handle)
         }
 
-        override fun preRemove(transaction: DBTransaction, columns: List<Column<*, *, *>>, values: List<Any?>) {
+        override fun preRemove(
+            transaction: MonadicDBTransaction<UserTaskDB>,
+            columns: List<Column<*, *, *>>,
+            values: List<Any?>
+        ): DBAction<UserTaskDB, Boolean> {
             val handleVal = u.taskhandle.value(columns, values)
-            preRemove(transaction, handleVal.toComparableHandle())
+            return preRemove(transaction, handleVal.toComparableHandle())
         }
 
         companion object {
@@ -191,10 +220,16 @@ class UserTaskMap(connectionProvider: TransactionFactory<DBTransaction>) :
 
     }
 
-    @Throws(SQLException::class)
-    override fun containsRemoteHandle(transaction: DBTransaction, remoteHandle: Handle<*>): Handle<XmlTask>? {
-        return UserTaskDB.SELECT(u.taskhandle).WHERE { u.remotehandle eq remoteHandle }
-            .getSingleOrNull(transaction.connection)
+    override fun containsRemoteHandle(
+        transaction: MonadicDBTransaction<UserTaskDB>,
+        remoteHandle: Handle<*>
+    ): Handle<XmlTask>? {
+        return with(transaction) {
+            SELECT(u.taskhandle)
+                .WHERE { u.remotehandle eq remoteHandle }
+                .mapSeq { it.singleOrNull() }
+                .evaluateNow()
+        }
     }
 
     companion object {

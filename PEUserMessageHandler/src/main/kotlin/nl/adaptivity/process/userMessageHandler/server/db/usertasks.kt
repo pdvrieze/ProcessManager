@@ -17,11 +17,14 @@
 package uk.ac.bournemouth.ac.db.darwin.usertasks
 
 
+import io.github.pdvrieze.kotlinsql.ddl.Database
+import io.github.pdvrieze.kotlinsql.ddl.MutableTable
+import io.github.pdvrieze.kotlinsql.ddl.SqlTypesMixin
+import io.github.pdvrieze.kotlinsql.ddl.columns.CustomColumnType
+import io.github.pdvrieze.kotlinsql.ddl.columns.NumberColumnConfiguration
+import io.github.pdvrieze.kotlinsql.ddl.columns.NumericColumnType
 import net.devrieze.util.Handle
 import nl.adaptivity.process.userMessageHandler.server.XmlTask
-import uk.ac.bournemouth.kotlinsql.Database
-import uk.ac.bournemouth.kotlinsql.MutableTable
-import uk.ac.bournemouth.kotlinsql.customType
 
 /**
  * Created by pdvrieze on 31/03/16.
@@ -29,9 +32,12 @@ import uk.ac.bournemouth.kotlinsql.customType
 
 const val EXTRACONF = "ENGINE=InnoDB CHARSET=utf8"
 
-val X_TASKHANDLE = customType({ BIGINT }, Handle<XmlTask>::handleValue, { Handle<XmlTask>(it) })
+val X_TASKHANDLE =
+    CustomColumnType(fun SqlTypesMixin.(): NumberColumnConfiguration<Long, NumericColumnType.BIGINT_T> {
+        return BIGINT
+    }, Handle<XmlTask>::handleValue, { Handle<XmlTask>(it) })
 @Suppress("USELESS_CAST") // The cast is not useless as it changes the result type
-val X_REMOTEHANDLE = customType({ BIGINT }, Handle<*>::handleValue, { Handle<Any>(it) as Handle<*> })
+val X_REMOTEHANDLE = CustomColumnType({ BIGINT }, Handle<*>::handleValue, { Handle<Any>(it) as Handle<*> })
 
 object UserTaskDB1 : Database(1) {
 
