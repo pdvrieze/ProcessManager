@@ -16,12 +16,15 @@
 
 package nl.adaptivity.messaging
 
+import kotlinx.serialization.Serializable
 import nl.adaptivity.util.multiplatform.URI
 import nl.adaptivity.util.multiplatform.createUri
+import nl.adaptivity.util.net.devrieze.serializers.URISerializer
 import nl.adaptivity.xml.QName
 import nl.adaptivity.xml.localPart
 import nl.adaptivity.xml.namespaceURI
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import nl.adaptivity.xmlutil.QName as XmlQName
 
 
@@ -31,15 +34,21 @@ import nl.adaptivity.xmlutil.QName as XmlQName
  *
  * @author Paul de Vrieze
  */
-class EndpointDescriptorImpl(
-    serviceName: QName?,
+@Serializable
+@XmlSerialName(EndpointDescriptorImpl.ELEMENTLOCALNAME, EndpointDescriptorImpl.MY_JBI_NS, "jbi")
+class EndpointDescriptorImpl private constructor(
+    internal var serviceLocalName: String?,
+
+    internal var serviceNamespace: String?,
     override var endpointName: String?,
-    override var endpointLocation: URI?
-                            ) : EndpointDescriptor {
+    @Serializable(URISerializer::class) override var endpointLocation: URI?
+) : EndpointDescriptor {
 
-    internal var serviceLocalName: String? = serviceName?.localPart
-
-    internal var serviceNamespace: String? = serviceName?.namespaceURI
+    constructor(
+        serviceName: QName?,
+        endpointName: String?,
+        endpointLocation: URI?
+    ): this(serviceName?.localPart, serviceName?.namespaceURI, endpointName, endpointLocation)
 
     internal var endpointLocationString: String
         get() = endpointLocation!!.toString()
@@ -83,8 +92,8 @@ class EndpointDescriptorImpl(
 
     companion object {
 
-        val MY_JBI_NS = "http://adaptivity.nl/jbi"
-        val ELEMENTLOCALNAME = "endpointDescriptor"
+        const val MY_JBI_NS = "http://adaptivity.nl/jbi"
+        const val ELEMENTLOCALNAME = "endpointDescriptor"
         val ELEMENTNAME = XmlQName(MY_JBI_NS, ELEMENTLOCALNAME, "jbi")
 
     }

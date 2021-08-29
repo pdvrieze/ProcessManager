@@ -41,7 +41,6 @@ import org.xml.sax.SAXException
 import org.xml.sax.SAXParseException
 import org.xmlunit.builder.DiffBuilder
 import org.xmlunit.diff.*
-import uk.ac.bournemouth.util.kotlin.sql.useHelper
 import java.io.*
 import java.nio.charset.Charset
 import java.util.*
@@ -65,7 +64,7 @@ class TestProcessData {
     @Throws(XmlException::class)
     fun testSerializeTextNodeCompat() {
         val caw = CharArrayWriter()
-        XmlStreaming.newWriter(caw).useHelper({ it.close() }) { xsw ->
+        XmlStreaming.newWriter(caw).use { xsw ->
 
             val data = ProcessData("foo", CompactFragment("Hello"))
             data.serialize(xsw)
@@ -79,7 +78,8 @@ class TestProcessData {
     fun testSerializeTextNode() {
         val data = ProcessData("foo", CompactFragment("Hello"))
         val expected = "<pe:value xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\">Hello</pe:value>"
-        assertEquals(expected, XML().stringify(ProcessData.serializer(), data))
+        val serialized = XML.encodeToString(/*ProcessData.serializer(),*/data)
+        assertEquals(expected, serialized)
     }
 
     @Test
@@ -88,7 +88,7 @@ class TestProcessData {
         val data = ProcessData("foo", CompactFragment("<bar/>"))
         assertEquals(
             "<pe:value xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\"><bar/></pe:value>",
-            XML().stringify(ProcessData.serializer(), data)
+            XML.encodeToString(/*ProcessData.serializer(),*/ data)
                     )
     }
 
@@ -266,7 +266,7 @@ class TestProcessData {
         val inputStream = getDocument("processmodel1.xml")
 
         val parser = XmlStreaming.newReader(inputStream, "UTF-8")
-        val model = XML.parse<XmlProcessModel>(parser, XmlProcessModel.serializer())
+        val model = XML.decodeFromReader<XmlProcessModel>(/*XmlProcessModel.serializer(),*/ parser)
         checkModel1(model)
     }
 
@@ -343,7 +343,7 @@ class TestProcessData {
     fun testParseProcessModel2NewDeserializer() {
         val inputStream = getDocument("processmodel2.xml")
         val parser = XmlStreaming.newReader(inputStream, "UTF-8")
-        val model = XML.parse(parser, XmlProcessModel.serializer())
+        val model = XML.decodeFromReader(XmlProcessModel.serializer(), parser)
         checkModel2(model)
     }
 
