@@ -66,17 +66,6 @@ private inline fun SecureRandom.nextBytes(len: Int): ByteArray = ByteArray(len).
 
 public open class AccountDb(private val dataSource: DataSource) {
 
-    private companion object {
-        @Volatile
-        var lastTokenClean: Long = 0
-
-        val random: SecureRandom by lazy { SecureRandom() }
-
-        @JvmStatic
-        val logger = Logger.getLogger(AccountDb::class.java.name)!!
-
-    }
-
     private val u: WebAuthDB.users get() = WebAuthDB.users
     private val c: WebAuthDB.challenges get() = WebAuthDB.challenges
     private val t: WebAuthDB.tokens get() = WebAuthDB.tokens
@@ -133,11 +122,13 @@ public open class AccountDb(private val dataSource: DataSource) {
                 else -> {
                     val names = sequence {
                         yield(appname)
-                        for (i in 1..Int.MAX_VALUE) yield("appname $i")
+                        for (i in 1..MAX_APP_IDX) yield("$appname $i")
                     }
 
                     value(names).first { candidateName ->
-                        SELECT(p.appname).WHERE { whereClauseFactory(candidateName) }.isEmpty()
+                        SELECT(p.appname)
+                            .WHERE { whereClauseFactory(candidateName) }
+                            .isEmpty()
                     }
                 }
             }
@@ -459,6 +450,19 @@ public open class AccountDb(private val dataSource: DataSource) {
 
     public fun ensureTables() {
         WebAuthDB(dataSource) { ensureTables() }
+    }
+
+    private companion object {
+        @Volatile
+        var lastTokenClean: Long = 0
+
+        val random: SecureRandom by lazy { SecureRandom() }
+
+        @JvmStatic
+        val logger = Logger.getLogger(AccountDb::class.java.name)!!
+
+        // The maximum app id to allow for searching for another one.
+        const val MAX_APP_IDX = 10_000
     }
 
 }

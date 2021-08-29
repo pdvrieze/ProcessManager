@@ -16,8 +16,6 @@
 
 package uk.ac.bournemouth.darwin.accounts
 
-import io.github.pdvrieze.kotlinsql.ddl.Database
-import io.github.pdvrieze.kotlinsql.monadic.MonadicDBConnection
 import io.github.pdvrieze.kotlinsql.monadic.actions.mapSeq
 import io.github.pdvrieze.kotlinsql.monadic.invoke
 import org.junit.jupiter.api.*
@@ -43,60 +41,6 @@ import javax.naming.InitialContext
 import javax.naming.spi.InitialContextFactory
 import javax.sql.DataSource
 
-class MyContextFactory : InitialContextFactory {
-    companion object {
-        val context = SimpleNamingContext()
-    }
-
-    override fun getInitialContext(environment: Hashtable<*, *>?) = context
-}
-
-private class MyDataSource : DataSource {
-    companion object {
-        const val JDBCURL = "jdbc:mysql://localhost/test"
-        const val USERNAME = "test"
-        const val PASSWORD = "DAGHYbH6Wb"
-    }
-
-    private var _logWriter: PrintWriter? = PrintWriter(OutputStreamWriter(System.err))
-
-    private var _loginTimeout: Int = 0
-
-    override fun setLogWriter(out: PrintWriter?) {
-        _logWriter = out
-    }
-
-    override fun setLoginTimeout(seconds: Int) {
-        _loginTimeout = seconds
-    }
-
-    override fun getParentLogger() = Logger.getAnonymousLogger()
-
-    override fun getLogWriter() = _logWriter
-
-    override fun getLoginTimeout() = _loginTimeout
-
-    override fun isWrapperFor(iface: Class<*>) = iface.isInstance(this)
-
-    override fun <T : Any> unwrap(iface: Class<T>): T {
-        if (!iface.isInstance(this)) throw SQLException("Interface not implemented")
-        return iface.cast(this)
-    }
-
-    override fun getConnection(): Connection {
-        return DriverManager.getConnection(JDBCURL, USERNAME, PASSWORD)
-    }
-
-    override fun getConnection(username: String?, password: String?): Connection {
-        return DriverManager.getConnection(JDBCURL, username, password)
-    }
-
-}
-
-@Suppress("UNCHECKED_CAST")
-inline fun <D: Database, R> D.connect2(datasource: DataSource, crossinline block: MonadicDBConnection<D>.() -> R): R =
-    invoke(datasource) { (this as MonadicDBConnection<D>).block() }
-
 /**
  * A test suite for the account manager.
  * Created by pdvrieze on 29/04/16.
@@ -104,38 +48,10 @@ inline fun <D: Database, R> D.connect2(datasource: DataSource, crossinline block
 @TestInstance(TestInstance.Lifecycle.PER_CLASS)
 class TestAccountControllerDirect {
 
-    companion object {
-        //    const val CIPHERSUITE = "RSA/ECB/NoPadding"
-        const val testUser = "testUser"
-        const val testPassword1 = "garbage"
-        const val testPassword2 = "secret"
-        const val RESOURCE = "jdbc/webauth"
-
-        const val testPrivExpEnc = "WuEDw/Maqf6SmURmkaHIoR69L5zU8dFlAE5l5ygD+3GRVrJOAtt2SZrU3knNim38p6XNuIF34QOPMpzpM0peAQ=="
-        const val testPubExpEnc = "AQAB"
-        const val testModulusEnc = "AM2wa0R9dY9FP3oaYU3o9nEownzIM1Yq2clbeIjFAVbN0JcgWRPdvu/NB+G9ksSWsw9r+RaLbIclMy1ac/SbCHc="
-
-        val testPubKey: RSAPublicKey
-        val testPrivateKey: RSAPrivateKey
-
-        init {
-            System.setProperty(Context.INITIAL_CONTEXT_FACTORY, MyContextFactory::class.java.canonicalName)
-
-            val modulusInt = BigInteger(Base64.getDecoder().decode(testModulusEnc))
-            val publicExponentInt = BigInteger(Base64.getDecoder().decode(testPubExpEnc))
-            val privKeyInt = BigInteger(Base64.getDecoder().decode(testPrivExpEnc))
-
-            val factory = KeyFactory.getInstance("RSA")
-            testPubKey = factory.generatePublic(RSAPublicKeySpec(modulusInt, publicExponentInt)) as RSAPublicKey
-            testPrivateKey = factory.generatePrivate(RSAPrivateKeySpec(modulusInt, privKeyInt)) as RSAPrivateKey
-
-        }
-    }
-
     @BeforeAll
     fun registerDatabase() {
         val ic = InitialContext()
-        val ds: DataSource = MyDataSource()
+        val ds: DataSource = TestDataSource()
         ic.createSubcontext("comp").createSubcontext("env").createSubcontext("jdbc").bind("webauthadm", ds)
         ic.createSubcontext("jdbc").bind("webauth", ds)
     }
@@ -171,7 +87,7 @@ class TestAccountControllerDirect {
 
     @AfterEach
     fun emptyDatabase() {
-        WebAuthDB(MyDataSource()) {
+        WebAuthDB(TestDataSource()) {
             val tables = arrayOf(
                 WebAuthDB.tokens,
                 WebAuthDB.challenges,
@@ -196,7 +112,7 @@ class TestAccountControllerDirect {
         accountDb(RESOURCE) {
             doCreateUser()
         }
-        val users = WebAuthDB(MyDataSource()) {
+        val users = WebAuthDB(TestDataSource()) {
             SELECT(WebAuthDB.users.user).mapSeq { it.toList() }.commit()
         }
         assertEquals(listOf(testUser), users)
@@ -265,7 +181,7 @@ class TestAccountControllerDirect {
     fun testPasswdHashBinary() {
         val u = WebAuthDB.users
         accountDb { createUser() }
-        WebAuthDB(MyDataSource()) {
+        WebAuthDB(TestDataSource()) {
             val hash = SELECT(u.password).WHERE { u.user eq testUser }.mapSingleOrNull { it }
                 .evaluateNow()
             assertNotNull(hash);
@@ -293,7 +209,7 @@ class TestAccountControllerDirect {
         val genToken = accountDb {
             doNewAuthToken()
         }
-        WebAuthDB(MyDataSource()) {
+        WebAuthDB(TestDataSource()) {
             SELECT(WebAuthDB.tokens.token, WebAuthDB.tokens.ip)
                 .WHERE { WebAuthDB.users.user eq testUser }
                 .map { rs ->
@@ -332,9 +248,9 @@ class TestAccountControllerDirect {
         accountDb {
             val token = doNewAuthToken()
 
-            assertNull(userFromToken(token.toLowerCase(), "127.0.0.1"))
+            assertNull(userFromToken(token.lowercase(), "127.0.0.1"))
 
-            assertNull(userFromToken(token.toUpperCase(), "127.0.0.1"))
+            assertNull(userFromToken(token.lowercase(), "127.0.0.1"))
 
             assertNull(userFromToken("foobar", "127.0.0.1"))
 
@@ -364,7 +280,7 @@ class TestAccountControllerDirect {
             registerkey(testUser, "$testModulusEnc:$testPubExpEnc", "Test system")
         }
         val p = WebAuthDB.pubkeys
-        WebAuthDB(MyDataSource()) {
+        WebAuthDB(TestDataSource()) {
             SELECT(p.pubkey, p.user)
                 .WHERE { (p.keyid eq keyId) }
                 .map { rs ->
@@ -620,5 +536,84 @@ class TestAccountControllerDirect {
 
 
     }
+
+    companion object {
+        //    const val CIPHERSUITE = "RSA/ECB/NoPadding"
+        const val testUser = "testUser"
+        const val testPassword1 = "garbage"
+        const val testPassword2 = "secret"
+        const val RESOURCE = "jdbc/webauth"
+
+        const val testPrivExpEnc = "WuEDw/Maqf6SmURmkaHIoR69L5zU8dFlAE5l5ygD+3GRVrJOAtt2SZrU3knNim38p6XNuIF34QOPMpzpM0peAQ=="
+        const val testPubExpEnc = "AQAB"
+        const val testModulusEnc = "AM2wa0R9dY9FP3oaYU3o9nEownzIM1Yq2clbeIjFAVbN0JcgWRPdvu/NB+G9ksSWsw9r+RaLbIclMy1ac/SbCHc="
+
+        val testPubKey: RSAPublicKey
+        val testPrivateKey: RSAPrivateKey
+
+        init {
+            System.setProperty(Context.INITIAL_CONTEXT_FACTORY, MyContextFactory::class.java.name)
+
+            val modulusInt = BigInteger(Base64.getDecoder().decode(testModulusEnc))
+            val publicExponentInt = BigInteger(Base64.getDecoder().decode(testPubExpEnc))
+            val privKeyInt = BigInteger(Base64.getDecoder().decode(testPrivExpEnc))
+
+            val factory = KeyFactory.getInstance("RSA")
+            testPubKey = factory.generatePublic(RSAPublicKeySpec(modulusInt, publicExponentInt)) as RSAPublicKey
+            testPrivateKey = factory.generatePrivate(RSAPrivateKeySpec(modulusInt, privKeyInt)) as RSAPrivateKey
+
+        }
+    }
+
+    private class TestDataSource : DataSource {
+        companion object {
+            const val JDBCURL = "jdbc:mysql://localhost/test"
+            const val USERNAME = "test"
+            const val PASSWORD = "DAGHYbH6Wb"
+        }
+
+        private var _logWriter: PrintWriter? = PrintWriter(OutputStreamWriter(System.err))
+
+        private var _loginTimeout: Int = 0
+
+        override fun setLogWriter(out: PrintWriter?) {
+            _logWriter = out
+        }
+
+        override fun setLoginTimeout(seconds: Int) {
+            _loginTimeout = seconds
+        }
+
+        override fun getParentLogger() = Logger.getAnonymousLogger()
+
+        override fun getLogWriter() = _logWriter
+
+        override fun getLoginTimeout() = _loginTimeout
+
+        override fun isWrapperFor(iface: Class<*>) = iface.isInstance(this)
+
+        override fun <T : Any> unwrap(iface: Class<T>): T {
+            if (!iface.isInstance(this)) throw SQLException("Interface not implemented")
+            return iface.cast(this)
+        }
+
+        override fun getConnection(): Connection {
+            return DriverManager.getConnection(JDBCURL, USERNAME, PASSWORD)
+        }
+
+        override fun getConnection(username: String?, password: String?): Connection {
+            return DriverManager.getConnection(JDBCURL, username, password)
+        }
+
+    }
+
+    internal class MyContextFactory : InitialContextFactory {
+        companion object {
+            val context = SimpleNamingContext()
+        }
+
+        override fun getInitialContext(environment: Hashtable<*, *>?) = context
+    }
+
 }
 
