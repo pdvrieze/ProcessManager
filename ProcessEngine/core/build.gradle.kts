@@ -117,8 +117,8 @@ kotlin {
 
                     implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
 
-                    implementation("org.spekframework.spek2:spek-dsl-jvm:${spek2Version}")
-                    runtimeOnly("org.spekframework.spek2:spek-runtime-jvm:${spek2Version}")
+                    implementation("org.spekframework.spek2:spek-dsl:${spek2Version}")
+                    runtimeOnly("org.spekframework.spek2:spek-runtime:${spek2Version}")
 
                     implementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
 
