@@ -36,8 +36,7 @@ class XmlItem : TaskItem {
     override var params: String? = null
 
     @XmlSerialName(OPTION_LOCALNAME, Constants.USER_MESSAGE_HANDLER_NS, Constants.USER_MESSAGE_HANDLER_NS_PREFIX)
-    private val _options = lazy { mutableListOf<String>() }
-    override val options: List<String> get() = _options.value
+    override var options: List<String> = listOf<String>()
 
     companion object {
 
@@ -66,9 +65,7 @@ class XmlItem : TaskItem {
                 value = orig.value
                 params = orig.params
 
-                if (orig.options.isNotEmpty()) {
-                    _options.value.addAll(orig.options)
-                }
+                options = orig.options.toList()
             }
         }
     }
@@ -84,7 +81,7 @@ class XmlItem : TaskItem {
         if (type != other.type) return false
         if (value != other.value) return false
         if (params != other.params) return false
-        if (_options != other._options) return false
+        if (options != other.options) return false
 
         return true
     }
@@ -95,7 +92,7 @@ class XmlItem : TaskItem {
         result = 31 * result + (type?.hashCode() ?: 0)
         result = 31 * result + (value?.hashCode() ?: 0)
         result = 31 * result + (params?.hashCode() ?: 0)
-        result = 31 * result + _options.hashCode()
+        result = 31 * result + options.hashCode()
         return result
     }
 }

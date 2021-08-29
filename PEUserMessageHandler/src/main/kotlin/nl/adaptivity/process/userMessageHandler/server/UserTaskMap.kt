@@ -87,7 +87,7 @@ class UserTaskMap(connectionProvider: DBTransactionFactory<MonadicDBTransaction<
             }
 
             val handle = row.value(u.taskhandle, 1)!!
-            val remoteHandle = row.value(u.remotehandle, 2)!!
+            val remoteHandle = row.value(u.remotehandle, 2)!! as Handle<Unit>
 
             val instanceFuture = ServletProcessEngineClient
                 .getProcessNodeInstance(

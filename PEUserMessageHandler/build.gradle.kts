@@ -22,6 +22,7 @@ plugins {
     kotlin("jvm")
     war
     id("idea")
+    id("kotlinx-serialization")
 }
 
 base {
@@ -134,20 +135,22 @@ dependencies {
 
 
     runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.1.0")
-    implementation(("io.github.pdvrieze.xmlutil:core:$xmlutilVersion"))
+    implementation(("io.github.pdvrieze.xmlutil:serialization:$xmlutilVersion"))
     implementation(project(":PE-common"))
     implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
 
     implementation(project(":DarwinClients:ProcessEngine"))
     implementation(project(":darwin-sql"))
+    implementation("io.github.pdvrieze.kotlinsql:kotlinsql-monadic:$kotlinsqlVersion")
     compileOnly(project(":DarwinJavaApi"))
 
 
     testRuntimeOnly(project(":DarwinJavaApi"))
     testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
     testImplementation("org.xmlunit:xmlunit-core:2.6.0")
     testImplementation(project(":PE-common"))
+
+    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
     testRuntimeOnly("com.fasterxml.woodstox:woodstox-core:5.1.0")
     testRuntimeOnly("mysql:mysql-connector-java:5.1.36")
 
