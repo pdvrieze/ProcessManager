@@ -23,7 +23,6 @@ package uk.ac.bournemouth.ac.db.darwin.webauth
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Test
-import uk.ac.bournemouth.kotlinsql.Table
 
 class WebauthTest {
 
@@ -34,13 +33,13 @@ class WebauthTest {
 
   @Test//(dependsOnMethods = arrayOf("verifyTableCount"))
   fun verifyTablesRecorded() {
-    assertTrue(WebAuthDB._tables.contains<Table>(WebAuthDB.roles))
-    assertTrue(WebAuthDB._tables.contains<Table>(WebAuthDB.users))
-    assertTrue(WebAuthDB._tables.contains<Table>(WebAuthDB.user_roles))
-    assertTrue(WebAuthDB._tables.contains<Table>(WebAuthDB.tokens))
-    assertTrue(WebAuthDB._tables.contains<Table>(WebAuthDB.pubkeys))
-    assertTrue(WebAuthDB._tables.contains<Table>(WebAuthDB.app_perms))
-    assertTrue(WebAuthDB._tables.contains<Table>(WebAuthDB.challenges))
+    assertTrue(WebAuthDB._tables.contains(WebAuthDB.roles))
+    assertTrue(WebAuthDB._tables.contains(WebAuthDB.users))
+    assertTrue(WebAuthDB._tables.contains(WebAuthDB.user_roles))
+    assertTrue(WebAuthDB._tables.contains(WebAuthDB.tokens))
+    assertTrue(WebAuthDB._tables.contains(WebAuthDB.pubkeys))
+    assertTrue(WebAuthDB._tables.contains(WebAuthDB.app_perms))
+    assertTrue(WebAuthDB._tables.contains(WebAuthDB.challenges))
   }
 
   @Test//(dependsOnMethods = arrayOf("verifyTableCount"))
