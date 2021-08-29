@@ -19,10 +19,12 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
 import versions.jaxbVersion
 import versions.jupiterVersion
 import versions.kotlinsqlVersion
+import versions.serializationVersion
 
 plugins {
     kotlin("multiplatform")
     mpconsumer
+    id("kotlinx-serialization")
 }
 
 base {
@@ -69,6 +71,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":multiplatform"))
+                implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
 
                 compileOnly(project(":JavaCommonApi"))
 

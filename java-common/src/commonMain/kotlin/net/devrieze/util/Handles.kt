@@ -17,12 +17,21 @@
 @file:JvmName("Handles")
 package net.devrieze.util
 
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import kotlin.jvm.JvmName
 import nl.adaptivity.util.multiplatform.URI
+import nl.adaptivity.util.multiplatform.name
 
 
 private val INVALID get() = SimpleHandle<Any>(-1L)
 
+@Serializable(SimpleHandle.Serializer::class)
 private class SimpleHandle<T> constructor(override val handleValue: Long) : ComparableHandle<T> {
 
     override fun toString(): String = "H:$handleValue"
@@ -44,6 +53,18 @@ private class SimpleHandle<T> constructor(override val handleValue: Long) : Comp
 
     override fun hashCode(): Int {
         return handleValue.hashCode()
+    }
+
+    class Serializer<T>(elemSerializer: KSerializer<T>) : KSerializer<SimpleHandle<T>> {
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(SimpleHandle::class.name, PrimitiveKind.LONG)
+
+        override fun serialize(encoder: Encoder, value: SimpleHandle<T>) {
+            encoder.encodeLong(value.handleValue)
+        }
+
+        override fun deserialize(decoder: Decoder): SimpleHandle<T> {
+            return SimpleHandle<T>(decoder.decodeLong())
+        }
     }
 
 }
