@@ -16,8 +16,8 @@
 
 package nl.adaptivity.process.processModel
 
-import foo.FakeSerializable
-import foo.FakeSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializer
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -53,7 +53,7 @@ import nl.adaptivity.xmlutil.serialization.XmlDefault
 import nl.adaptivity.xmlutil.serialization.XmlPolyChildren
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
-@FakeSerializable
+@Serializable
 abstract class RootProcessModelBase<NodeT : ProcessNode> :
     ProcessModelBase<@UseContextualSerialization NodeT>,
     RootProcessModel<NodeT>,
@@ -75,13 +75,13 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
     /**
      * The owner of a model
      */
-    @FakeSerializable(PrincipalSerializer::class)
+    @Serializable(PrincipalSerializer::class)
     final override var owner: Principal = SYSTEMPRINCIPAL
 
     @SerialName("roles")
     override val roles: Set<String>
 
-    @FakeSerializable(UUIDSerializer::class)
+    @Serializable(UUIDSerializer::class)
     final override val uuid: UUID?
 
     @SerialName("childModel")
@@ -92,7 +92,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
     private var _childModels: IdentifyableSet<ChildProcessModelBase<NodeT>> = IdentifyableSet.processNodeSet()
 
     @SerialName("nodes")
-    @FakeSerializable(IdentifiableSetSerializer::class)
+    @Serializable(IdentifiableSetSerializer::class)
     @XmlPolyChildren(
         arrayOf(
             "nl.adaptivity.process.processModel.engine.XmlActivity\$Builder=pe:activity",
@@ -309,7 +309,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
 
 
     @ProcessModelDSL
-    @FakeSerializable
+    @Serializable
     @XmlSerialName(RootProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     open class Builder : ProcessModelBase.Builder, RootProcessModel.Builder {
 
@@ -339,10 +339,10 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
         @XmlDefault("-1")
         override var handle: Long = -1L
 
-        @FakeSerializable(PrincipalSerializer::class)
+        @Serializable(PrincipalSerializer::class)
         override var owner: Principal = SYSTEMPRINCIPAL
 
-        @FakeSerializable(UUIDSerializer::class)
+        @Serializable(UUIDSerializer::class)
         override var uuid: UUID? = null
 
         override val roles: MutableSet<String>
@@ -436,7 +436,6 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
         }
 
         @OptIn(InternalSerializationApi::class)
-        @FakeSerializer(Builder::class)
         companion object : BaseSerializer<Builder>() {
             override val descriptor: SerialDescriptor = XmlProcessModel.descriptor.withName("RootProcessModelBase")
 

@@ -24,9 +24,9 @@
 
 package nl.adaptivity.process.processModel
 
-import foo.FakeSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -166,7 +166,6 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         this._refName = value
     }
 
-    @FakeSerializer(forClass = XmlDefineType::class)
     companion object : XPathHolderSerializer<XmlDefineType>() {
 
         override val descriptor =

@@ -16,15 +16,16 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import foo.FakeSerializable
-import foo.FakeSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializer
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.process.processModel.*
+import nl.adaptivity.serialutil.DelegatingSerializer
 
-@FakeSerializable(XmlEndNode.Companion::class)
+@Serializable(XmlEndNode.Companion::class)
 class XmlEndNode : EndNodeBase, XmlProcessNode {
 
     @Suppress("ConvertSecondaryConstructorToPrimary") // For serialization
@@ -32,21 +33,15 @@ class XmlEndNode : EndNodeBase, XmlProcessNode {
         builder: EndNode.Builder,
         newOwner: ProcessModel<*>,
         otherNodes: Iterable<ProcessNode.Builder>
-               ) :
-        super(builder.ensureExportable(), newOwner, otherNodes)
+    ) : super(builder.ensureExportable(), newOwner, otherNodes)
 
-    @FakeSerializer(XmlEndNode::class)
-    companion object : KSerializer<XmlEndNode> {
-
-        override fun deserialize(decoder: Decoder): XmlEndNode {
-            throw Exception("Deserializing an end node directly is not possible")
+    companion object : DelegatingSerializer<XmlEndNode, Builder>(Builder.serializer()) {
+        override fun fromDelegate(delegate: Builder): XmlEndNode {
+            throw UnsupportedOperationException("Deserializing an end node directly is not possible")
         }
 
-        override val descriptor: SerialDescriptor
-            get() = TODO("not implemented")
-
-        override fun serialize(encoder: Encoder, value: XmlEndNode) {
-            TODO("not implemented")
+        override fun XmlEndNode.toDelegate(): Builder {
+            return Builder(this)
         }
     }
 

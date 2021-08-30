@@ -16,7 +16,6 @@
 
 package nl.adaptivity.util
 
-import foo.FakeSerializer
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializer
 import kotlinx.serialization.builtins.serializer
@@ -29,7 +28,7 @@ import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.util.multiplatform.toUUID
 import nl.adaptivity.util.security.Principal
 
-@FakeSerializer(forClass = Principal::class)
+@Serializer(forClass = Principal::class)
 class PrincipalSerializer : KSerializer<Principal> {
     override val descriptor: SerialDescriptor = String.serializer().descriptor
 
@@ -42,7 +41,7 @@ class PrincipalSerializer : KSerializer<Principal> {
     }
 }
 
-@FakeSerializer(forClass = UUID::class)
+@Serializer(forClass = UUID::class)
 class UUIDSerializer : KSerializer<UUID> {
     override val descriptor: SerialDescriptor = String.serializer().descriptor
 

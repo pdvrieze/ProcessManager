@@ -16,16 +16,13 @@
 
 package nl.adaptivity.process.processModel
 
-import foo.FakeSerializer
 import kotlinx.serialization.*
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.serialutil.DelegatingSerializer
-import nl.adaptivity.xmlutil.util.ICompactFragment
 import nl.adaptivity.xml.QName
+import nl.adaptivity.xmlutil.util.ICompactFragment
 
+//@Serializer(IXmlMessage.Companion::class)
 interface IXmlMessage {
 
     var serviceName: String?
@@ -52,7 +49,6 @@ interface IXmlMessage {
 
     override fun toString(): String
 
-    @FakeSerializer(forClass = IXmlMessage::class)
     companion object : DelegatingSerializer<IXmlMessage, XmlMessage>(XmlMessage) {
         override fun fromDelegate(delegate: XmlMessage): IXmlMessage = delegate
 

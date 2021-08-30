@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel.test
 
+import kotlinx.serialization.serializer
 import nl.adaptivity.process.processModel.IXmlResultType
 import nl.adaptivity.process.processModel.XmlResultType
 import nl.adaptivity.xmlutil.XmlEvent
@@ -28,8 +29,8 @@ class TestSerializeXmlResultType {
     @Test
     fun testSerializeIXmlResultType() {
         val data: IXmlResultType = XmlResultType("myName", "/ns1:myPath", originalNSContext = listOf(XmlEvent.NamespaceImpl("ns1", "http://example.org/ns1")))
-        val expected = """<foo></foo>"""
-        val serialized = XML.encodeToString(data)
+        val expected = """<result xmlns="http://adaptivity.nl/ProcessEngine/" xmlns:ns1="http://example.org/ns1" name="myName" xpath="/ns1:myPath"/>"""
+        val serialized = XML.encodeToString(IXmlResultType.serializer(), data, "")
         assertEquals(expected, serialized)
     }
 

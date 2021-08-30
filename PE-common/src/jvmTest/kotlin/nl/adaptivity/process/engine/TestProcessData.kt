@@ -88,7 +88,7 @@ class TestProcessData {
         val data = ProcessData("foo", CompactFragment("<bar/>"))
         assertEquals(
             "<pe:value xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\"><bar/></pe:value>",
-            XML.encodeToString(/*ProcessData.serializer(),*/ data)
+            XML.encodeToString(/*ProcessData.serializer(),*/ data, "pe")
                     )
     }
 

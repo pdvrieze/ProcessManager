@@ -24,14 +24,12 @@
 
 package nl.adaptivity.process.messaging
 
-import foo.FakeSerializable
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
-import nl.adaptivity.util.multiplatform.Class
 import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.serialization.XML
@@ -85,7 +83,7 @@ import kotlin.reflect.KClass
  * @param T The type of the actual return value returned in the result of the
  * SOAP message.
  */
-@FakeSerializable
+@Serializable
 @XmlSerialName(ActivityResponse.ELEMENTLOCALNAME, ActivityResponse.NAMESPACE, Engine.NSPREFIX)
 class ActivityResponse<T : Any, V: T?> {
 

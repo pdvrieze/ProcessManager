@@ -16,10 +16,9 @@
 
 package nl.adaptivity.process.engine
 
-import foo.FakeSerializable
-import foo.FakeSerializer
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializer
 import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -50,7 +49,7 @@ class ProcessData
 constructor(
     @XmlElement(false) override val name: String?,
 
-    @FakeSerializable(with = ICompactFragmentSerializer::class)
+    @Serializable(with = ICompactFragmentSerializer::class)
     val content: ICompactFragment
 ) : Named {
 
@@ -89,7 +88,6 @@ constructor(
         XML.encodeToWriter(target, this)
     }
 
-    @FakeSerializer(forClass = ProcessData::class)
     companion object: KSerializer<ProcessData> {
 
         const val ELEMENTLOCALNAME = "value"

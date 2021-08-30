@@ -16,14 +16,14 @@
 
 package nl.adaptivity.process.processModel
 
-import foo.FakeSerializable
+import kotlinx.serialization.Serializable
 import nl.adaptivity.process.util.Identified
 
 
 /**
  * Created by pdvrieze on 25/11/15.
  */
-@FakeSerializable
+@Serializable
 abstract class JoinSplitBase : ProcessNodeBase, JoinSplit {
 
     constructor(
@@ -61,7 +61,7 @@ abstract class JoinSplitBase : ProcessNodeBase, JoinSplit {
         return false
     }
 
-    @FakeSerializable
+    @Serializable
     abstract class Builder :
         ProcessNodeBase.Builder,
         JoinSplit.Builder {

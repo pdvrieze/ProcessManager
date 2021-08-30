@@ -16,8 +16,8 @@
 
 package nl.adaptivity.process.util
 
-import foo.FakeSerializable
-import foo.FakeSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializer
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -30,7 +30,7 @@ import nl.adaptivity.serialutil.simpleSerialClassDesc
 /**
  * A class representing a simple identifier. It just holds a single string.
  */
-@FakeSerializable
+@Serializable
 class Identifier(override var id: String) : Identified {
 
     @Transient
@@ -78,8 +78,6 @@ class Identifier(override var id: String) : Identified {
         return id.hashCode()
     }
 
-
-    @FakeSerializer(forClass = Identifier::class)
     companion object: DelegatingSerializer<Identifier, String>(String.serializer()) {
         override fun fromDelegate(delegate: String): Identifier = Identifier(delegate)
 

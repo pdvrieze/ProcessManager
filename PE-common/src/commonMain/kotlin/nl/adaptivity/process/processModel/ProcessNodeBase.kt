@@ -16,8 +16,8 @@
 
 package nl.adaptivity.process.processModel
 
-import foo.FakeSerializable
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.serializer
@@ -33,7 +33,7 @@ import nl.adaptivity.xmlutil.serialization.XmlDefault
  * A base class for process nodes. Works like [RootProcessModelBase]
  * Created by pdvrieze on 23/11/15.
  */
-@FakeSerializable
+@Serializable
 @OptIn(PublicForSerialization::class)
 abstract class ProcessNodeBase : ProcessNode {
 
@@ -138,11 +138,18 @@ abstract class ProcessNodeBase : ProcessNode {
         builder: ProcessNode.Builder,
         newOwner: ProcessModel<*>,
         otherNodes: Iterable<ProcessNode.Builder>
-    ) :
-        this(
-            newOwner, builder.predecessors, builder.successors, builder.id, builder.label, builder.x,
-            builder.y, builder.defines.resolveNodes(otherNodes), builder.results, builder.isMultiInstance
-        )
+    ) : this(
+        _ownerModel = newOwner,
+        predecessors = builder.predecessors,
+        successors = builder.successors,
+        id = builder.id,
+        label = builder.label,
+        x = builder.x,
+        y = builder.y,
+        defines = builder.defines.resolveNodes(otherNodes),
+        results = builder.results,
+        isMultiInstance = builder.isMultiInstance
+    )
 
     abstract override fun builder(): ProcessNode.Builder
 
@@ -253,8 +260,16 @@ abstract class ProcessNodeBase : ProcessNode {
         const val ATTR_PREDECESSOR = "predecessor"
 
         val serialModule = SerializersModule {
-            polymorphic(IXmlResultType::class, XmlResultType::class, serializer()) // TODO use concrete versions again
-            polymorphic(IXmlDefineType::class, XmlDefineType::class, serializer()) // TODO use concrete versions again
+            polymorphic(
+                IXmlResultType::class,
+                XmlResultType::class,
+                serializer<XmlResultType>()
+            ) // TODO use concrete versions again
+            polymorphic(
+                IXmlDefineType::class,
+                XmlDefineType::class,
+                serializer<XmlDefineType>()
+            ) // TODO use concrete versions again
         }
 
         private fun toIdentifiers(
@@ -265,7 +280,7 @@ abstract class ProcessNodeBase : ProcessNode {
 
     }
 
-    @FakeSerializable
+    @Serializable
     abstract class Builder : ProcessNode.Builder {
 
         override var id: String?
@@ -304,11 +319,11 @@ abstract class ProcessNodeBase : ProcessNode {
             this.results = ArrayList(results)
         }
 
-        @FakeSerializable(with = IXmlDefineTypeListSerializer::class)
+        @Serializable(with = IXmlDefineTypeListSerializer::class)
         @SerialName("define")
         override val defines: MutableCollection<IXmlDefineType>
 
-        @FakeSerializable(with = IXmlResultTypeListSerializer::class)
+        @Serializable(with = IXmlResultTypeListSerializer::class)
         @SerialName("result")
         override val results: MutableCollection<IXmlResultType>
 

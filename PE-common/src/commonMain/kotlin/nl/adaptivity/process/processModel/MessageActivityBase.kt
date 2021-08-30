@@ -16,17 +16,18 @@
 
 package nl.adaptivity.process.processModel
 
-import foo.FakeSerializable
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
-@FakeSerializable
+@Serializable
 abstract class MessageActivityBase : ActivityBase, MessageActivity {
 
     @SerialName("message")
-    @FakeSerializable(with = IXmlMessage.Companion::class)
+    @Serializable(with = IXmlMessage.Companion::class)
     private var _message: XmlMessage?
 
     @Transient
@@ -68,9 +69,12 @@ abstract class MessageActivityBase : ActivityBase, MessageActivity {
         return result
     }
 
+    @Serializable
+    @SerialName(StartNode.ELEMENTLOCALNAME)
+    @XmlSerialName(StartNode.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     open class Builder : BaseBuilder, MessageActivity.Builder {
 
-        @FakeSerializable(with = IXmlMessage.Companion::class)
+        @Serializable(with = IXmlMessage.Companion::class)
         final override var message: IXmlMessage?
 
         constructor(activity: MessageActivity) : super(activity) {

@@ -16,11 +16,11 @@
 
 package nl.adaptivity.process.processModel
 
-import foo.FakeSerializable
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import nl.adaptivity.process.util.Identifiable
 
-@FakeSerializable
+@Serializable
 abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
 
     @Transient
@@ -78,7 +78,7 @@ abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
     }
 
 
-    @FakeSerializable
+    @Serializable
     open class ReferenceBuilder : BaseBuilder, CompositeActivity.ReferenceBuilder {
         final override var childId: String? = null
 

@@ -26,6 +26,7 @@ import kotlinx.serialization.serializer
 import nl.adaptivity.serialutil.DelegatingSerializer
 import nl.adaptivity.xmlutil.Namespace
 import nl.adaptivity.xmlutil.XmlReader
+import kotlin.jvm.JvmStatic
 
 @Serializable(with = IXmlResultType.Serializer::class)
 interface IXmlResultType {
@@ -68,7 +69,11 @@ interface IXmlResultType {
      */
     val originalNSContext: Iterable<Namespace>
 
-    object Serializer : DelegatingSerializer<IXmlResultType, XmlResultType>(XmlResultType.serializer()) {
+    companion object Serializer : DelegatingSerializer<IXmlResultType, XmlResultType>(XmlResultType.serializer()) {
+
+        @JvmStatic
+        fun serializer(): Serializer = this
+
         override fun fromDelegate(delegate: XmlResultType): IXmlResultType = delegate
 
         override fun IXmlResultType.toDelegate(): XmlResultType {

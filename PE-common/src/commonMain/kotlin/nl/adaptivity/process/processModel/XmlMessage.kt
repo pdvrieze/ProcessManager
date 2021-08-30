@@ -24,17 +24,12 @@
 
 package nl.adaptivity.process.processModel
 
-import foo.FakeSerializable
-import foo.FakeSerializer
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
+import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.serializer
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.ProcessConsts.Engine
@@ -101,7 +96,7 @@ class XmlMessage : XMLContainer, IXmlMessage {
     override val contentType: String
         get() = type ?: "application/soap+xml"
 
-    @FakeSerializable
+    @Serializable
     override var serviceName: String?
         get() = service?.localPart
         set(name) {
@@ -208,7 +203,6 @@ class XmlMessage : XMLContainer, IXmlMessage {
         return result
     }
 
-    @FakeSerializer(forClass = XmlMessage::class)
     companion object : XmlContainerSerializer<XmlMessage>() {
 
         const val ELEMENTLOCALNAME = "message"
@@ -265,7 +259,7 @@ class XmlMessage : XMLContainer, IXmlMessage {
             super.writeAdditionalValues(encoder, desc, data)
         }
 
-        @FakeSerializable
+        @Serializable
         @XmlSerialName(XmlMessage.ELEMENTLOCALNAME, Engine.NAMESPACE, Engine.NSPREFIX)
         private class XmlMessageData : XmlContainerSerializer.ContainerData<XmlMessage> {
             constructor(owner: XmlMessage.Companion) : super()

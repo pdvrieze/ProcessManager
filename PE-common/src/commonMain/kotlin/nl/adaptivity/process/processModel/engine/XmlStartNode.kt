@@ -16,22 +16,20 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import foo.FakeSerializable
-import foo.FakeSerializer
-import kotlinx.serialization.KSerializer
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.processModel.StartNodeBase
 import nl.adaptivity.process.processModel.ensureExportable
+import nl.adaptivity.serialutil.DelegatingSerializer
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
-@FakeSerializable(XmlStartNode.Companion::class)
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable(XmlStartNode.Companion::class)
 @XmlSerialName("start", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 class XmlStartNode : StartNodeBase<XmlProcessNode, ProcessModel<XmlProcessNode>>, XmlProcessNode {
 
@@ -39,21 +37,15 @@ class XmlStartNode : StartNodeBase<XmlProcessNode, ProcessModel<XmlProcessNode>>
     constructor(builder: StartNode.Builder, newOwner: ProcessModel<*>) :
         super(builder.ensureExportable(), newOwner)
 
-    override fun builder() = StartNodeBase.Builder(this)
+    override fun builder() = Builder(this)
 
-    @FakeSerializer(XmlStartNode::class)
-    companion object : KSerializer<XmlStartNode> {
-        override val descriptor: SerialDescriptor
-            get() = TODO("not implemented")
-
-        override fun serialize(encoder: Encoder, value: XmlStartNode) {
-            TODO("not implemented")
+    companion object : DelegatingSerializer<XmlStartNode, Builder>(Builder.serializer()) {
+        override fun fromDelegate(delegate: Builder): XmlStartNode {
+            throw UnsupportedOperationException("Start nodes cannot be deserialized independently without an owning process model")
         }
 
-        override fun deserialize(decoder: Decoder): XmlStartNode {
-            throw Exception("Deserializing a start directly is not possible")
+        override fun XmlStartNode.toDelegate(): Builder {
+            return Builder(this)
         }
-
     }
-
 }

@@ -16,15 +16,18 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import foo.FakeSerializable
-import foo.FakeSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializer
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.processModel.Condition
+import nl.adaptivity.serialutil.DelegatingSerializer
 import nl.adaptivity.serialutil.withName
 import nl.adaptivity.xmlutil.*
 
@@ -34,26 +37,21 @@ import nl.adaptivity.xmlutil.*
  *
  * @author Paul de Vrieze
  */
-@FakeSerializable(XmlCondition.Companion::class)
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable(XmlCondition.Companion::class)
 class XmlCondition(override val condition: String) : Condition {
 
-    @FakeSerializer(XmlCondition::class)
-    companion object : KSerializer<Condition> {
-        override val descriptor: SerialDescriptor
-            get() = String.serializer().descriptor.withName("condition")
+    companion object : DelegatingSerializer<XmlCondition, String>(String.serializer()) {
 
-        fun deserialize(reader: XmlReader): XmlCondition {
-            val condition = reader.readSimpleElement()
-            return XmlCondition(condition)
+        override val descriptor: SerialDescriptor =
+            PrimitiveSerialDescriptor("condition", PrimitiveKind.STRING)
+
+        override fun fromDelegate(delegate: String): XmlCondition {
+            return XmlCondition(delegate)
         }
 
-        override fun serialize(encoder: Encoder, obj: Condition) {
-            encoder.encodeString(obj.condition)
-        }
-
-        override fun deserialize(decoder: Decoder): XmlCondition {
-            return XmlCondition(decoder.decodeString())
+        override fun XmlCondition.toDelegate(): String {
+            return condition
         }
     }
-
 }

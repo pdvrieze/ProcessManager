@@ -16,17 +16,20 @@
 
 package nl.adaptivity.process.processModel
 
-import foo.FakeSerializable
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.IdentifyableSet
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 
 /**
  * Created by pdvrieze on 24/11/15.
  */
-@FakeSerializable
+@Serializable
 abstract class EndNodeBase : ProcessNodeBase, EndNode {
 
     @Suppress("ConvertSecondaryConstructorToPrimary")
@@ -34,7 +37,7 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
         super(builder, newOwner, otherNodes)
 
     @Suppress("DEPRECATION")
-    @FakeSerializable(with = Identifiable.Companion::class)
+    @Serializable(with = Identifiable.Companion::class)
     override val predecessor: Identified? = predecessors.singleOrNull()
 
     @Transient
@@ -52,16 +55,14 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
         return visitor.visitEndNode(this)
     }
 
-    @FakeSerializable
-    open class Builder :
-        ProcessNodeBase.Builder,
-        EndNode.Builder {
+    @Serializable
+    @SerialName(EndNode.ELEMENTLOCALNAME)
+    @XmlSerialName(EndNode.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
+    open class Builder : ProcessNodeBase.Builder, EndNode.Builder {
 
-        @Transient
-        override val idBase: String
-            get() = "end"
+        override val idBase: String get() = "end"
 
-        @FakeSerializable(with = Identifiable.Companion::class)
+        @Serializable(with = Identifiable.Companion::class)
         final override var predecessor: Identifiable? = null
 
         constructor() : this(id = null)
@@ -75,7 +76,7 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
             x: Double = Double.NaN,
             y: Double = Double.NaN,
             isMultiInstance: Boolean = false
-                   ) : super(id, label, defines, results, x, y, isMultiInstance) {
+        ) : super(id, label, defines, results, x, y, isMultiInstance) {
             this.predecessor = predecessor
         }
 

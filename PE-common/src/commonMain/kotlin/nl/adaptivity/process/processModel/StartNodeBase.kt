@@ -16,10 +16,12 @@
 
 package nl.adaptivity.process.processModel
 
-import foo.FakeSerializable
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Transient
 import nl.adaptivity.process.ProcessConsts
+import nl.adaptivity.process.processModel.engine.ProcessNodeSerialDelegate
+import nl.adaptivity.process.processModel.engine.XmlStartNode
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
@@ -28,7 +30,7 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 /**
  * Base class for start nodes. It knows about the data
  */
-@FakeSerializable
+@Serializable
 abstract class StartNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> : ProcessNodeBase, StartNode {
 
     @Transient
@@ -48,18 +50,15 @@ abstract class StartNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?>
         y: Double = Double.NaN,
         defines: Collection<IXmlDefineType> = emptyList(),
         results: Collection<IXmlResultType> = emptyList()
-               )
-        : super(
+    ) : super(
         ownerModel,
         emptyList(),
         listOfNotNull(successor),
         id, label, x, y, defines, results
-               )
+    )
 
-    constructor(builder: StartNode.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) : this(
-        builder,
-        buildHelper.newOwner
-                                                                                                     )
+    constructor(builder: StartNode.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) :
+        this(builder, buildHelper.newOwner)
 
     constructor(builder: StartNode.Builder, newOwner: ProcessModel<*>) :
         super(builder, newOwner, emptyList())
@@ -71,9 +70,9 @@ abstract class StartNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?>
     }
 
 
-    @SerialName("start")
-    @XmlSerialName("start", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
-    @FakeSerializable
+    @SerialName(StartNode.ELEMENTLOCALNAME)
+    @XmlSerialName(StartNode.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
+    @Serializable
     open class Builder : ProcessNodeBase.Builder, StartNode.Builder {
 
         @Transient
@@ -98,10 +97,10 @@ abstract class StartNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?>
             x: Double = Double.NaN,
             y: Double = Double.NaN,
             multiInstance: Boolean = false
-                   ) : super(
+        ) : super(
             id, label, defines,
             results, x, y, multiInstance
-                            ) {
+        ) {
             this.successor = successor
         }
 

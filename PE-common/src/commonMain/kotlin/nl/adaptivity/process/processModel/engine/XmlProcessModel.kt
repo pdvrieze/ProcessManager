@@ -16,8 +16,8 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import foo.FakeSerializable
-import foo.FakeSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializer
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
@@ -28,10 +28,14 @@ import net.devrieze.util.security.SYSTEMPRINCIPAL
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.util.PrincipalSerializer
+import nl.adaptivity.util.UUIDSerializer
 import nl.adaptivity.util.multiplatform.UUID
+import nl.adaptivity.util.multiplatform.name
 import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.serialization.XmlPolyChildren
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 /**
@@ -75,7 +79,6 @@ class XmlProcessModel : RootProcessModelBase<@UseContextualSerialization XmlProc
         return super.getChildModel(childId)?.let { it as XmlChildModel }
     }
 
-    @FakeSerializer(forClass = XmlProcessModel::class)
     companion object : RootProcessModelBase.BaseSerializer<XmlProcessModel>(), KSerializer<XmlProcessModel> {
 
         override val descriptor: SerialDescriptor get() = Builder.descriptor
@@ -109,7 +112,7 @@ class XmlProcessModel : RootProcessModelBase<@UseContextualSerialization XmlProc
 
     @Serializable(Builder.Companion::class)
     @XmlSerialName(ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
-    class Builder : RootProcessModelBase.Builder {
+    open class Builder : RootProcessModelBase.Builder {
 
         constructor(
             nodes: Collection<ProcessNode.Builder> = emptySet(),
@@ -131,9 +134,8 @@ class XmlProcessModel : RootProcessModelBase<@UseContextualSerialization XmlProc
         @OptIn(InternalSerializationApi::class)
         @Serializer(forClass = Builder::class)
         companion object : RootProcessModelBase.Builder.BaseSerializer<Builder>() {
-            //            override val descriptor: SerialDescriptor = SerialClassDescImpl(XmlProcessModel.descriptor, Builder::class.name)
-            override val descriptor: SerialDescriptor
-                get() = TODO("not implemented")
+
+            override val descriptor: SerialDescriptor = SerialDelegate.serializer().descriptor
 
             /*
             init {
@@ -162,6 +164,34 @@ class XmlProcessModel : RootProcessModelBase<@UseContextualSerialization XmlProc
             }
         }
     }
+
+    @Serializable
+    private class SerialDelegate(
+        val name: String? = null,
+        val handle: Long = -1L,
+        @Serializable(PrincipalSerializer::class)
+        val owner: Principal = SYSTEMPRINCIPAL,
+        @Serializable(UUIDSerializer::class)
+        val uuid: UUID? = null,
+        val roles: Set<String> = emptySet(),
+        @XmlPolyChildren(
+            arrayOf(
+                "nl.adaptivity.process.processModel.ActivityBase\$DeserializationBuilder=pe:activity",
+                "nl.adaptivity.process.processModel.engine.XmlStartNode\$Builder=pe:start",
+                "nl.adaptivity.process.processModel.engine.XmlSplit\$Builder=pe:split",
+                "nl.adaptivity.process.processModel.engine.XmlJoin\$Builder=pe:join",
+                "nl.adaptivity.process.processModel.engine.XmlEndNode\$Builder=pe:end",
+                "nl.adaptivity.process.processModel.engine.XmlActivity=pe:activity",
+                "nl.adaptivity.process.processModel.engine.XmlStartNode=pe:start",
+                "nl.adaptivity.process.processModel.engine.XmlSplit=pe:split",
+                "nl.adaptivity.process.processModel.engine.XmlJoin=pe:join",
+                "nl.adaptivity.process.processModel.engine.XmlEndNode=pe:end"
+            )
+        )
+        val nodes: Collection<ProcessNode.Builder> = emptyList(),
+        val imports: Collection<IXmlResultType> = emptyList(),
+        val exports: Collection<IXmlDefineType> = emptyList(),
+    )
 
 }
 

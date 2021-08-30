@@ -18,7 +18,7 @@
 
 package nl.adaptivity.process.processModel
 
-import foo.FakeSerializer
+import kotlinx.serialization.Serializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.descriptors.element
@@ -79,7 +79,6 @@ class XmlResultType : XPathHolder, IPlatformXmlResultType {
     @XmlSerialName(value = XmlResultType.ELEMENTLOCALNAME, namespace = Engine.NAMESPACE, prefix = Engine.NSPREFIX)
     private class XmlResultTypeAnnotationHelper {}
 
-    @FakeSerializer(forClass = XmlResultType::class)
     companion object : XPathHolderSerializer<XmlResultType>() {
         override val descriptor = buildClassSerialDescriptor("XmlResultType") {
             annotations = XmlResultTypeAnnotationHelper.serializer().descriptor.annotations

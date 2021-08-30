@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.processModel
 
-import foo.FakeSerializable
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import nl.adaptivity.process.processModel.engine.XmlCondition
@@ -27,7 +26,7 @@ import nl.adaptivity.xmlutil.serialization.XmlValue
 class PredecessorInfo(
     @SerialName("predecessor")
     @XmlValue(true) val id: String,
-    @FakeSerializable(XmlCondition.Companion::class)
+    @Serializable(XmlCondition.Companion::class)
     @XmlElement(false) val condition: Condition? = null
                      ) {
     init {

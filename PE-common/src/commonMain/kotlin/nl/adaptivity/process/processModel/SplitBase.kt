@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
-import foo.FakeSerializable
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import net.devrieze.util.ArraySet
@@ -24,15 +24,13 @@ import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.process.util.Identifier
-import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 
 /**
  * Created by pdvrieze on 26/11/15.
  */
-@FakeSerializable
+@Serializable
 @XmlSerialName("split", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 abstract class SplitBase : JoinSplitBase, Split {
 
@@ -40,7 +38,7 @@ abstract class SplitBase : JoinSplitBase, Split {
     override val maxSuccessorCount: Int
         get() = Int.MAX_VALUE
 
-    @FakeSerializable(with = Identifiable.Companion::class)
+    @Serializable(with = Identifiable.Companion::class)
     final override val predecessor: Identifiable? = predecessors.singleOrNull()
 
     constructor(
@@ -55,8 +53,8 @@ abstract class SplitBase : JoinSplitBase, Split {
         results: Collection<IXmlResultType> = ArrayList(),
         min: Int = -1,
         max: Int = -1
-               ) : super(ownerModel, predecessor?.let { listOf(it) } ?: emptyList(), successors, id,
-                         label, x, y, defines, results, min, max)
+    ) : super(ownerModel, predecessor?.let { listOf(it) } ?: emptyList(), successors, id,
+              label, x, y, defines, results, min, max)
 
     constructor(builder: Split.Builder, newOwner: ProcessModel<*>, otherNodes: Iterable<ProcessNode.Builder>) :
         super(builder, newOwner, otherNodes)
@@ -67,8 +65,9 @@ abstract class SplitBase : JoinSplitBase, Split {
         return visitor.visitSplit(this)
     }
 
-    @FakeSerializable
-    @XmlSerialName("split", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
+    @Serializable
+    @SerialName(Split.ELEMENTLOCALNAME)
+    @XmlSerialName(Split.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     open class Builder :
         JoinSplitBase.Builder,
         Split.Builder {
@@ -83,7 +82,7 @@ abstract class SplitBase : JoinSplitBase, Split {
                 field.replaceBy(value)
             }
 
-        @FakeSerializable(with = Identifiable.Companion::class)
+        @Serializable(with = Identifiable.Companion::class)
         final override var predecessor: Identifiable? = null
 
         constructor() : this(id = null)

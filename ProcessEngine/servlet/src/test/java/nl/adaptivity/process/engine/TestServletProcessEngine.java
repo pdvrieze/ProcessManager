@@ -52,7 +52,8 @@ public class TestServletProcessEngine extends ServletProcessEngine {
         mProcessInstances = new MemTransactionedHandleMap<>();
         mProcessNodeInstances = new MemTransactionedHandleMap<>();
         MessageService messageService = new MessageService(localURL);
-        ProcessEngine<StubProcessTransaction> engine =
+        //noinspection KotlinInternalInJava
+        ProcessEngine<StubProcessTransaction, ?> engine =
             ProcessEngine.newTestInstance(messageService, mTransactionFactory, mProcessModels, mProcessInstances,
                                           mProcessNodeInstances, false, Logger.getAnonymousLogger());
         init(engine);

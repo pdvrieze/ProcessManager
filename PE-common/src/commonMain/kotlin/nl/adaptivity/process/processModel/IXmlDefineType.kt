@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.processModel
 
-import foo.FakeSerializable
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.ListSerializer
@@ -27,7 +26,7 @@ import kotlinx.serialization.serializer
 import nl.adaptivity.serialutil.DelegatingSerializer
 import nl.adaptivity.xmlutil.Namespace
 
-@FakeSerializable(IXmlDefineType.Serializer::class)
+@Serializable(IXmlDefineType.Serializer::class)
 interface IXmlDefineType {
 
     val content: CharArray?

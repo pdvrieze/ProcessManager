@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
-import foo.FakeSerializable
+import kotlinx.serialization.Serializable
 import nl.adaptivity.serialutil.CharArrayAsStringSerializer
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.multiplatform.assert
@@ -32,10 +32,10 @@ import nl.adaptivity.xmlutil.util.XMLFragmentStreamReader
  * This class can contain xml content. It allows it to be transformed, and input/output
  * Created by pdvrieze on 30/10/15.
  */
-@FakeSerializable
+@Serializable
 abstract class XMLContainer private constructor(
     override var namespaces: SimpleNamespaceContext,
-    @FakeSerializable(with = CharArrayAsStringSerializer::class)
+    @Serializable(with = CharArrayAsStringSerializer::class)
     override var content: CharArray
 ) : ICompactFragment {
 

@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.engine
 
-import foo.FakeSerializable
 import kotlinx.serialization.Serializable
 import net.devrieze.util.Handle
 import nl.adaptivity.xmlutil.serialization.XmlValue

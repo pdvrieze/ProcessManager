@@ -16,17 +16,19 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import foo.FakeSerializable
-import foo.FakeSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializer
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.*
+import nl.adaptivity.serialutil.DelegatingSerializer
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
-@FakeSerializable(XmlSplit.Companion::class)
+@OptIn(ExperimentalSerializationApi::class)
+@Serializable(XmlSplit.Companion::class)
 @XmlSerialName("split", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 class XmlSplit : SplitBase, XmlProcessNode {
 
@@ -38,20 +40,14 @@ class XmlSplit : SplitBase, XmlProcessNode {
                ) :
         super(builder.ensureExportable(), newOwner, otherNodes)
 
-    @FakeSerializer(XmlSplit::class)
-    companion object : KSerializer<XmlSplit> {
-
-        override fun deserialize(decoder: Decoder): XmlSplit {
-            throw Exception("Deserializing a split directly is not possible")
+    companion object : DelegatingSerializer<XmlSplit, Builder>(Builder.serializer()) {
+        override fun fromDelegate(delegate: Builder): XmlSplit {
+            throw UnsupportedOperationException("Deserializing a split directly is not possible")
         }
 
-        override val descriptor: SerialDescriptor
-            get() = TODO("not implemented")
-
-        override fun serialize(encoder: Encoder, value: XmlSplit) {
-            TODO("not implemented")
+        override fun XmlSplit.toDelegate(): Builder {
+            return Builder(this)
         }
-
     }
 
 }

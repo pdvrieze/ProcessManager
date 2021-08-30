@@ -16,14 +16,15 @@
 
 package nl.adaptivity.process.processModel
 
-import foo.FakeSerializable
-import foo.FakeSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializer
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.descriptors.element
 import kotlinx.serialization.encoding.Encoder
 import net.devrieze.util.collection.replaceBy
+import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.engine.XmlActivity
 import nl.adaptivity.process.processModel.engine.XmlCondition
 import nl.adaptivity.process.util.Identifiable
@@ -35,7 +36,7 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
  * Base class for activity implementations
  * Created by pdvrieze on 23/11/15.
  */
-@FakeSerializable
+@Serializable
 abstract class ActivityBase : ProcessNodeBase, Activity {
 
     @SerialName("name")
@@ -49,7 +50,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
         }
 
     @Required
-    @FakeSerializable(with = Identifiable.Companion::class)
+    @Serializable(with = Identifiable.Companion::class)
     final override val predecessor: Identifiable? = predecessors.singleOrNull()
 
     @Transient
@@ -88,7 +89,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
         @XmlDefault("null")
         final override var name: String? = null
 
-        @FakeSerializable(XmlCondition.Companion::class)
+        @Serializable(XmlCondition.Companion::class)
         final override var condition: Condition? = null
 
         @Transient
@@ -97,7 +98,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
 
         @SerialName("predecessor")
         @XmlSerialName("predecessor", "", "")
-        @FakeSerializable(with = Identifiable.Companion::class)
+        @Serializable(with = Identifiable.Companion::class)
         final override var predecessor: Identifiable? = null
 
         @Transient
@@ -140,10 +141,12 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
     }
 
     @Serializable
+    @SerialName(StartNode.ELEMENTLOCALNAME)
+    @XmlSerialName(StartNode.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     open class DeserializationBuilder : BaseBuilder, MessageActivity.Builder, CompositeActivity.ReferenceBuilder {
         override var childId: String? = null
 
-        @FakeSerializable(with = IXmlMessage.Companion::class)
+        @Serializable(with = IXmlMessage.Companion::class)
         override var message: IXmlMessage? = null
 
         constructor(
@@ -190,7 +193,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
 
     }
 
-    @FakeSerializable
+    @Serializable
     open class ReferenceActivityBuilder : BaseBuilder, CompositeActivity.ReferenceBuilder {
         final override var childId: String?
 
@@ -233,12 +236,12 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
         }
     }
 
-    @FakeSerializable
+    @Serializable
     open class CompositeActivityBuilder : ChildProcessModelBase.ModelBuilder,
                                           CompositeActivity.ModelBuilder {
         override var name: String? = null
         override var id: String?
-        @FakeSerializable(XmlCondition.Companion::class)
+        @Serializable(XmlCondition.Companion::class)
         override var condition: Condition?
         override var label: String?
         @XmlDefault("NaN")
@@ -246,19 +249,19 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
         @XmlDefault("NaN")
         override var y: Double
         override var isMultiInstance: Boolean
-        @FakeSerializable(with = Identifiable.Companion::class)
+        @Serializable(with = Identifiable.Companion::class)
         override var predecessor: Identifiable? = null
         @Transient
         override var successor: Identifiable? = null
 
-        @FakeSerializable(IXmlDefineTypeListSerializer::class)
+        @Serializable(IXmlDefineTypeListSerializer::class)
         @SerialName("define")
         override var defines: MutableCollection<IXmlDefineType> = mutableListOf()
             set(value) {
                 field.replaceBy(value)
             }
 
-        @FakeSerializable(IXmlResultTypeListSerializer::class)
+        @Serializable(IXmlResultTypeListSerializer::class)
         @SerialName("result")
         override var results: MutableCollection<IXmlResultType> = mutableListOf()
             set(value) {
@@ -324,7 +327,6 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
             return XmlActivity(this, buildHelper, otherNodes)
         }
 
-        @FakeSerializer(forClass = CompositeActivityBuilder::class)
         companion object : ChildProcessModelBase.ModelBuilder.BaseSerializer<CompositeActivityBuilder>() {
             override val descriptor: SerialDescriptor = buildClassSerialDescriptor("Activity") {
                 val base =  serializer<DeserializationBuilder>().descriptor

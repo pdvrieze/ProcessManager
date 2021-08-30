@@ -16,18 +16,16 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import foo.FakeSerializable
-import foo.FakeSerializer
-import kotlinx.serialization.InternalSerializationApi
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Transient
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.Serializer
+import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
+import nl.adaptivity.serialutil.DelegatingSerializer
 import nl.adaptivity.xmlutil.serialization.XmlDefault
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
@@ -42,12 +40,12 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
  *
  * @author Paul de Vrieze
  */
-@FakeSerializable
+@Serializable(XmlActivity.Companion::class)
 @XmlSerialName(Activity.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActivity {
 
     @SerialName("message")
-    @FakeSerializable(with = IXmlMessage.Companion::class)
+    @Serializable(with = IXmlMessage.Companion::class)
     override var message: IXmlMessage?
         get() = field
         private set(value) {
@@ -57,7 +55,7 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
     @Transient
     override val childModel: ChildProcessModel<ProcessNode>?
 
-    @FakeSerializable
+    @Serializable
     @XmlDefault("null")
     val childId: String?
 
@@ -111,7 +109,7 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
 
     override fun builder(): Activity.Builder = when {
         childId == null -> MessageActivityBase.Builder(this)
-        else            -> ActivityBase.ReferenceActivityBuilder(this)
+        else            -> ReferenceActivityBuilder(this)
     }
 
     override fun <R> visit(visitor: ProcessNode.Visitor<R>): R = when {
@@ -119,27 +117,14 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
         else               -> visitor.visitActivity(compositeActivity = this)
     }
 
-    @OptIn(InternalSerializationApi::class)
-    @FakeSerializer(forClass = XmlActivity::class)
-    companion object : KSerializer<XmlActivity> {
-
-        /*
-        override val descriptor: SerialDescriptor = buildClassSerialDescriptor("XmlActivity") {
-            for (childSerializer in childSerializers()) {
-                val d = childSerializer.descriptor
-                element(d.serialName, d)
-            }
-        }
-*/
-        override val descriptor: SerialDescriptor
-            get() = TODO("not implemented")
-
-        override fun serialize(encoder: Encoder, value: XmlActivity) {
-            TODO("not implemented")
-        }
-
-        override fun deserialize(decoder: Decoder): XmlActivity {
+    @OptIn(ExperimentalSerializationApi::class)
+    companion object : DelegatingSerializer<XmlActivity, DeserializationBuilder>(DeserializationBuilder.serializer()) {
+        override fun fromDelegate(delegate: DeserializationBuilder): XmlActivity {
             throw UnsupportedOperationException("This can only done in the correct context")
+        }
+
+        override fun XmlActivity.toDelegate(): DeserializationBuilder {
+            return DeserializationBuilder(this)
         }
     }
 

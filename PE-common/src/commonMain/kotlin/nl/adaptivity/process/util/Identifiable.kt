@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.util
 
-import foo.FakeSerializer
+import kotlinx.serialization.Serializer
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.SetSerializer
@@ -48,7 +48,6 @@ interface Identifiable : Comparable<Identifiable> {
         }
     }
 
-    @FakeSerializer(forClass = Identifiable::class)
     companion object: DelegatingSerializer<Identifiable, String?>(String.serializer().nullable) {
         override fun fromDelegate(delegate: String?): Identifiable = Identifier(delegate!!)
 
