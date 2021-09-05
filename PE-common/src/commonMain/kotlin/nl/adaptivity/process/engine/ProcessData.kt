@@ -30,15 +30,12 @@ import net.devrieze.util.Named
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.serialutil.decodeElements
 import nl.adaptivity.serialutil.decodeStructure
-import nl.adaptivity.serialutil.impl.maybeAnnotations
-import nl.adaptivity.xmlutil.QName
-import nl.adaptivity.xmlutil.XmlReader
-import nl.adaptivity.xmlutil.XmlWriter
+import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.core.impl.multiplatform.maybeAnnotations
 import nl.adaptivity.xmlutil.serialization.ICompactFragmentSerializer
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlElement
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
-import nl.adaptivity.xmlutil.siblingsToFragment
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 
@@ -97,6 +94,7 @@ constructor(
             return ProcessData(name, CompactFragment(""))
         }
 
+        @OptIn(XmlUtilInternal::class)
         override val descriptor: SerialDescriptor = buildClassSerialDescriptor("ProcessData") {
             annotations = ProcessData::class.maybeAnnotations.filterIsInstance<XmlSerialName>()
             element<String>("name")

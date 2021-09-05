@@ -33,7 +33,9 @@ import nl.adaptivity.xmlutil.util.XMLFragmentStreamReader
  * Created by pdvrieze on 30/10/15.
  */
 @Serializable
-abstract class XMLContainer private constructor(
+@OptIn(XmlUtilInternal::class)
+abstract class XMLContainer
+private constructor(
     override var namespaces: SimpleNamespaceContext,
     @Serializable(with = CharArrayAsStringSerializer::class)
     override var content: CharArray

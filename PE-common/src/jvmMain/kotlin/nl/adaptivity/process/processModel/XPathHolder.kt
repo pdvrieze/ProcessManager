@@ -17,9 +17,8 @@
 package nl.adaptivity.process.processModel
 
 import nl.adaptivity.process.util.Constants
-import nl.adaptivity.xmlutil.util.CombiningNamespaceContext
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.util.CombiningNamespaceContext
 import java.util.*
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -30,9 +29,9 @@ import javax.xml.namespace.QName
 import javax.xml.xpath.XPathExpression
 import javax.xml.xpath.XPathExpressionException
 import javax.xml.xpath.XPathFactory
-import kotlin.jvm.Volatile
 
 
+@OptIn(XmlUtilInternal::class)
 actual abstract class XPathHolder : XMLContainer {
     /**
      * @see nl.adaptivity.process.processModel.IXmlResultType#setName(java.lang.String)
@@ -67,7 +66,7 @@ actual abstract class XPathHolder : XMLContainer {
         path: String?,
         content: CharArray?,
         originalNSContext: Iterable<Namespace>
-                      ) : super(originalNSContext, content ?: CharArray(0)) {
+    ) : super(originalNSContext, content ?: CharArray(0)) {
         _name = name
         setPath(originalNSContext, path)
     }
@@ -101,10 +100,8 @@ actual abstract class XPathHolder : XMLContainer {
         val namespaces = TreeMap<String, String>()
         val gatheringNamespaceContext = CombiningNamespaceContext(
             SimpleNamespaceContext.from(originalNSContext),
-            GatheringNamespaceContext(
-                reader.namespaceContext, namespaces
-                                     )
-                                                                 )
+            MyGatheringNamespaceContext(namespaces, origContext)
+        )
         visitNamespaces(gatheringNamespaceContext)
         if (namespaces.size > 0) {
             addNamespaceContext(SimpleNamespaceContext(namespaces))
@@ -119,12 +116,11 @@ actual abstract class XPathHolder : XMLContainer {
             // Have a namespace that gathers those namespaces that are not known already in the outer context
             val referenceContext = out.namespaceContext
             // TODO streamline this, the right context should not require the filtering on the output context later.
-            val nsc = GatheringNamespaceContext(
-                CombiningNamespaceContext(
-                    referenceContext, SimpleNamespaceContext
-                        .from(originalNSContext)
-                                         ), namepaces
-                                               )
+            val nsc = MyGatheringNamespaceContext(
+                namepaces,
+                referenceContext,
+                SimpleNamespaceContext.from(originalNSContext)
+            )
             visitXpathUsedPrefixes(pathString, nsc)
             for ((key, value) in namepaces) {
                 if (value != referenceContext.getNamespaceURI(key)) {
@@ -151,9 +147,55 @@ actual abstract class XPathHolder : XMLContainer {
         owner: QName,
         attributeName: QName,
         attributeValue: CharSequence
-                                                                 ) {
+    ) {
         if (Constants.MODIFY_NS_STR == owner.getNamespaceURI() && (XMLConstants.NULL_NS_URI == attributeName.getNamespaceURI() || XMLConstants.DEFAULT_NS_PREFIX == attributeName.getPrefix()) && "xpath" == attributeName.getLocalPart()) {
             visitXpathUsedPrefixes(attributeValue, referenceContext)
+        }
+    }
+
+    class MyGatheringNamespaceContext(
+        private val resultMap: MutableMap<String, String>,
+        private vararg val parentContext: NamespaceContext
+    ) : NamespaceContextImpl, IterableNamespaceContext {
+        override fun iterator(): Iterator<Namespace> {
+            return resultMap.map { nameSpace(it.key, it.value) }.iterator()
+        }
+
+        override fun getNamespaceURI(prefix: String): String? {
+            return parentContext.asSequence()
+                .mapNotNull { it.getNamespaceURI(prefix) }
+                .firstOrNull()?.apply {
+                    if (!isEmpty() && prefix != nl.adaptivity.xmlutil.XMLConstants.XMLNS_ATTRIBUTE) {
+                        resultMap[prefix] = this
+                    }
+                }
+        }
+
+        override fun getPrefix(namespaceURI: String): String? {
+            return parentContext.asSequence()
+                .mapNotNull { it.getPrefix(namespaceURI) }
+                .firstOrNull()?.apply {
+                    if (namespaceURI != nl.adaptivity.xmlutil.XMLConstants.XMLNS_ATTRIBUTE_NS_URI && namespaceURI != nl.adaptivity.xmlutil.XMLConstants.XML_NS_URI) {
+                        resultMap[this] = namespaceURI
+                    }
+                }
+        }
+
+        @Suppress(
+            "UNCHECKED_CAST",
+            "DEPRECATION",
+            "OverridingDeprecatedMember"
+        )// Somehow this type has no proper generic parameter
+        override fun getPrefixesCompat(namespaceURI: String): Iterator<String> {
+            return parentContext
+                .flatMap { it.prefixesFor(namespaceURI).asSequence() }
+                .apply {
+                    if (namespaceURI != nl.adaptivity.xmlutil.XMLConstants.XMLNS_ATTRIBUTE_NS_URI && namespaceURI != nl.adaptivity.xmlutil.XMLConstants.XML_NS_URI) {
+                        for (prefix in this) {
+                            resultMap[prefix] = namespaceURI
+                        }
+                    }
+                }.iterator()
         }
     }
 
@@ -173,6 +215,11 @@ actual abstract class XPathHolder : XMLContainer {
 }
 
 
+private fun nameSpace(uri: String, prefix: String): Namespace = object : Namespace {
+    override val namespaceURI: String = uri
+    override val prefix: String = prefix
+}
+
 internal actual fun visitXpathUsedPrefixes(path: CharSequence?, namespaceContext: NamespaceContext) {
     if (path != null && path.isNotEmpty()) {
         try {
@@ -185,7 +232,7 @@ internal actual fun visitXpathUsedPrefixes(path: CharSequence?, namespaceContext
                 Level.WARNING,
                 "The path used is not valid (" + path + ") - " + e.message,
                 e
-                                                                    )
+            )
         }
 
     }

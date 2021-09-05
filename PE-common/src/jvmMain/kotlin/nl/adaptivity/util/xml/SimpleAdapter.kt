@@ -17,21 +17,19 @@
 package nl.adaptivity.util.xml
 
 import nl.adaptivity.util.kotlin.arrayMap
+import nl.adaptivity.xmlutil.IterableNamespaceContext
 import nl.adaptivity.xmlutil.SimpleNamespaceContext
+import nl.adaptivity.xmlutil.XmlUtilInternal
 import org.w3c.dom.Attr
 import org.w3c.dom.NamedNodeMap
-
+import java.lang.reflect.Method
+import java.util.logging.Level
+import java.util.logging.Logger
 import javax.xml.XMLConstants
 import javax.xml.bind.JAXBElement
 import javax.xml.bind.Unmarshaller
 import javax.xml.bind.annotation.*
 import javax.xml.namespace.QName
-
-import java.lang.reflect.Method
-import java.util.ArrayList
-import java.util.HashMap
-import java.util.logging.Level
-import java.util.logging.Logger
 
 
 /**
@@ -42,7 +40,8 @@ class SimpleAdapter {
 
     internal var name: QName? = null
 
-    internal var namespaceContext: SimpleNamespaceContext = SimpleNamespaceContext()
+    @OptIn(XmlUtilInternal::class)
+    internal var namespaceContext: IterableNamespaceContext = SimpleNamespaceContext()
         private set
 
     @XmlAnyAttribute
@@ -67,6 +66,7 @@ class SimpleAdapter {
         }
     }
 
+    @OptIn(XmlUtilInternal::class)
     fun beforeUnmarshal(unmarshaller: Unmarshaller, parent: Any) {
         if (parent is JAXBElement<*>) {
             name = parent.name

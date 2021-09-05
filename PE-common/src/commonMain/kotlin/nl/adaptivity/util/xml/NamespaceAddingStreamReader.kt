@@ -16,11 +16,7 @@
 
 package nl.adaptivity.xmlutil.util
 
-import nl.adaptivity.xmlutil.EventType
-import nl.adaptivity.xmlutil.NamespaceContext
-import nl.adaptivity.xmlutil.XmlException
-import nl.adaptivity.xmlutil.XmlReader
-
+import nl.adaptivity.xmlutil.*
 
 /**
  * A streamreader that adds a namespace context as source for looking up namespace information for prefixes present
@@ -38,8 +34,13 @@ class NamespaceAddingStreamReader(private val lookupSource: NamespaceContext, so
             return if (namespaceURI.isNotEmpty()) namespaceURI else lookupSource.getNamespaceURI(delegate.prefix) ?: ""
         }
 
-    override val namespaceContext: NamespaceContext
-        get() = CombiningNamespaceContext(delegate.namespaceContext, lookupSource)
+    @OptIn(XmlUtilInternal::class)
+    override val namespaceContext: IterableNamespaceContext
+        get() = when (lookupSource) {
+            is IterableNamespaceContext ->
+                CombiningNamespaceContext(delegate.namespaceContext, lookupSource)
+            else -> delegate.namespaceContext
+        }
 
     override fun require(type: EventType, namespace: String?, name: String?) {
         if (type !== eventType ||
@@ -76,3 +77,4 @@ class NamespaceAddingStreamReader(private val lookupSource: NamespaceContext, so
                                                                                                         ) ?: ""
     }
 }
+

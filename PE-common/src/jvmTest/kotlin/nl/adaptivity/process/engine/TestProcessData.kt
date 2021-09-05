@@ -58,6 +58,7 @@ import kotlin.reflect.KClass
 /**
  * Created by pdvrieze on 24/08/15.
  */
+@OptIn(XmlUtilInternal::class)
 class TestProcessData {
 
     @Test

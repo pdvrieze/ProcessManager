@@ -48,6 +48,7 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 /**
  * Created by pdvrieze on 24/08/15.
  */
+@OptIn(XmlUtilInternal::class)
 class TestXmlResultType {
 
     private val db: DocumentBuilder

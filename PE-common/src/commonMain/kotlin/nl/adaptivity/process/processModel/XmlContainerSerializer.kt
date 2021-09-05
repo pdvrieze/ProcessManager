@@ -30,6 +30,7 @@ import nl.adaptivity.xmlutil.util.GatheringNamespaceContext
 
 internal expect fun visitXpathUsedPrefixes(path: CharSequence?, namespaceContext: NamespaceContext)
 
+@OptIn(XmlUtilInternal::class)
 abstract open class XmlContainerSerializer<T : XMLContainer>: KSerializer<T> {
 
     fun serialize(desc: SerialDescriptor, encoder: Encoder, data: T) {
@@ -159,9 +160,7 @@ abstract open class XmlContainerSerializer<T : XMLContainer>: KSerializer<T> {
             @Suppress("NON_EXHAUSTIVE_WHEN")
             when (this) {
                 EventType.START_ELEMENT -> {
-                    localPrefixes.add((delegate.namespaceStart until delegate.namespaceEnd).map {
-                        delegate.getNamespacePrefix(it)
-                    })
+                    localPrefixes.add(delegate.namespaceDecls.map { it.prefix })
                     textContent = StringBuilder()
                     filter.visitNamesInElement(delegate, localPrefixes)
                 }

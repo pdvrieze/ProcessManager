@@ -109,6 +109,7 @@ class XmlMessage : XMLContainer, IXmlMessage {
             this.service = namespace?.let { DescQName(it, service?.getLocalPart() ?: "xx") }
         }
 
+    @OptIn(XmlUtilInternal::class)
     override var namespaces: SimpleNamespaceContext
         get() = super.namespaces
         set(value) {
@@ -129,6 +130,7 @@ class XmlMessage : XMLContainer, IXmlMessage {
     }
 
 
+    @OptIn(XmlUtilInternal::class)
     constructor(
         service: DescQName? = null,
         endpoint: String? = null,
