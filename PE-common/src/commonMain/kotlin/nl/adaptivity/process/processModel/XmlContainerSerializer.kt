@@ -16,23 +16,28 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.Transient
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.*
+import nl.adaptivity.process.util.Constants
+import nl.adaptivity.serialutil.CharArrayAsStringSerializer
+import nl.adaptivity.util.MyGatheringNamespaceContext
 import nl.adaptivity.util.multiplatform.assert
+import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
-import nl.adaptivity.xmlutil.*
-import nl.adaptivity.serialutil.CharArrayAsStringSerializer
-import nl.adaptivity.xmlutil.serialization.XML
-import nl.adaptivity.xmlutil.util.GatheringNamespaceContext
 
 internal expect fun visitXpathUsedPrefixes(path: CharSequence?, namespaceContext: NamespaceContext)
 
 @OptIn(XmlUtilInternal::class)
-abstract open class XmlContainerSerializer<T : XMLContainer>: KSerializer<T> {
+abstract class XmlContainerSerializer<T : XMLContainer>: KSerializer<T> {
 
+    @OptIn(ExperimentalSerializationApi::class)
     fun serialize(desc: SerialDescriptor, encoder: Encoder, data: T) {
         encoder.encodeStructure(desc) {
             val childOut = this
@@ -49,7 +54,7 @@ abstract open class XmlContainerSerializer<T : XMLContainer>: KSerializer<T> {
                 childOut.encodeSerializableElement(
                     desc, desc.getElementIndex("namespaces"), ListSerializer(Namespace),
                     data.namespaces.toList()
-                                                  )
+                )
                 childOut.encodeStringElement(desc, desc.getElementIndex("content"), data.contentString)
                 writeAdditionalValues(childOut, desc, data)
             }
@@ -59,7 +64,7 @@ abstract open class XmlContainerSerializer<T : XMLContainer>: KSerializer<T> {
     open fun writeAdditionalValues(out: CompositeEncoder, desc: SerialDescriptor, data: T) {}
 
 
-    open fun getFilter(gatheringNamespaceContext: GatheringNamespaceContext): NamespaceGatherer {
+    internal open fun getFilter(gatheringNamespaceContext: MyGatheringNamespaceContext): NamespaceGatherer {
         return NamespaceGatherer(gatheringNamespaceContext)
     }
 
@@ -79,6 +84,7 @@ abstract open class XmlContainerSerializer<T : XMLContainer>: KSerializer<T> {
             throw SerializationException("Unknown attribute: $attributeLocalName")
         }
 
+        @OptIn(ExperimentalSerializationApi::class)
         fun deserialize(desc: SerialDescriptor, decoder: Decoder, owner: XmlContainerSerializer<in T>) {
             @Suppress("NAME_SHADOWING")
             decoder.decodeStructure(desc) {
@@ -92,7 +98,7 @@ abstract open class XmlContainerSerializer<T : XMLContainer>: KSerializer<T> {
                     val namespacesMap = mutableMapOf<String, String>()
 
                     val gatheringNamespaceContext =
-                        GatheringNamespaceContext(reader.namespaceContext, namespacesMap)
+                        MyGatheringNamespaceContext(reader.namespaceContext.freeze(), namespacesMap)
 
                     handleLastRootAttributeReadEvent(reader, gatheringNamespaceContext)
 
@@ -104,24 +110,19 @@ abstract open class XmlContainerSerializer<T : XMLContainer>: KSerializer<T> {
                     val frag = gatheringReader.siblingsToFragment()
                     content = frag.content
 
-                    for ((prefix, nsUri) in frag.namespaces) {
-                        namespacesMap[prefix] = nsUri
-                    }
-
                     namespaces = SimpleNamespaceContext(namespacesMap)
 
                 } else {
                     // TODO look at using the description to resolve the indices
                     loop@ while (true) {
-                        val next = input.decodeElementIndex(desc)
-                        when (next) {
+                        when (val next = input.decodeElementIndex(desc)) {
                             CompositeDecoder.DECODE_DONE -> break@loop
                             else             -> when (desc.getElementName(next)) {
                                 "namespaces" -> namespaces = input.decodeSerializableElement(desc, next, ListSerializer(Namespace))
                                 "content"    -> content = input.decodeSerializableElement(
                                     desc, 0,
                                     CharArrayAsStringSerializer
-                                                                                         )
+                                )
                                 else         -> readAdditionalChild(desc, input, next)
                             }
                         }
@@ -137,20 +138,22 @@ abstract open class XmlContainerSerializer<T : XMLContainer>: KSerializer<T> {
         }
 
 
-        open fun handleLastRootAttributeReadEvent(
+        internal open fun handleLastRootAttributeReadEvent(
             reader: XmlReader,
-            gatheringNamespaceContext: GatheringNamespaceContext
+            gatheringNamespaceContext: MyGatheringNamespaceContext
         ) {
         }
 
     }
 
-    protected class FilteringReader(
+    internal class FilteringReader(
         val delegate: XmlReader,
         val filter: NamespaceGatherer
-                                   ) : XmlReader by delegate {
+    ) : XmlReader by delegate {
 
         private val localPrefixes = mutableListOf<List<String>>(emptyList())
+
+        private var textContent: StringBuilder? = null
 
         init {
             delegate.eventType.handle()
@@ -179,13 +182,12 @@ abstract open class XmlContainerSerializer<T : XMLContainer>: KSerializer<T> {
 
         }
 
-        private var textContent: StringBuilder? = null
         override fun next(): EventType {
             return delegate.next().apply { handle() }
         }
     }
 
-    open class NamespaceGatherer(val gatheringNamespaceContext: GatheringNamespaceContext) {
+    internal open class NamespaceGatherer(val gatheringNamespaceContext: MyGatheringNamespaceContext) {
 
         open fun visitNamesInElement(source: XmlReader, localPrefixes: List<List<String>>) {
             assert(source.eventType === EventType.START_ELEMENT)
@@ -196,13 +198,27 @@ abstract open class XmlContainerSerializer<T : XMLContainer>: KSerializer<T> {
                 gatheringNamespaceContext.getNamespaceURI(prefix)
             }
 
+            if (source.namespaceURI == Constants.MY_JBI_NS_STR && source.localName=="value") {
+                val xpath = source.getAttributeValue(null, "xpath")
+                if (xpath!=null) {
+                    val namesInPath = mutableMapOf<String, String>()
+                    val newContext = MyGatheringNamespaceContext(namesInPath, source.namespaceContext.freeze())
+                    visitXpathUsedPrefixes(xpath, newContext)
+                    for (prefix in namesInPath.keys) {
+                        if (localPrefixes.none { prefix in it }) {
+                            gatheringNamespaceContext.getNamespaceURI(prefix)
+                        }
+                    }
+                }
+            }
+
             for (i in source.attributeCount - 1 downTo 0) {
                 val attrName = source.getAttributeName(i)
                 visitNamesInAttributeValue(
                     source.namespaceContext, source.name, attrName,
                     source.getAttributeValue(i),
                     localPrefixes
-                                          )
+                )
             }
         }
 
@@ -212,7 +228,7 @@ abstract open class XmlContainerSerializer<T : XMLContainer>: KSerializer<T> {
             attributeName: QName,
             attributeValue: CharSequence,
             localPrefixes: List<List<String>>
-                                           ) {
+        ) {
             // By default there are no special attributes
         }
 

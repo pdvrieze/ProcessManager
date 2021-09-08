@@ -87,15 +87,15 @@ abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
             predecessor: Identifiable? = null,
             successor: Identifiable? = null,
             label: String? = null,
-            defines: Collection<IXmlDefineType> = emptyList(),
-            results: Collection<IXmlResultType> = emptyList(),
+            defines: Collection<IXmlDefineType>? = emptyList(),
+            results: Collection<IXmlResultType>? = emptyList(),
             childId: String? = null,
             condition: Condition? = null,
             name: String? = null,
             x: Double = Double.NaN,
             y: Double = Double.NaN,
-            multiInstance: Boolean = false
-                   ) : super(
+            isMultiInstance: Boolean = false
+       ) : super(
             id,
             predecessor,
             successor,
@@ -106,15 +106,39 @@ abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
             name,
             x,
             y,
-            multiInstance
-                            ) {
+            isMultiInstance
+        ) {
             this.childId = childId
         }
 
-        constructor(node: CompositeActivity) : super(node) {
-            childId =
-                node.childModel?.id ?: throw IllegalProcessModelException("Missing child id in composite activity")
-        }
+        constructor(node: CompositeActivity) : this(
+            node.id,
+            node.predecessor,
+            node.successor,
+            node.label,
+            node.defines,
+            node.results,
+            node.childModel?.id,
+            node.condition,
+            node.name,
+            node.x,
+            node.y,
+            node.isMultiInstance,
+        )
+
+        constructor(node: SerialDelegate) : this(
+            id = node.id,
+            predecessor = node.predecessor,
+            label = node.label,
+            defines = node.defines,
+            results = node.results,
+            childId = node.childId?.id,
+            condition = node.condition,
+            name = node.name,
+            x = node.x,
+            y = node.y,
+            isMultiInstance = node.isMultiInstance,
+        )
 
         override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>): R = when (childId) {
             null -> visitor.visitActivity(this as MessageActivity.Builder)

@@ -8,6 +8,7 @@
     </option>
     <option name="FORMATTER_TAGS_ENABLED" value="true" />
     <option name="WRAP_COMMENTS" value="true" />
+    <option name="SOFT_MARGINS" value="100,120" />
     <AndroidXmlCodeStyleSettings>
       <option name="USE_CUSTOM_SETTINGS" value="true" />
       <option name="LAYOUT_SETTINGS">
@@ -83,7 +84,6 @@
       <option name="XML_ATTRIBUTE_WRAP" value="4" />
       <option name="XML_KEEP_LINE_BREAKS_IN_TEXT" value="false" />
       <option name="XML_SPACE_INSIDE_EMPTY_TAG" value="true" />
-      <option name="XML_LEGACY_SETTINGS_IMPORTED" value="true" />
     </XML>
     <codeStyleSettings language="JAVA">
       <option name="KEEP_BLANK_LINES_BEFORE_RBRACE" value="0" />
@@ -126,6 +126,29 @@
       </indentOptions>
       <arrangement>
         <tokens>
+          <token id="PropertyAccessors" name="PropertyAccessors">
+            <rules>
+              <rule>
+                <match>
+                  <AND>
+                    <METHOD>true</METHOD>
+                    <NAME>^(is|get|set).+</NAME>
+                    <STATIC>false</STATIC>
+                  </AND>
+                </match>
+              </rule>
+              <rule>
+                <match>
+                  <GETTER />
+                </match>
+              </rule>
+              <rule>
+                <match>
+                  <SETTER />
+                </match>
+              </rule>
+            </rules>
+          </token>
           <token id="visibility" name="visibility">
             <rules>
               <rule>
@@ -146,29 +169,6 @@
               <rule>
                 <match>
                   <PRIVATE>true</PRIVATE>
-                </match>
-              </rule>
-            </rules>
-          </token>
-          <token id="PropertyAccessors" name="PropertyAccessors">
-            <rules>
-              <rule>
-                <match>
-                  <AND>
-                    <METHOD>true</METHOD>
-                    <NAME>^(is|get|set).+</NAME>
-                    <STATIC>false</STATIC>
-                  </AND>
-                </match>
-              </rule>
-              <rule>
-                <match>
-                  <GETTER />
-                </match>
-              </rule>
-              <rule>
-                <match>
-                  <SETTER />
                 </match>
               </rule>
             </rules>
@@ -523,7 +523,6 @@
       <option name="CODE_STYLE_DEFAULTS" value="KOTLIN_OFFICIAL" />
       <option name="ALIGN_MULTILINE_PARAMETERS_IN_CALLS" value="true" />
       <option name="ALIGN_MULTILINE_EXTENDS_LIST" value="true" />
-      <option name="ALIGN_MULTILINE_METHOD_BRACKETS" value="true" />
     </codeStyleSettings>
   </code_scheme>
 </component>

@@ -188,7 +188,7 @@ abstract class ProcessNodeBase : ProcessNode {
 
 
     override fun toString(): String {
-        var name = this::class.name.substringAfterLast('.')
+        var name:String = this::class.name.substringAfterLast('.')
         if (name.endsWith("Impl")) {
             name = name.substring(0, name.length - 4)
         }
@@ -281,6 +281,105 @@ abstract class ProcessNodeBase : ProcessNode {
     }
 
     @Serializable
+    @SerialName("node")
+    sealed class SerialDelegate(
+        val id: String?,
+        val label: String?,
+        val defines: List<XmlDefineType>? = null,
+        val results: List<XmlResultType>? = null,
+        @XmlDefault("NaN")
+        val x: Double = Double.NaN,
+
+        @XmlDefault("NaN")
+        val y: Double = Double.NaN,
+        @XmlDefault("false")
+        val isMultiInstance: Boolean = false
+
+    ) {
+
+        constructor(
+            id: String?,
+            label: String?,
+            defines: Iterable<IXmlDefineType>?,
+            results: Iterable<IXmlResultType>?,
+            x: Double = Double.NaN,
+            y: Double = Double.NaN,
+            isMultiInstance: Boolean = false
+        ) : this(
+            id,
+            label,
+            defines?.map { XmlDefineType(it) },
+            results?.map { XmlResultType(it) },
+            x,
+            y,
+            isMultiInstance
+        )
+
+        companion object {
+            operator fun invoke(source: ProcessNode): SerialDelegate {
+                return source.visit(object :
+                                        ProcessNode.Visitor<SerialDelegate> {
+                    override fun visitStartNode(startNode: StartNode): SerialDelegate {
+                        return StartNodeBase.SerialDelegate(startNode)
+                    }
+
+                    override fun visitActivity(messageActivity: MessageActivity): SerialDelegate {
+                        return ActivityBase.SerialDelegate(messageActivity)
+                    }
+
+                    override fun visitActivity(compositeActivity: CompositeActivity): SerialDelegate {
+                        return ActivityBase.SerialDelegate(compositeActivity)
+                    }
+
+                    override fun visitSplit(split: Split): SerialDelegate {
+                        return SplitBase.SerialDelegate(split)
+                    }
+
+                    override fun visitJoin(join: Join): SerialDelegate {
+                        return JoinBase.SerialDelegate(join)
+                    }
+
+                    override fun visitEndNode(endNode: EndNode): SerialDelegate {
+                        return EndNodeBase.SerialDelegate(endNode)
+                    }
+                })
+            }
+
+            operator fun invoke(source: ProcessNode.Builder): SerialDelegate {
+                return source.visit(object : ProcessNode.BuilderVisitor<SerialDelegate> {
+                    override fun visitStartNode(startNode: StartNode.Builder): SerialDelegate {
+                        return StartNodeBase.SerialDelegate(startNode)
+                    }
+
+                    override fun visitActivity(messageActivity: MessageActivity.Builder): SerialDelegate {
+                        return ActivityBase.SerialDelegate(messageActivity)
+                    }
+
+                    override fun visitActivity(activity: CompositeActivity.ModelBuilder): SerialDelegate {
+                        return ActivityBase.SerialDelegate(activity)
+                    }
+
+                    override fun visitActivity(activity: CompositeActivity.ReferenceBuilder): SerialDelegate {
+                        return ActivityBase.SerialDelegate(activity)
+                    }
+
+                    override fun visitSplit(split: Split.Builder): SerialDelegate {
+                        return SplitBase.SerialDelegate(split)
+                    }
+
+                    override fun visitJoin(join: Join.Builder): SerialDelegate {
+                        return JoinBase.SerialDelegate(join)
+                    }
+
+                    override fun visitEndNode(endNode: EndNode.Builder): SerialDelegate {
+                        return EndNodeBase.SerialDelegate(endNode)
+                    }
+                })
+            }
+        }
+    }
+
+    @Serializable
     abstract class Builder : ProcessNode.Builder {
 
         override var id: String?
@@ -304,8 +403,8 @@ abstract class ProcessNodeBase : ProcessNode {
         constructor(
             id: String? = null,
             label: String? = null,
-            defines: Collection<IXmlDefineType> = emptyList(),
-            results: Collection<IXmlResultType> = emptyList(),
+            defines: Iterable<IXmlDefineType>? = emptyList(),
+            results: Iterable<IXmlResultType>? = emptyList(),
             x: Double = Double.NaN,
             y: Double = Double.NaN,
             isMultiInstance: Boolean = false
@@ -315,8 +414,8 @@ abstract class ProcessNodeBase : ProcessNode {
             this.x = x
             this.y = y
             this.isMultiInstance = isMultiInstance
-            this.defines = ArrayList(defines)
-            this.results = ArrayList(results)
+            this.defines = defines?.toMutableList() ?: mutableListOf()
+            this.results = results?.toMutableList() ?: mutableListOf()
         }
 
         @Serializable(with = IXmlDefineTypeListSerializer::class)
@@ -343,6 +442,19 @@ abstract class ProcessNodeBase : ProcessNode {
             val className = this::class.name
             val pkgPos = className.lastIndexOf('.', className.lastIndexOf('.') - 1)
             return "${className.substring(pkgPos + 1)}(id=$id, label=$label, x=$x, y=$y, predecessors=$predecessors, successors=$successors, defines=$defines, results=$results)"
+        }
+
+        internal companion object {
+            operator fun invoke(serialDelegate: ProcessNodeBase.SerialDelegate): Builder = when (serialDelegate) {
+                is StartNodeBase.SerialDelegate -> StartNodeBase.Builder(serialDelegate)
+                is JoinBase.SerialDelegate      -> JoinBase.Builder(serialDelegate)
+                is ActivityBase.SerialDelegate  -> when (serialDelegate.childId) {
+                    null -> MessageActivityBase.Builder(serialDelegate)
+                    else -> CompositeActivityBase.ReferenceBuilder(serialDelegate)
+                }
+                is SplitBase.SerialDelegate     -> SplitBase.Builder(serialDelegate)
+                is EndNodeBase.SerialDelegate   -> EndNodeBase.Builder(serialDelegate)
+            }
         }
     }
 

@@ -27,6 +27,7 @@ import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.util.multiplatform.toCharArray
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XML.Companion.decodeFromReader
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
@@ -78,6 +79,10 @@ class XmlResultType : XPathHolder, IPlatformXmlResultType {
     @Serializable
     @XmlSerialName(value = XmlResultType.ELEMENTLOCALNAME, namespace = Engine.NAMESPACE, prefix = Engine.NSPREFIX)
     private class XmlResultTypeAnnotationHelper {}
+
+    override fun serialize(out: XmlWriter) {
+        XML { autoPolymorphic = true }.encodeToWriter(out, Companion, this)
+    }
 
     companion object : XPathHolderSerializer<XmlResultType>() {
         override val descriptor = buildClassSerialDescriptor("XmlResultType") {

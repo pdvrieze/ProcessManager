@@ -74,7 +74,7 @@ import nl.adaptivity.xmlutil.QName as XmlQName
  * </complexType>
  * ```
  */
-@Serializable
+@Serializable(XmlMessage.Companion::class)
 @XmlSerialName(XmlMessage.ELEMENTLOCALNAME, Engine.NAMESPACE, Engine.NSPREFIX)
 class XmlMessage : XMLContainer, IXmlMessage {
 
@@ -171,6 +171,10 @@ class XmlMessage : XMLContainer, IXmlMessage {
         out.endTag(ELEMENTNAME)
     }
 
+    override fun serialize(out: XmlWriter) {
+        XML { autoPolymorphic = true }.encodeToWriter(out, Companion, this)
+    }
+
     override fun setType(type: String) {
         this.type = type
     }
@@ -235,7 +239,9 @@ class XmlMessage : XMLContainer, IXmlMessage {
         }
 
         override fun deserialize(decoder: Decoder): XmlMessage {
-            val data = XmlMessageData(this).apply { deserialize(descriptor, decoder, XmlMessage.Companion) }
+            val data = XmlMessageData(this).apply {
+                deserialize(descriptor, decoder, XmlMessage.Companion)
+            }
 
             return XmlMessage(
                 data.service, data.endpoint, data.operation, data.url, data.method, data.contentType,

@@ -24,13 +24,13 @@ import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
+import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 
 /**
  * Created by pdvrieze on 26/11/15.
  */
-@Serializable
 @XmlSerialName("split", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 abstract class SplitBase : JoinSplitBase, Split {
 
@@ -68,6 +68,55 @@ abstract class SplitBase : JoinSplitBase, Split {
     @Serializable
     @SerialName(Split.ELEMENTLOCALNAME)
     @XmlSerialName(Split.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
+    class SerialDelegate : ProcessNodeBase.SerialDelegate {
+        val predecessor: Identifier?
+
+        val min: Int
+
+        val max: Int
+
+        constructor(
+            id: String?,
+            label: String?,
+            x: Double,
+            y: Double,
+            isMultiInstance: Boolean,
+            predecessor: Identifier?,
+            min: Int,
+            max: Int,
+        ) :
+            super(id, label, x = x, y = y, isMultiInstance = isMultiInstance) {
+            this.predecessor = predecessor
+            this.min = min
+            this.max = max
+        }
+
+        constructor(base: Split) : this(
+            base.id,
+            base.label,
+            base.x,
+            base.y,
+            base.isMultiInstance,
+            base.predecessor?.identifier,
+            base.min,
+            base.max
+        )
+
+        constructor(base: Split.Builder) : this(
+            base.id,
+            base.label,
+            base.x,
+            base.y,
+            base.isMultiInstance,
+            base.predecessor?.identifier,
+            base.min,
+            base.max
+        )
+    }
+
+    @Serializable
+    @SerialName(Split.ELEMENTLOCALNAME)
+    @XmlSerialName(Split.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     open class Builder :
         JoinSplitBase.Builder,
         Split.Builder {
@@ -100,11 +149,11 @@ abstract class SplitBase : JoinSplitBase, Split {
             min: Int = -1,
             max: Int = -1,
             multiInstance: Boolean = false
-                   ) : this(
+        ) : this(
             id, predecessors.singleOrNull(), successors, label, defines,
             results, x, y,
             min, max, multiInstance
-                           )
+        )
 
 
         constructor(
@@ -112,18 +161,18 @@ abstract class SplitBase : JoinSplitBase, Split {
             predecessor: Identifiable? = null,
             successors: Collection<Identified> = emptyList(),
             label: String? = null,
-            defines: Collection<IXmlDefineType> = emptyList(),
-            results: Collection<IXmlResultType> = emptyList(),
+            defines: Iterable<IXmlDefineType>? = emptyList(),
+            results: Iterable<IXmlResultType>? = emptyList(),
             x: Double = Double.NaN,
             y: Double = Double.NaN,
             min: Int = -1,
             max: Int = -1,
             multiInstance: Boolean = false
-                   ) : super(
+        ) : super(
             id, label, defines,
             results, x,
             y, min, max, multiInstance
-                            ) {
+        ) {
             this.predecessor = predecessor
             this.successors.addAll(successors)
 
@@ -133,6 +182,18 @@ abstract class SplitBase : JoinSplitBase, Split {
             this.predecessor = node.predecessor
             this.successors.addAll(node.successors)
         }
+
+        constructor(serialDelegate: SerialDelegate) : this(
+            serialDelegate.id,
+            serialDelegate.predecessor,
+            label = serialDelegate.label,
+            defines = serialDelegate.defines,
+            results = serialDelegate.results,
+            x = serialDelegate.x,
+            y = serialDelegate.y,
+            min = serialDelegate.min,
+            max = serialDelegate.max,
+        )
     }
 
 }

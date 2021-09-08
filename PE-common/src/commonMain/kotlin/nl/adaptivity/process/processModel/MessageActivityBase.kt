@@ -41,7 +41,7 @@ abstract class MessageActivityBase : ActivityBase, MessageActivity {
         builder: MessageActivity.Builder,
         newOwner: ProcessModel<*>,
         otherNodes: Iterable<ProcessNode.Builder>
-               ) :
+    ) :
         super(builder, newOwner, otherNodes) {
         _message = XmlMessage.from(builder.message)
     }
@@ -70,31 +70,27 @@ abstract class MessageActivityBase : ActivityBase, MessageActivity {
     }
 
     @Serializable
-    @SerialName(StartNode.ELEMENTLOCALNAME)
-    @XmlSerialName(StartNode.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
+    @SerialName(Activity.ELEMENTLOCALNAME)
+    @XmlSerialName(Activity.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     open class Builder : BaseBuilder, MessageActivity.Builder {
 
         @Serializable(with = IXmlMessage.Companion::class)
         final override var message: IXmlMessage?
-
-        constructor(activity: MessageActivity) : super(activity) {
-            message = activity.message
-        }
 
         constructor(
             id: String? = null,
             predecessor: Identifiable? = null,
             successor: Identifiable? = null,
             label: String? = null,
-            defines: Collection<IXmlDefineType> = emptyList(),
-            results: Collection<IXmlResultType> = emptyList(),
+            defines: Collection<IXmlDefineType>? = emptyList(),
+            results: Collection<IXmlResultType>? = emptyList(),
             message: XmlMessage? = null,
             condition: Condition? = null,
             name: String? = null,
             x: Double = Double.NaN,
             y: Double = Double.NaN,
             multiInstance: Boolean = false
-                   ) : super(
+        ) : super(
             id,
             predecessor,
             successor,
@@ -106,8 +102,35 @@ abstract class MessageActivityBase : ActivityBase, MessageActivity {
             x,
             y,
             multiInstance
-                            ) {
+        ) {
             this.message = message
         }
+
+        constructor(activity: MessageActivity) : this(
+            activity.id,
+            activity.predecessor,
+            activity.successor,
+            activity.label,
+            activity.defines,
+            activity.results,
+            XmlMessage.from(activity.message),
+            activity.condition,
+            activity.name,
+            activity.x,
+            activity.y
+        )
+
+        constructor(serialDelegate: SerialDelegate) : this(
+            id = serialDelegate.id,
+            predecessor = serialDelegate.predecessor,
+            label = serialDelegate.label,
+            defines = serialDelegate.defines,
+            results = serialDelegate.results,
+            message = XmlMessage.from(serialDelegate.message),
+            condition = serialDelegate.condition,
+            name = serialDelegate.name,
+            x = serialDelegate.x,
+            y = serialDelegate.y
+        )
     }
 }

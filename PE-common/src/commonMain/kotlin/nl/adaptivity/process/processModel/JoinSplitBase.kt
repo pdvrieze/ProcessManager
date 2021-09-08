@@ -38,7 +38,7 @@ abstract class JoinSplitBase : ProcessNodeBase, JoinSplit {
         results: Collection<IXmlResultType> = emptyList(),
         min: Int = -1,
         max: Int = -1
-               ) :
+    ) :
         super(ownerModel, predecessors, successors, id, label, x, y, defines, results) {
         this.min = min
         this.max = max
@@ -72,17 +72,14 @@ abstract class JoinSplitBase : ProcessNodeBase, JoinSplit {
         constructor(
             id: String? = null,
             label: String? = null,
-            defines: Collection<IXmlDefineType> = emptyList(),
-            results: Collection<IXmlResultType> = emptyList(),
+            defines: Iterable<IXmlDefineType>? = emptyList(),
+            results: Iterable<IXmlResultType>? = emptyList(),
             x: Double = Double.NaN,
             y: Double = Double.NaN,
             min: Int = -1,
             max: Int = -1,
             multiInstance: Boolean = false
-                   ) : super(
-            id, label, defines, results, x, y,
-            multiInstance
-                            ) {
+        ) : super(id, label, defines, results, x, y, multiInstance) {
             this.min = min
             this.max = max
         }

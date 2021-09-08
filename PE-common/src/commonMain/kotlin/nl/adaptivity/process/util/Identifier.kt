@@ -30,7 +30,7 @@ import nl.adaptivity.serialutil.simpleSerialClassDesc
 /**
  * A class representing a simple identifier. It just holds a single string.
  */
-@Serializable
+@Serializable(Identifier.Companion::class)
 class Identifier(override var id: String) : Identified {
 
     @Transient

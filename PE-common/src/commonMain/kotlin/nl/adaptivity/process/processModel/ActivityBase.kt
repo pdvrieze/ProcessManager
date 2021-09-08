@@ -16,18 +16,16 @@
 
 package nl.adaptivity.process.processModel
 
+import kotlinx.serialization.Required
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
-import kotlinx.serialization.*
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.buildClassSerialDescriptor
-import kotlinx.serialization.descriptors.element
-import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.Transient
 import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.engine.XmlActivity
 import nl.adaptivity.process.processModel.engine.XmlCondition
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xmlutil.serialization.XmlDefault
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
@@ -110,14 +108,14 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
             predecessor: Identifiable? = null,
             successor: Identifiable? = null,
             label: String? = null,
-            defines: Collection<IXmlDefineType> = emptyList(),
-            results: Collection<IXmlResultType> = emptyList(),
+            defines: Collection<IXmlDefineType>? = emptyList(),
+            results: Collection<IXmlResultType>? = emptyList(),
             condition: Condition? = null,
             name: String? = null,
             x: Double = Double.NaN,
             y: Double = Double.NaN,
             multiInstance: Boolean = false
-                   ) : super(id, label, defines, results, x, y, multiInstance) {
+       ) : super(id, label, defines, results, x, y, multiInstance) {
             this.predecessor = predecessor
             this.successor = successor
 
@@ -137,6 +135,121 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
             return "${super.toString().dropLast(1)}, name=$name, condition=$condition)"
         }
 
+
+    }
+
+    @Serializable
+    @SerialName(Activity.ELEMENTLOCALNAME)
+    @XmlSerialName(Activity.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
+    open class SerialDelegate : ProcessNodeBase.SerialDelegate {
+        var childId: Identifier? = null
+
+        var message: XmlMessage? = null
+
+        var predecessor: Identifier? = null
+
+        var condition: XmlCondition? = null
+
+        var name: String? = null
+
+        constructor(
+            id: String? = null,
+            label: String? = null,
+            x: Double = Double.NaN,
+            y: Double = Double.NaN,
+            isMultiInstance: Boolean = false,
+            predecessor: Identifier? = null,
+            defines: List<XmlDefineType> = emptyList(),
+            results: List<XmlResultType> = emptyList(),
+            message: XmlMessage? = null,
+            childId: Identifier? = null,
+            condition: XmlCondition? = null,
+            name: String? = null,
+        ) : super(
+            id = id,
+            label = label,
+            defines = defines,
+            results = results,
+            x = x,
+            y = y,
+            isMultiInstance = isMultiInstance
+        ) {
+            this.predecessor = predecessor
+            this.message = message
+            this.childId = childId
+            this.condition = condition
+            this.name = name
+        }
+
+        constructor(node: MessageActivity) : this(
+            node.id,
+            node.label,
+            node.x,
+            node.y,
+            node.isMultiInstance,
+            node.predecessor?.identifier,
+            node.defines.map { XmlDefineType(it) },
+            node.results.map { XmlResultType(it) },
+            XmlMessage.from(node.message),
+            condition = node.condition?.let { XmlCondition(it.condition) },
+            name = node.name
+        )
+
+        constructor(node: MessageActivity.Builder) : this(
+            node.id,
+            node.label,
+            node.x,
+            node.y,
+            node.isMultiInstance,
+            node.predecessor?.identifier,
+            node.defines.map { XmlDefineType(it) },
+            node.results.map { XmlResultType(it) },
+            XmlMessage.from(node.message),
+            condition = node.condition?.let { XmlCondition(it.condition) },
+            name = node.name
+        )
+
+        constructor(node: CompositeActivity) : this(
+            node.id,
+            node.label,
+            node.x,
+            node.y,
+            node.isMultiInstance,
+            node.predecessor?.identifier,
+            node.defines.map { XmlDefineType(it) },
+            node.results.map { XmlResultType(it) },
+            childId = node.childModel?.identifier,
+            condition = node.condition?.let { XmlCondition(it.condition) },
+            name = node.name
+        )
+
+        constructor(node: CompositeActivity.ReferenceBuilder) : this(
+            node.id,
+            node.label,
+            node.x,
+            node.y,
+            node.isMultiInstance,
+            node.predecessor?.identifier,
+            node.defines.map { XmlDefineType(it) },
+            node.results.map { XmlResultType(it) },
+            childId = node.childId?.let { Identifier(it) },
+            condition = node.condition?.let { XmlCondition(it.condition) },
+            name = node.name
+        )
+
+        constructor(node: CompositeActivity.ModelBuilder) : this(
+            node.id,
+            node.label,
+            node.x,
+            node.y,
+            node.isMultiInstance,
+            node.predecessor?.identifier,
+            node.defines.map { XmlDefineType(it) },
+            node.results.map { XmlResultType(it) },
+            childId = node.childId?.let { Identifier(it) },
+            condition = node.condition?.let { XmlCondition(it.condition) },
+            name = node.name
+        )
 
     }
 
@@ -239,31 +352,31 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
     @Serializable
     open class CompositeActivityBuilder : ChildProcessModelBase.ModelBuilder,
                                           CompositeActivity.ModelBuilder {
-        override var name: String? = null
-        override var id: String?
+        final override var name: String? = null
+        final override var id: String?
         @Serializable(XmlCondition.Companion::class)
-        override var condition: Condition?
-        override var label: String?
+        final override var condition: Condition?
+        final override var label: String?
         @XmlDefault("NaN")
-        override var x: Double
+        final override var x: Double
         @XmlDefault("NaN")
-        override var y: Double
-        override var isMultiInstance: Boolean
+        final override var y: Double
+        final override var isMultiInstance: Boolean
         @Serializable(with = Identifiable.Companion::class)
-        override var predecessor: Identifiable? = null
+        final override var predecessor: Identifiable? = null
         @Transient
-        override var successor: Identifiable? = null
+        final override var successor: Identifiable? = null
 
         @Serializable(IXmlDefineTypeListSerializer::class)
         @SerialName("define")
-        override var defines: MutableCollection<IXmlDefineType> = mutableListOf()
+        final override var defines: MutableCollection<IXmlDefineType> = mutableListOf()
             set(value) {
                 field.replaceBy(value)
             }
 
         @Serializable(IXmlResultTypeListSerializer::class)
         @SerialName("result")
-        override var results: MutableCollection<IXmlResultType> = mutableListOf()
+        final override var results: MutableCollection<IXmlResultType> = mutableListOf()
             set(value) {
                 field.replaceBy(value)
             }
@@ -277,7 +390,6 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
             x = Double.NaN
             y = Double.NaN
             isMultiInstance = false
-
             defines = mutableListOf()
             results = mutableListOf()
         }
@@ -298,10 +410,7 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
             x: Double = Double.NaN,
             y: Double = Double.NaN,
             isMultiInstance: Boolean = false
-                   ) : super(
-            rootBuilder, childId, nodes, imports,
-            exports
-                            ) {
+       ) : super(rootBuilder, childId, nodes, imports, exports) {
             this.id = id
             this.condition = condition
             this.label = label
@@ -327,25 +436,6 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
             return XmlActivity(this, buildHelper, otherNodes)
         }
 
-        companion object : ChildProcessModelBase.ModelBuilder.BaseSerializer<CompositeActivityBuilder>() {
-            override val descriptor: SerialDescriptor = buildClassSerialDescriptor("Activity") {
-                val base =  serializer<DeserializationBuilder>().descriptor
-                annotations = base.annotations
-                for (i in 0 until base.elementsCount) {
-                    element(base.getElementName(i), base.getElementDescriptor(i), base.getElementAnnotations(i), base.isElementOptional(i))
-                }
-                element<String>("childId")
-
-            }
-
-            override fun serialize(encoder: Encoder, value: CompositeActivityBuilder) {
-                TODO("not implemented")
-            }
-
-            override fun builder(): CompositeActivityBuilder {
-                return CompositeActivityBuilder()
-            }
-        }
     }
 
 }

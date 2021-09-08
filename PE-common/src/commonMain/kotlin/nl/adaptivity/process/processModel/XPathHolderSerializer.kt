@@ -24,6 +24,7 @@ import nl.adaptivity.process.util.Constants
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.serialutil.encodeNullableStringElement
 import nl.adaptivity.serialutil.readNullableString
+import nl.adaptivity.util.MyGatheringNamespaceContext
 import nl.adaptivity.xmlutil.util.GatheringNamespaceContext
 
 abstract open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSerializer<T>() {
@@ -31,12 +32,11 @@ abstract open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSeriali
         val owner: XPathHolderSerializer<in T>,
         var name: String? = null,
         var path: String? = null
-                                              ) :
-        ContainerData<T>() {
+    ) : ContainerData<T>() {
 
         override fun handleLastRootAttributeReadEvent(
             reader: XmlReader,
-            gatheringNamespaceContext: GatheringNamespaceContext
+            gatheringNamespaceContext: MyGatheringNamespaceContext
         ) {
             if (!path.isNullOrEmpty()) {
                 visitXpathUsedPrefixes(path, gatheringNamespaceContext)
@@ -46,8 +46,8 @@ abstract open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSeriali
         override fun readAdditionalChild(desc: SerialDescriptor, decoder: CompositeDecoder, index: Int) {
             when (desc.getElementName(index)) {
                 "name"  -> name = decoder.readNullableString(desc, index)
-                "path",
-                "xpath" -> path = decoder.readNullableString(desc, index)
+//                "path",
+//                "xpath" -> path = decoder.readNullableString(desc, index)
                 else    -> super.readAdditionalChild(desc, decoder, index)
             }
         }
@@ -61,7 +61,7 @@ abstract open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSeriali
         }
     }
 
-    override fun getFilter(gatheringNamespaceContext: GatheringNamespaceContext): NamespaceGatherer {
+    override fun getFilter(gatheringNamespaceContext: MyGatheringNamespaceContext): NamespaceGatherer {
         return XPathholderNamespaceGatherer(gatheringNamespaceContext)
     }
 
@@ -72,7 +72,7 @@ abstract open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSeriali
         out.encodeNullableStringElement(desc, desc.getElementIndex("xpath"), data.getPath())
     }
 
-    internal open class XPathholderNamespaceGatherer(gatheringNamespaceContext: GatheringNamespaceContext) :
+    internal open class XPathholderNamespaceGatherer(gatheringNamespaceContext: MyGatheringNamespaceContext) :
         NamespaceGatherer(gatheringNamespaceContext) {
 
         override fun visitNamesInAttributeValue(
@@ -81,12 +81,12 @@ abstract open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSeriali
             attributeName: QName,
             attributeValue: CharSequence,
             localPrefixes: List<List<String>>
-                                               ) {
+        ) {
             if (Constants.MODIFY_NS_STR == owner.getNamespaceURI() && (XMLConstants.NULL_NS_URI == attributeName.getNamespaceURI() || XMLConstants.DEFAULT_NS_PREFIX == attributeName.getPrefix()) && "xpath" == attributeName.getLocalPart()) {
                 val namesInPath = mutableMapOf<String, String>()
-                val newContext = GatheringNamespaceContext(elementContext, namesInPath)
+                val newContext = MyGatheringNamespaceContext(elementContext, namesInPath)
                 visitXpathUsedPrefixes(attributeValue, newContext)
-                for ((prefix, nsUri) in namesInPath) {
+                for (prefix in namesInPath.keys) {
                     if (localPrefixes.none { prefix in it }) {
                         gatheringNamespaceContext.getNamespaceURI(prefix)
                     }

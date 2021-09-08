@@ -16,6 +16,8 @@
 
 package nl.adaptivity.process.processModel
 
+import kotlinx.serialization.Serializable
+
 interface CompositeActivity : Activity {
 
     val childModel: ChildProcessModel<ProcessNode>?

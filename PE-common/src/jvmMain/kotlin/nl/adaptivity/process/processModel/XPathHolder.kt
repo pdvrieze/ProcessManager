@@ -17,6 +17,7 @@
 package nl.adaptivity.process.processModel
 
 import nl.adaptivity.process.util.Constants
+import nl.adaptivity.util.MyGatheringNamespaceContext
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.util.CombiningNamespaceContext
 import java.util.*
@@ -153,52 +154,6 @@ actual abstract class XPathHolder : XMLContainer {
         }
     }
 
-    class MyGatheringNamespaceContext(
-        private val resultMap: MutableMap<String, String>,
-        private vararg val parentContext: NamespaceContext
-    ) : NamespaceContextImpl, IterableNamespaceContext {
-        override fun iterator(): Iterator<Namespace> {
-            return resultMap.map { nameSpace(it.key, it.value) }.iterator()
-        }
-
-        override fun getNamespaceURI(prefix: String): String? {
-            return parentContext.asSequence()
-                .mapNotNull { it.getNamespaceURI(prefix) }
-                .firstOrNull()?.apply {
-                    if (!isEmpty() && prefix != nl.adaptivity.xmlutil.XMLConstants.XMLNS_ATTRIBUTE) {
-                        resultMap[prefix] = this
-                    }
-                }
-        }
-
-        override fun getPrefix(namespaceURI: String): String? {
-            return parentContext.asSequence()
-                .mapNotNull { it.getPrefix(namespaceURI) }
-                .firstOrNull()?.apply {
-                    if (namespaceURI != nl.adaptivity.xmlutil.XMLConstants.XMLNS_ATTRIBUTE_NS_URI && namespaceURI != nl.adaptivity.xmlutil.XMLConstants.XML_NS_URI) {
-                        resultMap[this] = namespaceURI
-                    }
-                }
-        }
-
-        @Suppress(
-            "UNCHECKED_CAST",
-            "DEPRECATION",
-            "OverridingDeprecatedMember"
-        )// Somehow this type has no proper generic parameter
-        override fun getPrefixesCompat(namespaceURI: String): Iterator<String> {
-            return parentContext
-                .flatMap { it.prefixesFor(namespaceURI).asSequence() }
-                .apply {
-                    if (namespaceURI != nl.adaptivity.xmlutil.XMLConstants.XMLNS_ATTRIBUTE_NS_URI && namespaceURI != nl.adaptivity.xmlutil.XMLConstants.XML_NS_URI) {
-                        for (prefix in this) {
-                            resultMap[prefix] = namespaceURI
-                        }
-                    }
-                }.iterator()
-        }
-    }
-
     companion object {
 
         private val SELF_PATH: XPathExpression
@@ -214,14 +169,8 @@ actual abstract class XPathHolder : XMLContainer {
     }
 }
 
-
-private fun nameSpace(uri: String, prefix: String): Namespace = object : Namespace {
-    override val namespaceURI: String = uri
-    override val prefix: String = prefix
-}
-
 internal actual fun visitXpathUsedPrefixes(path: CharSequence?, namespaceContext: NamespaceContext) {
-    if (path != null && path.isNotEmpty()) {
+    if (! path.isNullOrEmpty()) {
         try {
             val xpf = XPathFactory.newInstance()
             val xpath = xpf.newXPath()

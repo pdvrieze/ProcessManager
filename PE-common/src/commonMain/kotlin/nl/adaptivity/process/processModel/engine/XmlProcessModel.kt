@@ -16,26 +16,19 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.internal.GeneratedSerializer
 import kotlinx.serialization.modules.SerializersModule
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.util.PrincipalSerializer
-import nl.adaptivity.util.UUIDSerializer
 import nl.adaptivity.util.multiplatform.UUID
-import nl.adaptivity.util.multiplatform.name
 import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.serialization.XML
-import nl.adaptivity.xmlutil.serialization.XmlPolyChildren
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 /**
@@ -55,17 +48,24 @@ class XmlProcessModel : RootProcessModelBase<@UseContextualSerialization XmlProc
     @XmlSerialName(
         ChildProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE,
         ProcessConsts.Engine.NSPREFIX
-                  )
+    )
     override val childModels: Collection<XmlChildModel>
         get() = super.childModels as Collection<XmlChildModel>
 
     @Suppress("ConvertSecondaryConstructorToPrimary") // For serialization
-    constructor(builder: RootProcessModel.Builder, pedantic: Boolean = true) :
+    constructor(builder: RootProcessModel.Builder, pedantic: Boolean = true) : super(
+        builder,
+        XML_NODE_FACTORY as NodeFactory<XmlProcessNode, XmlProcessNode, ChildProcessModelBase<XmlProcessNode>>,
+        pedantic
+    )
+
+    @Suppress("ConvertSecondaryConstructorToPrimary") // For serialization
+    internal constructor(delegate: SerialDelegate, pedantic: Boolean = true) :
         super(
-            builder,
+            Builder(delegate),
             XML_NODE_FACTORY as NodeFactory<XmlProcessNode, XmlProcessNode, ChildProcessModelBase<XmlProcessNode>>,
             pedantic
-             )
+        )
 
     override fun builder(): RootProcessModel.Builder {
         return Builder(this)
@@ -79,32 +79,31 @@ class XmlProcessModel : RootProcessModelBase<@UseContextualSerialization XmlProc
         return super.getChildModel(childId)?.let { it as XmlChildModel }
     }
 
-    companion object : RootProcessModelBase.BaseSerializer<XmlProcessModel>(), KSerializer<XmlProcessModel> {
+    companion object : KSerializer<XmlProcessModel> {
+        private val delegateSerializer = SerialDelegate.serializer()
 
-        override val descriptor: SerialDescriptor get() = Builder.descriptor
+        override val descriptor: SerialDescriptor get() = delegateSerializer.descriptor
 
         val serialModule = SerializersModule {
             include(ProcessNodeBase.serialModule)
         }
 
-        @Suppress("UNCHECKED_CAST")
-        override val childModelSerializer: KSerializer<ChildProcessModel<*>>
-            get() = serializer<XmlChildModel>() as KSerializer<ChildProcessModel<*>> // TODO use concrete serializer instance
+        @Suppress("RedundantOverride")
+        override fun serialize(encoder: Encoder, value: XmlProcessModel) {
+            val delegate = SerialDelegate(value)
+            delegateSerializer.serialize(encoder, delegate)
+        }
 
         override fun deserialize(decoder: Decoder): XmlProcessModel {
             // TODO use concrete serializer instance
-            return XmlProcessModel(serializer<RootProcessModelBase.Builder>().deserialize(decoder), true)
-        }
-
-        @Suppress("RedundantOverride")
-        override fun serialize(encoder: Encoder, value: XmlProcessModel) {
-            super.serialize(encoder, value)
+            return XmlProcessModel(delegateSerializer.deserialize(decoder), true)
         }
 
         @kotlin.jvm.JvmOverloads
         @kotlin.jvm.JvmStatic
         fun deserialize(reader: XmlReader, pedantic: Boolean = true): XmlProcessModel {
-            return XmlProcessModel(RootProcessModelBase.Builder.deserialize(reader), pedantic)
+            val delegate: SerialDelegate = XML { autoPolymorphic = true }.decodeFromReader(delegateSerializer, reader)
+            return XmlProcessModel(delegate, pedantic)
         }
 
     }
@@ -131,67 +130,29 @@ class XmlProcessModel : RootProcessModelBase<@UseContextualSerialization XmlProc
 
         constructor(base: XmlProcessModel) : super(base)
 
+        internal constructor(serialDelegate: SerialDelegate) : super(serialDelegate)
+
         @OptIn(InternalSerializationApi::class)
-        @Serializer(forClass = Builder::class)
-        companion object : RootProcessModelBase.Builder.BaseSerializer<Builder>() {
+        companion object : KSerializer<Builder> {
+            private val delegateSerializer = SerialDelegate.serializer()
 
-            override val descriptor: SerialDescriptor = SerialDelegate.serializer().descriptor
+            override val descriptor: SerialDescriptor get() = delegateSerializer.descriptor
 
-            /*
-            init {
-                // Some nasty hack as somehow initialisation is broken.
-                val d = descriptor as SerialClassDescImpl
-                for (childSerializer in childSerializers()) {
-                    d.pushDescriptor(childSerializer.descriptor)
-                }
-            }
-*/
-
-            override fun builder() = Builder()
 
             @Suppress("RedundantOverride")
             override fun deserialize(decoder: Decoder): Builder {
-                return super.deserialize(decoder)
+                return Builder(delegateSerializer.deserialize(decoder))
             }
 
-            override fun serialize(encoder: Encoder, obj: Builder) {
-                // TODO use concrete serializer instance
-                serializer<XmlProcessModel>().serialize(encoder, XmlProcessModel(obj))
+            override fun serialize(encoder: Encoder, value: Builder) {
+                delegateSerializer.serialize(encoder, SerialDelegate(value))
             }
 
-            fun deserialize(reader: XmlReader): XmlProcessModel.Builder {
-                return XML.decodeFromReader(reader)
+            fun deserialize(reader: XmlReader): Builder {
+                return Builder(XML.decodeFromReader(delegateSerializer, reader))
             }
         }
     }
-
-    @Serializable
-    private class SerialDelegate(
-        val name: String? = null,
-        val handle: Long = -1L,
-        @Serializable(PrincipalSerializer::class)
-        val owner: Principal = SYSTEMPRINCIPAL,
-        @Serializable(UUIDSerializer::class)
-        val uuid: UUID? = null,
-        val roles: Set<String> = emptySet(),
-        @XmlPolyChildren(
-            arrayOf(
-                "nl.adaptivity.process.processModel.ActivityBase\$DeserializationBuilder=pe:activity",
-                "nl.adaptivity.process.processModel.engine.XmlStartNode\$Builder=pe:start",
-                "nl.adaptivity.process.processModel.engine.XmlSplit\$Builder=pe:split",
-                "nl.adaptivity.process.processModel.engine.XmlJoin\$Builder=pe:join",
-                "nl.adaptivity.process.processModel.engine.XmlEndNode\$Builder=pe:end",
-                "nl.adaptivity.process.processModel.engine.XmlActivity=pe:activity",
-                "nl.adaptivity.process.processModel.engine.XmlStartNode=pe:start",
-                "nl.adaptivity.process.processModel.engine.XmlSplit=pe:split",
-                "nl.adaptivity.process.processModel.engine.XmlJoin=pe:join",
-                "nl.adaptivity.process.processModel.engine.XmlEndNode=pe:end"
-            )
-        )
-        val nodes: Collection<ProcessNode.Builder> = emptyList(),
-        val imports: Collection<IXmlResultType> = emptyList(),
-        val exports: Collection<IXmlDefineType> = emptyList(),
-    )
 
 }
 
@@ -217,7 +178,7 @@ object XML_NODE_FACTORY : ProcessModelBase.NodeFactory<XmlProcessNode, XmlProces
     private class Visitor(
         private val buildHelper: ProcessModel.BuildHelper<*, *, *, *>,
         private val otherNodes: Iterable<ProcessNode.Builder>
-                         ) : ProcessNode.BuilderVisitor<XmlProcessNode> {
+    ) : ProcessNode.BuilderVisitor<XmlProcessNode> {
         override fun visitStartNode(startNode: StartNode.Builder) = XmlStartNode(startNode, buildHelper.newOwner)
 
         override fun visitActivity(activity: MessageActivity.Builder) =
@@ -240,14 +201,14 @@ object XML_NODE_FACTORY : ProcessModelBase.NodeFactory<XmlProcessNode, XmlProces
         baseNodeBuilder: ProcessNode.Builder,
         buildHelper: ProcessModel.BuildHelper<XmlProcessNode, *, *, *>,
         otherNodes: Iterable<ProcessNode.Builder>
-                       ): XmlProcessNode {
+    ): XmlProcessNode {
         return baseNodeBuilder.visit(Visitor(buildHelper, otherNodes))
     }
 
     override fun invoke(
         baseChildBuilder: ChildProcessModel.Builder,
         buildHelper: ProcessModel.BuildHelper<XmlProcessNode, *, *, *>
-                       ): XmlChildModel {
+    ): XmlChildModel {
         return XmlChildModel(baseChildBuilder, buildHelper)
     }
 

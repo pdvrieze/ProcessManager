@@ -127,7 +127,7 @@ actual abstract class XPathHolder : XMLContainer {
         out.writeAttribute("name", _name)
     }
 
-    actual override fun visitNamespaces(baseContext: IterableNamespaceContext) {
+    actual override fun visitNamespaces(baseContext: NamespaceContext) {
         if (pathString != null) {
             visitXpathUsedPrefixes(pathString, baseContext)
         }

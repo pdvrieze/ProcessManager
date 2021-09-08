@@ -16,19 +16,17 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.internal.GeneratedSerializer
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.ChildProcessModel
 import nl.adaptivity.process.processModel.ChildProcessModelBase
 import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
 import nl.adaptivity.process.processModel.RootProcessModel
+import nl.adaptivity.util.multiplatform.name
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable(XmlChildModel.Companion::class)
@@ -51,24 +49,16 @@ class XmlChildModel : ChildProcessModelBase<XmlProcessNode>, ChildProcessModel<X
     }
 
     @OptIn(InternalSerializationApi::class)
-    companion object : ChildProcessModelBase.BaseSerializer<XmlChildModel>() {
+    companion object : KSerializer<XmlChildModel> {
+        private val delegateSerializer = SerialDelegate.serializer()
 
-/*
-        init {
-            // Hack to handle invalid codegen for the generated serializer
-            val d = descriptor as SerialClassDescImpl
-            for (childSerializer in childSerializers()) {
-                d.pushDescriptor(childSerializer.descriptor)
-            }
-        }
-*/
-
-        override val descriptor: SerialDescriptor
-            get() = TODO("not implemented")
+        @OptIn(ExperimentalSerializationApi::class)
+        override val descriptor: SerialDescriptor =
+            SerialDescriptor(XmlChildModel::class.name, delegateSerializer.descriptor)
 
         @Suppress("RedundantOverride")
         override fun serialize(encoder: Encoder, value: XmlChildModel) {
-            super.serialize(encoder, value)
+            delegateSerializer.serialize(encoder, SerialDelegate(value))
         }
 
         override fun deserialize(decoder: Decoder): XmlChildModel {

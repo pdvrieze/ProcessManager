@@ -138,9 +138,10 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         out.writeAttribute("refname", getRefName())
     }
 
-    /* (non-Javadoc)
-       * @see nl.adaptivity.process.processModel.IXmlDefineType#getRefNode()
-       */
+    override fun serialize(out: XmlWriter) {
+        XML { autoPolymorphic = true }.encodeToWriter(out, Companion, this)
+    }
+
     override fun getRefNode(): String? {
         return _refNode
     }

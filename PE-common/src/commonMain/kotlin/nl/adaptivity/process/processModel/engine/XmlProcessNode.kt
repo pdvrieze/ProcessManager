@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018.
+ * Copyright (c) 2021.
  *
  * This file is part of ProcessManager.
  *
@@ -17,9 +17,8 @@
 package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.Serializable
-import nl.adaptivity.process.processModel.ProcessModel
+import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
-import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.xmlutil.serialization.XmlDefault
 
 
@@ -28,14 +27,3 @@ import nl.adaptivity.xmlutil.serialization.XmlDefault
  */
 interface XmlProcessNode : ProcessNode
 
-@Serializable
-abstract class ProcessNodeSerialDelegate(
-    val id: String?,
-    val label: String?,
-    @XmlDefault("NaN")
-    val x: Double = Double.NaN,
-    @XmlDefault("NaN")
-    val y: Double = Double.NaN,
-    @XmlDefault("false")
-    val isMultiInstance: Boolean = false,
-)

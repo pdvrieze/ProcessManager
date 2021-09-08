@@ -16,12 +16,10 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import nl.adaptivity.process.ProcessConsts
-import nl.adaptivity.process.processModel.engine.ProcessNodeSerialDelegate
-import nl.adaptivity.process.processModel.engine.XmlStartNode
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
@@ -69,6 +67,16 @@ abstract class StartNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?>
         return visitor.visitStartNode(this)
     }
 
+    @SerialName(StartNode.ELEMENTLOCALNAME)
+    @XmlSerialName(StartNode.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
+    @Serializable
+    class SerialDelegate : ProcessNodeBase.SerialDelegate {
+        constructor(source: StartNode) :
+            super(source.id, source.label, x = source.x, y = source.y, isMultiInstance = source.isMultiInstance)
+
+        constructor(source: StartNode.Builder) :
+            super(source.id, source.label, x = source.x, y = source.y, isMultiInstance = source.isMultiInstance)
+    }
 
     @SerialName(StartNode.ELEMENTLOCALNAME)
     @XmlSerialName(StartNode.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
@@ -92,21 +100,28 @@ abstract class StartNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?>
             id: String? = null,
             successor: Identifiable? = null,
             label: String? = null,
-            defines: Collection<IXmlDefineType> = emptyList(),
-            results: Collection<IXmlResultType> = emptyList(),
+            defines: Collection<IXmlDefineType>? = emptyList(),
+            results: Collection<IXmlResultType>? = emptyList(),
             x: Double = Double.NaN,
             y: Double = Double.NaN,
-            multiInstance: Boolean = false
-        ) : super(
-            id, label, defines,
-            results, x, y, multiInstance
-        ) {
+            isMultiInstance: Boolean = false
+        ) : super(id, label, defines, results, x, y, isMultiInstance) {
             this.successor = successor
         }
 
         constructor(node: StartNode) : super(node) {
             successor = node.successor
         }
+
+        constructor(serialDelegate: SerialDelegate): this(
+            id = serialDelegate.id,
+            label = serialDelegate.label,
+            defines = serialDelegate.defines,
+            results = serialDelegate.results,
+            x = serialDelegate.x,
+            y = serialDelegate.y,
+            isMultiInstance = serialDelegate.isMultiInstance,
+        )
 
     }
 

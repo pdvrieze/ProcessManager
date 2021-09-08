@@ -32,7 +32,7 @@ expect abstract class XPathHolder : XMLContainer {
         path: String?,
         content: CharArray?,
         originalNSContext: Iterable<Namespace>
-               )
+    )
 
     fun getName(): String
 

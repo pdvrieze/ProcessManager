@@ -17,16 +17,9 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
 import kotlinx.serialization.*
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.process.ProcessConsts
-import nl.adaptivity.process.processModel.engine.XmlCondition
 import nl.adaptivity.process.util.*
-import nl.adaptivity.util.multiplatform.Throws
-import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XmlDefault
 import nl.adaptivity.xmlutil.serialization.XmlElement
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
@@ -56,10 +49,6 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
         get() = successors.singleOrNull()
 
     @Transient
-    override val predecessors: IdentifyableSet<Identified>
-        get() = super.predecessors
-
-    @Transient
     final override var conditions: Map<Identifier, Condition?> = emptyMap()
         private set
 
@@ -75,7 +64,7 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
         builder: Join.Builder,
         buildHelper: ProcessModel.BuildHelper<*, *, *, *>,
         otherNodes: Iterable<ProcessNode.Builder>
-               )
+    )
         : super(builder, buildHelper.newOwner, otherNodes) {
         isMultiMerge = builder.isMultiMerge
         val predecessors = (this.predecessors as MutableIdentifyableSet<Identified>)
@@ -94,6 +83,66 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
 
     override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
         return visitor.visitJoin(this)
+    }
+
+    @Serializable
+    @SerialName("join")
+    @XmlSerialName(Join.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
+    class SerialDelegate : ProcessNodeBase.SerialDelegate {
+
+        var isMultiMerge: Boolean = false
+            private set
+
+        @XmlSerialName("predecessor", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
+        @SerialName("predecessors")
+        val predecessors: List<PredecessorInfo>
+
+        var min: Int = -1
+            private set
+
+        var max: Int = -1
+            private set
+
+        constructor(
+            id: String?,
+            label: String?,
+            x: Double,
+            y: Double,
+            isMultiInstance: Boolean,
+            isMultiMerge: Boolean,
+            predecessors: List<PredecessorInfo>,
+            min: Int,
+            max: Int,
+        ) : super(id, label, x = x, y = y, isMultiInstance = isMultiInstance) {
+            this.predecessors = predecessors
+            this.isMultiMerge = isMultiMerge
+            this.min = min
+            this.max = max
+        }
+
+        constructor(base: Join) : this(
+            base.id,
+            base.label,
+            base.x,
+            base.y,
+            base.isMultiInstance,
+            base.isMultiMerge,
+            base.predecessors.map { PredecessorInfo(it.identifier.id, base.conditions[it.identifier]) },
+            base.min,
+            base.max
+        )
+
+        constructor(base: Join.Builder) : this(
+            base.id,
+            base.label,
+            base.x,
+            base.y,
+            base.isMultiInstance,
+            base.isMultiMerge,
+            base.predecessors.map { PredecessorInfo(it.identifier.id, base.conditions[it.identifier]) },
+            base.min,
+            base.max
+        )
     }
 
     @Serializable
@@ -128,19 +177,19 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
             id: String? = null,
             predecessors: Collection<PredecessorInfo> = emptyList(),
             successor: Identified? = null, label: String? = null,
-            defines: Collection<IXmlDefineType> = emptyList(),
-            results: Collection<IXmlResultType> = emptyList(),
+            defines: Iterable<IXmlDefineType>? = emptyList(),
+            results: Iterable<IXmlResultType>? = emptyList(),
             x: Double = Double.NaN,
             y: Double = Double.NaN,
             min: Int = -1,
             max: Int = -1,
             isMultiMerge: Boolean = false,
             isMultiInstance: Boolean = false
-                   ) : super(
+        ) : super(
             id, label,
             defines, results, x,
             y, min, max, isMultiInstance
-                            ) {
+        ) {
             predecessors.forEach { conditions[Identifier(it.id)] = it.condition }
             this.successor = successor
             this.isMultiMerge = isMultiMerge
@@ -150,8 +199,8 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
             id: String? = null,
             predecessors: Collection<Identified>,
             successor: Identified? = null, label: String? = null,
-            defines: Collection<IXmlDefineType> = emptyList(),
-            results: Collection<IXmlResultType> = emptyList(),
+            defines: Iterable<IXmlDefineType>? = emptyList(),
+            results: Iterable<IXmlResultType>? = emptyList(),
             x: Double = Double.NaN,
             y: Double = Double.NaN,
             min: Int = -1,
@@ -159,15 +208,14 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
             isMultiMerge: Boolean = false,
             isMultiInstance: Boolean = false,
             @Suppress("UNUSED_PARAMETER") dummy: Boolean = false
-                   ) :
-            this(
-                id,
-                predecessors.map { PredecessorInfo(it.id, null) },
-                successor,
-                label,
-                defines,
-                results, x, y, min, max, isMultiMerge, isMultiInstance
-                )
+        ) : this(
+            id,
+            predecessors.map { PredecessorInfo(it.id, null) },
+            successor,
+            label,
+            defines,
+            results, x, y, min, max, isMultiMerge, isMultiInstance
+        )
 
         constructor(node: Join) : super(node) {
             this.isMultiMerge = node.isMultiMerge
@@ -176,6 +224,20 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
             }
             this.successor = node.successor
         }
+
+        constructor(serialDelegate: SerialDelegate) : this(
+            serialDelegate.id,
+            serialDelegate.predecessors,
+            label = serialDelegate.label,
+            defines = serialDelegate.defines,
+            results = serialDelegate.results,
+            x = serialDelegate.x,
+            y = serialDelegate.y,
+            min = serialDelegate.min,
+            max = serialDelegate.max,
+            isMultiMerge = serialDelegate.isMultiMerge,
+            isMultiInstance = serialDelegate.isMultiInstance
+        )
 
         private inner class PredecessorSet : AbstractMutableSet<Identified>() {
             override val size: Int get() = conditions.size
@@ -229,29 +291,10 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
 
     }
 
-
     companion object {
 
         const val IDBASE = "join"
     }
 
-
-
-    @Serializable()
-    private class ConditionPairs(val map: Map<Identifier, String?>)
-
-//    @Serializer(forClass = ConditionPairs::class)
-    private class ConditionSerializer: KSerializer<ConditionPairs> {
-        override val descriptor: SerialDescriptor
-            get() = TODO("not implemented")
-
-        override fun deserialize(decoder: Decoder): ConditionPairs {
-            TODO("not implemented")
-        }
-
-        override fun serialize(encoder: Encoder, value: ConditionPairs) {
-            TODO("not implemented")
-        }
-    }
 }
 

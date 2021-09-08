@@ -17,7 +17,6 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
@@ -151,30 +150,25 @@ abstract class ProcessModelBase<NodeT : ProcessNode> : ProcessModel<NodeT> {
     }
 
 
-    abstract class BaseSerializer<T : ProcessModelBase<*>> : KSerializer<T> {
+    @Serializable
+    internal abstract class SerialDelegate(
+        val imports: List<XmlResultType>,
+        val exports: List<XmlDefineType>,
+        val nodes: List<ProcessNodeBase.SerialDelegate>
+    ) {
+        constructor(source: ProcessModelBase<*>):this(
+            imports = source.imports.map { XmlResultType(it) },
+            exports = source.exports.map { XmlDefineType(it) },
+            nodes = source.modelNodes.map { ProcessNodeBase.SerialDelegate(it) }
+        )
 
-        private val importsIdx by lazy { descriptor.getElementIndex("import") }
-        private val exportsIdx by lazy { descriptor.getElementIndex("export") }
-        private val nodesIdx by lazy { descriptor.getElementIndex("nodes") }
-
-        override fun serialize(encoder: Encoder, value: T) {
-            encoder.encodeStructure(descriptor) {
-                writeValues(this, value)
-            }
-        }
-
-        open fun writeValues(encoder: CompositeEncoder, obj: T) {
-            val desc = descriptor
-            encoder.encodeSerializableElement(desc, importsIdx, serializer(), obj.imports.map(::XmlResultType))
-            encoder.encodeSerializableElement(desc, exportsIdx, serializer(), obj.exports.map(::XmlDefineType))
-            encoder.encodeSerializableElement(
-                desc,
-                nodesIdx,
-                ListSerializer(ModelNodeSerializer),
-                obj.modelNodes.toList()
-            )
-        }
+        constructor(source: Builder):this(
+            imports = source.imports.map { XmlResultType(it) },
+            exports = source.exports.map { XmlDefineType(it) },
+            nodes = source.nodes.map { ProcessNodeBase.SerialDelegate(it) }
+        )
     }
+
 
     interface NodeFactory<NodeT : ChildNodeT, out ChildNodeT : ProcessNode, out ChildT : ChildProcessModel<ChildNodeT>> {
         operator fun invoke(
@@ -279,6 +273,8 @@ abstract class ProcessModelBase<NodeT : ProcessNode> : ProcessModel<NodeT> {
             abstract fun builder(): T
 
             override fun deserialize(decoder: Decoder): T {
+                TODO()
+/*
                 @Suppress("NAME_SHADOWING")
                 decoder.decodeStructure(descriptor) {
                     val input = this
@@ -288,6 +284,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode> : ProcessModel<NodeT> {
                     }
                     return result
                 }
+*/
 
             }
 
@@ -368,7 +365,7 @@ private object ModelNodeClassDesc : SerialDescriptor {
     override fun getElementDescriptor(index: Int): SerialDescriptor {
         return when (index) {
             0    -> String.serializer().descriptor
-            1    -> simpleSerialClassDesc<XmlProcessNode>()
+            1    -> TODO()//simpleSerialClassDesc<XmlProcessNode>()
             else -> throw IndexOutOfBoundsException("$index")
         }
     }

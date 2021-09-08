@@ -17,7 +17,9 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.serializer
 import nl.adaptivity.serialutil.CharArrayAsStringSerializer
+import nl.adaptivity.util.MyGatheringNamespaceContext
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.xmlutil.*
@@ -32,7 +34,6 @@ import nl.adaptivity.xmlutil.util.XMLFragmentStreamReader
  * This class can contain xml content. It allows it to be transformed, and input/output
  * Created by pdvrieze on 30/10/15.
  */
-@Serializable
 @OptIn(XmlUtilInternal::class)
 abstract class XMLContainer
 private constructor(
@@ -86,7 +87,7 @@ private constructor(
             0    -> SimpleNamespaceContext.from(additionalContext)
             else -> namespaces.combine(additionalContext)
         }
-        val gatheringNamespaceContext = GatheringNamespaceContext(context, nsmap)
+        val gatheringNamespaceContext = MyGatheringNamespaceContext(nsmap, context)
         visitNamespaces(gatheringNamespaceContext)
 
         namespaces = SimpleNamespaceContext(nsmap)
@@ -94,11 +95,6 @@ private constructor(
 
     internal fun addNamespaceContext(namespaceContext: SimpleNamespaceContext) {
         namespaces = if (namespaces.size == 0) namespaceContext else (namespaces + namespaceContext)
-    }
-
-    @Deprecated("Don't use", ReplaceWith("XML.encodeToWriter(out, this)", "nl.adaptivity.xmlutil.serialization.XML"))
-    override fun serialize(out: XmlWriter) {
-        return XML.encodeToWriter(out, this)
     }
 
     protected fun visitNamesInElement(source: XmlReader) {
@@ -126,10 +122,7 @@ private constructor(
     }
 
     protected open fun visitNamespaces(baseContext: NamespaceContext) {
-        val xsr = NamespaceAddingStreamReader(
-            baseContext,
-            this.getXmlReader()
-                                             )
+        val xsr = NamespaceAddingStreamReader(baseContext, this.getXmlReader())
 
         visitNamespacesInContent(xsr, null)
     }
@@ -178,9 +171,9 @@ private constructor(
         private val BASE_NS_CONTEXT = SimpleNamespaceContext(arrayOf(""), arrayOf(""))
 
         @Throws(XmlException::class)
-        protected fun visitNamespace(`in`: XmlReader, prefix: CharSequence?) {
+        protected fun visitNamespace(reader: XmlReader, prefix: CharSequence?) {
             if (prefix != null) {
-                `in`.namespaceContext.getNamespaceURI(prefix.toString())
+                reader.namespaceContext.getNamespaceURI(prefix.toString())
             }
         }
 

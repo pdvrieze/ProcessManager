@@ -16,31 +16,23 @@
 
 package nl.adaptivity.process.processModel
 
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
-import kotlinx.serialization.*
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.CompositeDecoder
-import kotlinx.serialization.encoding.CompositeEncoder
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.Transient
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.engine.XML_BUILDER_VISITOR
-import nl.adaptivity.process.processModel.engine.XmlChildModel
 import nl.adaptivity.process.processModel.engine.XmlProcessModel
 import nl.adaptivity.process.util.IdentifiableSetSerializer
+import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
-import nl.adaptivity.serialutil.*
-import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.serialization.XmlPolyChildren
-import nl.adaptivity.serialutil.encodeNullableStringElement
-import nl.adaptivity.util.multiplatform.name
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import kotlin.jvm.JvmField
 
 /**
  * Base class for submodels
  */
-@Serializable
 abstract class ChildProcessModelBase<NodeT : ProcessNode> :
     ProcessModelBase<NodeT>, ChildProcessModel<NodeT> {
 
@@ -57,8 +49,8 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
             "nl.adaptivity.process.processModel.engine.XmlSplit=pe:split",
             "nl.adaptivity.process.processModel.engine.XmlJoin=pe:join",
             "nl.adaptivity.process.processModel.engine.XmlEndNode=pe:end"
-               )
-                    )
+        )
+    )
     @Serializable(IdentifiableSetSerializer::class)
     override val modelNodes: IdentifyableSet<NodeT>
 
@@ -75,29 +67,45 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
     constructor(
         builder: ChildProcessModel.Builder,
         buildHelper: ProcessModel.BuildHelper<NodeT, ProcessModel<NodeT>, *, *>
-               ) :
-        super(builder, buildHelper.pedantic) {
+   ) : super(builder, buildHelper.pedantic) {
         modelNodes = buildNodes(builder, buildHelper.withOwner(this))
         val newOwner: ProcessModel<NodeT> = buildHelper.newOwner
         _rootModel = newOwner.rootModel
         this.id = builder.childId
     }
 
-    /* Invalid constructor purely for serialization */
-    @Suppress("UNCHECKED_CAST", "LeakingThis")
-    protected constructor() : super(emptyList(), emptyList()) {
-        modelNodes = IdentifyableSet.processNodeSet()
-        _rootModel = XmlProcessModel(RootProcessModelBase.Builder()) as RootProcessModel<NodeT>
-        id = null
-        if (id == null) {// stupid if to make the compiler not complain about uninitialised values
-            throw UnsupportedOperationException("Actually invoking this constructor is invalid")
+    abstract override fun builder(rootBuilder: RootProcessModel.Builder): ModelBuilder
+
+    @Serializable
+    @XmlSerialName(ChildProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
+    @SerialName(ChildProcessModelBase.ELEMENTLOCALNAME)
+    internal class SerialDelegate: ProcessModelBase.SerialDelegate {
+        val id: Identifier?
+
+        constructor(
+            imports: List<XmlResultType>,
+            exports: List<XmlDefineType>,
+            nodes: List<ProcessNodeBase.SerialDelegate>,
+            id: Identifier?
+        ) : super(imports, exports, nodes) {
+            this.id = id
         }
+
+        constructor(base: ChildProcessModel<*>): this(
+            base.imports.map { XmlResultType(it) },
+            base.exports.map { XmlDefineType(it) },
+            base.modelNodes.map { ProcessNodeBase.SerialDelegate(it) },
+            base.identifier,
+        )
+
+        constructor(base: ChildProcessModel.Builder): this(
+            base.imports.map { XmlResultType(it) },
+            base.exports.map { XmlDefineType(it) },
+            base.nodes.map { ProcessNodeBase.SerialDelegate(it) },
+            base.childId?.let { Identifier(it) },
+        )
     }
 
-
-    override abstract fun builder(rootBuilder: RootProcessModel.Builder): ModelBuilder
-
-    @Serializable(with = ModelBuilder.Companion::class)
     open class ModelBuilder : ProcessModelBase.Builder, ChildProcessModel.Builder {
 
         @Transient
@@ -120,19 +128,26 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
             nodes: Collection<ProcessNode.Builder> = emptyList(),
             imports: Collection<IXmlResultType> = emptyList(),
             exports: Collection<IXmlDefineType> = emptyList()
-                   ) : super(nodes, imports, exports) {
+        ) : super(nodes, imports, exports) {
             this._rootBuilder = rootBuilder
             this.childId = childId
         }
 
-        constructor(rootBuilder: RootProcessModel.Builder, base: ChildProcessModel<*>) :
-            this(
-                rootBuilder,
-                base.id,
-                base.modelNodes.map { it.visit(XML_BUILDER_VISITOR) },
-                base.imports,
-                base.exports
-                )
+        constructor(rootBuilder: RootProcessModel.Builder, base: ChildProcessModel<*>) : this(
+            rootBuilder,
+            base.id,
+            base.modelNodes.map { it.visit(XML_BUILDER_VISITOR) },
+            base.imports,
+            base.exports
+        )
+
+        internal constructor(rootBuilder: RootProcessModel.Builder, serialDelegate: SerialDelegate) : this(
+            rootBuilder,
+            serialDelegate.id?.id,
+            serialDelegate.nodes.map { ProcessNodeBase.Builder(it) },
+            serialDelegate.imports,
+            serialDelegate.exports
+        )
 
         /**
          * When this is overridden and it returns a non-`null` value, it will allow childmodels to be nested in eachother.
@@ -140,68 +155,13 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
          */
         open fun nestedBuilder(): ModelBuilder? = null
 
-        abstract class BaseSerializer<T : ModelBuilder> : ProcessModelBase.Builder.BaseSerializer<T>() {
-            override fun readElement(result: T, input: CompositeDecoder, index: Int, name: String) {
-                when (name) {
-                    ATTR_ID -> result.childId = input.readNullableString(descriptor, index)
-                    else    -> super.readElement(result, input, index, name)
-                }
-            }
-        }
-
-        companion object : BaseSerializer<ModelBuilder>() {
-            override val descriptor: SerialDescriptor = XmlChildModel.descriptor.withName(
-                ModelBuilder::class.name
-            )
-
-            override fun builder(): ModelBuilder {
-                return ModelBuilder()
-            }
-
-
-            @Suppress("RedundantOverride") // Without this serialization will generate the code
-            override fun deserialize(decoder: Decoder): ModelBuilder {
-                return super.deserialize(decoder)
-            }
-
-            override fun serialize(encoder: Encoder, obj: ModelBuilder) {
-                val rootModel = XmlProcessModel(RootProcessModelBase.Builder().apply { childModels.add(obj) })
-                XmlChildModel.serialize(encoder, rootModel.childModels.single())
-                throw UnsupportedOperationException("Cannot be independently saved")
-            }
-        }
-
-    }
-
-    abstract class BaseSerializer<T : ChildProcessModelBase<*>> : ProcessModelBase.BaseSerializer<T>() {
-
-        private val idIdx by lazy { descriptor.getElementIndex(ATTR_ID) }
-
-        override fun writeValues(output: CompositeEncoder, obj: T) {
-            output.encodeNullableStringElement(descriptor, idIdx, obj.id)
-            super.writeValues(output, obj)
-        }
     }
 
     companion object {
         const val ATTR_ID = "id"
         const val ELEMENTLOCALNAME = "childModel"
         @JvmField
-        val ELEMENTNAME = QName(
-            ProcessConsts.Engine.NAMESPACE, ELEMENTLOCALNAME,
-            ProcessConsts.Engine.NSPREFIX
-                               )
-
-
-/*
-        fun descriptor(name: String): SerialClassDescImpl {
-            return SerialClassDescImpl(name).apply {
-                addField(ChildProcessModelBase<*, *>::id)
-                addFields(ProcessModelBase.descriptor)
-            }
-        }
-*/
-
+        val ELEMENTNAME = QName(ProcessConsts.Engine.NAMESPACE, ELEMENTLOCALNAME, ProcessConsts.Engine.NSPREFIX)
     }
 
 }

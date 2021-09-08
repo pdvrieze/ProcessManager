@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
 import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.diagram.Positioned
@@ -23,6 +24,7 @@ import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
+import nl.adaptivity.xmlutil.serialization.XmlDefault
 
 
 /**
