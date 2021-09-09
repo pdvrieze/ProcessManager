@@ -17,14 +17,11 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.serializer
 import nl.adaptivity.serialutil.CharArrayAsStringSerializer
 import nl.adaptivity.util.MyGatheringNamespaceContext
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.serialization.XML
-import nl.adaptivity.xmlutil.util.GatheringNamespaceContext
 import nl.adaptivity.xmlutil.util.ICompactFragment
 import nl.adaptivity.xmlutil.util.NamespaceAddingStreamReader
 import nl.adaptivity.xmlutil.util.XMLFragmentStreamReader
@@ -166,6 +163,27 @@ private constructor(
     protected abstract fun serializeEndElement(out: XmlWriter)
 
     override fun getXmlReader(): XmlReader = XMLFragmentStreamReader.from(this)
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as XMLContainer
+
+        val orderedNamespaces = namespaces.sortedBy { it.prefix }
+        val orderedOtherNamespaces = other.namespaces.sortedBy { it.prefix }
+
+        if (orderedNamespaces != orderedOtherNamespaces) return false
+        if (!content.contentEquals(other.content)) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = namespaces.hashCode()
+        result = 31 * result + content.contentHashCode()
+        return result
+    }
 
     companion object {
         private val BASE_NS_CONTEXT = SimpleNamespaceContext(arrayOf(""), arrayOf(""))

@@ -42,7 +42,10 @@ abstract class XmlContainerSerializer<T : XMLContainer>: KSerializer<T> {
         encoder.encodeStructure(desc) {
             val childOut = this
             if (childOut is XML.XmlOutput) {
-                val writer = childOut.target
+                val writer: XmlWriter = childOut.target
+                val origIndentString = writer.indentString
+                writer.indentString="" // We want to retain the structure, so don't reindent.
+
                 for ((prefix, nsUri) in data.namespaces) {
                     if (writer.getNamespaceUri(prefix) != nsUri) {
                         writer.namespaceAttr(prefix, nsUri)
@@ -50,6 +53,12 @@ abstract class XmlContainerSerializer<T : XMLContainer>: KSerializer<T> {
                 }
                 writeAdditionalValues(childOut, desc, data)
                 writer.serialize(data.getXmlReader())
+
+                // This ensures that indentation is not applied for the end tag
+                // (indentation should only happen if no content was written)
+                writer.ignorableWhitespace("")
+
+                writer.indentString = origIndentString
             } else {
                 childOut.encodeSerializableElement(
                     desc, desc.getElementIndex("namespaces"), ListSerializer(Namespace),

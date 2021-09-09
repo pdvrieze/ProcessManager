@@ -41,6 +41,23 @@ import nl.adaptivity.xmlutil.*
 @Serializable(XmlCondition.Companion::class)
 class XmlCondition(override val condition: String) : Condition {
 
+    override fun toString(): String {
+        return "XmlCondition(condition='$condition')"
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is XmlCondition) return false
+
+        if (condition != other.condition) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return condition.hashCode()
+    }
+
     companion object : DelegatingSerializer<XmlCondition, String>(String.serializer()) {
 
         override val descriptor: SerialDescriptor =

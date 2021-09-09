@@ -38,7 +38,7 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
  */
 @Serializable(XmlProcessModel.Companion::class)
 @XmlSerialName(RootProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
-class XmlProcessModel : RootProcessModelBase<@UseContextualSerialization XmlProcessNode> {
+class XmlProcessModel : RootProcessModelBase<XmlProcessNode> {
 
     @Transient
     override val rootModel: XmlProcessModel

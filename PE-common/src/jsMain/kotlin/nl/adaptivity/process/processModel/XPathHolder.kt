@@ -166,6 +166,26 @@ actual abstract class XPathHolder : XMLContainer {
         }
     }
 
+    actual override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class.js != other::class.js) return false
+        if (!super.equals(other)) return false
+
+        other as XPathHolder
+
+        if (_name != other._name) return false
+        if (pathString != other.pathString) return false
+
+        return true
+    }
+
+    actual override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + (_name?.hashCode() ?: 0)
+        result = 31 * result + (pathString?.hashCode() ?: 0)
+        return result
+    }
+
 }
 
 

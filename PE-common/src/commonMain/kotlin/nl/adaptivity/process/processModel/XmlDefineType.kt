@@ -30,6 +30,8 @@ import kotlinx.serialization.Serializer
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.descriptors.element
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.encoding.Decoder
@@ -40,11 +42,11 @@ import nl.adaptivity.serialutil.encodeNullableStringElement
 import nl.adaptivity.serialutil.readNullableString
 import nl.adaptivity.serialutil.simpleSerialClassDesc
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.core.impl.multiplatform.name
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable(XmlDefineType.Companion::class)
-@XmlSerialName(XmlDefineType.ELEMENTLOCALNAME, Engine.NAMESPACE, Engine.NSPREFIX)
 class XmlDefineType : XPathHolder, IXmlDefineType {
 
     @ProcessModelDSL
@@ -167,17 +169,45 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         this._refName = value
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+        if (!super.equals(other)) return false
+
+        other as XmlDefineType
+
+        if (_refNode != other._refNode) return false
+        if (_refName != other._refName) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + (_refNode?.hashCode() ?: 0)
+        result = 31 * result + (_refName?.hashCode() ?: 0)
+        return result
+    }
+
+    override fun toString(): String {
+        return "XmlDefineType(content=$contentString, namespaces=(${originalNSContext.joinToString()}), name=$name, path=${getPath()}, refNode=$_refNode, refName=$_refName)"
+    }
+    /** Dummy serializer that is just used to get the annotations on the type. */
+    @Serializable
+    @XmlSerialName(value = ELEMENTLOCALNAME, namespace = Engine.NAMESPACE, prefix = Engine.NSPREFIX)
+    private class XmlDefineTypeAnnotationHelper {}
+
     companion object : XPathHolderSerializer<XmlDefineType>() {
 
-        override val descriptor =
-            simpleSerialClassDesc<XmlDefineType>(
-                "name" to String.serializer(),
-                "refnode" to String.serializer(),
-                "refname" to String.serializer(),
-                "xpath" to String.serializer(),
-                "namespaces" to ListSerializer(Namespace),
-                "content" to String.serializer()
-                                                )
+        override val descriptor = buildClassSerialDescriptor("nl.adaptivity.process.processModel.XmlDefineType") {
+            annotations = XmlDefineTypeAnnotationHelper.serializer().descriptor.annotations
+            element<String?>("name")
+            element<String?>("refnode")
+            element<String?>("refname")
+            element<String?>("xpath")
+            element<List<Namespace>>("namespaces")
+            element<String>("content")
+        }
 
         const val ELEMENTLOCALNAME = "define"
         val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
@@ -196,7 +226,7 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
 
         override fun deserialize(decoder: Decoder): XmlDefineType {
             val data = DefineTypeData()
-            data.deserialize(descriptor, decoder, XmlDefineType.Companion)
+            data.deserialize(descriptor, decoder, Companion)
             return XmlDefineType(
                 data.name, data.refNode, data.refName, data.path, data.content,
                 data.namespaces

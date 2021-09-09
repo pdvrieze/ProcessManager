@@ -143,7 +143,7 @@ actual abstract class XPathHolder : XMLContainer {
         super.visitNamespaces(baseContext)
     }
 
-    protected actual override open fun visitNamesInAttributeValue(
+    actual override fun visitNamesInAttributeValue(
         referenceContext: NamespaceContext,
         owner: QName,
         attributeName: QName,
@@ -152,6 +152,26 @@ actual abstract class XPathHolder : XMLContainer {
         if (Constants.MODIFY_NS_STR == owner.getNamespaceURI() && (XMLConstants.NULL_NS_URI == attributeName.getNamespaceURI() || XMLConstants.DEFAULT_NS_PREFIX == attributeName.getPrefix()) && "xpath" == attributeName.getLocalPart()) {
             visitXpathUsedPrefixes(attributeValue, referenceContext)
         }
+    }
+
+    actual override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+        if (!super.equals(other)) return false
+
+        other as XPathHolder
+
+        if (_name != other._name) return false
+        if (pathString != other.pathString) return false
+
+        return true
+    }
+
+    actual override fun hashCode(): Int {
+        var result = super.hashCode()
+        result = 31 * result + (_name?.hashCode() ?: 0)
+        result = 31 * result + (pathString?.hashCode() ?: 0)
+        return result
     }
 
     companion object {

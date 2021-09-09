@@ -54,7 +54,10 @@ expect abstract class XPathHolder : XMLContainer {
         owner: QName,
         attributeName: QName,
         attributeValue: CharSequence
-                                           )
+    )
+
+    override fun equals(other: Any?): Boolean
+    override fun hashCode(): Int
 }
 
 

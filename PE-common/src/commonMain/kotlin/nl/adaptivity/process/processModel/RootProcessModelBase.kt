@@ -42,7 +42,7 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable
 abstract class RootProcessModelBase<NodeT : ProcessNode> :
-    ProcessModelBase<@UseContextualSerialization NodeT>,
+    ProcessModelBase<NodeT>,
     RootProcessModel<NodeT>,
     MutableHandleAware<RootProcessModel<NodeT>> {
 

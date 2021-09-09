@@ -122,6 +122,7 @@ class XmlMessage : XMLContainer, IXmlMessage {
             super.content = value
         }
 
+    @OptIn(XmlUtilInternal::class)
     @Transient
     override val messageBody: ICompactFragment
         get() = CompactFragment(namespaces, content)

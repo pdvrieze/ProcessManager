@@ -28,8 +28,30 @@ class PredecessorInfo(
     @XmlValue(true) val id: String,
     @Serializable(XmlCondition.Companion::class)
     @XmlElement(false) val condition: Condition? = null
-                     ) {
+) {
     init {
         if (id.isEmpty()) throw IllegalArgumentException("Empty id's are not valid")
     }
+
+    override fun toString(): String {
+        return "PredecessorInfo(id='$id', condition=$condition)"
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is PredecessorInfo) return false
+
+        if (id != other.id) return false
+        if ((condition?: "") != (other.condition ?: "")) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = id.hashCode()
+        result = 31 * result + (condition?.hashCode() ?: 0)
+        return result
+    }
+
+
 }

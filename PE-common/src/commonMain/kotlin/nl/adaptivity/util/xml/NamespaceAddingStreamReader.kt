@@ -127,7 +127,6 @@ class NamespaceAddingStreamReader(private val lookupSource: NamespaceContext, so
             return (p + s).iterator()
         }
 
-        @XmlUtilInternal
         @Suppress("OverridingDeprecatedMember")
         override fun getPrefixesCompat(namespaceURI: String): Iterator<String> {
             val prefixes1 = primary.prefixesFor(namespaceURI)

@@ -49,6 +49,33 @@ class XmlResultType : XPathHolder, IPlatformXmlResultType {
         nsContext: Iterable<Namespace> = emptyList()
     ) : this(name, path, content?.toCharArray(), nsContext)
 
+    override fun serializeStartElement(out: XmlWriter) {
+        out.smartStartTag(ELEMENTNAME)
+    }
+
+    override fun serializeEndElement(out: XmlWriter) {
+        out.endTag(ELEMENTNAME)
+    }
+
+    override fun serialize(out: XmlWriter) {
+        XML { autoPolymorphic = true }.encodeToWriter(out, Companion, this)
+    }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+        if (!super.equals(other)) return false
+        return true
+    }
+
+    override fun hashCode(): Int {
+        return super.hashCode()
+    }
+
+    override fun toString(): String {
+        return "XmlResultType(content=$contentString, namespaces=(${originalNSContext.joinToString()}), name=$name, path=${getPath()})"
+    }
+
     @ProcessModelDSL
     class Builder constructor(
         var name: String? = null,
@@ -67,22 +94,10 @@ class XmlResultType : XPathHolder, IPlatformXmlResultType {
 
     }
 
-    override fun serializeStartElement(out: XmlWriter) {
-        out.smartStartTag(ELEMENTNAME)
-    }
-
-    override fun serializeEndElement(out: XmlWriter) {
-        out.endTag(ELEMENTNAME)
-    }
-
     /** Dummy serializer that is just used to get the annotations on the type. */
     @Serializable
     @XmlSerialName(value = XmlResultType.ELEMENTLOCALNAME, namespace = Engine.NAMESPACE, prefix = Engine.NSPREFIX)
     private class XmlResultTypeAnnotationHelper {}
-
-    override fun serialize(out: XmlWriter) {
-        XML { autoPolymorphic = true }.encodeToWriter(out, Companion, this)
-    }
 
     companion object : XPathHolderSerializer<XmlResultType>() {
         override val descriptor = buildClassSerialDescriptor("XmlResultType") {
