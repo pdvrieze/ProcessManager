@@ -90,8 +90,7 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode> {
 
         @Suppress("RedundantOverride")
         override fun serialize(encoder: Encoder, value: XmlProcessModel) {
-            val delegate = SerialDelegate(value)
-            delegateSerializer.serialize(encoder, delegate)
+            delegateSerializer.serialize(encoder, SerialDelegate(value))
         }
 
         override fun deserialize(decoder: Decoder): XmlProcessModel {

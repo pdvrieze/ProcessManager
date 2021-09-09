@@ -16,10 +16,6 @@
 
 package nl.adaptivity.process.engine
 
-import com.nhaarman.mockitokotlin2.any
-import com.nhaarman.mockitokotlin2.doReturn
-import com.nhaarman.mockitokotlin2.inOrder
-import com.nhaarman.mockitokotlin2.mock
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.modules.EmptySerializersModule
@@ -28,9 +24,9 @@ import net.devrieze.util.readString
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Constants
-import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.util.CompactFragment
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
@@ -43,7 +39,6 @@ import java.nio.charset.Charset
 import java.util.*
 import java.util.logging.Level
 import java.util.logging.Logger
-import javax.xml.namespace.NamespaceContext
 import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.parsers.ParserConfigurationException
@@ -925,7 +920,7 @@ class TestProcessData {
             assertNotNull(reader)
             val xml = XML(serialModule) {
                 this.repairNamespaces = repairNamespaces
-                this.omitXmlDecl = omitXmlDecl
+                this.xmlDeclMode = XmlDeclMode.None
                 this.indent = 4
                 this.autoPolymorphic = true
             }

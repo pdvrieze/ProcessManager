@@ -52,11 +52,14 @@ abstract class XmlContainerSerializer<T : XMLContainer>: KSerializer<T> {
                     }
                 }
                 writeAdditionalValues(childOut, desc, data)
-                writer.serialize(data.getXmlReader())
 
-                // This ensures that indentation is not applied for the end tag
-                // (indentation should only happen if no content was written)
-                writer.ignorableWhitespace("")
+                if (! data.isEmpty) {
+                    writer.serialize(data.getXmlReader())
+
+                    // This ensures that indentation is not applied for the end tag
+                    // (indentation should only happen if no content was written)
+                    writer.ignorableWhitespace("")
+                }
 
                 writer.indentString = origIndentString
             } else {
@@ -107,7 +110,7 @@ abstract class XmlContainerSerializer<T : XMLContainer>: KSerializer<T> {
                     val namespacesMap = mutableMapOf<String, String>()
 
                     val gatheringNamespaceContext =
-                        MyGatheringNamespaceContext(reader.namespaceContext.freeze(), namespacesMap)
+                        MyGatheringNamespaceContext(namespacesMap, reader.namespaceContext.freeze())
 
                     handleLastRootAttributeReadEvent(reader, gatheringNamespaceContext)
 

@@ -25,8 +25,6 @@ internal class MyGatheringNamespaceContext(
     private vararg val parentContext: NamespaceContext
 ) : NamespaceContextImpl, IterableNamespaceContext {
 
-    constructor(parent: NamespaceContext, resultMap: MutableMap<String, String>): this(resultMap, parent)
-
     override fun iterator(): Iterator<Namespace> {
         return resultMap.map { nameSpace(it.key, it.value) }.iterator()
     }
@@ -35,7 +33,7 @@ internal class MyGatheringNamespaceContext(
         return parentContext.asSequence()
             .mapNotNull { it.getNamespaceURI(prefix) }
             .firstOrNull()?.apply {
-                if (!isEmpty() && prefix != nl.adaptivity.xmlutil.XMLConstants.XMLNS_ATTRIBUTE) {
+                if (!isEmpty() && prefix != XMLConstants.XMLNS_ATTRIBUTE) {
                     resultMap[prefix] = this
                 }
             }
@@ -45,7 +43,7 @@ internal class MyGatheringNamespaceContext(
         return parentContext.asSequence()
             .mapNotNull { it.getPrefix(namespaceURI) }
             .firstOrNull()?.apply {
-                if (namespaceURI != nl.adaptivity.xmlutil.XMLConstants.XMLNS_ATTRIBUTE_NS_URI && namespaceURI != nl.adaptivity.xmlutil.XMLConstants.XML_NS_URI) {
+                if (namespaceURI != XMLConstants.XMLNS_ATTRIBUTE_NS_URI && namespaceURI != XMLConstants.XML_NS_URI) {
                     resultMap[this] = namespaceURI
                 }
             }
@@ -60,7 +58,7 @@ internal class MyGatheringNamespaceContext(
         return parentContext
             .flatMap { it.prefixesFor(namespaceURI).asSequence() }
             .apply {
-                if (namespaceURI != nl.adaptivity.xmlutil.XMLConstants.XMLNS_ATTRIBUTE_NS_URI && namespaceURI != nl.adaptivity.xmlutil.XMLConstants.XML_NS_URI) {
+                if (namespaceURI != XMLConstants.XMLNS_ATTRIBUTE_NS_URI && namespaceURI != XMLConstants.XML_NS_URI) {
                     for (prefix in this) {
                         resultMap[prefix] = namespaceURI
                     }

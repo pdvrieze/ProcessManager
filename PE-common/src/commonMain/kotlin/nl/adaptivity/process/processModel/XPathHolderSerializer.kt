@@ -84,7 +84,7 @@ abstract open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSeriali
         ) {
             if (Constants.MODIFY_NS_STR == owner.getNamespaceURI() && (XMLConstants.NULL_NS_URI == attributeName.getNamespaceURI() || XMLConstants.DEFAULT_NS_PREFIX == attributeName.getPrefix()) && "xpath" == attributeName.getLocalPart()) {
                 val namesInPath = mutableMapOf<String, String>()
-                val newContext = MyGatheringNamespaceContext(elementContext, namesInPath)
+                val newContext = MyGatheringNamespaceContext(namesInPath, elementContext)
                 visitXpathUsedPrefixes(attributeValue, newContext)
                 for (prefix in namesInPath.keys) {
                     if (localPrefixes.none { prefix in it }) {
