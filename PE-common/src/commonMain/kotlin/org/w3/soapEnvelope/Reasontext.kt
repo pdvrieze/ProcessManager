@@ -24,7 +24,10 @@
 
 package org.w3.soapEnvelope
 
+import kotlinx.serialization.Required
+import kotlinx.serialization.Serializable
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
+import nl.adaptivity.xmlutil.serialization.XmlValue
 
 
 /**
@@ -46,11 +49,13 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
  * </complexType>
  * ```
  */
-class Reasontext {
+@Serializable
+@XmlSerialName("Text", Envelope.NAMESPACE, Envelope.PREFIX)
+class Reasontext(
+    @XmlValue(true)
+    val value: String,
 
-    var value: String? = null
-
+    @Required
     @XmlSerialName("lang", "http://www.w3.org/XML/1998/namespace", "")
-    var lang: String? = null
-
-}
+    val lang: String = "en_US",
+)

@@ -24,7 +24,9 @@
 
 package org.w3.soapEnvelope
 
+import kotlinx.serialization.Serializable
 import nl.adaptivity.xmlutil.QName
+import nl.adaptivity.xmlutil.QNameSerializer
 import nl.adaptivity.xmlutil.localPart
 import nl.adaptivity.xmlutil.namespaceURI
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
@@ -52,24 +54,22 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
  * </complexType>
  * ```
  */
-class Faultcode {
-
+@Serializable
+class Faultcode(
     @XmlSerialName("Value", Envelope.NAMESPACE, Envelope.PREFIX)
-    var qNameValue: QName? = null
-
+    @Serializable(QNameSerializer::class)
+    val qNameValue: QName,
     @XmlSerialName("Subcode", Envelope.NAMESPACE, Envelope.PREFIX)
-    var subcode: Subcode? = null
+    val subcode: Subcode? = null
+) {
 
-    var value: Values?
+    val value: Values?
         get() {
             val qNameValue = this.qNameValue ?: return null
 
             return Values.values().firstOrNull { c ->
                 c.qName.namespaceURI == qNameValue.namespaceURI && c.qName.localPart == qNameValue.namespaceURI
             }
-        }
-        set(value) {
-            this.qNameValue = value?.qName
         }
 
     enum class Values {

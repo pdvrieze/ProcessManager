@@ -24,7 +24,9 @@
 
 package org.w3.soapEnvelope
 
+import kotlinx.serialization.Serializable
 import nl.adaptivity.util.multiplatform.URI
+import nl.adaptivity.util.net.devrieze.serializers.URISerializer
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 
@@ -54,21 +56,24 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
  * </complexType>
  * ```
  */
-class Fault {
-
+@Serializable
+@XmlSerialName("Fault", Envelope.NAMESPACE, Envelope.PREFIX)
+class Fault(
     @XmlSerialName("Code", Envelope.NAMESPACE, Envelope.PREFIX)
-    var code: Faultcode? = null
+    val code: Faultcode,
 
     @XmlSerialName("Reason", Envelope.NAMESPACE, Envelope.PREFIX)
-    var reason: Faultreason? = null
+    val reason: Faultreason,
 
     @XmlSerialName("Node", Envelope.NAMESPACE, Envelope.PREFIX)
-    var node: URI? = null
+    @Serializable(URISerializer::class)
+    val node: URI? = null,
 
     @XmlSerialName("Role", Envelope.NAMESPACE, Envelope.PREFIX)
-    var role: URI? = null
+    @Serializable(URISerializer::class)
+    val role: URI? = null,
 
     @XmlSerialName("Detail", Envelope.NAMESPACE, Envelope.PREFIX)
-    var detail: Detail? = null
+    val detail: Detail? = null,
 
-}
+    )

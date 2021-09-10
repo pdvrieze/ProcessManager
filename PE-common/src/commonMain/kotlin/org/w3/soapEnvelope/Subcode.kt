@@ -24,7 +24,10 @@
 
 package org.w3.soapEnvelope
 
+import kotlinx.serialization.Serializable
 import nl.adaptivity.xmlutil.QName
+import nl.adaptivity.xmlutil.QNameSerializer
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 
 /**
@@ -49,10 +52,10 @@ import nl.adaptivity.xmlutil.QName
  * </complexType>
  * ```
  */
-class Subcode {
-
-    var value: QName? = null
-
-    var subcode: Subcode? = null
-
-}
+@Serializable
+@XmlSerialName("Subcode", Envelope.NAMESPACE, Envelope.PREFIX)
+class Subcode(
+    @Serializable(QNameSerializer::class) @XmlSerialName("Value", Envelope.NAMESPACE, Envelope.PREFIX)
+    val value: QName,
+    val subcode: Subcode? = null
+)

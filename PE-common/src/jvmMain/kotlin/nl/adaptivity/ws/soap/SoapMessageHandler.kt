@@ -77,7 +77,7 @@ abstract class SoapMessageHandler {
 
         private fun processMessage(source: XmlReader, pAttachments: Map<String, DataSource>): Source {
             val envelope = Envelope.deserialize(source)
-            val reader = envelope.body!!.bodyContent!!.getXmlReader()
+            val reader = envelope.body.child.getXmlReader()
             loop@ while (reader.hasNext()) {
                 when (reader.next()) {
                     EventType.START_ELEMENT -> break@loop

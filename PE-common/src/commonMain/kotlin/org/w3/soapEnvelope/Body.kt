@@ -24,7 +24,19 @@
 
 package org.w3.soapEnvelope
 
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.SerializationException
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.encoding.*
+import nl.adaptivity.util.multiplatform.URI
+import nl.adaptivity.util.multiplatform.createUri
+import nl.adaptivity.util.net.devrieze.serializers.URISerializer
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.serialization.XmlValue
+import nl.adaptivity.xmlutil.util.CompactFragment
 
 
 /**
@@ -50,68 +62,111 @@ import nl.adaptivity.xmlutil.*
  * ```
  *
  */
-class Body<T>() { // TODO make serializable
+class Body<T: Any>(
+    @XmlValue(true)
+    val child: T,
+    val encodingStyle: URI = createUri("http://www.w3.org/2003/05/soap-encoding"),
+    val otherAttributes: Map<QName, String> = emptyMap(),
+) {
+    fun copy(
+        encodingStyle: URI = this.encodingStyle,
+        otherAttributes: Map<QName, String> = this.otherAttributes,
+    ): Body<T> = Body(child, encodingStyle, otherAttributes)
 
-    private val otherAttributes = HashMap<QName, String>()
-    /**
-     * Gets the value of the any property.
-     *
-     *
-     * This accessor method returns a reference to the live list, not a snapshot.
-     * Therefore any modification you make to the returned list will be present
-     * inside the JAXB object. This is why there is not a <CODE>set</CODE> method
-     * for the any property.
-     *
-     *
-     * For example, to add a new item, do as follows:
-     *
-     * ```
-     * getAny().add(newItem);
-     * ```
-     *
-     *
-     * Objects of the following type(s) are allowed in the list [Any]
-     * [Element]
-     */
-    var bodyContent: T? = null
-        private set
+    fun <U: Any> copy(
+        child: U,
+        encodingStyle: URI = this.encodingStyle,
+        otherAttributes: Map<QName, String> = this.otherAttributes,
+    ): Body<U> = Body(child, encodingStyle, otherAttributes)
 
-    val elementName: QName
-        get() = ELEMENTNAME
+    class Serializer<T: Any>(private val contentSerializer: KSerializer<T>): KSerializer<Body<T>> {
 
-    constructor(content: T) : this() {
-        this.bodyContent = content
-    }
+        @OptIn(ExperimentalSerializationApi::class)
+        override val descriptor: SerialDescriptor = buildClassSerialDescriptor(Body::class.qualifiedName!!) {
+            annotations = SoapSerialObjects.bodyAnnotations
+            element("encodingStyle", URISerializer.descriptor, SoapSerialObjects.encodingStyleAnnotations, true)
+            element("otherAttributes", SoapSerialObjects.attrsSerializer.descriptor, isOptional = true)
+            element("child", contentSerializer.descriptor)
+        }
 
-    fun deserializeAttribute(
-        attributeNamespace: CharSequence,
-        attributeLocalName: CharSequence,
-        attributeValue: CharSequence
-                            ): Boolean {
-        val qname = QName(attributeNamespace.toString(), attributeLocalName.toString())
-        otherAttributes[qname] = attributeValue.toString()
-        return true
-    }
+        override fun deserialize(decoder: Decoder): Body<T> {
+            var encodingStyle: URI? = null
+            var otherAttributes: Map<QName, String> = emptyMap()
+            lateinit var child: T
+            decoder.decodeStructure(descriptor) {
+                if (decoder is XML.XmlInput) {
+                    val reader: XmlReader = decoder.input
+                    otherAttributes = reader.attributes.filter {
+                        when {
+                            it.prefix == XMLConstants.XMLNS_ATTRIBUTE ||
+                                (it.prefix=="" && it.localName == XMLConstants.XMLNS_ATTRIBUTE) -> false
+                            it.namespaceUri!= Envelope.NAMESPACE -> true
+                            it.localName == "encodingStyle" -> { encodingStyle = URI(it.value); false }
+                            else -> true
+                        }
+                    }.associate { QName(it.namespaceUri, it.localName, it.prefix) to it.value }
 
-    /**
-     * Gets a map that contains attributes that aren't bound to any typed property
-     * on this class.
-     *
-     *
-     * the map is keyed by the name of the attribute and the value is the string
-     * value of the attribute. the map returned by this method is live, and you
-     * can add new attribute by updating the map directly. Because of this design,
-     * there's no setter.
-     *
-     * @return always non-null
-     */
-    fun getOtherAttributes(): Map<QName, String> {
-        return otherAttributes
+                    child = decodeSerializableElement(descriptor, 2, contentSerializer, null)
+                    if (reader.nextTag()!=EventType.END_ELEMENT) throw SerializationException("Extra content in body")
+                } else {
+                    // TODO handle "supported header elements"
+                    var idx: Int
+                    while (decodeElementIndex(descriptor).also { idx = it } != CompositeDecoder.DECODE_DONE) {
+                        when (idx) {
+                            0 -> encodingStyle = decodeSerializableElement(descriptor, idx, URISerializer, encodingStyle)
+                            1 -> otherAttributes = decodeSerializableElement(
+                                descriptor, idx,
+                                SoapSerialObjects.attrsSerializer, otherAttributes)
+                            2 -> child = decodeSerializableElement(descriptor, idx, contentSerializer)
+                        }
+                    }
+                }
+            }
+            return Body(child)
+        }
+
+        override fun serialize(encoder: Encoder, value: Body<T>) {
+            if (encoder is XML.XmlOutput) {
+                val out = encoder.target
+                out.smartStartTag(ELEMENTNAME) {
+                    value.encodingStyle?.also { style ->
+                        out.attribute(Envelope.NAMESPACE, "encodingStyle", Envelope.PREFIX, style.toString())
+                    }
+                    for ((aName, aValue) in value.otherAttributes) {
+                        out.writeAttribute(aName,  aValue)
+                    }
+                    val child = value.child
+                    when (child) {
+                        is CompactFragment -> {
+                            for (ns in child.namespaces) {
+                                if (out.getNamespaceUri(ns.prefix) != ns.namespaceURI) {
+                                    out.namespaceAttr(ns)
+                                }
+                            }
+                            child.serialize(out)
+                        }
+                        else -> encoder.delegateFormat().encodeToWriter(out, contentSerializer, child)
+                    }
+
+                }
+            } else {
+                encoder.encodeStructure(descriptor) {
+                    value.encodingStyle?.also { style ->
+                        encodeSerializableElement(descriptor, 0, URISerializer, style)
+                    }
+                    if (value.otherAttributes.isNotEmpty() || shouldEncodeElementDefault(descriptor, 1)) {
+                        encodeSerializableElement(descriptor, 1, SoapSerialObjects.attrsSerializer, value.otherAttributes)
+                    }
+                    encodeSerializableElement(descriptor, 2, contentSerializer, value.child)
+                }
+            }
+        }
+
     }
 
     companion object {
 
-        val ELEMENTLOCALNAME = "Body"
+        const val ELEMENTLOCALNAME = "Body"
         val ELEMENTNAME = QName(Envelope.NAMESPACE, ELEMENTLOCALNAME, Envelope.PREFIX)
 
     }

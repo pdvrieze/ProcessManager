@@ -72,7 +72,7 @@ class SoapMethodWrapper(owner: Any, method: Method) : WsMethodWrapper(owner, met
                 params = Arrays.asList(
                     Tripple.tripple(SoapHelper.RESULT, String::class.java, "result"),
                     Tripple.tripple("result", Void::class.java, null)
-                                      )
+                )
                 headers = emptyList()
 
             } else if (result is ActivityResponse<*,*>) {
@@ -104,7 +104,7 @@ class SoapMethodWrapper(owner: Any, method: Method) : WsMethodWrapper(owner, met
                 params = Arrays.asList(
                     Tripple.tripple(SoapHelper.RESULT, String::class.java, "result"),
                     Tripple.tripple("result", returnType, returnValue)
-                                      )
+                )
                 headers = listOf(result)
 
             } else {
@@ -112,7 +112,7 @@ class SoapMethodWrapper(owner: Any, method: Method) : WsMethodWrapper(owner, met
                 params = Arrays.asList(
                     Tripple.tripple(SoapHelper.RESULT, String::class.java, "result"),
                     Tripple.tripple("result", method.returnType, result)
-                                      )
+                )
                 headers = emptyList()
             }
             try {
@@ -138,7 +138,7 @@ class SoapMethodWrapper(owner: Any, method: Method) : WsMethodWrapper(owner, met
 
         ensureNoUnunderstoodHeaders(envelope)
         processSoapHeader(envelope.header)
-        val es = envelope.encodingStyle
+        val es = envelope.body.encodingStyle
         if (es == SOAP_ENCODING) {
             try {
                 processSoapBody(envelope, attachments)
@@ -152,7 +152,7 @@ class SoapMethodWrapper(owner: Any, method: Method) : WsMethodWrapper(owner, met
     }
 
     private fun ensureNoUnunderstoodHeaders(envelope: Envelope<*>) {
-        if (envelope.header != null && envelope.header!!.any.size > 0) {
+        if (envelope.header.blocks.isNotEmpty()) {
             throw MessagingFormatException("Soap header not understood")
         }
     }
@@ -166,10 +166,10 @@ class SoapMethodWrapper(owner: Any, method: Method) : WsMethodWrapper(owner, met
     @Throws(XmlException::class)
     private fun processSoapBody(
         envelope: Envelope<out ICompactFragment>,
-        attachments: Map<String, out DataSource>
-                               ) {
-        val body = envelope.body!!
-        val reader = body.bodyContent!!.getXmlReader()
+        attachments: Map<String, DataSource>
+    ) {
+        val body = envelope.body
+        val reader = body.child.getXmlReader()
         reader.nextTag()
         assertRootNode(reader)
 
@@ -201,7 +201,7 @@ class SoapMethodWrapper(owner: Any, method: Method) : WsMethodWrapper(owner, met
                     throw MessagingFormatException(
                         "Missing parameter " + (i + 1) + " of type " + parameterTypes[i] + " for method " +
                             method
-                                                  )
+                    )
                 }
                 name = params.keys.iterator().next()
             } else {
@@ -214,7 +214,7 @@ class SoapMethodWrapper(owner: Any, method: Method) : WsMethodWrapper(owner, met
                     continue //Finish the parameter, we don't need to unmarshal
                 } else if (parameterTypes[i].isAssignableFrom(
                         String::class.java
-                                                             ) && envelope.header!!.principal != null
+                    ) && envelope.header!!.principal != null
                 ) {
                     this.params[i] = envelope.header!!.principal!!.name
                     continue

@@ -72,7 +72,7 @@ object SoapHelper {
         fun deserializationTarget(
             clazz: Class<*>,
             paramContext: Array<Annotation>
-                                 ): Class<out XmlDeserializerFactory<*>>? {
+        ): Class<out XmlDeserializerFactory<*>>? {
             val annotation = getFactoryAnnotation(clazz, paramContext)
             return annotation?.value?.java
         }
@@ -252,7 +252,7 @@ object SoapHelper {
                 wrapper = ownerDoc.createElementNS(
                     SOAP_RPC_RESULT.namespaceURI,
                     rpcprefix + ":" + SOAP_RPC_RESULT.localPart
-                                                  )
+                )
             }
             pMessage.appendChild(wrapper)
 
@@ -318,7 +318,7 @@ object SoapHelper {
         context: Array<Class<*>>,
         useSiteAnnotations: Array<Annotation>,
         source: Source
-                           ): T? {
+    ): T? {
         val `in` = XmlStreaming.newReader(source)
         val env = Envelope.deserialize(`in`)
         return processResponse(resultType, context, useSiteAnnotations, env)
@@ -329,10 +329,10 @@ object SoapHelper {
         context: Array<Class<*>>,
         useSiteAnnotations: Array<Annotation>,
         env: Envelope<out ICompactFragment>
-                                   ): T? {
-        val bodyContent = env.body!!.bodyContent
+    ): T? {
+        val bodyContent = env.body.child
         try {
-            val reader = bodyContent!!.getXmlReader()
+            val reader = bodyContent.getXmlReader()
             while (reader.hasNext()) {
                 when (reader.next()) {
                     EventType.TEXT                 -> if (!isXmlWhitespace(reader.text)) {
@@ -361,7 +361,7 @@ object SoapHelper {
         context: Array<Class<*>>,
         useSiteAnnotations: Array<Annotation>,
         pContent: Writable
-                           ): T? {
+    ): T? {
         val env = Envelope.deserialize(XmlStreaming.newReader(WritableReader(pContent)))
         return processResponse(resultType, context, useSiteAnnotations, env)
     }
@@ -456,9 +456,9 @@ object SoapHelper {
             return mutableMapOf()
         }
         val result = LinkedHashMap<String, Node>()
-        for (frag in pHeader.any) {
+        for (frag in pHeader.blocks) {
 
-            val node = DomUtil.childToNode(frag.getXmlReader())
+            val node = DomUtil.childToNode(frag.toCompactFragment().getXmlReader())
             result[node.localName] = node
         }
         return result
@@ -470,7 +470,7 @@ object SoapHelper {
         jaxbContext: Array<out Class<*>>?,
         useSiteAnnotations: Array<out Annotation>,
         pAttrWrapper: Node?
-                                  ): T? {
+    ): T? {
         var value: Node? = pAttrWrapper?.firstChild
         while (value != null && value is Text && isXmlWhitespace(value.data)) {
             value = value.nextSibling
@@ -505,7 +505,7 @@ object SoapHelper {
                 } else {
                     throw UnsupportedOperationException(
                         "Can not unmarshal other strings than to string or stringbuilder"
-                                                       )
+                    )
                 }
             } else {
                 var helper: Class<*>? = null
@@ -515,11 +515,11 @@ object SoapHelper {
                     val deserializationTarget = helper!!.getMethod(
                         "deserializationTarget", Class::class.java,
                         arrayOfNulls<Annotation>(0).javaClass
-                                                                  )
+                    )
                     deserializabletargetType = deserializationTarget.invoke(
                         null, pClass,
                         useSiteAnnotations
-                                                                           ) as Class<*>
+                    ) as Class<*>
                 } catch (e: ClassNotFoundException) {
                     throw RuntimeException(e)
                 } catch (e: NoSuchMethodException) {
@@ -535,10 +535,10 @@ object SoapHelper {
                         result = helper.getMethod(
                             "deserialize", Class::class.java, Class::class.java,
                             Node::class.java
-                                                 ).invoke(
+                        ).invoke(
                             null, pClass, deserializabletargetType,
                             value
-                                                         )
+                        )
                     } catch (e: IllegalAccessException) {
                         throw RuntimeException(e)
                     } catch (e: NoSuchMethodException) {
@@ -560,10 +560,10 @@ object SoapHelper {
                         throw UnsupportedOperationException(
                             "Collection parameters not yet supported: " + pMethod!!.toGenericString() + " found: '" + DomUtil.toString(
                                 value.nextSibling
-                                                                                                                                      ) + "' in " + DomUtil.toString(
+                            ) + "' in " + DomUtil.toString(
                                 value.parentNode
-                                                                                                                                                                    )
-                                                           )
+                            )
+                        )
                     }
                     try {
                         val context: JAXBContext

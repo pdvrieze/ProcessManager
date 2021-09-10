@@ -23,6 +23,7 @@ import nl.adaptivity.ws.soap.SoapHelper
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.EventType
+import nl.adaptivity.xmlutil.serialization.CompactFragmentSerializer
 import nl.adaptivity.xmlutil.serialization.XML
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -71,24 +72,27 @@ class TestSoapHelper {
     @Throws(Exception::class)
     fun testUnmarshalSoapResponse() {
         val env = Envelope.deserialize(XmlStreaming.newReader(StringReader(SOAP_RESPONSE1)))
-        val bodyContent = env.body!!.bodyContent as CompactFragment?
+        val bodyContent = env.body.child as CompactFragment?
         assertXMLEqual(SOAP_RESPONSE1_BODY, bodyContent!!.contentString)
     }
 
     @Test
     @Throws(Exception::class)
     fun testRoundtripSoapResponse() {
-        val env = Envelope.deserialize(XmlStreaming.newReader(StringReader(SOAP_RESPONSE1)))
-        val caw = CharArrayWriter()
-        val out = DebugWriter(XmlStreaming.newWriter(caw))
-        XML.encodeToWriter(out, env)
-        out.close()
-        assertXMLEqual(SOAP_RESPONSE1, caw.toString())
+        val xml:XML = XML { indent = 2; autoPolymorphic = true}
+        val serializer = Envelope.Serializer(CompactFragmentSerializer)
+        val env: Envelope<CompactFragment> = xml.decodeFromString(serializer, SOAP_RESPONSE1)
+        assertXMLEqual(SOAP_RESPONSE1_BODY, env.body.child.contentString.trim())
+
+        val serialized = xml.encodeToString(serializer, env)
+        assertXMLEqual(SOAP_RESPONSE1, serialized)
     }
 
     @Test
     @Throws(Exception::class)
     fun testRoundtripSoapResponse2() {
+        val xml:XML = XML { indent = 2; autoPolymorphic = true}
+        val serializer = Envelope.Serializer(CompactFragmentSerializer)
         val env = Envelope.deserialize(XmlStreaming.newReader(StringReader(SOAP_RESPONSE2)))
         val caw = CharArrayWriter()
         val out = DebugWriter(XmlStreaming.newWriter(caw))
@@ -104,7 +108,7 @@ class TestSoapHelper {
         dbf.isNamespaceAware = true
         val doc = dbf.newDocumentBuilder().parse(InputSource(StringReader(SOAP_RESPONSE1)))
         val env = Envelope.deserialize(XmlStreaming.newReader(DOMSource(doc)))
-        val bodyContent = env.body!!.bodyContent as CompactFragment?
+        val bodyContent = env.body.child as CompactFragment?
         assertXMLEqual(SOAP_RESPONSE1_BODY, bodyContent!!.contentString)
     }
 
@@ -154,36 +158,14 @@ class TestSoapHelper {
     </getProcessNodeInstanceSoapResponse>
   """
         private val SOAP_RESPONSE1 =
-            """<soap:Envelope encodingStyle="http://www.w3.org/2003/05/soap-encoding" xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
-  <soap:Body>$SOAP_RESPONSE1_BODY  </soap:Body>
+            """<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
+  <soap:Body soap:encodingStyle="http://www.w3.org/2003/05/soap-encoding">$SOAP_RESPONSE1_BODY  </soap:Body>
 </soap:Envelope>
 """
 
         private val SOAP_RESPONSE2 =
-            "<soap:Envelope encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\" xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +
-                "  <soap:Body>" + ("<getProcessNodeInstanceSoapResponse>\n" +
-                //                                                                  "      <rpc:result xmlns:rpc=\"http://www.w3.org/2003/05/soap-rpc\">result</rpc:result>\n" +
-                //                                                                  "      <result>\n" +
-                //                                                                  "        <pe:nodeInstance xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" handle=\"18\" nodeid=\"ac2\" processinstance=\"5\" state=\"Acknowledged\">\n" +
-                //                                                                  "          <pe:predecessor>16</pe:predecessor>\n" +
-                //                                                                  "          <pe:body>\n" +
-                //                                                                  "            <Envelope:Envelope xmlns=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:Envelope=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\">\n" +
-                //                                                                  "              <Body>\n" +
-                //                                                                  "                <umh:postTask xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
-                //                                                                  "                  <repliesParam>\n" +
-                //                                                                  "                    <jbi:endpointDescriptor xmlns:jbi=\"http://adaptivity.nl/jbi\" endpointLocation=\"http://localhost:8080/ProcessEngine\" endpointName=\"soap\" serviceLocalName=\"ProcessEngine\" serviceNS=\"http://adaptivity.nl/ProcessEngine/\"/>\n" +
-                //                                                                  "                  </repliesParam>\n" +
-                //                                                                  "                  <taskParam>\n" +
-                //                                                                  "                    <task instancehandle=\"5\" owner=\"pdvrieze\" remotehandle=\"18\" summary=\"Task Bar\">\n" +
-                //                                                                  "                      <item type=\"label\" value=\"Hi . Welcome!\"/>\n" +
-                //                                                                  "                    </task>\n" +
-                //                                                                  "                  </taskParam>\n" +
-                //                                                                  "                </umh:postTask>\n" +
-                //                                                                  "              </Body>\n" +
-                //                                                                  "            </Envelope:Envelope>\n" +
-                //                                                                  "          </pe:body>\n" +
-                //                                                                  "        </pe:nodeInstance>\n" +
-                //                                                                  "      </result>\n" +
+            "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +
+                "  <soap:Body soap:encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\">" + ("<getProcessNodeInstanceSoapResponse>\n" +
                 "    </getProcessNodeInstanceSoapResponse>\n" +
                 "  ") +
                 "  </soap:Body>\n" +

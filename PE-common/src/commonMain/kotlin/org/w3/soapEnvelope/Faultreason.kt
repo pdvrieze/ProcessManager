@@ -24,6 +24,9 @@
 
 package org.w3.soapEnvelope
 
+import kotlinx.serialization.Serializable
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
+
 
 /**
  *
@@ -46,13 +49,8 @@ package org.w3.soapEnvelope
  * </complexType>
  * ```
  */
-class Faultreason {
-
-    private var _text: MutableList<Reasontext>? = null
-
-    val text: MutableList<Reasontext>
-        get() {
-            return this._text ?: mutableListOf<Reasontext>().also { _text = it }
-        }
-
-}
+@Serializable
+@XmlSerialName("Reason", Envelope.NAMESPACE, Envelope.PREFIX)
+class Faultreason(
+    val text: List<Reasontext>
+)

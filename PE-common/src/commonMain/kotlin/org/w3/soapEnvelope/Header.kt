@@ -24,9 +24,20 @@
 
 package org.w3.soapEnvelope
 
+import kotlinx.serialization.*
+import kotlinx.serialization.builtins.ListSerializer
+import kotlinx.serialization.builtins.MapSerializer
+import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.descriptors.buildClassSerialDescriptor
+import kotlinx.serialization.encoding.*
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.ProcessConsts.Engine
-import nl.adaptivity.xmlutil.QName
+import nl.adaptivity.util.multiplatform.URI
+import nl.adaptivity.util.net.devrieze.serializers.URISerializer
+import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.CompactFragmentSerializer
+import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import nl.adaptivity.xmlutil.util.CompactFragment
 
@@ -55,22 +66,107 @@ import nl.adaptivity.xmlutil.util.CompactFragment
  * </complexType>
  *
  */
-class Header {
-
-    @XmlSerialName("any", Envelope.NAMESPACE, Envelope.PREFIX)
-    protected var _any: MutableList<CompactFragment>? = null
-
-    val any: MutableList<CompactFragment>
-        get() {
-            return this._any ?: mutableListOf<CompactFragment>().also { _any = it }
-        }
-
-    val otherAttributes = mutableMapOf<QName, String>()
-
+@Serializable(Header.Companion::class)
+class Header(
+    val blocks: List<Block<Any>> = emptyList(),
+    val encodingStyle: URI? = null,
+    val otherAttributes: Map<QName, String> = emptyMap()
+) {
+    @Transient
     var principal: SimplePrincipal? = null
         private set
 
-    companion object {
+    sealed class Block<out T: Any> {
+        abstract fun get(): T
+
+        abstract internal fun toCompactFragment(): CompactFragment
+    }
+
+    class SupportedBlock<T: Any>(val data: T, val serializer: KSerializer<T>): Block<T>() {
+        override fun get(): T = data
+
+        override fun toCompactFragment(): CompactFragment {
+            val s: SerializationStrategy<T> = serializer
+            return CompactFragment(XML.encodeToString<T>(s, value = data))
+        }
+
+        companion object {
+            inline operator fun <reified T:Any> invoke(data: T): SupportedBlock<T> {
+                val serializer = kotlinx.serialization.serializer<T>()
+                return SupportedBlock(data, serializer)
+            }
+        }
+    }
+
+    class UnsupportedBlock(val xml: CompactFragment): Block<CompactFragment>() {
+        override fun get(): CompactFragment = xml
+        override fun toCompactFragment(): CompactFragment = xml
+    }
+
+    companion object : KSerializer<Header> {
+        private val blockSerializer = ListSerializer(CompactFragmentSerializer)
+
+        @OptIn(ExperimentalSerializationApi::class)
+        override val descriptor: SerialDescriptor = buildClassSerialDescriptor(Header::class.qualifiedName!!) {
+            annotations = SoapSerialObjects.headerAnnotations
+            element("encodingStyle", URISerializer.descriptor, SoapSerialObjects.encodingStyleAnnotations, true)
+            element("otherAttributes", SoapSerialObjects.attrsSerializer.descriptor, isOptional = true)
+            element("blocks", blockSerializer.descriptor)
+        }
+
+        override fun deserialize(decoder: Decoder): Header {
+            var encodingStyle: URI? = null
+            var otherAttributes: Map<QName, String> = emptyMap()
+            lateinit var blocks: List<Block<Any>>
+            decoder.decodeStructure(descriptor) {
+                if (decoder is XML.XmlInput) {
+                    val reader: XmlReader = decoder.input
+                    otherAttributes = reader.attributes.filter {
+                        when {
+                            it.prefix == XMLConstants.XMLNS_ATTRIBUTE ||
+                                (it.prefix=="" && it.localName == XMLConstants.XMLNS_ATTRIBUTE) -> false
+                            it.namespaceUri!= Envelope.NAMESPACE -> true
+                            it.localName == "encodingStyle" -> { encodingStyle = URI(it.value); false }
+                            else -> true
+                        }
+                    }.associate { QName(it.namespaceUri, it.localName, it.prefix) to it.value }
+                    val myBlocks = mutableListOf<Block<Any>>()
+                    while (reader.nextTag()!=EventType.END_ELEMENT) {
+                        // TODO handle "supported header elements"
+                        val cf = reader.elementContentToFragment().let {
+                            it as? CompactFragment ?: CompactFragment(it)
+                        }
+                        myBlocks.add(UnsupportedBlock(cf))
+                    }
+                    blocks = myBlocks
+                } else {
+                    // TODO handle "supported header elements"
+                    var idx: Int
+                    while (decodeElementIndex(descriptor).also { idx = it } != CompositeDecoder.DECODE_DONE) {
+                        when (idx) {
+                            0 -> encodingStyle = decodeSerializableElement(descriptor, idx, URISerializer, encodingStyle)
+                            1 -> otherAttributes = decodeSerializableElement(descriptor, idx, SoapSerialObjects.attrsSerializer, otherAttributes)
+                            2 -> blocks = decodeSerializableElement(descriptor, idx, ListSerializer(CompactFragmentSerializer)).map { UnsupportedBlock(it) }
+                        }
+                    }
+                }
+            }
+            return Header(blocks, encodingStyle, otherAttributes)
+        }
+
+        override fun serialize(encoder: Encoder, value: Header) {
+            encoder.encodeStructure(descriptor) {
+                value.encodingStyle?.also { style ->
+                    encodeSerializableElement(descriptor, 0, URISerializer, style)
+                }
+                if (value.otherAttributes.isNotEmpty()) {
+                    encodeSerializableElement(descriptor, 1, SoapSerialObjects.attrsSerializer, value.otherAttributes)
+                }
+                // TODO optimize this for xml
+                val blocks = value.blocks.map(Block<Any>::toCompactFragment)
+                encodeSerializableElement(descriptor, 2, blockSerializer, blocks)
+            }
+        }
 
         const val ELEMENTLOCALNAME = "Header"
         val ELEMENTNAME = QName(Envelope.NAMESPACE, ELEMENTLOCALNAME, Envelope.PREFIX)
@@ -78,7 +174,7 @@ class Header {
         val PRINCIPALQNAME = QName(
             Engine.NAMESPACE, "principal",
             Engine.NSPREFIX
-                                  )
+        )
     }
 
 }

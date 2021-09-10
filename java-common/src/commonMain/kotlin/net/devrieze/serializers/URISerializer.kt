@@ -26,7 +26,7 @@ import nl.adaptivity.util.multiplatform.URI
 import nl.adaptivity.util.multiplatform.name
 import nl.adaptivity.util.multiplatform.toUri
 
-class URISerializer: KSerializer<URI> {
+object URISerializer: KSerializer<URI> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(URISerializer::class.name, PrimitiveKind.STRING)
 
     override fun serialize(encoder: Encoder, value: URI) {

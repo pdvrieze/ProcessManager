@@ -24,7 +24,11 @@
 
 package org.w3.soapEnvelope
 
+import kotlinx.serialization.Serializable
 import nl.adaptivity.xmlutil.QName
+import nl.adaptivity.xmlutil.serialization.CompactFragmentSerializer
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
+import nl.adaptivity.xmlutil.util.CompactFragment
 
 /**
  *
@@ -48,28 +52,12 @@ import nl.adaptivity.xmlutil.QName
  * </complexType>
  * ```
  */
-class Detail {
-
-    private var _any: MutableList<Any?>? = null
-
-    var any: MutableList<Any?>
-        get() = _any ?: mutableListOf<Any?>().also { _any = it }
-        set(value) {
-            _any = value as MutableList<Any?>
-        }
-
-    /**
-     * Gets a map that contains attributes that aren't bound to any typed property
-     * on this class.
-     *
-     *
-     * the map is keyed by the name of the attribute and the value is the string
-     * value of the attribute. the map returned by this method is live, and you
-     * can add new attribute by updating the map directly. Because of this design,
-     * there's no setter.
-     *
-     * @return always non-null
-     */
-    val otherAttributes: Map<QName, String> = HashMap()
-
+@Serializable
+@XmlSerialName("Detail", Envelope.NAMESPACE, Envelope.PREFIX)
+class Detail(
+    @Serializable(CompactFragmentSerializer::class)
+    val content: CompactFragment
+) {
+    // TODO add encodingStyle
+    // TODO add generic attributes
 }
