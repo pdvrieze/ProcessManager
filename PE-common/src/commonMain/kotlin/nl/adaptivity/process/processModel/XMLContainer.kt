@@ -16,14 +16,13 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.Serializable
-import nl.adaptivity.serialutil.CharArrayAsStringSerializer
 import nl.adaptivity.util.MyGatheringNamespaceContext
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.multiplatform.assert
+import nl.adaptivity.util.xml.CombinedNamespaceContext
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.util.ICompactFragment
-import nl.adaptivity.xmlutil.util.NamespaceAddingStreamReader
+import nl.adaptivity.util.xml.NamespaceAddingStreamReader
 import nl.adaptivity.xmlutil.util.XMLFragmentStreamReader
 
 
@@ -34,7 +33,7 @@ import nl.adaptivity.xmlutil.util.XMLFragmentStreamReader
 @OptIn(XmlUtilInternal::class)
 abstract class XMLContainer
 private constructor(
-    override var namespaces: SimpleNamespaceContext,
+    override var namespaces: IterableNamespaceContext,
     override var content: CharArray
 ) : ICompactFragment {
 
@@ -79,9 +78,9 @@ private constructor(
     @Deprecated("XMLContainer should be immutable")
     protected fun updateNamespaceContext(additionalContext: Iterable<Namespace>) {
         val nsmap = mutableMapOf<String, String>()
-        val context = when (namespaces.size) {
+        val context = when ((namespaces as? SimpleNamespaceContext)?.size) {
             0    -> SimpleNamespaceContext.from(additionalContext)
-            else -> namespaces.combine(additionalContext)
+            else -> CombinedNamespaceContext(namespaces, SimpleNamespaceContext.from(additionalContext))
         }
         val gatheringNamespaceContext = MyGatheringNamespaceContext(nsmap, context)
         visitNamespaces(gatheringNamespaceContext)
@@ -90,7 +89,10 @@ private constructor(
     }
 
     internal fun addNamespaceContext(namespaceContext: SimpleNamespaceContext) {
-        namespaces = if (namespaces.size == 0) namespaceContext else (namespaces + namespaceContext)
+        namespaces = when ((namespaces as? SimpleNamespaceContext)?.size) {
+            0    -> namespaceContext
+            else -> (namespaces + namespaceContext)
+        }
     }
 
     protected fun visitNamesInElement(source: XmlReader) {

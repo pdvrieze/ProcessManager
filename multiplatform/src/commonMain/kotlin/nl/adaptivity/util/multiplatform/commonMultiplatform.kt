@@ -73,7 +73,7 @@ expect annotation class JvmMultifileClass()
 )
 expect annotation class Throws(vararg val exceptionClasses: KClass<out Throwable>)
 
-expect class URI {
+expect class URI constructor(str: String) {
     fun getPath(): String
 }
 

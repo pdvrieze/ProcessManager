@@ -205,6 +205,7 @@ private constructor() : IMessenger {
          */
         constructor(result: T?) {
             if (result == null) {
+                @Suppress("UNCHECKED_CAST")
                 this.result = NULL as T
             } else {
                 this.result = result
@@ -224,6 +225,7 @@ private constructor() : IMessenger {
                     synchronized(this) {
                         if (result == null) {
                             // Use separate value to allow for suppressing of warning.
+                            @Suppress("UNCHECKED_CAST")
                             val v = NULL as T
                             this.result = v
                         } else {
@@ -477,10 +479,10 @@ private constructor() : IMessenger {
     override fun registerEndpoint(endpoint: EndpointDescriptor) {
         // Note that even though it's a concurrent map we still need to synchronize to
         // prevent race conditions with multiple registrations.
-        var service: ConcurrentMap<String, EndpointDescriptor>? = services!![endpoint.serviceName]
+        var service: ConcurrentMap<String, EndpointDescriptor>? = services[endpoint.serviceName]
         if (service == null) {
             service = ConcurrentHashMap()
-            services!![endpoint.serviceName] = service
+            services[endpoint.serviceName] = service
         }
         if (service.containsKey(endpoint.endpointName)) {
             service.remove(endpoint.endpointName)
@@ -490,8 +492,8 @@ private constructor() : IMessenger {
 
     override fun getRegisteredEndpoints(): List<EndpointDescriptor> {
         val result = ArrayList<EndpointDescriptor>()
-        synchronized(services!!) {
-            for (service in services!!.values) {
+        synchronized(services) {
+            for (service in services.values) {
                 for (endpoint in service.values) {
                     result.add(endpoint)
                 }
@@ -501,11 +503,11 @@ private constructor() : IMessenger {
     }
 
     override fun unregisterEndpoint(endpoint: EndpointDescriptor): Boolean {
-        synchronized(services!!) {
-            val service = services!![endpoint.serviceName] ?: return false
+        synchronized(services) {
+            val service = services[endpoint.serviceName] ?: return false
             val result = service.remove(endpoint.endpointName)
             if (service.isEmpty()) {
-                services!!.remove(endpoint.serviceName)
+                services.remove(endpoint.serviceName)
             }
             return result != null
         }

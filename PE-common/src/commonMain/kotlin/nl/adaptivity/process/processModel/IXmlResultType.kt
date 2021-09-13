@@ -69,7 +69,6 @@ interface IXmlResultType {
 
     companion object Serializer : DelegatingSerializer<IXmlResultType, XmlResultType>(XmlResultType.serializer()) {
 
-        @JvmStatic
         fun serializer(): Serializer = this
 
         override fun fromDelegate(delegate: XmlResultType): IXmlResultType = delegate

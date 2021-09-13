@@ -65,7 +65,7 @@ class Faultcode(
 
     val value: Values?
         get() {
-            val qNameValue = this.qNameValue ?: return null
+            val qNameValue = this.qNameValue
 
             return Values.values().firstOrNull { c ->
                 c.qName.namespaceURI == qNameValue.namespaceURI && c.qName.localPart == qNameValue.namespaceURI

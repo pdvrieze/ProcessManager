@@ -20,9 +20,9 @@ import nl.adaptivity.process.engine.impl.dom.*
 import nl.adaptivity.process.engine.impl.getClass
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.util.multiplatform.assert
+import nl.adaptivity.util.xml.CombinedNamespaceContext
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.XmlEvent.*
-import nl.adaptivity.xmlutil.util.CombiningNamespaceContext
 import kotlin.jvm.JvmOverloads
 
 
@@ -30,17 +30,16 @@ class PETransformer private constructor(
     private val context: PETransformerContext,
     private val namespaceContext: NamespaceContext?,
     private val isRemoveWhitespace: Boolean
-                                       ) {
-
+) {
 
     private class TransformingFilter(
         private val context: PETransformerContext,
         private val filterNamespaceContext: NamespaceContext?,
         delegate: XmlReader,
         private val isRemoveWhitespace: Boolean
-                                    ) : XmlBufferedReader(delegate) {
+    ) : XmlBufferedReader(delegate) {
 
-
+        @OptIn(XmlUtilInternal::class)
         public override fun doPeek(): List<XmlEvent> {
             val results = ArrayList<XmlEvent>(1)
 
@@ -134,9 +133,10 @@ class PETransformer private constructor(
                             element.locationInfo, element.namespaceUri, element.localName,
                             element.prefix,
                             newAttrs.toTypedArray(),
-                            newNamespaces.toTypedArray()
-                                         )
-                               )
+                            namespaceContext.freeze(),
+                            newNamespaces
+                        )
+                    )
                 } else {
                     results.add(element)
                 }
@@ -156,22 +156,22 @@ class PETransformer private constructor(
                             }
                             if (!(elem.eventType === EventType.END_ELEMENT && name.isEqualNames(
                                     elem as EndElementEvent
-                                                                                               ))
+                                ))
                             ) {
                                 throw XmlException(
                                     "Unexpected tag found ($elem) when expecting an end tag for $name"
-                                                  )
+                                )
                             }
                             return
                         }
                         else                                              -> {
                             if (!(elem.eventType === EventType.END_ELEMENT && name.isEqualNames(
                                     elem as EndElementEvent
-                                                                                               ))
+                                ))
                             ) {
                                 throw XmlException(
                                     "Unexpected tag found ($elem) when expecting an end tag for $name"
-                                                  )
+                                )
                             }
                             return
                         }
@@ -185,7 +185,7 @@ class PETransformer private constructor(
             event: StartElementEvent,
             attributes: Map<String, CharSequence>,
             hasDefault: Boolean
-                                  ) {
+        ) {
             val valueName = attributes["value"]
             val xpath = attributes["xpath"]
             if (valueName == null) {
@@ -193,7 +193,7 @@ class PETransformer private constructor(
                     addAllRegular(
                         results,
                         applyXpath(event.namespaceContext, context.resolveDefaultValue(), xpath)
-                                 )
+                    )
                 } else {
                     throw XmlException("This context does not allow for a missing value parameter")
                 }
@@ -201,7 +201,7 @@ class PETransformer private constructor(
                 addAllRegular(
                     results,
                     applyXpath(event.namespaceContext, context.resolveElementValue(valueName), xpath)
-                             )
+                )
             }
         }
 
@@ -213,11 +213,12 @@ class PETransformer private constructor(
             }
         }
 
+        @OptIn(XmlUtilInternal::class)
         private fun applyXpath(
             namespaceContext: NamespaceContext,
             pendingEvents: List<XmlEvent>,
             xpath: CharSequence?
-                              ): Collection<XmlEvent> {
+        ): Collection<XmlEvent> {
             val xpathstr = xpath?.toString()
             if (xpathstr == null || "." == xpathstr) {
                 return pendingEvents
@@ -228,7 +229,7 @@ class PETransformer private constructor(
             if (filterNamespaceContext == null) {
                 rawPath.setNamespaceContext(namespaceContext)
             } else {
-                rawPath.setNamespaceContext(CombiningNamespaceContext(namespaceContext, filterNamespaceContext))
+                rawPath.setNamespaceContext(CombinedNamespaceContext(namespaceContext, filterNamespaceContext))
             }
             val xpathexpr = rawPath.compile(xpathstr)
             val result = ArrayList<XmlEvent>()
@@ -272,7 +273,7 @@ class PETransformer private constructor(
                 return Attribute(
                     null, XMLConstants.NULL_NS_URI, paramName, XMLConstants.DEFAULT_NS_PREFIX,
                     value
-                                         )
+                )
             } else {
                 throw MessagingFormatException("Missing parameter name")
             }
@@ -295,7 +296,7 @@ class PETransformer private constructor(
         override fun resolveElementValue(valueName: CharSequence): List<XmlEvent> {
             val data = getData(valueName.toString()) ?: throw IllegalArgumentException(
                 "No value with name $valueName found"
-                                                                                      )
+            )
             return toEvents(data)
         }
 
@@ -309,7 +310,7 @@ class PETransformer private constructor(
                     when (event) {
                         EventType.ATTRIBUTE, EventType.DOCDECL, EventType.START_ELEMENT                                       -> throw XmlException(
                             "Unexpected node found while resolving attribute. Only CDATA allowed: (${event.getClass()}) " + event
-                                                                                                                                                   )
+                        )
                         EventType.CDSECT, EventType.TEXT                                                                      -> {
                             if (!isIgnorableWhiteSpace(dataReader)) {
                                 result.append(dataReader.text)
@@ -321,7 +322,7 @@ class PETransformer private constructor(
                                                                                                                               -> return result.toString()
                         else                                                                                                  -> throw XmlException(
                             "Unexpected node type: $event"
-                                                                                                                                                   )
+                        )
                     }// ignore
                 }
             } catch (e: XmlException) {
@@ -390,7 +391,7 @@ class PETransformer private constructor(
             namespaceContext: NamespaceContext?,
             removeWhitespace: Boolean,
             vararg processData: ProcessData
-                  ): PETransformer {
+        ): PETransformer {
             return PETransformer(ProcessDataContext(*processData), namespaceContext, removeWhitespace)
         }
 
@@ -422,7 +423,7 @@ class PETransformer private constructor(
             namespaceContext: NamespaceContext?,
             context: PETransformerContext,
             removeWhitespace: Boolean = true
-                  ): PETransformer {
+        ): PETransformer {
             return PETransformer(context, namespaceContext, removeWhitespace)
         }
 

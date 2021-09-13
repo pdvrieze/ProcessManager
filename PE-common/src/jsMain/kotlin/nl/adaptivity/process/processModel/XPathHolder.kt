@@ -19,7 +19,9 @@ package nl.adaptivity.process.processModel
 import kotlinx.browser.document
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.util.Constants
+import nl.adaptivity.util.MyGatheringNamespaceContext
 import nl.adaptivity.util.multiplatform.assert
+import nl.adaptivity.util.xml.CombinedNamespaceContext
 import nl.adaptivity.xmlutil.util.CombiningNamespaceContext
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.*
@@ -87,21 +89,21 @@ actual abstract class XPathHolder : XMLContainer {
         assert(value == null)
     }
 
+    @OptIn(XmlUtilInternal::class)
     actual override fun deserializeChildren(reader: XmlReader) {
         super.deserializeChildren(reader)
         val namespaces = mutableMapOf<String, String>()
-        val gatheringNamespaceContext = CombiningNamespaceContext(
+        val gatheringNamespaceContext = CombinedNamespaceContext(
             SimpleNamespaceContext.from(originalNSContext),
-            GatheringNamespaceContext(
-                reader.namespaceContext, namespaces
-                                     )
-                                                                 )
+            MyGatheringNamespaceContext(namespaces, reader.namespaceContext)
+        )
         visitNamespaces(gatheringNamespaceContext)
-        if (namespaces.size > 0) {
+        if (namespaces.isNotEmpty()) {
             addNamespaceContext(SimpleNamespaceContext(namespaces))
         }
     }
 
+    @OptIn(XmlUtilInternal::class)
     actual override fun serializeAttributes(out: XmlWriter) {
         super.serializeAttributes(out)
         if (pathString != null) {
@@ -109,12 +111,7 @@ actual abstract class XPathHolder : XMLContainer {
             // Have a namespace that gathers those namespaces that are not known already in the outer context
             val referenceContext = out.namespaceContext
             // TODO streamline this, the right context should not require the filtering on the output context later.
-            val nsc = GatheringNamespaceContext(
-                CombiningNamespaceContext(
-                    referenceContext, SimpleNamespaceContext
-                        .from(originalNSContext)
-                                         ), namepaces
-                                               )
+            val nsc = MyGatheringNamespaceContext(namepaces, referenceContext, SimpleNamespaceContext.from(originalNSContext))
             visitXpathUsedPrefixes(pathString, nsc)
             for ((key, value) in namepaces) {
                 if (value != referenceContext.getNamespaceURI(key)) {

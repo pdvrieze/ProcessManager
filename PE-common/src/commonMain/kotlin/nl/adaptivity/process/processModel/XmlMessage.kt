@@ -98,7 +98,7 @@ class XmlMessage : XMLContainer, IXmlMessage {
         }
 
     @OptIn(XmlUtilInternal::class)
-    override var namespaces: SimpleNamespaceContext
+    override var namespaces: IterableNamespaceContext
         get() = super.namespaces
         set(value) {
             super.namespaces = value

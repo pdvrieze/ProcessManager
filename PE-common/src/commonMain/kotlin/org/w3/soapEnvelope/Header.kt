@@ -36,6 +36,7 @@ import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.util.multiplatform.URI
 import nl.adaptivity.util.net.devrieze.serializers.URISerializer
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.core.impl.multiplatform.name
 import nl.adaptivity.xmlutil.serialization.CompactFragmentSerializer
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
@@ -106,8 +107,8 @@ class Header(
     companion object : KSerializer<Header> {
         private val blockSerializer = ListSerializer(CompactFragmentSerializer)
 
-        @OptIn(ExperimentalSerializationApi::class)
-        override val descriptor: SerialDescriptor = buildClassSerialDescriptor(Header::class.qualifiedName!!) {
+        @OptIn(ExperimentalSerializationApi::class, nl.adaptivity.xmlutil.XmlUtilInternal::class)
+        override val descriptor: SerialDescriptor = buildClassSerialDescriptor(Header::class.name) {
             annotations = SoapSerialObjects.headerAnnotations
             element("encodingStyle", URISerializer.descriptor, SoapSerialObjects.encodingStyleAnnotations, true)
             element("otherAttributes", SoapSerialObjects.attrsSerializer.descriptor, isOptional = true)

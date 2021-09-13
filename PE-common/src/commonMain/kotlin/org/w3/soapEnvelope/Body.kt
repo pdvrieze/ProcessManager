@@ -35,6 +35,7 @@ import nl.adaptivity.util.multiplatform.URI
 import nl.adaptivity.util.multiplatform.createUri
 import nl.adaptivity.util.net.devrieze.serializers.URISerializer
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.core.impl.multiplatform.name
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlValue
 import nl.adaptivity.xmlutil.util.CompactFragment
@@ -82,8 +83,8 @@ class Body<T: Any>(
 
     class Serializer<T: Any>(private val contentSerializer: KSerializer<T>): KSerializer<Body<T>> {
 
-        @OptIn(ExperimentalSerializationApi::class)
-        override val descriptor: SerialDescriptor = buildClassSerialDescriptor(Body::class.qualifiedName!!) {
+        @OptIn(ExperimentalSerializationApi::class, XmlUtilInternal::class)
+        override val descriptor: SerialDescriptor = buildClassSerialDescriptor(Body::class.name) {
             annotations = SoapSerialObjects.bodyAnnotations
             element("encodingStyle", URISerializer.descriptor, SoapSerialObjects.encodingStyleAnnotations, true)
             element("otherAttributes", SoapSerialObjects.attrsSerializer.descriptor, isOptional = true)

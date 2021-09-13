@@ -25,10 +25,12 @@ import nl.adaptivity.process.processModel.IPlatformXmlResultType
 import nl.adaptivity.process.processModel.path
 import nl.adaptivity.util.DomUtil
 import nl.adaptivity.xmlutil.SimpleNamespaceContext
+import nl.adaptivity.xmlutil.XmlUtilInternal
 import nl.adaptivity.xmlutil.siblingsToFragment
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 
+@OptIn(XmlUtilInternal::class)
 actual fun IPlatformXmlResultType.applyData(payload: ICompactFragment?): ProcessData {
     val xPath = this.xPath
     // shortcircuit missing path

@@ -45,11 +45,11 @@ actual annotation class JvmWildcard
 actual annotation class JvmMultifileClass
 
 
-open external class URL(url:String, base:String= definedExternally) {
+open external class URL (url:String, base:String= definedExternally) {
     val pathName: String
 }
 
-actual class URI(s: String):URL(s) {
+actual class URI actual constructor(str: String):URL(str) {
     @Suppress("NOTHING_TO_INLINE")
     actual inline fun getPath(): String = pathName
 }

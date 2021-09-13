@@ -24,6 +24,7 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.util.DomUtil
 import nl.adaptivity.xmlutil.SimpleNamespaceContext
 import nl.adaptivity.xmlutil.XmlException
+import nl.adaptivity.xmlutil.XmlUtilInternal
 import nl.adaptivity.xmlutil.siblingsToFragment
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
@@ -60,6 +61,7 @@ actual fun IXmlDefineType.applyFromProcessInstance(engineData: ProcessEngineData
 }
 
 
+@OptIn(XmlUtilInternal::class)
 private fun IXmlDefineType.applyDataImpl(engineData: ProcessEngineDataAccess, predecessor: ProcessNodeInstance<*>?, hProcessInstance: Handle<SecureObject<ProcessInstance>>): ProcessData {
     val processData: ProcessData
 

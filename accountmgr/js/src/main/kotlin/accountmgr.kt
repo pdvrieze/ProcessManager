@@ -28,7 +28,7 @@ import org.w3c.xhr.XMLHttpRequest
 import uk.ac.bournemouth.darwin.sharedhtml.shared.setAliasDialog
 import uk.ac.bournemouth.darwin.util.encodeURI
 import uk.ac.bournemouth.darwin.util.foreach
-import kotlin.browser.document
+import kotlinx.browser.document
 
 fun updateLinks() {
   (document.getElementById("accountmgr.setAlias") as HTMLElement).onclick = ::displaySetAliasFormClicked

@@ -54,7 +54,7 @@ kotlin {
             attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.androidJvm)
             compilations.all {
                 tasks.getByName<KotlinCompile>(compileKotlinTaskName).kotlinOptions {
-                    jvmTarget = "1.6"
+                    jvmTarget = "1.8"
                 }
             }
         }

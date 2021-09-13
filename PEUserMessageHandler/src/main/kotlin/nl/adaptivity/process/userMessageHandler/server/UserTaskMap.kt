@@ -108,11 +108,11 @@ class UserTaskMap(connectionProvider: DBTransactionFactory<MonadicDBTransaction<
                 }
                 instance?.body?.let { body ->
                     val env = XML.decodeFromReader<Envelope<XmlTask>>(body.getXmlReader())
-                    env.body?.bodyContent?.apply {
+                    env.body.child.apply {
                         setHandleValue(handle.handleValue)
                         this.remoteHandle = remoteHandle
                         state = instance.state
-                    } ?: throw IllegalStateException("Could not properly deserialize the task")
+                    }
                 }
 
                 XmlTask(handle.handleValue)

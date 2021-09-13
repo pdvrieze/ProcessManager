@@ -36,6 +36,7 @@ import kotlinx.serialization.encoding.*
 import nl.adaptivity.serialutil.decodeElements
 import nl.adaptivity.util.multiplatform.URI
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.core.impl.multiplatform.name
 import nl.adaptivity.xmlutil.serialization.*
 import nl.adaptivity.xmlutil.util.ICompactFragment
 
@@ -84,8 +85,9 @@ class Envelope<T : Any>(
     public class Serializer<T : Any>(private val bodyContentSerializer: KSerializer<T>) : KSerializer<Envelope<T>> {
         private val bodySerializer: KSerializer<Body<T>> = Body.Serializer(bodyContentSerializer)
 
+        @OptIn(XmlUtilInternal::class)
         override val descriptor: SerialDescriptor =
-            buildClassSerialDescriptor(Envelope::class.qualifiedName!!, bodyContentSerializer.descriptor) {
+            buildClassSerialDescriptor(Envelope::class.name, bodyContentSerializer.descriptor) {
                 annotations = SoapSerialObjects.envelopeAnnotations
                 element("otherAttributes", SoapSerialObjects.attrsSerializer.descriptor, isOptional = true)
                 element<Header>("header", isOptional = true)
