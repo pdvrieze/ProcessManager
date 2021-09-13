@@ -36,31 +36,13 @@ import kotlin.jvm.JvmField
 abstract class ChildProcessModelBase<NodeT : ProcessNode> :
     ProcessModelBase<NodeT>, ChildProcessModel<NodeT> {
 
-    @SerialName("nodes")
-    @XmlPolyChildren(
-        arrayOf(
-            "nl.adaptivity.process.processModel.engine.XmlActivity\$Builder=pe:activity",
-            "nl.adaptivity.process.processModel.engine.XmlStartNode\$Builder=pe:start",
-            "nl.adaptivity.process.processModel.engine.XmlSplit\$Builder=pe:split",
-            "nl.adaptivity.process.processModel.engine.XmlJoin\$Builder=pe:join",
-            "nl.adaptivity.process.processModel.engine.XmlEndNode\$Builder=pe:end",
-            "nl.adaptivity.process.processModel.engine.XmlActivity=pe:activity",
-            "nl.adaptivity.process.processModel.engine.XmlStartNode=pe:start",
-            "nl.adaptivity.process.processModel.engine.XmlSplit=pe:split",
-            "nl.adaptivity.process.processModel.engine.XmlJoin=pe:join",
-            "nl.adaptivity.process.processModel.engine.XmlEndNode=pe:end"
-        )
-    )
-    @Serializable(IdentifiableSetSerializer::class)
     override val modelNodes: IdentifyableSet<NodeT>
 
-    @Transient
     private var _rootModel: RootProcessModel<NodeT> = XmlProcessModel(RootProcessModelBase.Builder()) as RootProcessModel<NodeT>
 
     override val rootModel: RootProcessModel<NodeT>
         get() = _rootModel
 
-    @SerialName("id")
     override val id: String?
 
     @Suppress("LeakingThis")
@@ -108,14 +90,11 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
 
     open class ModelBuilder : ProcessModelBase.Builder, ChildProcessModel.Builder {
 
-        @Transient
         private lateinit var _rootBuilder: RootProcessModel.Builder
 
-        @Transient
         override val rootBuilder: RootProcessModel.Builder
             get() = _rootBuilder
 
-        @SerialName("id")
         final override var childId: String?
 
         protected constructor() {
@@ -158,7 +137,6 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
     }
 
     companion object {
-        const val ATTR_ID = "id"
         const val ELEMENTLOCALNAME = "childModel"
         @JvmField
         val ELEMENTNAME = QName(ProcessConsts.Engine.NAMESPACE, ELEMENTLOCALNAME, ProcessConsts.Engine.NSPREFIX)

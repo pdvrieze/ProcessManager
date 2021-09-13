@@ -33,7 +33,6 @@ import nl.adaptivity.serialutil.simpleSerialClassDesc
 interface Identified : Identifiable {
     override val id: String
 
-    @Transient
     override val identifier: Identifier
         get() = Identifier(id)
 

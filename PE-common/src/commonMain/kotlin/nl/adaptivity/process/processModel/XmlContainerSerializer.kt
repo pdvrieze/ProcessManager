@@ -81,12 +81,11 @@ abstract class XmlContainerSerializer<T : XMLContainer>: KSerializer<T> {
     }
 
 
-    open class ContainerData<T : XMLContainer> {
+    protected open class ContainerData<T : XMLContainer> {
 
         var content: CharArray? = null
         var namespaces: Iterable<Namespace> = emptyList()
 
-        @Transient
         val fragment: ICompactFragment?
             get() = content?.let {
                 CompactFragment(namespaces, it)

@@ -33,6 +33,7 @@ import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.serialization.XmlElement
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import kotlin.reflect.KClass
 
@@ -91,7 +92,7 @@ class ActivityResponse<T : Any, V: T?> {
         nodeInstanceState: NodeInstanceState,
         returnType: KClass<T>,
         returnValue: V
-                       ) {
+    ) {
         this.nodeInstanceState = nodeInstanceState
         this.returnType = returnType
         this._returnValue = returnValue
@@ -101,6 +102,8 @@ class ActivityResponse<T : Any, V: T?> {
 
     @Suppress("MemberVisibilityCanBePrivate")
     @SerialName("taskState")
+    @XmlElement(false)
+    @XmlSerialName("taskState", "", "")
     lateinit var nodeInstanceState: NodeInstanceState
         private set
 
@@ -111,7 +114,6 @@ class ActivityResponse<T : Any, V: T?> {
      * The actual return value.
      */
     @Suppress("UNCHECKED_CAST")
-    @Transient
     val returnValue
         get() = _returnValue as T
 
@@ -120,6 +122,7 @@ class ActivityResponse<T : Any, V: T?> {
      *
      * @return The embedded return type.
      */
+    @Suppress("UNCHECKED_CAST")
     @Transient
     var returnType: KClass<T> = Nothing::class as KClass<T>
         private set
@@ -128,7 +131,6 @@ class ActivityResponse<T : Any, V: T?> {
     /**
      * The value of the taskState property as string.
      */
-    @Transient
     private var taskStateString: String
         get() = nodeInstanceState.name
         set(value) {
@@ -156,7 +158,7 @@ class ActivityResponse<T : Any, V: T?> {
             nodeInstanceState: NodeInstanceState,
             returnType: KClass<U>,
             returnValue: U
-                            ): ActivityResponse<U, U> {
+        ): ActivityResponse<U, U> {
             return ActivityResponse(nodeInstanceState, returnType, returnValue)
         }
 

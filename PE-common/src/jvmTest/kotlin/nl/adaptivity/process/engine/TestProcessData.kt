@@ -53,19 +53,6 @@ class TestProcessData {
 
     @Test
     @Throws(XmlException::class)
-    fun testSerializeTextNodeCompat() {
-        val caw = CharArrayWriter()
-        XmlStreaming.newWriter(caw).use { xsw ->
-
-            val data = ProcessData("foo", CompactFragment("Hello"))
-            data.serialize(xsw)
-        }
-        val expected = "<pe:value xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\">Hello</pe:value>"
-        assertEquals(expected, caw.toString())
-    }
-
-    @Test
-    @Throws(XmlException::class)
     fun testSerializeTextNode() {
         val data = ProcessData("foo", CompactFragment("Hello"))
         val expected = "<pe:value xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\">Hello</pe:value>"
@@ -614,26 +601,27 @@ class TestProcessData {
     )
     fun testRoundTripMessage() {
         val xml =
-            "    <pe:message xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" type=\"application/soap+xml\" serviceNS=\"http://adaptivity.nl/userMessageHandler\" serviceName=\"userMessageHandler\" endpoint=\"internal\" operation=\"postTask\" url=\"/PEUserMessageHandler/internal\">\n" +
-                "      <Envelope xmlns=\"http://www.w3.org/2003/05/soap-envelope\" xmlns:jbi=\"http://adaptivity.nl/ProcessEngine/activity\" xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\" encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\">\n" +
-                "        <Body>\n" +
-                "          <postTask xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
-                "            <repliesParam>\n" +
-                "              <jbi:element value=\"endpoint\"/>\n" +
-                "            </repliesParam>\n" +
-                "            <taskParam>\n" +
-                "              <task summary=\"Task Foo\">\n" +
-                "                <jbi:attribute name=\"remotehandle\" value=\"handle\"/>\n" +
-                "                <jbi:attribute name=\"instancehandle\" value=\"instancehandle\"/>\n" +
-                "                <jbi:attribute name=\"owner\" value=\"owner\"/>\n" +
-                "                <item name=\"lbl1\" type=\"label\" value=\"Please enter some info for task foo\"/>\n" +
-                "                <item label=\"Your name\" name=\"user\" type=\"text\"/>\n" +
-                "              </task>\n" +
-                "            </taskParam>\n" +
-                "          </postTask>\n" +
-                "        </Body>\n" +
-                "      </Envelope>\n" +
-                "    </pe:message>\n"
+            """|    <pe:message xmlns:pe="http://adaptivity.nl/ProcessEngine/" type="application/soap+xml" serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler" endpoint="internal" operation="postTask" url="/PEUserMessageHandler/internal">
+               |      <Envelope xmlns="http://www.w3.org/2003/05/soap-envelope" xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" encodingStyle="http://www.w3.org/2003/05/soap-encoding">
+               |        <Body>
+               |          <postTask xmlns="http://adaptivity.nl/userMessageHandler">
+               |            <repliesParam>
+               |              <jbi:element value="endpoint"/>
+               |            </repliesParam>
+               |            <taskParam>
+               |              <task summary="Task Foo">
+               |                <jbi:attribute name="remotehandle" value="handle"/>
+               |                <jbi:attribute name="instancehandle" value="instancehandle"/>
+               |                <jbi:attribute name="owner" value="owner"/>
+               |                <item name="lbl1" type="label" value="Please enter some info for task foo"/>
+               |                <item label="Your name" name="user" type="text"/>
+               |              </task>
+               |            </taskParam>
+               |          </postTask>
+               |        </Body>
+               |      </Envelope>
+               |    </pe:message>
+               """.trimMargin()
         testRoundTrip(xml, XmlMessage::class, XmlMessage.serializer(), false)
     }
 

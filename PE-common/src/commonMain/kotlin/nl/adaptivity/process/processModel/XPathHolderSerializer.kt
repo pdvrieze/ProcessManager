@@ -28,7 +28,7 @@ import nl.adaptivity.util.MyGatheringNamespaceContext
 import nl.adaptivity.xmlutil.util.GatheringNamespaceContext
 
 abstract open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSerializer<T>() {
-    open class PathHolderData<T : XPathHolder>(
+    protected open class PathHolderData<T : XPathHolder>(
         val owner: XPathHolderSerializer<in T>,
         var name: String? = null,
         var path: String? = null

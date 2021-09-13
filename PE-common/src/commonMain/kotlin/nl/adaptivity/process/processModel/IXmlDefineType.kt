@@ -105,7 +105,7 @@ interface IXmlDefineType {
         nsContext: Iterable<Namespace> = originalNSContext
     ): IXmlDefineType
 
-    companion object Serializer : DelegatingSerializer<IXmlDefineType, XmlDefineType>(serializer()) {
+    companion object Serializer : DelegatingSerializer<IXmlDefineType, XmlDefineType>(XmlDefineType.serializer()) {
         override fun fromDelegate(delegate: XmlDefineType): IXmlDefineType = delegate
         override fun IXmlDefineType.toDelegate(): XmlDefineType =
             this as? XmlDefineType ?: XmlDefineType(this)

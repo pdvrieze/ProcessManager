@@ -61,8 +61,6 @@ interface IXmlResultType {
      */
     val bodyStreamReader: XmlReader
 
-//  fun applyData(payload: Node?): ProcessData
-
     /**
      * Get the namespace context for evaluating the xpath expression.
      * @return the context

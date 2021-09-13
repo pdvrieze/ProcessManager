@@ -40,26 +40,18 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
  *
  * @author Paul de Vrieze
  */
-@Serializable(XmlActivity.Companion::class)
-@XmlSerialName(Activity.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActivity {
 
-    @SerialName("message")
-    @Serializable(with = IXmlMessage.Companion::class)
     override var message: IXmlMessage?
         get() = field
         private set(value) {
             field = XmlMessage.from(value)
         }
 
-    @Transient
     override val childModel: ChildProcessModel<ProcessNode>?
 
-    @Serializable
-    @XmlDefault("null")
     val childId: String?
 
-    @Transient
     private var xmlCondition: XmlCondition? = null
 
     override val condition: Condition?
@@ -73,17 +65,6 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
         childModel = null
         childId = null
         message = builder.message
-    }
-
-    internal constructor(
-        builder: DeserializationBuilder,
-        buildHelper: BuildHelper<*, *, *, *>,
-        otherNodes: Iterable<ProcessNode.Builder>
-    ) : super(builder.ensureExportable(), buildHelper.newOwner, otherNodes) {
-        val id = builder.childId
-        childModel = id?.let { buildHelper.childModel(it) }
-        childId = id
-        message = XmlMessage.from(builder.message)
     }
 
     constructor(
@@ -115,17 +96,6 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
     override fun <R> visit(visitor: ProcessNode.Visitor<R>): R = when {
         childModel == null -> visitor.visitActivity(messageActivity = this)
         else               -> visitor.visitActivity(compositeActivity = this)
-    }
-
-    @OptIn(ExperimentalSerializationApi::class)
-    companion object : DelegatingSerializer<XmlActivity, DeserializationBuilder>(DeserializationBuilder.serializer()) {
-        override fun fromDelegate(delegate: DeserializationBuilder): XmlActivity {
-            throw UnsupportedOperationException("This can only done in the correct context")
-        }
-
-        override fun XmlActivity.toDelegate(): DeserializationBuilder {
-            return DeserializationBuilder(this)
-        }
     }
 
 }

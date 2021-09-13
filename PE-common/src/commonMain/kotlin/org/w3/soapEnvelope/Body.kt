@@ -30,6 +30,7 @@ import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.*
+import nl.adaptivity.serialutil.decodeElements
 import nl.adaptivity.util.multiplatform.URI
 import nl.adaptivity.util.multiplatform.createUri
 import nl.adaptivity.util.net.devrieze.serializers.URISerializer
@@ -109,9 +110,7 @@ class Body<T: Any>(
                     child = decodeSerializableElement(descriptor, 2, contentSerializer, null)
                     if (reader.nextTag()!=EventType.END_ELEMENT) throw SerializationException("Extra content in body")
                 } else {
-                    // TODO handle "supported header elements"
-                    var idx: Int
-                    while (decodeElementIndex(descriptor).also { idx = it } != CompositeDecoder.DECODE_DONE) {
+                    decodeElements(this) { idx ->
                         when (idx) {
                             0 -> encodingStyle = decodeSerializableElement(descriptor, idx, URISerializer, encodingStyle)
                             1 -> otherAttributes = decodeSerializableElement(

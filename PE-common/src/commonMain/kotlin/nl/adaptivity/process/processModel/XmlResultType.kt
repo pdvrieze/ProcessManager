@@ -32,7 +32,6 @@ import nl.adaptivity.xmlutil.serialization.XML.Companion.decodeFromReader
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable(XmlResultType.Companion::class)
-@XmlSerialName(value = XmlResultType.ELEMENTLOCALNAME, namespace = Engine.NAMESPACE, prefix = Engine.NSPREFIX)
 class XmlResultType : XPathHolder, IPlatformXmlResultType {
 
     constructor(

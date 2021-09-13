@@ -33,6 +33,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.descriptors.element
 import kotlinx.serialization.encoding.*
+import nl.adaptivity.serialutil.decodeElements
 import nl.adaptivity.util.multiplatform.URI
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.*
@@ -138,14 +139,14 @@ class Envelope<T : Any>(
                 }
             } else {
                 decoder.decodeStructure(descriptor) {
-                    var idx: Int
-                    while (decodeElementIndex(descriptor).also { idx = it } != CompositeDecoder.DECODE_DONE)
+                    decodeElements(this) { idx ->
                         when (idx) {
                             0 -> otherAttributes =
                                 decodeSerializableElement(descriptor, idx, SoapSerialObjects.attrsSerializer)
                             1 -> header = decodeSerializableElement(descriptor, idx, Header.serializer())
                             2 -> body = decodeSerializableElement(descriptor, idx, bodySerializer)
                         }
+                    }
                 }
             }
             return Envelope(body, header, otherAttributes)

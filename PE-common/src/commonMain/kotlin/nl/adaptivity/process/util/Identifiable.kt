@@ -35,7 +35,6 @@ interface Identifiable : Comparable<Identifiable> {
 
     val id: String?
 
-    @Transient
     val identifier: Identifier?
         get() = id?.let(::Identifier)
 

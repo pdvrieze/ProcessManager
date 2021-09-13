@@ -30,11 +30,8 @@ import nl.adaptivity.util.multiplatform.name
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable(XmlChildModel.Companion::class)
-@SerialName(ChildProcessModel.ELEMENTLOCALNAME)
-@XmlSerialName(ChildProcessModel.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 class XmlChildModel : ChildProcessModelBase<XmlProcessNode>, ChildProcessModel<XmlProcessNode> {
 
-    @Transient
     override val rootModel: XmlProcessModel
         get() = super.rootModel as XmlProcessModel
 

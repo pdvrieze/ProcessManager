@@ -192,6 +192,7 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
     override fun toString(): String {
         return "XmlDefineType(content=$contentString, namespaces=(${originalNSContext.joinToString()}), name=$name, path=${getPath()}, refNode=$_refNode, refName=$_refName)"
     }
+
     /** Dummy serializer that is just used to get the annotations on the type. */
     @Serializable
     @XmlSerialName(value = ELEMENTLOCALNAME, namespace = Engine.NAMESPACE, prefix = Engine.NSPREFIX)

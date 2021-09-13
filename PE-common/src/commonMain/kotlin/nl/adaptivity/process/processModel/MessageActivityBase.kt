@@ -23,26 +23,21 @@ import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
-@Serializable
-abstract class MessageActivityBase : ActivityBase, MessageActivity {
+abstract class MessageActivityBase(
+    builder: MessageActivity.Builder,
+    newOwner: ProcessModel<*>,
+    otherNodes: Iterable<ProcessNode.Builder>
+) : ActivityBase(builder, newOwner, otherNodes), MessageActivity {
 
-    @SerialName("message")
-    @Serializable(with = IXmlMessage.Companion::class)
     private var _message: XmlMessage?
 
-    @Transient
     override final var message: IXmlMessage?
         get() = _message
         private set(value) {
             _message = XmlMessage.from(value)
         }
 
-    constructor(
-        builder: MessageActivity.Builder,
-        newOwner: ProcessModel<*>,
-        otherNodes: Iterable<ProcessNode.Builder>
-    ) :
-        super(builder, newOwner, otherNodes) {
+    init {
         _message = XmlMessage.from(builder.message)
     }
 
@@ -69,12 +64,8 @@ abstract class MessageActivityBase : ActivityBase, MessageActivity {
         return result
     }
 
-    @Serializable
-    @SerialName(Activity.ELEMENTLOCALNAME)
-    @XmlSerialName(Activity.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     open class Builder : BaseBuilder, MessageActivity.Builder {
 
-        @Serializable(with = IXmlMessage.Companion::class)
         final override var message: IXmlMessage?
 
         constructor(

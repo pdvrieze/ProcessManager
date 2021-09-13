@@ -39,7 +39,6 @@ interface Split : ProcessNode, JoinSplit {
 
         var predecessor: Identifiable?
 
-        @Transient
         override val predecessors: Set<Identified>
             get() = setOfNotNull(predecessor?.identifier)
 

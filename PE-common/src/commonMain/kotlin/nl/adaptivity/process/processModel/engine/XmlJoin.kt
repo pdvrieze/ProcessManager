@@ -26,7 +26,6 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
 import nl.adaptivity.serialutil.DelegatingSerializer
 
-@Serializable(XmlJoin.Companion::class)
 class XmlJoin : JoinBase<XmlProcessNode, ProcessModel<XmlProcessNode>>, XmlProcessNode {
 
     @Suppress("ConvertSecondaryConstructorToPrimary")
@@ -36,15 +35,5 @@ class XmlJoin : JoinBase<XmlProcessNode, ProcessModel<XmlProcessNode>>, XmlProce
         otherNodes: Iterable<ProcessNode.Builder>
                )
         : super(builder.ensureExportable(), buildHelper, otherNodes)
-
-    companion object : DelegatingSerializer<XmlJoin, Builder>(Builder.serializer()) {
-        override fun fromDelegate(delegate: Builder): XmlJoin {
-            throw UnsupportedOperationException("Deserializing an end node directly is not possible")
-        }
-
-        override fun XmlJoin.toDelegate(): Builder {
-            return Builder(this)
-        }
-    }
 
 }

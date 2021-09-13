@@ -25,19 +25,15 @@ import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xmlutil.QName
 
-//@foo.FakeSerializable
 interface StartNode : ProcessNode {
 
     val successor: Identifiable?
 
-    //    @foo.FakeSerializable
     interface Builder : ProcessNode.Builder {
         override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitStartNode(this)
 
-        @Transient
         var successor: Identifiable?
 
-        @Transient
         override val successors: Set<Identified>
             get() = setOfNotNull(successor?.identifier)
 

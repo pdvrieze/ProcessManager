@@ -16,9 +16,9 @@
 
 package nl.adaptivity.process.engine
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
 import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -26,15 +26,13 @@ import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.descriptors.element
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.encoding.decodeStructure
 import net.devrieze.util.Named
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.serialutil.decodeElements
-import nl.adaptivity.serialutil.decodeStructure
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.core.impl.multiplatform.maybeAnnotations
 import nl.adaptivity.xmlutil.serialization.ICompactFragmentSerializer
 import nl.adaptivity.xmlutil.serialization.XML
-import nl.adaptivity.xmlutil.serialization.XmlElement
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
@@ -44,9 +42,7 @@ import nl.adaptivity.xmlutil.util.ICompactFragment
 @XmlSerialName(ProcessData.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 class ProcessData
 constructor(
-    @XmlElement(false) override val name: String?,
-
-    @Serializable(with = ICompactFragmentSerializer::class)
+    override val name: String?,
     val content: ICompactFragment
 ) : Named {
 
@@ -78,12 +74,9 @@ constructor(
         return "ProcessData($name=$content)"
     }
 
-    @Deprecated("Use encodeToWriter directly",
-                ReplaceWith("XML.encodeToWriter(target, this)", "nl.adaptivity.xmlutil.serialization.XML")
-    )
-    fun serialize(target: XmlWriter) {
-        XML.encodeToWriter(target, this)
-    }
+    @Serializable
+    @XmlSerialName(ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
+    private class SerialAnnotationHelper
 
     companion object: KSerializer<ProcessData> {
 
@@ -94,16 +87,11 @@ constructor(
             return ProcessData(name, CompactFragment(""))
         }
 
-        @OptIn(XmlUtilInternal::class)
+        @OptIn(XmlUtilInternal::class, ExperimentalSerializationApi::class)
         override val descriptor: SerialDescriptor = buildClassSerialDescriptor("ProcessData") {
-            annotations = ProcessData::class.maybeAnnotations.filterIsInstance<XmlSerialName>()
+            annotations = SerialAnnotationHelper.serializer().descriptor.annotations
             element<String>("name")
             element<ICompactFragment>("content")
-        }
-
-        fun deserialize(reader: XmlReader): ProcessData {
-            return XML.parse(reader, ProcessData)
-//            return ProcessData(null, CompactFragment("")).deserializeHelper(reader)
         }
 
         override fun deserialize(decoder: Decoder): ProcessData {
@@ -112,9 +100,8 @@ constructor(
             decoder.decodeStructure(descriptor) {
                 decodeElements(this) { i ->
                     when (i) {
-                        0                              -> name =
-                            decodeNullableSerializableElement(descriptor, 0, String.serializer().nullable)
-                        1               -> content = when (this) {
+                        0 -> name = decodeSerializableElement(descriptor, 0, String.serializer().nullable)
+                        1 -> content = when (this) {
                             is XML.XmlInput -> this.input.siblingsToFragment()
                             else            -> decodeSerializableElement(descriptor, 1, ICompactFragmentSerializer)
                         }
@@ -126,14 +113,15 @@ constructor(
             return ProcessData(name, content)
         }
 
-        override fun serialize(encoder: Encoder, obj: ProcessData) {
+        @OptIn(ExperimentalSerializationApi::class)
+        override fun serialize(encoder: Encoder, value: ProcessData) {
             val newOutput = encoder.beginStructure(descriptor)
-            newOutput.encodeNullableSerializableElement(descriptor, 0, String.serializer(), obj.name)
+            newOutput.encodeNullableSerializableElement(descriptor, 0, String.serializer(), value.name)
 
             if (newOutput is XML.XmlOutput) {
-                obj.content.serialize(newOutput.target)
+                value.content.serialize(newOutput.target)
             } else {
-                newOutput.encodeSerializableElement(descriptor, 1, ICompactFragmentSerializer, obj.content)
+                newOutput.encodeSerializableElement(descriptor, 1, ICompactFragmentSerializer, value.content)
             }
             newOutput.endStructure(descriptor)
         }

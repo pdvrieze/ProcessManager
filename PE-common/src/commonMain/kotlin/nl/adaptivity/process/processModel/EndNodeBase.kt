@@ -30,7 +30,6 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 /**
  * Created by pdvrieze on 24/11/15.
  */
-@Serializable
 abstract class EndNodeBase : ProcessNodeBase, EndNode {
 
     @Suppress("ConvertSecondaryConstructorToPrimary")
@@ -38,14 +37,11 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
         super(builder, newOwner, otherNodes)
 
     @Suppress("DEPRECATION")
-    @Serializable(with = Identifiable.Companion::class)
-    override val predecessor: Identified? = predecessors.singleOrNull()
+    override val predecessor: Identified? get() = predecessors.singleOrNull()
 
-    @Transient
     override val maxSuccessorCount: Int
         get() = 0
 
-    @Transient
     override val successors: IdentifyableSet<Identified>
         get() = IdentifyableSet.empty<Identified>()
 
@@ -83,30 +79,33 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
             this.predecessor = predecessor
         }
 
-        constructor(base: EndNode):
-            this(
-                base.id,
-                base.label,
-                base.defines,
-                base.results,
-                base.x,
-                base.y,
-                base.isMultiInstance,
-                base.predecessor?.identifier
-            )
+        constructor(base: EndNode) : this(
+            base.id,
+            base.label,
+            base.defines,
+            base.results,
+            base.x,
+            base.y,
+            base.isMultiInstance,
+            base.predecessor?.identifier
+        )
 
-        constructor(base: EndNode.Builder):
-            this(base.id, base.label, base.defines, base.results, base.x, base.y, base.isMultiInstance, base.predecessor?.identifier)
+        constructor(base: EndNode.Builder) : this(
+            base.id,
+            base.label,
+            base.defines,
+            base.results,
+            base.x,
+            base.y,
+            base.isMultiInstance,
+            base.predecessor?.identifier
+        )
     }
 
-    @Serializable
-    @SerialName(EndNode.ELEMENTLOCALNAME)
-    @XmlSerialName(EndNode.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     open class Builder : ProcessNodeBase.Builder, EndNode.Builder {
 
         override val idBase: String get() = "end"
 
-        @Serializable(with = Identifiable.Companion::class)
         final override var predecessor: Identifiable? = null
 
         constructor() : this(id = null)

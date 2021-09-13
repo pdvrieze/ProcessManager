@@ -63,9 +63,7 @@ interface Activity : ProcessNode {
 
     override fun builder(): Builder
 
-    //    @foo.FakeSerializable
     interface Builder : ProcessNode.Builder {
-
 
         /**
          * The name of this activity. Note that for serialization to XML to work
@@ -80,14 +78,11 @@ interface Activity : ProcessNode {
 
         var predecessor: Identifiable?
 
-        @Transient
         override val predecessors: Set<Identified>
             get() = setOfNotNull(predecessor?.identifier)
 
-        @Transient
         var successor: Identifiable?
 
-        @Transient
         override val successors: Set<Identified>
             get() = setOfNotNull(successor?.identifier)
 

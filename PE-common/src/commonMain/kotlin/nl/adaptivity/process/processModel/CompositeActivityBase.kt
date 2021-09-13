@@ -16,14 +16,10 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import nl.adaptivity.process.util.Identifiable
 
-@Serializable
 abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
 
-    @Transient
     private var _childModel: ChildProcessModel<ProcessNode>? = null
 
     override val childModel: ChildProcessModel<ProcessNode>
@@ -72,13 +68,6 @@ abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
         return result
     }
 
-
-    companion object {
-        const val ATTR_CHILDID = "childId"
-    }
-
-
-    @Serializable
     open class ReferenceBuilder : BaseBuilder, CompositeActivity.ReferenceBuilder {
         final override var childId: String? = null
 
@@ -111,6 +100,7 @@ abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
             this.childId = childId
         }
 
+        @Suppress("DEPRECATION")
         constructor(node: CompositeActivity) : this(
             node.id,
             node.predecessor,

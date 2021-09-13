@@ -37,18 +37,12 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
  * @author Paul de Vrieze
  */
 @Serializable(XmlProcessModel.Companion::class)
-@XmlSerialName(RootProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 class XmlProcessModel : RootProcessModelBase<XmlProcessNode> {
 
-    @Transient
     override val rootModel: XmlProcessModel
         get() = this
 
     @Suppress("UNCHECKED_CAST")
-    @XmlSerialName(
-        ChildProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE,
-        ProcessConsts.Engine.NSPREFIX
-    )
     override val childModels: Collection<XmlChildModel>
         get() = super.childModels as Collection<XmlChildModel>
 
@@ -60,12 +54,11 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode> {
     )
 
     @Suppress("ConvertSecondaryConstructorToPrimary") // For serialization
-    internal constructor(delegate: SerialDelegate, pedantic: Boolean = true) :
-        super(
-            Builder(delegate),
-            XML_NODE_FACTORY as NodeFactory<XmlProcessNode, XmlProcessNode, ChildProcessModelBase<XmlProcessNode>>,
-            pedantic
-        )
+    internal constructor(delegate: SerialDelegate, pedantic: Boolean = true) : super(
+        Builder(delegate),
+        XML_NODE_FACTORY as NodeFactory<XmlProcessNode, XmlProcessNode, ChildProcessModelBase<XmlProcessNode>>,
+        pedantic
+    )
 
     override fun builder(): RootProcessModel.Builder {
         return Builder(this)
@@ -109,7 +102,6 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode> {
 
 
     @Serializable(Builder.Companion::class)
-    @XmlSerialName(ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     open class Builder : RootProcessModelBase.Builder {
 
         constructor(

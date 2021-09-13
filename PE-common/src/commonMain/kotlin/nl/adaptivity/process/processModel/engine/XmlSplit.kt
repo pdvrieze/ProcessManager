@@ -16,20 +16,8 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
-import kotlinx.serialization.*
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
-import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.*
-import nl.adaptivity.serialutil.DelegatingSerializer
-import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializable(XmlSplit.Companion::class)
-@XmlSerialName("split", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 class XmlSplit : SplitBase, XmlProcessNode {
 
     @Suppress("ConvertSecondaryConstructorToPrimary")
@@ -39,15 +27,5 @@ class XmlSplit : SplitBase, XmlProcessNode {
         otherNodes: Iterable<ProcessNode.Builder>
                ) :
         super(builder.ensureExportable(), newOwner, otherNodes)
-
-    companion object : DelegatingSerializer<XmlSplit, Builder>(Builder.serializer()) {
-        override fun fromDelegate(delegate: Builder): XmlSplit {
-            throw UnsupportedOperationException("Deserializing a split directly is not possible")
-        }
-
-        override fun XmlSplit.toDelegate(): Builder {
-            return Builder(this)
-        }
-    }
 
 }

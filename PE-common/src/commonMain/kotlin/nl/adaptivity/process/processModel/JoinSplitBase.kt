@@ -23,7 +23,6 @@ import nl.adaptivity.process.util.Identified
 /**
  * Created by pdvrieze on 25/11/15.
  */
-@Serializable
 abstract class JoinSplitBase : ProcessNodeBase, JoinSplit {
 
     constructor(
@@ -61,7 +60,6 @@ abstract class JoinSplitBase : ProcessNodeBase, JoinSplit {
         return false
     }
 
-    @Serializable
     abstract class Builder :
         ProcessNodeBase.Builder,
         JoinSplit.Builder {

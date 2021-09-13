@@ -40,7 +40,6 @@ import nl.adaptivity.xmlutil.serialization.XmlDefault
 import nl.adaptivity.xmlutil.serialization.XmlPolyChildren
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
-@Serializable
 abstract class RootProcessModelBase<NodeT : ProcessNode> :
     ProcessModelBase<NodeT>,
     RootProcessModel<NodeT>,
@@ -51,68 +50,39 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
      */
     override val name: String?
 
-    @Transient
     private var _handle = -1L
 
-    @SerialName("handle")
-    @XmlDefault("-1")
     val handleValue: Long
         get() = _handle
 
     /**
      * The owner of a model
      */
-    @Serializable(PrincipalSerializer::class)
     final override var owner: Principal = SYSTEMPRINCIPAL
 
-    @SerialName("roles")
     override val roles: Set<String>
 
-    @Serializable(UUIDSerializer::class)
     final override val uuid: UUID?
 
-    @SerialName("childModel")
     override val childModels: Collection<ChildProcessModelBase<NodeT>>
         get() = _childModels
 
-    @Transient
     private var _childModels: IdentifyableSet<ChildProcessModelBase<NodeT>> = IdentifyableSet.processNodeSet()
 
-    @SerialName("nodes")
-    @Serializable(IdentifiableSetSerializer::class)
-    @XmlPolyChildren(
-        arrayOf(
-            "nl.adaptivity.process.processModel.engine.XmlActivity\$Builder=pe:activity",
-            "nl.adaptivity.process.processModel.engine.XmlStartNode\$Builder=pe:start",
-            "nl.adaptivity.process.processModel.engine.XmlSplit\$Builder=pe:split",
-            "nl.adaptivity.process.processModel.engine.XmlJoin\$Builder=pe:join",
-            "nl.adaptivity.process.processModel.engine.XmlEndNode\$Builder=pe:end",
-            "nl.adaptivity.process.processModel.engine.XmlActivity=pe:activity",
-            "nl.adaptivity.process.processModel.engine.XmlStartNode=pe:start",
-            "nl.adaptivity.process.processModel.engine.XmlSplit=pe:split",
-            "nl.adaptivity.process.processModel.engine.XmlJoin=pe:join",
-            "nl.adaptivity.process.processModel.engine.XmlEndNode=pe:end"
-        )
-    )
     private val _processNodes: MutableIdentifyableSet<NodeT>
-
-    /* (non-Javadoc)
-       * @see nl.adaptivity.process.processModel.ProcessModel#getRef()
-       */
-    @Transient
-    override val ref: IProcessModelRef<NodeT, RootProcessModel<NodeT>>
-        get() {
-            return ProcessModelRef(name, handle, uuid)
-        }
 
     /**
      * Get an array of all process nodes in the model. Used by XmlProcessModel
      *
      * @return An array of all nodes.
      */
-    @Transient
     override val modelNodes: IdentifyableSet<NodeT>
         get() = _processNodes.readOnly()
+
+    override val ref: IProcessModelRef<NodeT, RootProcessModel<NodeT>>
+        get() {
+            return ProcessModelRef(name, handle, uuid)
+        }
 
     constructor(
         builder: RootProcessModel.Builder,

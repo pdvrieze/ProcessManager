@@ -27,10 +27,9 @@ import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ACTIVITY
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWIDTH
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.process.util.Identified
 import kotlin.jvm.JvmOverloads
 import kotlin.jvm.JvmStatic
-import nl.adaptivity.xmlutil.XmlWriter
-import nl.adaptivity.xmlutil.writeSimpleElement
 
 interface IDrawableActivity : IDrawableProcessNode {
     override val leftExtent: Double
@@ -72,7 +71,7 @@ interface IDrawableActivity : IDrawableProcessNode {
      */
     override fun <PEN_T : Pen<PEN_T>> getDrawnLabel(textPen: PEN_T): String? {
         return label ?: name?.apply { textPen.isTextItalics = false }
-               ?: "<$id>".apply { textPen.isTextItalics = true }
+        ?: "<$id>".apply { textPen.isTextItalics = true }
     }
 
     companion object {
@@ -101,48 +100,63 @@ open class DrawableActivity @JvmOverloads constructor(
     builder: MessageActivity.Builder,
     buildHelper: ProcessModel.BuildHelper<DrawableProcessNode, *, *, *> = STUB_DRAWABLE_BUILD_HELPER,
     otherNodes: Iterable<ProcessNode.Builder> = emptyList()
-                                                     ) :
-    MessageActivityBase(
-        builder,
-        buildHelper.newOwner,
-        otherNodes
-                       ), DrawableProcessNode {
+) : MessageActivityBase(
+    builder,
+    buildHelper.newOwner,
+    otherNodes
+), DrawableProcessNode {
 
-    class Builder : ActivityBase.DeserializationBuilder,
-                    DrawableProcessNode.Builder<DrawableActivity>,
-                    IDrawableActivity {
+    class Builder constructor(
+        id: String? = null,
+        predecessor: Identifiable? = null,
+        successor: Identifiable? = null,
+        label: String? = null,
+        x: Double = Double.NaN,
+        y: Double = Double.NaN,
+        defines: Collection<IXmlDefineType> = emptyList(),
+        results: Collection<IXmlResultType> = emptyList(),
+        override var childId: String? = null,
+        override var message: IXmlMessage? = null,
+        condition: Condition? = null,
+        name: String? = null,
+        override var state: DrawableState = Drawable.STATE_DEFAULT,
+        isMultiInstance: Boolean = false,
+        override var isCompat: Boolean = false
+    ) : BaseBuilder(
+        id, predecessor, successor, label, defines, results,
+        condition, name, x, y, isMultiInstance
+    ), MessageActivity.Builder, CompositeActivity.ReferenceBuilder,
+        DrawableProcessNode.Builder<DrawableActivity>,
+        IDrawableActivity {
+
+        override val predecessors: Set<Identified>
+            get() = predecessor?.identifier?.let { setOf(it) } ?: emptySet()
+
+        override val successors: Set<Identified>
+            get() = successor?.identifier?.let { setOf(it) } ?: emptySet()
 
         constructor() : this(id = null)
 
-        constructor(
-            id: String? = null,
-            predecessor: Identifiable? = null,
-            successor: Identifiable? = null,
-            label: String? = null,
-            x: Double = Double.NaN,
-            y: Double = Double.NaN,
-            defines: Collection<IXmlDefineType> = emptyList(),
-            results: Collection<IXmlResultType> = emptyList(),
-            childId: String? = null,
-            message: XmlMessage? = null,
-            condition: Condition? = null,
-            name: String? = null,
-            state: DrawableState = Drawable.STATE_DEFAULT,
-            multiInstance: Boolean = false,
-            isCompat: Boolean = false
-                   ) : super(
-            id, predecessor, successor, label, defines, results, message,
-            childId, condition, name, x, y, multiInstance
-                            ) {
-            _delegate = DrawableProcessNode.Builder.Delegate(state = state, isCompat = isCompat)
-        }
-
         @Suppress("PropertyName")
-        override val _delegate: DrawableProcessNode.Builder.Delegate
+        override val _delegate: DrawableProcessNode.Builder.Delegate = DrawableProcessNode.Builder.Delegate(state, isCompat)
 
-        constructor(node: Activity) : super(node) {
-            _delegate = DrawableProcessNode.Builder.Delegate(node)
-        }
+        constructor(node: Activity) : this(
+            node.id,
+            node.predecessor,
+            node.successor,
+            node.label,
+            node.x,
+            node.y,
+            node.defines,
+            node.results,
+            (node as? CompositeActivity)?.childModel?.id,
+            (node as? MessageActivity)?.message,
+            node.condition,
+            node.name,
+            Drawable.STATE_DEFAULT,
+            node.isMultiInstance,
+            (node as? DrawableActivity)?.isCompat ?: false
+        )
 
         override fun copy(): Builder {
             return Builder(
@@ -158,9 +172,9 @@ open class DrawableActivity @JvmOverloads constructor(
                 condition = condition,
                 name = name,
                 state = state,
-                multiInstance = isMultiInstance,
+                isMultiInstance = isMultiInstance,
                 isCompat = isCompat
-                          )
+            )
         }
 
     }
@@ -197,8 +211,12 @@ open class DrawableActivity @JvmOverloads constructor(
     companion object {
         const val IDBASE = "ac"
 
-        @Deprecated("Use the builder", ReplaceWith("Builder(elem).apply { isCompat = compat }.build()",
-                                                           "nl.adaptivity.process.diagram.DrawableActivity.Builder"))
+        @Deprecated(
+            "Use the builder", ReplaceWith(
+                "Builder(elem).apply { isCompat = compat }.build()",
+                "nl.adaptivity.process.diagram.DrawableActivity.Builder"
+            )
+        )
         @JvmStatic
         fun from(elem: Activity, compat: Boolean): DrawableActivity {
             val builder: Builder = Builder(elem).apply { isCompat = compat }

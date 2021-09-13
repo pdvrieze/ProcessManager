@@ -29,54 +29,37 @@ import kotlin.collections.set
 /**
  * Created by pdvrieze on 26/11/15.
  */
-@Serializable
 abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
     JoinSplitBase,
     Join {
 
-    @Transient
     override val maxPredecessorCount: Int
         get() = Int.MAX_VALUE
 
-    @Transient
     override val idBase: String
         get() = IDBASE
 
     final override val isMultiMerge: Boolean
 
-    @Transient
     final override val successor: Identifiable?
         get() = successors.singleOrNull()
 
-    @Transient
     final override var conditions: Map<Identifier, Condition?> = emptyMap()
         private set
-
-    @Required
-//    @foo.FakeSerializable(with = ConditionStringSerializer::class)
-    @XmlSerialName("predecessor", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
-    @SerialName("predecessors")
-    @XmlElement(true)
-    internal val conditionStringsForSerialization: List<PredecessorInfo>
-
 
     constructor(
         builder: Join.Builder,
         buildHelper: ProcessModel.BuildHelper<*, *, *, *>,
         otherNodes: Iterable<ProcessNode.Builder>
-    )
-        : super(builder, buildHelper.newOwner, otherNodes) {
+    ) : super(builder, buildHelper.newOwner, otherNodes) {
         isMultiMerge = builder.isMultiMerge
         val predecessors = (this.predecessors as MutableIdentifyableSet<Identified>)
         val conditions = mutableMapOf<Identifier, Condition?>()
-        val serialConditions = mutableListOf<PredecessorInfo>()
         builder.conditions.forEach { entry ->
             predecessors.add(entry.key)
             conditions[entry.key] = entry.value?.let { buildHelper.condition(it) }
-            serialConditions.add(PredecessorInfo(entry.key.id, entry.value))
         }
         this.conditions = conditions
-        conditionStringsForSerialization = serialConditions
     }
 
     override fun builder(): Join.Builder = Builder(this)
@@ -94,7 +77,6 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
             private set
 
         @XmlSerialName("predecessor", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
-        @SerialName("predecessors")
         val predecessors: List<PredecessorInfo>
 
         var min: Int = -1
@@ -145,30 +127,21 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
         )
     }
 
-    @Serializable
-    @SerialName("join")
-    @XmlSerialName(Join.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     open class Builder : JoinSplitBase.Builder, Join.Builder {
 
-        @Transient
         override val idBase: String
             get() = "join"
 
-        @XmlDefault("false")
         final override var isMultiMerge: Boolean = false
 
-        @Transient
         final override var predecessors: MutableSet<Identified> = PredecessorSet()
             set(value) {
                 field.retainAll(value)
                 field.addAll(value)
             }
 
-        @XmlSerialName("predecessor", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
-        @SerialName("predecessors")
         override var conditions: MutableMap<Identifier, Condition?> = mutableMapOf()
 
-        @Transient
         final override var successor: Identifiable? = null
 
         constructor() : this(predecessors = emptyList<PredecessorInfo>(), isMultiMerge = false, isMultiInstance = false)

@@ -16,21 +16,11 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
-import kotlinx.serialization.descriptors.SerialDescriptor
-import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.processModel.StartNodeBase
 import nl.adaptivity.process.processModel.ensureExportable
-import nl.adaptivity.serialutil.DelegatingSerializer
-import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
-@OptIn(ExperimentalSerializationApi::class)
-@Serializable(XmlStartNode.Companion::class)
-@XmlSerialName("start", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 class XmlStartNode : StartNodeBase<XmlProcessNode, ProcessModel<XmlProcessNode>>, XmlProcessNode {
 
     @Suppress("ConvertSecondaryConstructorToPrimary")
@@ -39,13 +29,4 @@ class XmlStartNode : StartNodeBase<XmlProcessNode, ProcessModel<XmlProcessNode>>
 
     override fun builder() = Builder(this)
 
-    companion object : DelegatingSerializer<XmlStartNode, Builder>(Builder.serializer()) {
-        override fun fromDelegate(delegate: Builder): XmlStartNode {
-            throw UnsupportedOperationException("Start nodes cannot be deserialized independently without an owning process model")
-        }
-
-        override fun XmlStartNode.toDelegate(): Builder {
-            return Builder(this)
-        }
-    }
 }

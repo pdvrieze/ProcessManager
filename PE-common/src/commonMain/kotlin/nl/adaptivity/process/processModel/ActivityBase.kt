@@ -16,17 +16,14 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.Required
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.engine.XmlActivity
 import nl.adaptivity.process.processModel.engine.XmlCondition
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
-import nl.adaptivity.xmlutil.serialization.XmlDefault
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 
@@ -34,10 +31,12 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
  * Base class for activity implementations
  * Created by pdvrieze on 23/11/15.
  */
-@Serializable
-abstract class ActivityBase : ProcessNodeBase, Activity {
+abstract class ActivityBase(
+    builder: Activity.Builder,
+    newOwner: ProcessModel<*>,
+    otherNodes: Iterable<ProcessNode.Builder>
+) : ProcessNodeBase(builder, newOwner, otherNodes), Activity {
 
-    @SerialName("name")
     internal var _name: String? = null
 
     @Suppress("OverridingDeprecatedMember")
@@ -47,16 +46,12 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
             _name = value
         }
 
-    @Required
-    @Serializable(with = Identifiable.Companion::class)
-    final override val predecessor: Identifiable? = predecessors.singleOrNull()
+    final override val predecessor: Identifiable? get() = predecessors.singleOrNull()
 
-    @Transient
     final override val successor: Identifiable?
         get() = successors.singleOrNull()
 
-    constructor(builder: Activity.Builder, newOwner: ProcessModel<*>, otherNodes: Iterable<ProcessNode.Builder>) :
-        super(builder, newOwner, otherNodes) {
+    init {
         _name = builder.name
     }
 
@@ -79,29 +74,19 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
         return result
     }
 
-
-    @Serializable
     abstract class BaseBuilder : ProcessNodeBase.Builder, Activity.Builder {
 
         @Suppress("OverridingDeprecatedMember")
-        @XmlDefault("null")
         final override var name: String? = null
 
-        @Serializable(XmlCondition.Companion::class)
         final override var condition: Condition? = null
 
-        @Transient
         override val idBase: String
             get() = "ac"
 
-        @SerialName("predecessor")
-        @XmlSerialName("predecessor", "", "")
-        @Serializable(with = Identifiable.Companion::class)
         final override var predecessor: Identifiable? = null
 
-        @Transient
         final override var successor: Identifiable? = null
-
 
         constructor(
             id: String? = null,
@@ -114,8 +99,8 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
             name: String? = null,
             x: Double = Double.NaN,
             y: Double = Double.NaN,
-            multiInstance: Boolean = false
-       ) : super(id, label, defines, results, x, y, multiInstance) {
+            isMultiInstance: Boolean = false
+       ) : super(id, label, defines, results, x, y, isMultiInstance) {
             this.predecessor = predecessor
             this.successor = successor
 
@@ -253,9 +238,6 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
 
     }
 
-    @Serializable
-    @SerialName(StartNode.ELEMENTLOCALNAME)
-    @XmlSerialName(StartNode.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     open class DeserializationBuilder : BaseBuilder, MessageActivity.Builder, CompositeActivity.ReferenceBuilder {
         override var childId: String? = null
 
@@ -306,7 +288,6 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
 
     }
 
-    @Serializable
     open class ReferenceActivityBuilder : BaseBuilder, CompositeActivity.ReferenceBuilder {
         final override var childId: String?
 
@@ -349,33 +330,23 @@ abstract class ActivityBase : ProcessNodeBase, Activity {
         }
     }
 
-    @Serializable
     open class CompositeActivityBuilder : ChildProcessModelBase.ModelBuilder,
                                           CompositeActivity.ModelBuilder {
         final override var name: String? = null
         final override var id: String?
-        @Serializable(XmlCondition.Companion::class)
         final override var condition: Condition?
         final override var label: String?
-        @XmlDefault("NaN")
         final override var x: Double
-        @XmlDefault("NaN")
         final override var y: Double
         final override var isMultiInstance: Boolean
-        @Serializable(with = Identifiable.Companion::class)
         final override var predecessor: Identifiable? = null
-        @Transient
         final override var successor: Identifiable? = null
 
-        @Serializable(IXmlDefineTypeListSerializer::class)
-        @SerialName("define")
         final override var defines: MutableCollection<IXmlDefineType> = mutableListOf()
             set(value) {
                 field.replaceBy(value)
             }
 
-        @Serializable(IXmlResultTypeListSerializer::class)
-        @SerialName("result")
         final override var results: MutableCollection<IXmlResultType> = mutableListOf()
             set(value) {
                 field.replaceBy(value)

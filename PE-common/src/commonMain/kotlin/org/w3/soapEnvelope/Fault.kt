@@ -27,7 +27,10 @@ package org.w3.soapEnvelope
 import kotlinx.serialization.Serializable
 import nl.adaptivity.util.multiplatform.URI
 import nl.adaptivity.util.net.devrieze.serializers.URISerializer
+import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
+import nl.adaptivity.xmlutil.util.ICompactFragment
 
 
 /**
@@ -75,5 +78,25 @@ class Fault(
 
     @XmlSerialName("Detail", Envelope.NAMESPACE, Envelope.PREFIX)
     val detail: Detail? = null,
+) : ICompactFragment {
+    override val isEmpty: Boolean get() = false
 
-    )
+    override val content: CharArray get() = contentString.toCharArray()
+
+    override val contentString: String get() = XML{ autoPolymorphic= true; indent=4}.encodeToString(serializer(), this, Envelope.PREFIX)
+
+    override fun getXmlReader(): XmlReader {
+        val writer = XmlBufferedWriter()
+        serialize(writer)
+        writer.buffer
+        return writer.reader()
+    }
+
+    @OptIn(XmlUtilInternal::class)
+    override val namespaces: IterableNamespaceContext
+        get() = SimpleNamespaceContext()
+
+    override fun serialize(out: XmlWriter) {
+        XML{ autoPolymorphic= true; indent=4}.encodeToWriter(out, serializer(), this)
+    }
+}

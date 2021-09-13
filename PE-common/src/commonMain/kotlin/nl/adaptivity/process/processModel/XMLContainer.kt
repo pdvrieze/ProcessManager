@@ -35,7 +35,6 @@ import nl.adaptivity.xmlutil.util.XMLFragmentStreamReader
 abstract class XMLContainer
 private constructor(
     override var namespaces: SimpleNamespaceContext,
-    @Serializable(with = CharArrayAsStringSerializer::class)
     override var content: CharArray
 ) : ICompactFragment {
 

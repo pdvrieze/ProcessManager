@@ -29,7 +29,6 @@ annotation class ProcessModelDSL
  */
 interface ProcessModel<out NodeT : ProcessNode> {
 
-    @Transient
     val rootModel: RootProcessModel<NodeT>
 
     val modelNodes: Collection<NodeT>
@@ -335,10 +334,14 @@ interface ProcessModel<out NodeT : ProcessNode> {
     }
 
     companion object {
-        private fun <B : ProcessNode.Builder> ProcessModel.Builder.nodeHelper(
+        /**
+         * Function that helps to ensure that nodes in the model have id's and are added to the
+         * builder for the model.
+         */
+        private fun <B : ProcessNode.Builder> Builder.nodeHelper(
             builder: B,
             body: B.() -> Unit
-                                                                             ): Identifiable {
+        ): Identifiable {
 
             return builder.apply(body).ensureId().apply { this@nodeHelper.nodes.add(this) }.let { Identifier(it.id!!) }
         }

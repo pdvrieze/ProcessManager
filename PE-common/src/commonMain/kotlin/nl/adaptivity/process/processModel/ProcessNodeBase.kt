@@ -18,11 +18,9 @@ package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.serializer
 import net.devrieze.util.collection.replaceBy
-import nl.adaptivity.process.processModel.serialization.PublicForSerialization
 import nl.adaptivity.process.util.*
 import nl.adaptivity.util.multiplatform.name
 import nl.adaptivity.xmlutil.XmlReader
@@ -33,55 +31,30 @@ import nl.adaptivity.xmlutil.serialization.XmlDefault
  * A base class for process nodes. Works like [RootProcessModelBase]
  * Created by pdvrieze on 23/11/15.
  */
-@Serializable
-@OptIn(PublicForSerialization::class)
 abstract class ProcessNodeBase : ProcessNode {
 
-    @Transient
     private var _ownerModel: ProcessModel<ProcessNode>? = null
 
-    //    @Optional
-    @XmlDefault("false")
     final override val isMultiInstance: Boolean
 
-    @Transient
     private var _predecessors: MutableIdentifyableSet<Identified> = IdentifyableSet.processNodeSet()
 
     override val predecessors: IdentifyableSet<Identified>
         get() = _predecessors
 
-
-    @Transient
     private var _successors: MutableIdentifyableSet<Identified> = IdentifyableSet.processNodeSet()
 
     override val successors: IdentifyableSet<Identified>
         get() = _successors
 
-    //    @Optional
-    @PublicForSerialization
-    @SerialName("x")
-    @XmlDefault("NaN")
-    internal val _x: Double
-
     override val x: Double
-        get() = _x
-
-    //    @Optional
-    @PublicForSerialization
-    @SerialName("y")
-    @XmlDefault("NaN")
-    internal val _y: Double
 
     override val y: Double
-        get() = _y
 
-    @SerialName("define")
     override val defines: List<IXmlDefineType>
 
-    @SerialName("result")
     override val results: List<IXmlResultType>
 
-    @Transient
     private var _hashCode = 0
 
     override val ownerModel: ProcessModel<ProcessNode>?
@@ -89,7 +62,6 @@ abstract class ProcessNodeBase : ProcessNode {
 
     override val idBase: String
         get() = "id"
-
 
     private val _id: String?
 
@@ -119,8 +91,8 @@ abstract class ProcessNodeBase : ProcessNode {
         this.isMultiInstance = isMultiInstance
         this._predecessors = toIdentifiers(Int.MAX_VALUE, predecessors)
         this._successors = toIdentifiers(Int.MAX_VALUE, successors)
-        this._x = x
-        this._y = y
+        this.x = x
+        this.y = y
         this.defines = defines.toList()
         this.results = results.toList()
         this.label = label
@@ -225,12 +197,12 @@ abstract class ProcessNodeBase : ProcessNode {
         if (isMultiInstance != other.isMultiInstance) return false
         if (_predecessors != other._predecessors) return false
         if (_successors != other._successors) return false
-        if (_x.isNaN()) {
-            if (!other._x.isNaN()) return false
-        } else if (_x != other._x) return false
-        if (_y.isNaN()) {
-            if (!other._y.isNaN()) return false
-        } else if (_y != other._y) return false
+        if (x.isNaN()) {
+            if (!other.x.isNaN()) return false
+        } else if (x != other.x) return false
+        if (y.isNaN()) {
+            if (!other.y.isNaN()) return false
+        } else if (y != other.y) return false
         if (defines != other.defines) return false
         if (results != other.results) return false
         if (_hashCode != other._hashCode) return false
@@ -244,8 +216,8 @@ abstract class ProcessNodeBase : ProcessNode {
         var result = isMultiInstance.hashCode()
         result = 31 * result + _predecessors.hashCode()
         result = 31 * result + _successors.hashCode()
-        result = 31 * result + _x.hashCode()
-        result = 31 * result + _y.hashCode()
+        result = 31 * result + x.hashCode()
+        result = 31 * result + y.hashCode()
         result = 31 * result + defines.hashCode()
         result = 31 * result + results.hashCode()
         result = 31 * result + _hashCode
@@ -289,7 +261,6 @@ abstract class ProcessNodeBase : ProcessNode {
         val results: List<XmlResultType>? = null,
         @XmlDefault("NaN")
         val x: Double = Double.NaN,
-
         @XmlDefault("NaN")
         val y: Double = Double.NaN,
         @XmlDefault("false")
@@ -351,8 +322,8 @@ abstract class ProcessNodeBase : ProcessNode {
                         return StartNodeBase.SerialDelegate(startNode)
                     }
 
-                    override fun visitActivity(messageActivity: MessageActivity.Builder): SerialDelegate {
-                        return ActivityBase.SerialDelegate(messageActivity)
+                    override fun visitActivity(activity: MessageActivity.Builder): SerialDelegate {
+                        return ActivityBase.SerialDelegate(activity)
                     }
 
                     override fun visitActivity(activity: CompositeActivity.ModelBuilder): SerialDelegate {
@@ -379,22 +350,15 @@ abstract class ProcessNodeBase : ProcessNode {
         }
     }
 
-    @Serializable
     abstract class Builder : ProcessNode.Builder {
 
         override var id: String?
         override var label: String?
 
-        //        @Optional
-        @XmlDefault("NaN")
         override var x: Double = Double.NaN
 
-        //        @Optional
-        @XmlDefault("NaN")
         override var y: Double = Double.NaN
 
-        //        @Optional
-        @XmlDefault("false")
         override var isMultiInstance: Boolean = false
 
         constructor() : this(id = null)
@@ -418,12 +382,8 @@ abstract class ProcessNodeBase : ProcessNode {
             this.results = results?.toMutableList() ?: mutableListOf()
         }
 
-        @Serializable(with = IXmlDefineTypeListSerializer::class)
-        @SerialName("define")
         override val defines: MutableCollection<IXmlDefineType>
 
-        @Serializable(with = IXmlResultTypeListSerializer::class)
-        @SerialName("result")
         override val results: MutableCollection<IXmlResultType>
 
         constructor(node: ProcessNode) : this(

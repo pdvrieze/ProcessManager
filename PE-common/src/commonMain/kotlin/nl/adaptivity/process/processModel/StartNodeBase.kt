@@ -28,14 +28,11 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 /**
  * Base class for start nodes. It knows about the data
  */
-@Serializable
 abstract class StartNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> : ProcessNodeBase, StartNode {
 
-    @Transient
     override val maxPredecessorCount: Int
         get() = 0
 
-    @Transient
     final override val successor: Identifiable?
         get() = successors.singleOrNull()
 
@@ -78,19 +75,13 @@ abstract class StartNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?>
             super(source.id, source.label, x = source.x, y = source.y, isMultiInstance = source.isMultiInstance)
     }
 
-    @SerialName(StartNode.ELEMENTLOCALNAME)
-    @XmlSerialName(StartNode.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
-    @Serializable
     open class Builder : ProcessNodeBase.Builder, StartNode.Builder {
 
-        @Transient
         override val idBase: String
             get() = "start"
 
-        @Transient
         final override var successor: Identifiable? = null
 
-        @Transient
         final override val predecessors
             get() = emptySet<Identified>()
 

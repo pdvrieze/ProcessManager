@@ -31,14 +31,11 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 /**
  * Created by pdvrieze on 26/11/15.
  */
-@XmlSerialName("split", ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
 abstract class SplitBase : JoinSplitBase, Split {
 
-    @Transient
     override val maxSuccessorCount: Int
         get() = Int.MAX_VALUE
 
-    @Serializable(with = Identifiable.Companion::class)
     final override val predecessor: Identifiable? = predecessors.singleOrNull()
 
     constructor(
@@ -114,24 +111,18 @@ abstract class SplitBase : JoinSplitBase, Split {
         )
     }
 
-    @Serializable
-    @SerialName(Split.ELEMENTLOCALNAME)
-    @XmlSerialName(Split.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     open class Builder :
         JoinSplitBase.Builder,
         Split.Builder {
 
-        @Transient
         override val idBase: String
             get() = "split"
 
-        @Transient
         final override var successors: MutableSet<Identified> = ArraySet()
             set(value) {
                 field.replaceBy(value)
             }
 
-        @Serializable(with = Identifiable.Companion::class)
         final override var predecessor: Identifiable? = null
 
         constructor() : this(id = null)
