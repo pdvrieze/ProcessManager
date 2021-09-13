@@ -17,17 +17,17 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
+import kotlinx.serialization.builtins.nullable
+import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.CompositeEncoder
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.serialutil.encodeNullableStringElement
-import nl.adaptivity.serialutil.readNullableString
 import nl.adaptivity.util.MyGatheringNamespaceContext
-import nl.adaptivity.xmlutil.util.GatheringNamespaceContext
 
-abstract open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSerializer<T>() {
+abstract class XPathHolderSerializer<T : XPathHolder> : XmlContainerSerializer<T>() {
+
     protected open class PathHolderData<T : XPathHolder>(
         val owner: XPathHolderSerializer<in T>,
         var name: String? = null,
@@ -43,9 +43,10 @@ abstract open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSeriali
             }
         }
 
+        @OptIn(ExperimentalSerializationApi::class)
         override fun readAdditionalChild(desc: SerialDescriptor, decoder: CompositeDecoder, index: Int) {
             when (desc.getElementName(index)) {
-                "name"  -> name = decoder.readNullableString(desc, index)
+                "name"  -> name = decoder.decodeSerializableElement(desc, index, nullStringSerializer)
 //                "path",
 //                "xpath" -> path = decoder.readNullableString(desc, index)
                 else    -> super.readAdditionalChild(desc, decoder, index)
@@ -67,16 +68,17 @@ abstract open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSeriali
 
     open fun writeAdditionalAttributes(writer: XmlWriter, data: T) {}
 
+    @OptIn(ExperimentalSerializationApi::class)
     override fun writeAdditionalValues(out: CompositeEncoder, desc: SerialDescriptor, data: T) {
-        out.encodeNullableStringElement(desc, desc.getElementIndex("name"), data._name)
-        out.encodeNullableStringElement(desc, desc.getElementIndex("xpath"), data.getPath())
+        out.encodeSerializableElement(desc, desc.getElementIndex("name"), nullStringSerializer, data._name)
+        out.encodeSerializableElement(desc, desc.getElementIndex("xpath"), nullStringSerializer, data.getPath())
     }
 
     internal open class XPathholderNamespaceGatherer(gatheringNamespaceContext: MyGatheringNamespaceContext) :
         NamespaceGatherer(gatheringNamespaceContext) {
 
         override fun visitNamesInAttributeValue(
-            elementContext: NamespaceContext,
+            referenceContext: NamespaceContext,
             owner: QName,
             attributeName: QName,
             attributeValue: CharSequence,
@@ -84,7 +86,7 @@ abstract open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSeriali
         ) {
             if (Constants.MODIFY_NS_STR == owner.getNamespaceURI() && (XMLConstants.NULL_NS_URI == attributeName.getNamespaceURI() || XMLConstants.DEFAULT_NS_PREFIX == attributeName.getPrefix()) && "xpath" == attributeName.getLocalPart()) {
                 val namesInPath = mutableMapOf<String, String>()
-                val newContext = MyGatheringNamespaceContext(namesInPath, elementContext)
+                val newContext = MyGatheringNamespaceContext(namesInPath, referenceContext)
                 visitXpathUsedPrefixes(attributeValue, newContext)
                 for (prefix in namesInPath.keys) {
                     if (localPrefixes.none { prefix in it }) {
@@ -99,3 +101,5 @@ abstract open class XPathHolderSerializer<T : XPathHolder> : XmlContainerSeriali
 
 
 }
+
+private val nullStringSerializer = String.serializer().nullable

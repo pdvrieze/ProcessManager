@@ -510,7 +510,7 @@ class TestProcessData {
             assertEquals("name", it.name)
             assertEquals("/umh:result/umh:value[@name='user']/text()", it.path)
             assertEquals("", it.contentString)
-            assertEquals(1, it.namespaces.size)
+            assertEquals(1, it.namespaces.count())
             assertEquals("http://adaptivity.nl/userMessageHandler", it.namespaces.getNamespaceURI("umh"))
         }
         assertTrue(result.contains("xmlns:umh=\"http://adaptivity.nl/userMessageHandler\""))

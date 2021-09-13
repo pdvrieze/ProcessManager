@@ -38,7 +38,7 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
 
     override val modelNodes: IdentifyableSet<NodeT>
 
-    private var _rootModel: RootProcessModel<NodeT> = XmlProcessModel(RootProcessModelBase.Builder()) as RootProcessModel<NodeT>
+    private var _rootModel: RootProcessModel<NodeT>
 
     override val rootModel: RootProcessModel<NodeT>
         get() = _rootModel

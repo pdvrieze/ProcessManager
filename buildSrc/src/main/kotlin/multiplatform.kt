@@ -71,7 +71,7 @@ fun KotlinTargetContainerWithPresetFunctions.jvmAndroid(configure: KotlinJvmTarg
         attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.androidJvm)
         compilations.all {
             kotlinOptions {
-                jvmTarget = "1.6"
+                jvmTarget = "1.8"
             }
         }
         configure()

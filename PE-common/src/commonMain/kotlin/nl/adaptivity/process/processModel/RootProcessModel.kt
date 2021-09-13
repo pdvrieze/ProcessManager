@@ -29,7 +29,7 @@ interface RootProcessModel<out NodeT : ProcessNode> : ProcessModel<NodeT> {
     override val rootModel: RootProcessModel<NodeT> get() = this
 
     @SerialName("childModel")
-    val childModels: Collection<ChildProcessModel<out NodeT>>
+    val childModels: Collection<ChildProcessModel<NodeT>>
 
     val owner: Principal
 
@@ -41,7 +41,7 @@ interface RootProcessModel<out NodeT : ProcessNode> : ProcessModel<NodeT> {
     val name: String?
     val roles: Set<String>
 
-    fun builder(): RootProcessModel.Builder
+    fun builder(): Builder
 
     /**
      * Get the process node with the given id.
@@ -52,11 +52,6 @@ interface RootProcessModel<out NodeT : ProcessNode> : ProcessModel<NodeT> {
     override fun getNode(nodeId: Identifiable): NodeT?
 
     fun getChildModel(childId: Identifiable): ChildProcessModel<NodeT>?
-
-    companion object {
-        const val ATTR_ROLES = "roles"
-        const val ATTR_NAME = "name"
-    }
 
     interface Builder : ProcessModel.Builder {
         override val rootBuilder: Builder get() = this

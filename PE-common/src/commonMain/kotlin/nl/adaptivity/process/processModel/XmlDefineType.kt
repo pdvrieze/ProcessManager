@@ -24,11 +24,9 @@
 
 package nl.adaptivity.process.processModel
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.descriptors.element
@@ -40,9 +38,7 @@ import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.serialutil.encodeNullableStringElement
 import nl.adaptivity.serialutil.readNullableString
-import nl.adaptivity.serialutil.simpleSerialClassDesc
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.core.impl.multiplatform.name
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
@@ -70,10 +66,8 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
             content = orig.content?.copyOf() ?: CharArray(0)
             nsContext = ArrayList<Namespace>()
             val origContext = orig.originalNSContext
-            if (origContext != null) {
-                for (ns in origContext) {
-                    nsContext.add(ns)
-                }
+            for (ns in origContext) {
+                nsContext.add(ns)
             }
         }
 
@@ -200,6 +194,7 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
 
     companion object : XPathHolderSerializer<XmlDefineType>() {
 
+        @OptIn(ExperimentalSerializationApi::class)
         override val descriptor = buildClassSerialDescriptor("nl.adaptivity.process.processModel.XmlDefineType") {
             annotations = XmlDefineTypeAnnotationHelper.serializer().descriptor.annotations
             element<String?>("name")
@@ -246,8 +241,8 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
             out.encodeNullableStringElement(desc, desc.getElementIndex("refnode"), data.getRefNode())
         }
 
-        override fun serialize(encoder: Encoder, obj: XmlDefineType) {
-            serialize(descriptor, encoder, obj)
+        override fun serialize(encoder: Encoder, value: XmlDefineType) {
+            serialize(descriptor, encoder, value)
         }
 
         private class DefineTypeData(

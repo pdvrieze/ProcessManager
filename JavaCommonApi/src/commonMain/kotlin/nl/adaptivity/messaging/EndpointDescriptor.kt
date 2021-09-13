@@ -14,6 +14,8 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+@file:Suppress("DEPRECATION")
+
 package nl.adaptivity.messaging
 
 import nl.adaptivity.util.multiplatform.URI

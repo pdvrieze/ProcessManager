@@ -18,14 +18,19 @@ package nl.adaptivity.process.engine
 
 import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.XmlResultType
-import nl.adaptivity.util.DomUtil
-import nl.adaptivity.xmlutil.util.CompactFragment
-import nl.adaptivity.xmlutil.*
+import nl.adaptivity.process.util.Constants.USER_MESSAGE_HANDLER_NS
+import nl.adaptivity.xmlutil.SimpleNamespaceContext
+import nl.adaptivity.xmlutil.XmlException
+import nl.adaptivity.xmlutil.XmlUtilInternal
+import nl.adaptivity.xmlutil.serialization.XML
+import org.junit.jupiter.api.Assertions.assertEquals
+import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
-import org.w3c.dom.Element
 import org.xml.sax.InputSource
 import org.xml.sax.SAXException
-
+import java.io.IOException
+import java.io.StringReader
+import java.util.*
 import javax.xml.XMLConstants
 import javax.xml.bind.JAXBException
 import javax.xml.parsers.DocumentBuilder
@@ -33,16 +38,6 @@ import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.parsers.ParserConfigurationException
 import javax.xml.xpath.XPathExpressionException
 import javax.xml.xpath.XPathFactory
-
-import java.io.IOException
-import java.io.StringReader
-import java.util.TreeMap
-
-import nl.adaptivity.process.util.Constants.USER_MESSAGE_HANDLER_NS
-import nl.adaptivity.xmlutil.SimpleNamespaceContext.Companion
-import nl.adaptivity.xmlutil.serialization.XML
-import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.Assertions.assertNotNull
 
 
 /**
@@ -102,15 +97,12 @@ class TestXmlResultType {
         prefixMap["ns1"] = USER_MESSAGE_HANDLER_NS
         xPath.namespaceContext = SimpleNamespaceContext(prefixMap)
         val expr = xPath.compile("/ns1:result/ns1:value[@name='user']/text()")
-        val testData = db.parse(
-            InputSource(
-                StringReader(
-                    "<?xml version=\"1.0\" encoding=\"UTF-8\"?><result xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
-                        "  <value name=\"user\">Some test value</value>\n" +
-                        "</result>"
-                            )
-                       )
-                               )
+        val testData =
+            db.parse(InputSource(StringReader(
+                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+                    "<result xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
+                    "  <value name=\"user\">Some test value</value>\n" +
+                    "</result>")))
         assertEquals("Some test value", expr.evaluate(testData))
     }
 
@@ -136,16 +128,13 @@ class TestXmlResultType {
     fun testXMLResultHolder() {
         val testData = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" path=\"/umh:bar/text()\" />"
 
-        val reader = XmlStreaming.newReader(StringReader(testData))
-
-
-        val testHolder = XmlResultType.deserialize(reader)
+        val testHolder = XML.decodeFromString<XmlResultType>(testData)
 
         assertNotNull(SimpleNamespaceContext.from(testHolder.originalNSContext))
         assertEquals(
-            USER_MESSAGE_HANDLER_NS, Companion.from(testHolder.originalNSContext)
-                .getNamespaceURI("umh")
-                    )
+            USER_MESSAGE_HANDLER_NS,
+            SimpleNamespaceContext.from(testHolder.originalNSContext).getNamespaceURI("umh")
+        )
         assertEquals("foo" as Any, testHolder.getName())
     }
 

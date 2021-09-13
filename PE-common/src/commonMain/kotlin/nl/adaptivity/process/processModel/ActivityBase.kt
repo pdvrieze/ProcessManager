@@ -52,6 +52,7 @@ abstract class ActivityBase(
         get() = successors.singleOrNull()
 
     init {
+        @Suppress("DEPRECATION")
         _name = builder.name
     }
 
@@ -74,6 +75,7 @@ abstract class ActivityBase(
         return result
     }
 
+    @Suppress("RemoveRedundantQualifierName")
     abstract class BaseBuilder : ProcessNodeBase.Builder, Activity.Builder {
 
         @Suppress("OverridingDeprecatedMember")
@@ -104,11 +106,13 @@ abstract class ActivityBase(
             this.predecessor = predecessor
             this.successor = successor
 
+            @Suppress("DEPRECATION")
             this.name = name
             this.condition = condition
         }
 
         constructor(node: Activity) : super(node) {
+            @Suppress("DEPRECATION")
             name = node.name
             condition = node.condition
             predecessor = node.predecessor
@@ -166,6 +170,7 @@ abstract class ActivityBase(
             this.name = name
         }
 
+        @Suppress("DEPRECATION")
         constructor(node: MessageActivity) : this(
             node.id,
             node.label,
@@ -180,6 +185,7 @@ abstract class ActivityBase(
             name = node.name
         )
 
+        @Suppress("DEPRECATION")
         constructor(node: MessageActivity.Builder) : this(
             node.id,
             node.label,
@@ -194,6 +200,7 @@ abstract class ActivityBase(
             name = node.name
         )
 
+        @Suppress("DEPRECATION")
         constructor(node: CompositeActivity) : this(
             node.id,
             node.label,
@@ -208,6 +215,7 @@ abstract class ActivityBase(
             name = node.name
         )
 
+        @Suppress("DEPRECATION")
         constructor(node: CompositeActivity.ReferenceBuilder) : this(
             node.id,
             node.label,
@@ -222,6 +230,7 @@ abstract class ActivityBase(
             name = node.name
         )
 
+        @Suppress("DEPRECATION")
         constructor(node: CompositeActivity.ModelBuilder) : this(
             node.id,
             node.label,
@@ -239,10 +248,10 @@ abstract class ActivityBase(
     }
 
     open class DeserializationBuilder : BaseBuilder, MessageActivity.Builder, CompositeActivity.ReferenceBuilder {
-        override var childId: String? = null
+        final override var childId: String? = null
 
         @Serializable(with = IXmlMessage.Companion::class)
-        override var message: IXmlMessage? = null
+        final override var message: IXmlMessage? = null
 
         constructor(
             id: String? = null,
@@ -291,6 +300,7 @@ abstract class ActivityBase(
     open class ReferenceActivityBuilder : BaseBuilder, CompositeActivity.ReferenceBuilder {
         final override var childId: String?
 
+        @Suppress("unused")
         constructor(
             id: String? = null,
             predecessor: Identifiable? = null,
@@ -304,7 +314,7 @@ abstract class ActivityBase(
             x: Double = Double.NaN,
             y: Double = Double.NaN,
             multiInstance: Boolean = false
-                   ) : super(
+        ) : super(
             id,
             predecessor,
             successor,
@@ -316,7 +326,7 @@ abstract class ActivityBase(
             x,
             y,
             multiInstance
-                            ) {
+        ) {
             this.childId = childId
         }
 
@@ -332,6 +342,7 @@ abstract class ActivityBase(
 
     open class CompositeActivityBuilder : ChildProcessModelBase.ModelBuilder,
                                           CompositeActivity.ModelBuilder {
+        @Suppress("OverridingDeprecatedMember")
         final override var name: String? = null
         final override var id: String?
         final override var condition: Condition?
@@ -354,6 +365,7 @@ abstract class ActivityBase(
 
         override val idBase: String get() = "child"
 
+        @Suppress("unused")
         private constructor() : super() {
             id = null
             condition = null
@@ -400,6 +412,7 @@ abstract class ActivityBase(
                                             ): T =
             buildHelper.node(this, otherNodes)
 
+        @Suppress("unused")
         fun buildActivity(
             buildHelper: ProcessModel.BuildHelper<*, *, *, *>,
             otherNodes: Iterable<ProcessNode.Builder>

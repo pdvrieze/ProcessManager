@@ -55,7 +55,9 @@ private class SimpleHandle<T> constructor(override val handleValue: Long) : Comp
         return handleValue.hashCode()
     }
 
-    class Serializer<T>(elemSerializer: KSerializer<T>) : KSerializer<SimpleHandle<T>> {
+    class Serializer<T>(@Suppress("UNUSED_PARAMETER") elemSerializer: KSerializer<T>) :
+        KSerializer<SimpleHandle<T>> {
+        
         override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(SimpleHandle::class.name, PrimitiveKind.LONG)
 
         override fun serialize(encoder: Encoder, value: SimpleHandle<T>) {

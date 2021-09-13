@@ -28,11 +28,12 @@ import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.util.multiplatform.toCharArray
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XML
-import nl.adaptivity.xmlutil.serialization.XML.Companion.decodeFromReader
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable(XmlResultType.Companion::class)
 class XmlResultType : XPathHolder, IPlatformXmlResultType {
+    override val bodyStreamReader: XmlReader
+        get() = getXmlReader()
 
     constructor(
         name: String?,
@@ -109,7 +110,7 @@ class XmlResultType : XPathHolder, IPlatformXmlResultType {
 
         @kotlin.jvm.JvmStatic
         fun deserialize(reader: XmlReader): XmlResultType {
-            return decodeFromReader(this, reader)
+            return XML {autoPolymorphic=true }.decodeFromReader(this, reader)
         }
 
         const val ELEMENTLOCALNAME = "result"

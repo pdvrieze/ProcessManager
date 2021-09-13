@@ -19,7 +19,6 @@ package nl.adaptivity.process.processModel
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationException
-import kotlinx.serialization.Transient
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.*
@@ -203,10 +202,10 @@ abstract class XmlContainerSerializer<T : XMLContainer>: KSerializer<T> {
         open fun visitNamesInElement(source: XmlReader, localPrefixes: List<List<String>>) {
             assert(source.eventType === EventType.START_ELEMENT)
 
-            val prefix = source.prefix
-            val isLocal = localPrefixes.any { prefix in it }
+            val sourcePrefix = source.prefix
+            val isLocal = localPrefixes.any { sourcePrefix in it }
             if (!isLocal) {
-                gatheringNamespaceContext.getNamespaceURI(prefix)
+                gatheringNamespaceContext.getNamespaceURI(sourcePrefix)
             }
 
             if (source.namespaceURI == Constants.MY_JBI_NS_STR && source.localName=="value") {

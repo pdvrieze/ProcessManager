@@ -132,7 +132,7 @@ enum class NodeInstanceState {
 
         fun fromString(string: CharSequence): NodeInstanceState? {
             val lowerCase = string.toLowercase()
-            return values().firstOrNull { it.name.toLowerCase() == lowerCase }
+            return values().firstOrNull { it.name.lowercase() == lowerCase }
         }
 
     }

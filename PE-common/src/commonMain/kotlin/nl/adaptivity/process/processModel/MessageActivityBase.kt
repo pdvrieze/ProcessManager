@@ -16,12 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.SerialName
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
-import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 abstract class MessageActivityBase(
     builder: MessageActivity.Builder,
@@ -31,7 +26,7 @@ abstract class MessageActivityBase(
 
     private var _message: XmlMessage?
 
-    override final var message: IXmlMessage?
+    final override var message: IXmlMessage?
         get() = _message
         private set(value) {
             _message = XmlMessage.from(value)
@@ -97,6 +92,7 @@ abstract class MessageActivityBase(
             this.message = message
         }
 
+        @Suppress("DEPRECATION")
         constructor(activity: MessageActivity) : this(
             activity.id,
             activity.predecessor,

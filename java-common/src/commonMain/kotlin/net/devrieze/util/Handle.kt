@@ -37,7 +37,7 @@ interface Handle<out T : Any?> {
 }
 
 
-class HandleSerializer<T>(elemSerializer: KSerializer<T>): KSerializer<Handle<T>> {
+class HandleSerializer<T>(@Suppress("UNUSED_PARAMETER") elemSerializer: KSerializer<T>): KSerializer<Handle<T>> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("net.devrieze.util.Handle", PrimitiveKind.LONG)
 
     override fun deserialize(decoder: Decoder): Handle<T> {

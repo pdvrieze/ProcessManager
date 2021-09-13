@@ -22,11 +22,9 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.serializer
 import nl.adaptivity.serialutil.DelegatingSerializer
 import nl.adaptivity.xmlutil.Namespace
 import nl.adaptivity.xmlutil.XmlReader
-import kotlin.jvm.JvmStatic
 
 @Serializable(with = IXmlResultType.Serializer::class)
 interface IXmlResultType {
@@ -101,7 +99,7 @@ object IXmlResultTypeListSerializer : KSerializer<List<IXmlResultType>> {
         return delegate.deserialize(decoder)
     }
 
-    override fun serialize(encoder: Encoder, obj: List<IXmlResultType>) {
-        delegate.serialize(encoder, obj.map(::XmlResultType))
+    override fun serialize(encoder: Encoder, value: List<IXmlResultType>) {
+        delegate.serialize(encoder, value.map(::XmlResultType))
     }
 }

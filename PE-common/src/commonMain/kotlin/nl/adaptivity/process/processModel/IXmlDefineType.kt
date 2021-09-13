@@ -22,7 +22,6 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.serializer
 import nl.adaptivity.serialutil.DelegatingSerializer
 import nl.adaptivity.xmlutil.Namespace
 
@@ -142,7 +141,7 @@ object IXmlDefineTypeListSerializer : KSerializer<List<IXmlDefineType>> {
         return delegate.deserialize(decoder)
     }
 
-    override fun serialize(encoder: Encoder, obj: List<IXmlDefineType>) {
-        delegate.serialize(encoder, obj.map(::XmlDefineType))
+    override fun serialize(encoder: Encoder, value: List<IXmlDefineType>) {
+        delegate.serialize(encoder, value.map(::XmlDefineType))
     }
 }

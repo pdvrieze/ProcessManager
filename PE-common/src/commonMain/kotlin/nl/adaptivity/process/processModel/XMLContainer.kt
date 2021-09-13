@@ -50,18 +50,16 @@ private constructor(
     val originalNSContext: Iterable<Namespace>
         get() = namespaces
 
-    val bodyStreamReader: XmlReader
-        get() = this.getXmlReader()
-
     constructor() : this(emptyList(), CharArray(0))
 
+    @Suppress("unused")
     constructor(fragment: ICompactFragment) : this(fragment.namespaces, fragment.content)
 
     open fun deserializeChildren(reader: XmlReader) {
         if (reader.hasNext()) {
             if (reader.next() !== EventType.END_ELEMENT) {
                 val content = reader.siblingsToFragment()
-                setContent(content)
+                setContent(content.namespaces, content.content)
             }
         }
     }
@@ -69,10 +67,6 @@ private constructor(
     fun setContent(originalNSContext: Iterable<Namespace>, content: CharArray) {
         this.namespaces = SimpleNamespaceContext.from(originalNSContext)
         this.content = content
-    }
-
-    fun setContent(content: ICompactFragment) {
-        setContent(content.namespaces, content.content)
     }
 
     @Deprecated("XMLContainer should be immutable")
@@ -95,6 +89,7 @@ private constructor(
         }
     }
 
+    @Suppress("MemberVisibilityCanBePrivate")
     protected fun visitNamesInElement(source: XmlReader) {
         assert(source.eventType === EventType.START_ELEMENT)
         visitNamespace(source, source.prefix)
@@ -111,10 +106,10 @@ private constructor(
         attributeName: QName,
         attributeValue: CharSequence
                                                  ) {
-        // By default there are no special attributes
+        // By default, there are no special attributes
     }
 
-    @Suppress("UnusedReturnValue")
+    @Suppress("UnusedReturnValue", "UNUSED_PARAMETER")
     protected fun visitNamesInTextContent(parent: QName?, textContent: CharSequence): List<QName> {
         return emptyList()
     }
@@ -128,6 +123,7 @@ private constructor(
     @Throws(XmlException::class)
     private fun visitNamespacesInContent(xsr: XmlReader, parent: QName?) {
         while (xsr.hasNext()) {
+            @Suppress("NON_EXHAUSTIVE_WHEN")
             when (xsr.next()) {
                 EventType.START_ELEMENT -> {
                     visitNamesInElement(xsr)
@@ -143,7 +139,7 @@ private constructor(
     @Throws(XmlException::class)
     private fun serializeBody(out: XmlWriter) {
         if (content.isNotEmpty()) {
-            val contentReader = bodyStreamReader.asSubstream()
+            val contentReader = getXmlReader().asSubstream()
             while (contentReader.hasNext()) {
                 contentReader.next()
                 contentReader.writeCurrent(out)
@@ -187,7 +183,6 @@ private constructor(
     }
 
     companion object {
-        private val BASE_NS_CONTEXT = SimpleNamespaceContext(arrayOf(""), arrayOf(""))
 
         @Throws(XmlException::class)
         protected fun visitNamespace(reader: XmlReader, prefix: CharSequence?) {
