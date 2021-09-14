@@ -51,22 +51,35 @@ kotlin {
             }
             attributes.attribute(androidAttribute, false)
 
+            testRuns.create("spekTest") {
+                setExecutionSourceFrom(compilations[KotlinCompilation.MAIN_COMPILATION_NAME])
+                setExecutionSourceFrom(compilations[KotlinCompilation.TEST_COMPILATION_NAME])
 
-            tasks.create<Test>("testWCP1") {
-//                useJUnitPlatform {
-//                    includeEngines("spek2"/*, "junit-jupiter"*/)
-//                }
-                filter {
-                    includeTestsMatching("nl.adaptivity.process.engine.patterns.WCP1.*")
+                executionTask.configure {
+                    useJUnitPlatform {
+                        includeEngines("spek2")
+                    }
+                    include("**/TestWorkflowPatterns**")
+                    include("**/TestProcessEngine**")
+                    include("**/TestLoanOrigination**")
                 }
-                val testCompilation = compilations.findByName(KotlinCompilation.TEST_COMPILATION_NAME) as KotlinJvmCompilation
+            }
 
-                description = "Run WCP1"
-                group = JavaBasePlugin.VERIFICATION_GROUP
-                project.afterEvaluate {
-                    // use afterEvaluate to override the JavaPlugin defaults for Test tasks
-                    conventionMapping("testClassesDirs") { testCompilation.output.classesDirs }
-                    conventionMapping("classpath") { testCompilation.runtimeDependencyFiles }
+            testRuns.create("WCP1") {
+                setExecutionSourceFrom(compilations[KotlinCompilation.MAIN_COMPILATION_NAME])
+                setExecutionSourceFrom(compilations[KotlinCompilation.TEST_COMPILATION_NAME])
+
+                executionTask.configure {
+                    useJUnitPlatform {
+                        includeEngines("spek2")
+                    }
+
+                    filter {
+                        includeTestsMatching("nl.adaptivity.process.engine.patterns.WCP1.*")
+                    }
+
+                    description = "Run WCP1"
+
                 }
             }
 
@@ -156,16 +169,6 @@ tasks.withType<KotlinCompile> {
         val newArgs = freeCompilerArgs.toMutableSet().apply { add("-Xuse-experimental=kotlin.Experimental")}.toList()
         freeCompilerArgs=newArgs
     }
-}
-
-tasks.register<Test>("jvmSpekTest") {
-    useJUnitPlatform {
-        includeEngines("spek2")
-    }
-    include("**/TestWorkflowPatterns**")
-    include("**/TestProcessEngine**")
-    include("**/TestLoanOrigination**")
-
 }
 
 tasks.named<Test>("jvmTest") {

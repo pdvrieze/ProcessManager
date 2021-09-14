@@ -30,6 +30,7 @@ import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.XmlProcessModel
 import nl.adaptivity.spek.DelegateTestBody
 import nl.adaptivity.util.Getter
+import nl.adaptivity.util.assertJsonEquals
 import nl.adaptivity.util.getter
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.CompactFragment
@@ -223,7 +224,7 @@ abstract class ModelSpek(
                     }
                     if (modelJson != null) {
                         it("${model.name} should match the expected JSON") {
-                            assertEquals(modelJson, jsonSerialization)
+                            assertJsonEquals(modelJson, jsonSerialization)
                         }
                     }
                     it("${model.name} should also be able to be deserialized from JSON") {

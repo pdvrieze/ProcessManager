@@ -25,36 +25,37 @@ import nl.adaptivity.process.processModel.configurableModel.endNode
 import nl.adaptivity.process.processModel.configurableModel.startNode
 import org.junit.jupiter.api.Assertions.assertEquals
 
-private const val expectedWCP1Json = "{\"name\":\"WCP1\",\"owner\":\"pdvrieze\",\"roles\":null,\"uuid\":null,\"childModel\":[],\"import\":[],\"export\":[],\"nodes\":[" +
-                                     "[\"nl.adaptivity.process.processModel.engine.XmlStartNode\"," +
-                                     "{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"start\",\"label\":null}]," +
-                                     "[\"nl.adaptivity.process.processModel.engine.XmlActivity\"," +
-                                     "{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"ac1\",\"label\":null,\"predecessor\":\"start\",\"message\":null,\"childId\":null}]," +
-                                     "[\"nl.adaptivity.process.processModel.engine.XmlActivity\"," +
-                                     "{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"ac2\",\"label\":null,\"predecessor\":\"ac1\",\"message\":null,\"childId\":null}]," +
-                                     "[\"nl.adaptivity.process.processModel.engine.XmlEndNode\"," +
-                                     "{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"end\",\"label\":null,\"predecessor\":\"ac2\"}]" +
-                                     "]}"
+private const val expectedWCP1Json =
+    "{\"name\":\"WCP1\",\"owner\":\"pdvrieze\",\"roles\":[],\"childModel\":[],\"imports\":[],\"exports\":[],\"nodes\":[" +
+        "{\"type\":\"start\",\"id\":\"start\",\"label\":null}," +
+        "{\"type\":\"activity\",\"defines\":[],\"results\":[],\"id\":\"ac1\",\"label\":null,\"predecessor\":\"start\"}," +
+        "{\"type\":\"activity\",\"defines\":[],\"results\":[],\"id\":\"ac2\",\"label\":null,\"predecessor\":\"ac1\"}," +
+        "{\"type\":\"end\",\"defines\":[],\"results\":[],\"id\":\"end\",\"label\":null,\"predecessor\":\"ac2\"}" +
+        "]}"
 
-object WCP1 : ModelSpek(run {
-    val m = object : TestConfigurableModel("WCP1") {
-        val start by startNode
-        val ac1 by activity(start)
-        val ac2 by activity(ac1)
-        val end by endNode(ac2)
-    }
-    with(m) {
-        val valid = trace { start..ac1..ac2..end }
-        val invalid = trace {
-            (start.opt * (ac2 or end)) or
-                (start..ac1..end)
+object WCP1 : ModelSpek(
+    run {
+        val m = object : TestConfigurableModel("WCP1") {
+            val start by startNode
+            val ac1 by activity(start)
+            val ac2 by activity(ac1)
+            val end by endNode(ac2)
         }
-        ModelData(m, valid, invalid)
-    }
-}, {val m = model
-                           context("model verification") {
-                               it("should be correctly named") {
-                                   assertEquals("WCP1", m.name)
-                               }
-                           }
-                       }, modelJson = expectedWCP1Json)
+        with(m) {
+            val valid = trace { start..ac1..ac2..end }
+            val invalid = trace {
+                (start.opt * (ac2 or end)) or
+                    (start..ac1..end)
+            }
+            ModelData(m, valid, invalid)
+        }
+    },
+    {
+        val m = model
+        context("model verification") {
+            it("should be correctly named") {
+                assertEquals("WCP1", m.name)
+            }
+        }
+    }, modelJson = expectedWCP1Json
+)
