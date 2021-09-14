@@ -65,6 +65,17 @@ kotlin {
                 }
             }
 
+            testRuns.create("anySpek") {
+                setExecutionSourceFrom(compilations[KotlinCompilation.MAIN_COMPILATION_NAME])
+                setExecutionSourceFrom(compilations[KotlinCompilation.TEST_COMPILATION_NAME])
+
+                executionTask.configure {
+                    useJUnitPlatform {
+                        includeEngines("spek2")
+                    }
+                }
+            }
+
             testRuns.create("WCP1") {
                 setExecutionSourceFrom(compilations[KotlinCompilation.MAIN_COMPILATION_NAME])
                 setExecutionSourceFrom(compilations[KotlinCompilation.TEST_COMPILATION_NAME])
@@ -178,6 +189,7 @@ tasks.named<Test>("jvmTest") {
     include("**/TestWorkflowPatterns**")
     include("**/TestProcessEngine**")
     include("**/TestLoanOrigination**")
+    dependsOn(tasks.named("jvmSpekTest"))
 }
 
 idea {
