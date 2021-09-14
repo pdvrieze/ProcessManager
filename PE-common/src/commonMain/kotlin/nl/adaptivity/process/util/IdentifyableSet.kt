@@ -99,8 +99,10 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
             return ReadonlyArrayIterator(data, index)
         }
 
-        override fun equals(o: Any?): Boolean {
-            return o is IdentifyableSet<*> && o.size == data.size && o.allIndexed { i, otherElem -> data[i] == otherElem }
+        override fun equals(other: Any?): Boolean {
+            return other is IdentifyableSet<*>
+                && data.size == other.size &&
+                other.all { it in data }
         }
 
         override fun hashCode() = data.hashCode()
@@ -190,11 +192,10 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
 
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
-            if (other !is BaseIdentifyableSet<*>) return false
+            if (other !is IdentifyableSet<*>) return false
 
-            if (data != other.data) return false
-
-            return true
+            if (size!=other.size) return false
+            return other.all { it in data }
         }
 
         override fun hashCode(): Int {
@@ -264,10 +265,10 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
             if (this === other) {
                 return true
             }
-            if (other == null || other !is EmptyIdentifyableSet) {
+            if (other !is IdentifyableSet<*>) {
                 return false
             }
-            return true
+            return other.isEmpty()
         }
     }
 
@@ -401,12 +402,9 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
         override fun containsAll(elements: Collection<V>) = element != null && elements.all { it == element }
         override fun equals(other: Any?): Boolean {
             if (this === other) return true
-            if (other !is SingletonIdentifyableSet<*>) return false
-            if (!super.equals(other)) return false
-
-            if (element != other.element) return false
-
-            return true
+            if (other !is IdentifyableSet<*>) return false
+            if (other.size!=1) return false
+            return other.single() == element
         }
 
         override fun hashCode(): Int {
