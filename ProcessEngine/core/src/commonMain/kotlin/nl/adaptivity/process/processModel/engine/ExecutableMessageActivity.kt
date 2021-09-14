@@ -37,7 +37,7 @@ class ExecutableMessageActivity : MessageActivityBase, ExecutableProcessNode {
         builder: MessageActivity.Builder,
         newOwner: ProcessModel<*>,
         otherNodes: Iterable<ProcessNode.Builder>
-               ) : super(builder, newOwner, otherNodes) {
+    ) : super(builder, newOwner, otherNodes) {
         this._condition = builder.condition?.toExecutableCondition()
     }
 
@@ -70,7 +70,7 @@ class ExecutableMessageActivity : MessageActivityBase, ExecutableProcessNode {
         processInstanceBuilder: ProcessInstance.Builder,
         predecessor: IProcessNodeInstance,
         entryNo: Int
-                                      ): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
+    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
         return super.createOrReuseInstance(data, processInstanceBuilder, predecessor, entryNo)
     }
 

@@ -140,7 +140,7 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode>,
             destination: MutableCollection<in ExecutableProcessNode>,
             seen: MutableSet<String>,
             node: ExecutableProcessNode
-                                     ) {
+        ) {
             if (node.id in seen) return
 
             destination.add(node)
@@ -223,8 +223,7 @@ object EXEC_NODEFACTORY :
         baseNodeBuilder: ProcessNode.Builder,
         buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>,
         otherNodes: Iterable<ProcessNode.Builder>
-                       ): ExecutableProcessNode =
-        baseNodeBuilder.visit(visitor(buildHelper, otherNodes))
+    ): ExecutableProcessNode = baseNodeBuilder.visit(visitor(buildHelper, otherNodes))
 
 
     override fun invoke(

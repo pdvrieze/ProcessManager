@@ -130,7 +130,8 @@ class RunnableActivity<I : Any, O : Any> : ActivityBase, ExecutableProcessNode {
             inputSerializer: DeserializationStrategy<I>,
             outputSerializer: SerializationStrategy<O>? = null,
             action: RunnableAction<I, O> = { throw UnsupportedOperationException("Action not provided") }
-        ) : super(predecessor = predecessor) {
+        ) : super() {
+            this.predecessor = predecessor
             this.outputSerializer = outputSerializer
             this.action = action
             if (inputSerializer == Unit.serializer()) {
@@ -154,7 +155,8 @@ class RunnableActivity<I : Any, O : Any> : ActivityBase, ExecutableProcessNode {
             inputCombiner: InputCombiner<I> = InputCombiner(),
             outputSerializer: SerializationStrategy<O>? = null,
             action: RunnableAction<I, O> = { throw UnsupportedOperationException("Action not provided") }
-        ) : super(predecessor = predecessor) {
+        ) : super() {
+            this.predecessor = predecessor
             results.add(XmlResultType("output"))
             this.outputSerializer = outputSerializer
             this.action = action

@@ -663,7 +663,7 @@ fun StubProcessTransaction.finishNodeInstance(hProcessInstance: HProcessInstance
     val instance = readableEngineData.instance(hProcessInstance).withPermission()
     val nodeInstance: ProcessNodeInstance<*> =
         traceElement.getNodeInstance(this, instance) ?: throw ProcessTestingException(
-            "No node instance for the trace elemnt $traceElement could be found in instance: ${
+            "No node instance for the trace element $traceElement could be found in instance: ${
                 instance.toDebugString(
                     this
                 )

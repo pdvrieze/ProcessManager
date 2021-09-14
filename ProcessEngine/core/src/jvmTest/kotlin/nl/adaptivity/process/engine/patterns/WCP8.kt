@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine.patterns
 
 import nl.adaptivity.process.engine.*
+import nl.adaptivity.process.processModel.Activity
 import nl.adaptivity.process.processModel.Join
 import nl.adaptivity.process.processModel.configurableModel.activity
 import nl.adaptivity.process.processModel.configurableModel.endNode
@@ -25,6 +26,7 @@ import nl.adaptivity.process.processModel.configurableModel.startNode
 import nl.adaptivity.process.processModel.invoke
 import nl.adaptivity.spek.lenientFactory
 import org.junit.jupiter.api.Assertions.assertFalse
+import org.junit.jupiter.api.Assertions.assertTrue
 import org.junit.jupiter.api.Tag
 import org.spekframework.spek2.CreateWith
 
@@ -60,6 +62,12 @@ class WCP8(maxValidTraces:Int, maxInvalidTraces: Int = maxValidTraces): ModelSpe
 }, {
     val m = model
     val c = this
+    context("Model is correct") {
+        it("should have join as multimerge") {
+            assertTrue((m.getNode("join") as Join).isMultiMerge)
+            assertTrue((m.getNode("ac5") as Activity).isMultiInstance)
+        }
+    }
     context("When join is not multiInstance") {
         val modifiedModel = m.update { join("join")!! { isMultiMerge = false } }
         it("should not have a multiInstance join") {
