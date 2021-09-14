@@ -104,7 +104,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
         this.uuid = builder.uuid
     }
 
-    internal constructor(
+    protected constructor(
         serialDelegate: SerialDelegate,
         nodeFactory: NodeFactory<NodeT, NodeT, ChildProcessModelBase<NodeT>>,
         pedantic: Boolean
@@ -201,7 +201,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
     @ProcessModelDSL
     @Serializable
     @XmlSerialName(ELEMENTLOCALNAME, Engine.NAMESPACE, Engine.NSPREFIX)
-    internal class SerialDelegate : ProcessModelBase.SerialDelegate {
+    public class SerialDelegate : ProcessModelBase.SerialDelegate {
         var name: String? = null
             private set
 
@@ -286,7 +286,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
             this.uuid = uuid
         }
 
-        internal constructor(serialDelegate: SerialDelegate) : this(
+        public constructor(serialDelegate: SerialDelegate) : this(
             serialDelegate.nodes.map { ProcessNodeBase.Builder(it) },
             // Use a dummy builder, to allow correct construction
             serialDelegate.childModels.map { ChildProcessModelBase.ModelBuilder(Builder(), it) },

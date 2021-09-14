@@ -81,12 +81,9 @@ private fun IXmlDefineType.applyDataImpl(engineData: ProcessEngineDataAccess, pr
                 else -> ProcessData(
                     name,
                     DomUtil.nodeListToFragment(
-                        xPath.evaluate(
-                            origpair.contentFragment,
-                            XPathConstants.NODESET
-                                      ) as NodeList
-                                              )
-                                   )
+                        xPath.evaluate(origpair.contentFragment, XPathConstants.NODESET) as NodeList
+                    )
+                )
             }
         }
     } else if (predecessor==null && !refName.isNullOrEmpty()) { // Reference to container

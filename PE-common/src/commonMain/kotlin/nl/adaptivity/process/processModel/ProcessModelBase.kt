@@ -123,7 +123,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode> : ProcessModel<NodeT> {
 
 
     @Serializable
-    internal abstract class SerialDelegate(
+    public abstract class SerialDelegate(
         val imports: List<XmlResultType>,
         val exports: List<XmlDefineType>,
         val nodes: List<ProcessNodeBase.SerialDelegate>

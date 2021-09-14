@@ -16,7 +16,12 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.Transient
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.serializer
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
@@ -32,18 +37,24 @@ import kotlin.jvm.JvmStatic
 
 /**
  * A class representing a process model.
-
+ *
  * @author Paul de Vrieze
  */
-//@XmlDeserializer(ExecutableProcessModel.Factory::class)
-class ExecutableProcessModel @JvmOverloads constructor(
-    builder: RootProcessModel.Builder,
-    pedantic: Boolean = true
-                                                      ) :
-    RootProcessModelBase<ExecutableProcessNode>(builder, EXEC_NODEFACTORY, pedantic),
-    ExecutableModelCommon,
-    /*MutableHandleAware<ExecutableProcessModel>,*/
-    SecureObject<ExecutableProcessModel> {
+@Serializable(ExecutableProcessModel.Companion::class)
+class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode>,
+                               ExecutableModelCommon,
+                               SecureObject<ExecutableProcessModel> {
+
+    @JvmOverloads
+    constructor(builder: RootProcessModel.Builder, pedantic: Boolean = true) :
+        super(builder, EXEC_NODEFACTORY, pedantic)
+
+    private constructor(delegate: SerialDelegate, pedantic: Boolean = true) : super(
+        Builder(delegate),
+        EXEC_NODEFACTORY,
+        pedantic
+    )
+
 
     @Transient
     override val endNodeCount by lazy { modelNodes.count { it is ExecutableEndNode } }
@@ -84,7 +95,19 @@ class ExecutableProcessModel @JvmOverloads constructor(
     }
 
 
-    companion object {
+    companion object: KSerializer<ExecutableProcessModel> {
+
+        private val delegateSerializer = SerialDelegate.serializer()
+
+        override val descriptor: SerialDescriptor get() = delegateSerializer.descriptor
+
+        override fun serialize(encoder: Encoder, value: ExecutableProcessModel) {
+            delegateSerializer.serialize(encoder, SerialDelegate(value))
+        }
+
+        override fun deserialize(decoder: Decoder): ExecutableProcessModel {
+            return ExecutableProcessModel(delegateSerializer.deserialize(decoder), true)
+        }
 
         fun from(basepm: RootProcessModel<*>): ExecutableProcessModel {
             return basepm as? ExecutableProcessModel ?: ExecutableProcessModel(Builder(basepm))
@@ -92,7 +115,7 @@ class ExecutableProcessModel @JvmOverloads constructor(
 
         @JvmStatic
         fun deserialize(reader: XmlReader): ExecutableProcessModel {
-            return ExecutableProcessModel(XML.decodeFromReader<Builder>(reader))
+            return ExecutableProcessModel(XML { autoPolymorphic = true }.decodeFromReader<XmlProcessModel.Builder>(reader))
         }
 
         @JvmStatic
@@ -133,13 +156,6 @@ class ExecutableProcessModel @JvmOverloads constructor(
 
     enum class Permissions : SecurityProvider.Permission {
         INSTANTIATE
-    }
-
-    class Factory : XmlDeserializerFactory<ExecutableProcessModel> {
-
-        override fun deserialize(reader: XmlReader): ExecutableProcessModel {
-            return ExecutableProcessModel.deserialize(reader)
-        }
     }
 
 }

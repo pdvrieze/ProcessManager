@@ -61,7 +61,7 @@ abstract class ChildProcessModelBase<NodeT : ProcessNode> :
     @Serializable
     @XmlSerialName(ChildProcessModelBase.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     @SerialName(ChildProcessModelBase.ELEMENTLOCALNAME)
-    internal class SerialDelegate: ProcessModelBase.SerialDelegate {
+    class SerialDelegate: ProcessModelBase.SerialDelegate {
         val id: Identifier?
 
         constructor(

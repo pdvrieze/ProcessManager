@@ -223,10 +223,7 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         override fun deserialize(decoder: Decoder): XmlDefineType {
             val data = DefineTypeData()
             data.deserialize(descriptor, decoder, Companion)
-            return XmlDefineType(
-                data.name, data.refNode, data.refName, data.path, data.content,
-                data.namespaces
-                                )
+            return XmlDefineType(data.name, data.refNode, data.refName, data.path, data.content, data.namespaces)
         }
 
         override fun writeAdditionalAttributes(writer: XmlWriter, data: XmlDefineType) {
