@@ -22,33 +22,33 @@ import nl.adaptivity.process.engine.TestConfigurableModel
 import nl.adaptivity.process.engine.trace
 import nl.adaptivity.process.processModel.configurableModel.*
 
-private const val WCP3_expectedJson = "{\"name\":\"WCP3\",\"owner\":\"pdvrieze\",\"roles\":null,\"uuid\":null,\"childModel\":[],\"import\":[],\"export\":[],\"nodes\":[" +
-                                      "[\"nl.adaptivity.process.processModel.engine.XmlStartNode\",{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"start\",\"label\":null}]," +
-                                      "[\"nl.adaptivity.process.processModel.engine.XmlSplit\",{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"split\",\"label\":null,\"min\":2,\"max\":2,\"predecessor\":\"start\"}]," +
-                                      "[\"nl.adaptivity.process.processModel.engine.XmlActivity\",{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"ac1\",\"label\":null,\"predecessor\":\"split\",\"message\":null,\"childId\":null}]," +
-                                      "[\"nl.adaptivity.process.processModel.engine.XmlActivity\",{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"ac2\",\"label\":null,\"predecessor\":\"split\",\"message\":null,\"childId\":null}]," +
-                                      "[\"nl.adaptivity.process.processModel.engine.XmlJoin\",{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"join\",\"label\":null,\"min\":2,\"max\":2,\"isMultiMerge\":false,\"predecessors\":[{\"predecessor\":\"ac1\"},{\"predecessor\":\"ac2\"}]}]," +
-                                      "[\"nl.adaptivity.process.processModel.engine.XmlEndNode\",{\"isMultiInstance\":false,\"x\":NaN,\"y\":NaN,\"define\":[],\"result\":[],\"id\":\"end\",\"label\":null,\"predecessor\":\"join\"}]]}"
+private const val WCP3_expectedJson = "{\"name\":\"WCP3\",\"owner\":\"pdvrieze\",\"roles\":[],\"childModel\":[],\"imports\":[],\"exports\":[],\"nodes\":[" +
+    "{\"type\":\"start\",\"id\":\"start\",\"label\":null}," +
+    "{\"type\":\"split\",\"id\":\"split\",\"label\":null,\"min\":2,\"max\":2,\"predecessor\":\"start\"}," +
+    "{\"type\":\"activity\",\"defines\":[],\"results\":[],\"id\":\"ac1\",\"label\":null,\"predecessor\":\"split\"}," +
+    "{\"type\":\"activity\",\"defines\":[],\"results\":[],\"id\":\"ac2\",\"label\":null,\"predecessor\":\"split\"}," +
+    "{\"type\":\"join\",\"id\":\"join\",\"label\":null,\"min\":2,\"max\":2,\"predecessors\":[{\"predecessor\":\"ac1\"},{\"predecessor\":\"ac2\"}]}," +
+    "{\"type\":\"end\",\"defines\":[],\"results\":[],\"id\":\"end\",\"label\":null,\"predecessor\":\"join\"}]}"
 
 class WCP3: ModelSpek(run{
-  val model = object: TestConfigurableModel("WCP3") {
-    val start by startNode
-    val split by split(start) { min = 2; max = 2 }
-    val ac1   by activity(split)
-    val ac2   by activity(split)
-    val join  by join(ac1, ac2){ min = 2; max = 2 }
-    val end   by endNode(join)
-  }
-  val validTraces =  with(model) { trace {
-    (start ..(ac1 % ac2)) * (split % join % end)
-  } }
+    val model = object: TestConfigurableModel("WCP3") {
+        val start by startNode
+        val split by split(start) { min = 2; max = 2 }
+        val ac1   by activity(split)
+        val ac2   by activity(split)
+        val join  by join(ac1, ac2){ min = 2; max = 2 }
+        val end   by endNode(join)
+    }
+    val validTraces =  with(model) { trace {
+        (start ..(ac1 % ac2)) * (split % join % end)
+    } }
 
-  val invalidTraces = with(model) { trace {
-    join or end or split or
-      (start .. (split or end or join or
-        (ac1 or
-          ac2) * (split or join or end)
+    val invalidTraces = with(model) { trace {
+        join or end or split or
+            (start .. (split or end or join or
+                (ac1 or
+                    ac2) * (split or join or end)
                 ))
-  }}
-  ModelData(model, validTraces, invalidTraces)
+    }}
+    ModelData(model, validTraces, invalidTraces)
 }, modelJson = WCP3_expectedJson)
