@@ -16,10 +16,10 @@
 
 package nl.adaptivity.util
 
-import nl.adaptivity.xmlutil.util.CompactFragment
-import nl.adaptivity.xmlutil.util.ICompactFragment
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.core.impl.multiplatform.IOException
+import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.util.ICompactFragment
 import org.w3c.dom.*
 import org.xml.sax.InputSource
 import org.xml.sax.SAXException
@@ -240,6 +240,7 @@ object DomUtil {
         val documentFragment = doc.createDocumentFragment()
         val out = XmlStreaming.newWriter(DOMResult(documentFragment), true)
         while (input.hasNext() && input.next() !== EventType.END_ELEMENT) {
+            if(input.eventType == EventType.END_DOCUMENT) break
             input.writeCurrent(out)
             if (input.eventType === EventType.START_ELEMENT) {
                 out.writeElementContent(null, input)
@@ -282,12 +283,23 @@ object DomUtil {
 
     @JvmStatic
     fun nodeToFragment(node: Node?): ICompactFragment {
-        if (node == null) {
-            return CompactFragment("")
-        } else if (node is Text) {
-            return CompactFragment(node.data)
+        return when (node) {
+            null    -> CompactFragment("")
+            is Text -> CompactFragment(node.data)
+            is DocumentFragment -> {
+                val outerFrag = node.ownerDocument.createDocumentFragment()
+                val wrapperChild = node.ownerDocument.createElement("wrapper")
+                outerFrag.appendChild(wrapperChild)
+                for (idx in 0 until node.childNodes.length) {
+                    wrapperChild.appendChild(node.childNodes.item(idx))
+                }
+                val reader = XmlStreaming.newReader(DOMSource(wrapperChild))
+                reader.next()
+                reader.next()
+                reader.siblingsToFragment()
+            }
+            else    -> XmlStreaming.newReader(DOMSource(node)).siblingsToFragment()
         }
-        return XmlStreaming.newReader(DOMSource(node)).siblingsToFragment()
     }
 
     @JvmStatic
