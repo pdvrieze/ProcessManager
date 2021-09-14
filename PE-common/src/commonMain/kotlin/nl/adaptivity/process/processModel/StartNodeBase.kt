@@ -44,12 +44,19 @@ abstract class StartNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?>
         x: Double = Double.NaN,
         y: Double = Double.NaN,
         defines: Collection<IXmlDefineType> = emptyList(),
-        results: Collection<IXmlResultType> = emptyList()
+        results: Collection<IXmlResultType> = emptyList(),
+        isMultiInstance: Boolean,
     ) : super(
         ownerModel,
         emptyList(),
         listOfNotNull(successor),
-        id, label, x, y, defines, results
+        id,
+        label,
+        x,
+        y,
+        defines,
+        results,
+        isMultiInstance
     )
 
     constructor(builder: StartNode.Builder, buildHelper: ProcessModel.BuildHelper<*, *, *, *>) :
@@ -85,17 +92,17 @@ abstract class StartNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?>
         final override val predecessors
             get() = emptySet<Identified>()
 
-        constructor() : this(successor = null)
+        constructor() : this(null, null, null, null, null, Double.NaN, Double.NaN, false)
 
         constructor(
-            id: String? = null,
-            successor: Identifiable? = null,
-            label: String? = null,
-            defines: Collection<IXmlDefineType>? = emptyList(),
-            results: Collection<IXmlResultType>? = emptyList(),
-            x: Double = Double.NaN,
-            y: Double = Double.NaN,
-            isMultiInstance: Boolean = false
+            id: String?,
+            successor: Identifiable?,
+            label: String?,
+            defines: Collection<IXmlDefineType>?,
+            results: Collection<IXmlResultType>?,
+            x: Double,
+            y: Double,
+            isMultiInstance: Boolean
         ) : super(id, label, defines, results, x, y, isMultiInstance) {
             this.successor = successor
         }
@@ -104,8 +111,9 @@ abstract class StartNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?>
             successor = node.successor
         }
 
-        constructor(serialDelegate: SerialDelegate): this(
+        constructor(serialDelegate: SerialDelegate) : this(
             id = serialDelegate.id,
+            successor = null,
             label = serialDelegate.label,
             defines = serialDelegate.defines,
             results = serialDelegate.results,

@@ -108,17 +108,26 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
 
         final override var predecessor: Identifiable? = null
 
-        constructor() : this(id = null)
+        constructor() : this(
+            null,
+            null,
+            null,
+            null,
+            null,
+            Double.NaN,
+            Double.NaN,
+            false
+        )
 
         constructor(
-            id: String? = null,
-            predecessor: Identified? = null,
-            label: String? = null,
-            defines: Collection<IXmlDefineType> = emptyList(),
-            results: Collection<IXmlResultType> = emptyList(),
-            x: Double = Double.NaN,
-            y: Double = Double.NaN,
-            isMultiInstance: Boolean = false
+            id: String?,
+            predecessor: Identified?,
+            label: String?,
+            defines: Collection<IXmlDefineType>?,
+            results: Collection<IXmlResultType>?,
+            x: Double,
+            y: Double,
+            isMultiInstance: Boolean
         ) : super(id, label, defines, results, x, y, isMultiInstance) {
             this.predecessor = predecessor
         }

@@ -63,19 +63,35 @@ abstract class MessageActivityBase(
 
         final override var message: IXmlMessage?
 
+        constructor(): this(
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            null,
+            Double.NaN,
+            Double.NaN,
+            false
+        )
+
+
         constructor(
-            id: String? = null,
-            predecessor: Identifiable? = null,
-            successor: Identifiable? = null,
-            label: String? = null,
-            defines: Collection<IXmlDefineType>? = emptyList(),
-            results: Collection<IXmlResultType>? = emptyList(),
-            message: XmlMessage? = null,
-            condition: Condition? = null,
-            name: String? = null,
-            x: Double = Double.NaN,
-            y: Double = Double.NaN,
-            isMultiInstance: Boolean = false
+            id: String?,
+            predecessor: Identifiable?,
+            successor: Identifiable?,
+            label: String?,
+            defines: Collection<IXmlDefineType>?,
+            results: Collection<IXmlResultType>?,
+            message: XmlMessage?,
+            condition: Condition?,
+            name: String?,
+            x: Double,
+            y: Double,
+            isMultiInstance: Boolean
         ) : super(
             id,
             predecessor,
@@ -92,7 +108,7 @@ abstract class MessageActivityBase(
             this.message = message
         }
 
-        @Suppress("DEPRECATION")
+//        @Suppress("DEPRECATION")
         constructor(activity: MessageActivity) : this(
             activity.id,
             activity.predecessor,
@@ -111,6 +127,7 @@ abstract class MessageActivityBase(
         constructor(serialDelegate: SerialDelegate) : this(
             id = serialDelegate.id,
             predecessor = serialDelegate.predecessor,
+            successor = null,
             label = serialDelegate.label,
             defines = serialDelegate.defines,
             results = serialDelegate.results,

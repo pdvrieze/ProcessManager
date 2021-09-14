@@ -47,9 +47,9 @@ abstract class ProcessNodeBase : ProcessNode {
     override val successors: IdentifyableSet<Identified>
         get() = _successors
 
-    override val x: Double
+    final override val x: Double
 
-    override val y: Double
+    final override val y: Double
 
     override val defines: List<IXmlDefineType>
 
@@ -77,15 +77,15 @@ abstract class ProcessNodeBase : ProcessNode {
 
     constructor(
         _ownerModel: ProcessModel<ProcessNode>?,
-        predecessors: Collection<Identified> = emptyList(),
-        successors: Collection<Identified> = emptyList(),
+        predecessors: Collection<Identified>, /*= emptyList()*/
+        successors: Collection<Identified>, /*= emptyList()*/
         id: String?,
-        label: String? = null,
-        x: Double = Double.NaN,
-        y: Double = Double.NaN,
-        defines: Collection<IXmlDefineType> = emptyList(),
-        results: Collection<IXmlResultType> = emptyList(),
-        isMultiInstance: Boolean = false
+        label: String?, /*= null*/
+        x: Double, /*= Double.NaN*/
+        y: Double, /*= Double.NaN*/
+        defines: Collection<IXmlDefineType>, /*= emptyList()*/
+        results: Collection<IXmlResultType>, /*= emptyList()*/
+        isMultiInstance: Boolean, /*= false*/
     ) {
         this._ownerModel = _ownerModel
         this.isMultiInstance = isMultiInstance
@@ -93,7 +93,9 @@ abstract class ProcessNodeBase : ProcessNode {
         this._successors = toIdentifiers(Int.MAX_VALUE, successors)
         this.x = x
         this.y = y
+        @Suppress("LeakingThis")
         this.defines = defines.toList()
+        @Suppress("LeakingThis")
         this.results = results.toList()
         this.label = label
         this._id = id
@@ -160,7 +162,7 @@ abstract class ProcessNodeBase : ProcessNode {
 
 
     override fun toString(): String {
-        var name:String = this::class.name.substringAfterLast('.')
+        var name: String = this::class.name.substringAfterLast('.')
         if (name.endsWith("Impl")) {
             name = name.substring(0, name.length - 4)
         }
@@ -264,8 +266,7 @@ abstract class ProcessNodeBase : ProcessNode {
         @XmlDefault("NaN")
         val y: Double = Double.NaN,
         @XmlDefault("false")
-        val isMultiInstance: Boolean = false
-
+        val isMultiInstance: Boolean = false,
     ) {
 
         constructor(
@@ -361,17 +362,15 @@ abstract class ProcessNodeBase : ProcessNode {
 
         override var isMultiInstance: Boolean = false
 
-        constructor() : this(id = null)
-
         @Suppress("LeakingThis")
         constructor(
-            id: String? = null,
-            label: String? = null,
-            defines: Iterable<IXmlDefineType>? = emptyList(),
-            results: Iterable<IXmlResultType>? = emptyList(),
-            x: Double = Double.NaN,
-            y: Double = Double.NaN,
-            isMultiInstance: Boolean = false
+            id: String?,
+            label: String?,
+            defines: Iterable<IXmlDefineType>?,
+            results: Iterable<IXmlResultType>?,
+            x: Double,
+            y: Double,
+            isMultiInstance: Boolean
         ) {
             this.id = id
             this.label = label
@@ -405,7 +404,7 @@ abstract class ProcessNodeBase : ProcessNode {
         }
 
         internal companion object {
-            operator fun invoke(serialDelegate: ProcessNodeBase.SerialDelegate): Builder = when (serialDelegate) {
+            operator fun invoke(serialDelegate: SerialDelegate): Builder = when (serialDelegate) {
                 is StartNodeBase.SerialDelegate -> StartNodeBase.Builder(serialDelegate)
                 is JoinBase.SerialDelegate      -> JoinBase.Builder(serialDelegate)
                 is ActivityBase.SerialDelegate  -> when (serialDelegate.childId) {

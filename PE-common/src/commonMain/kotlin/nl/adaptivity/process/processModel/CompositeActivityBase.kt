@@ -29,8 +29,7 @@ abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
         builder: CompositeActivity.ModelBuilder,
         buildHelper: ProcessModel.BuildHelper<*, *, *, *>,
         otherNodes: Iterable<ProcessNode.Builder>
-               ) :
-        super(builder, buildHelper.newOwner, otherNodes) {
+    ) : super(builder, buildHelper.newOwner, otherNodes) {
         _childModel = buildHelper.childModel(builder)
     }
 
@@ -38,10 +37,10 @@ abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
         builder: CompositeActivity.ReferenceBuilder,
         buildHelper: ProcessModel.BuildHelper<*, *, *, *>,
         otherNodes: Iterable<ProcessNode.Builder>
-               ) : super(builder, buildHelper.newOwner, otherNodes) {
+    ) : super(builder, buildHelper.newOwner, otherNodes) {
         _childModel = buildHelper.childModel(
             builder.childId ?: throw IllegalProcessModelException("Missing childId for reference")
-                                           )
+        )
     }
 
     override fun builder(): CompositeActivity.ReferenceBuilder {
@@ -72,18 +71,18 @@ abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
         final override var childId: String? = null
 
         constructor(
-            id: String? = null,
-            predecessor: Identifiable? = null,
-            successor: Identifiable? = null,
-            label: String? = null,
-            defines: Collection<IXmlDefineType>? = emptyList(),
-            results: Collection<IXmlResultType>? = emptyList(),
-            childId: String? = null,
-            condition: Condition? = null,
-            name: String? = null,
-            x: Double = Double.NaN,
-            y: Double = Double.NaN,
-            isMultiInstance: Boolean = false
+            id: String?,
+            predecessor: Identifiable?,
+            successor: Identifiable?,
+            label: String?,
+            defines: Collection<IXmlDefineType>?,
+            results: Collection<IXmlResultType>?,
+            childId: String?,
+            condition: Condition?,
+            name: String?,
+            x: Double,
+            y: Double,
+            isMultiInstance: Boolean
        ) : super(
             id,
             predecessor,
@@ -119,6 +118,7 @@ abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
         constructor(node: SerialDelegate) : this(
             id = node.id,
             predecessor = node.predecessor,
+            successor = null,
             label = node.label,
             defines = node.defines,
             results = node.results,

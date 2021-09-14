@@ -144,20 +144,35 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
 
         final override var successor: Identifiable? = null
 
-        constructor() : this(predecessors = emptyList<PredecessorInfo>(), isMultiMerge = false, isMultiInstance = false)
+        constructor() : this(
+            id = null,
+            predecessors = emptyList<PredecessorInfo>(),
+            successor = null,
+            label = null,
+            defines = null,
+            results = null,
+            x = Double.NaN,
+            y = Double.NaN,
+            min = -1,
+            max = -1,
+            isMultiMerge = false,
+            isMultiInstance = false
+        )
 
         constructor(
-            id: String? = null,
-            predecessors: Collection<PredecessorInfo> = emptyList(),
-            successor: Identified? = null, label: String? = null,
-            defines: Iterable<IXmlDefineType>? = emptyList(),
-            results: Iterable<IXmlResultType>? = emptyList(),
-            x: Double = Double.NaN,
-            y: Double = Double.NaN,
-            min: Int = -1,
-            max: Int = -1,
-            isMultiMerge: Boolean = false,
-            isMultiInstance: Boolean = false
+            id: String?,
+            predecessors: Collection<PredecessorInfo>,
+            successor: Identified?,
+            label: String?,
+            defines: Iterable<IXmlDefineType>?,
+            results: Iterable<IXmlResultType>?,
+            x: Double,
+            y: Double,
+            min: Int,
+            max: Int,
+            isMultiMerge: Boolean,
+            isMultiInstance: Boolean,
+            dummy: Boolean = false // Present to prevent a declaration clash
         ) : super(
             id, label,
             defines, results, x,
@@ -169,18 +184,18 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
         }
 
         constructor(
-            id: String? = null,
+            id: String?,
             predecessors: Collection<Identified>,
-            successor: Identified? = null, label: String? = null,
-            defines: Iterable<IXmlDefineType>? = emptyList(),
-            results: Iterable<IXmlResultType>? = emptyList(),
-            x: Double = Double.NaN,
-            y: Double = Double.NaN,
-            min: Int = -1,
-            max: Int = -1,
-            isMultiMerge: Boolean = false,
-            isMultiInstance: Boolean = false,
-            @Suppress("UNUSED_PARAMETER") dummy: Boolean = false
+            successor: Identified?,
+            label: String?,
+            defines: Iterable<IXmlDefineType>?,
+            results: Iterable<IXmlResultType>?,
+            x: Double,
+            y: Double,
+            min: Int,
+            max: Int,
+            isMultiMerge: Boolean,
+            isMultiInstance: Boolean,
         ) : this(
             id,
             predecessors.map { PredecessorInfo(it.id, null) },
@@ -201,6 +216,7 @@ abstract class JoinBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?> :
         constructor(serialDelegate: SerialDelegate) : this(
             serialDelegate.id,
             serialDelegate.predecessors,
+            null,
             label = serialDelegate.label,
             defines = serialDelegate.defines,
             results = serialDelegate.results,

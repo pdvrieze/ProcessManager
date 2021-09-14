@@ -126,6 +126,10 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
             addAll(c)
         }
 
+        constructor(a: Array<out V>) : this(ArraySet<V>(a.size)) {
+            addAll(a)
+        }
+
         override fun get(index: Int) = data[index]
 
         override fun containsAll(elements: Collection<V>) = data.containsAll(elements)
@@ -502,6 +506,10 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
 
         fun <V : Identifiable> processNodeSet(initialCapacity: Int): MutableIdentifyableSet<V> {
             return BaseIdentifyableSet(initialCapacity)
+        }
+
+        fun <V : Identifiable> processNodeSet(collection: Array<out V>): MutableIdentifyableSet<V> {
+            return BaseIdentifyableSet(collection)
         }
 
         fun <V : Identifiable> processNodeSet(collection: Sequence<V>): MutableIdentifyableSet<V> {

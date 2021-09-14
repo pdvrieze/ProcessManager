@@ -18,7 +18,6 @@ package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import net.devrieze.util.ArraySet
 import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.ProcessConsts
@@ -40,18 +39,31 @@ abstract class SplitBase : JoinSplitBase, Split {
 
     constructor(
         ownerModel: ProcessModel<ProcessNode>,
-        predecessor: Identified? = null,
-        successors: Collection<Identified> = emptyList(),
+        predecessor: Identified? /*= null*/,
+        successors: Collection<Identified> /*= emptyList()*/,
         id: String?,
-        label: String? = null,
-        x: Double = Double.NaN,
-        y: Double = Double.NaN,
-        defines: Collection<IXmlDefineType> = ArrayList(),
-        results: Collection<IXmlResultType> = ArrayList(),
-        min: Int = -1,
-        max: Int = -1
-    ) : super(ownerModel, predecessor?.let { listOf(it) } ?: emptyList(), successors, id,
-              label, x, y, defines, results, min, max)
+        label: String? /*= null*/,
+        x: Double /*= Double.NaN*/,
+        y: Double /*= Double.NaN*/,
+        defines: Collection<IXmlDefineType> /*= emptyList()*/,
+        results: Collection<IXmlResultType> /*= emptyList()*/,
+        min: Int /*= -1*/,
+        max: Int /*= -1*/,
+        isMultiInstance: Boolean,
+    ) : super(
+        ownerModel,
+        predecessor?.let { listOf(it) } ?: emptyList(),
+        successors,
+        id,
+        label,
+        x,
+        y,
+        defines,
+        results,
+        min,
+        max,
+        isMultiInstance
+    )
 
     constructor(builder: Split.Builder, newOwner: ProcessModel<*>, otherNodes: Iterable<ProcessNode.Builder>) :
         super(builder, newOwner, otherNodes)
@@ -125,40 +137,48 @@ abstract class SplitBase : JoinSplitBase, Split {
 
         final override var predecessor: Identifiable? = null
 
-        constructor() : this(id = null)
+        constructor() : this(null, null, emptyList(), null, emptyList(), emptyList(), Double.NaN, Double.NaN, -1, -1, false)
 
         @Deprecated("use the constructor that takes a single predecessor")
         constructor(
-            id: String? = null,
+            id: String? /*= null*/,
             predecessors: Collection<Identified>,
-            successors: Collection<Identified> = emptyList(),
-            label: String? = null,
-            defines: Collection<IXmlDefineType> = emptyList(),
-            results: Collection<IXmlResultType> = emptyList(),
-            x: Double = Double.NaN,
-            y: Double = Double.NaN,
-            min: Int = -1,
-            max: Int = -1,
-            multiInstance: Boolean = false
+            successors: Collection<Identified> /*= emptyList()*/,
+            label: String? /*= null*/,
+            defines: Collection<IXmlDefineType> /*= emptyList()*/,
+            results: Collection<IXmlResultType> /*= emptyList()*/,
+            x: Double /*= Double.NaN*/,
+            y: Double /*= Double.NaN*/,
+            min: Int /*= -1*/,
+            max: Int /*= -1*/,
+            isMultiInstance: Boolean /*= false*/
         ) : this(
-            id, predecessors.singleOrNull(), successors, label, defines,
-            results, x, y,
-            min, max, multiInstance
+            id,
+            predecessors.singleOrNull(),
+            successors,
+            label,
+            defines,
+            results,
+            x,
+            y,
+            min,
+            max,
+            isMultiInstance
         )
 
 
         constructor(
-            id: String? = null,
-            predecessor: Identifiable? = null,
-            successors: Collection<Identified> = emptyList(),
-            label: String? = null,
-            defines: Iterable<IXmlDefineType>? = emptyList(),
-            results: Iterable<IXmlResultType>? = emptyList(),
-            x: Double = Double.NaN,
-            y: Double = Double.NaN,
-            min: Int = -1,
-            max: Int = -1,
-            multiInstance: Boolean = false
+            id: String? /*= null*/,
+            predecessor: Identifiable? /*= null*/,
+            successors: Collection<Identified> /*= emptyList()*/,
+            label: String? /*= null*/,
+            defines: Iterable<IXmlDefineType>? /*= emptyList()*/,
+            results: Iterable<IXmlResultType>? /*= emptyList()*/,
+            x: Double /*= Double.NaN*/,
+            y: Double /*= Double.NaN*/,
+            min: Int /*= -1*/,
+            max: Int /*= -1*/,
+            multiInstance: Boolean /*= false*/
         ) : super(
             id, label, defines,
             results, x,
@@ -177,13 +197,15 @@ abstract class SplitBase : JoinSplitBase, Split {
         constructor(serialDelegate: SerialDelegate) : this(
             serialDelegate.id,
             serialDelegate.predecessor,
-            label = serialDelegate.label,
-            defines = serialDelegate.defines,
-            results = serialDelegate.results,
-            x = serialDelegate.x,
-            y = serialDelegate.y,
-            min = serialDelegate.min,
-            max = serialDelegate.max,
+            emptyList(),
+            serialDelegate.label,
+            serialDelegate.defines,
+            serialDelegate.results,
+            serialDelegate.x,
+            serialDelegate.y,
+            serialDelegate.min,
+            serialDelegate.max,
+            serialDelegate.isMultiInstance
         )
     }
 

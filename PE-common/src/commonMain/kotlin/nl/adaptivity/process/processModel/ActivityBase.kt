@@ -37,41 +37,31 @@ abstract class ActivityBase(
     otherNodes: Iterable<ProcessNode.Builder>
 ) : ProcessNodeBase(builder, newOwner, otherNodes), Activity {
 
-    internal var _name: String? = null
-
-    @Suppress("OverridingDeprecatedMember")
-    override var name: String?
-        get() = _name
-        set(value) {
-            _name = value
-        }
+    @Suppress("OverridingDeprecatedMember", "DEPRECATION")
+    override var name: String? = builder.name
 
     final override val predecessor: Identifiable? get() = predecessors.singleOrNull()
 
     final override val successor: Identifiable?
         get() = successors.singleOrNull()
 
-    init {
-        @Suppress("DEPRECATION")
-        _name = builder.name
-    }
-
-
-    override abstract fun builder(): Activity.Builder
+    abstract override fun builder(): Activity.Builder
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other !is ActivityBase) return false
         if (!super.equals(other)) return false
 
-        if (_name != other._name) return false
+        @Suppress("DEPRECATION")
+        if (name != other.name) return false
 
         return true
     }
 
     override fun hashCode(): Int {
         var result = super.hashCode()
-        result = 31 * result + (_name?.hashCode() ?: 0)
+        @Suppress("DEPRECATION")
+        result = 31 * result + (name?.hashCode() ?: 0)
         return result
     }
 
@@ -90,18 +80,20 @@ abstract class ActivityBase(
 
         final override var successor: Identifiable? = null
 
+        constructor(): this(null, null, null, null, null, null, null, null, Double.NaN, Double.NaN, false)
+
         constructor(
-            id: String? = null,
-            predecessor: Identifiable? = null,
-            successor: Identifiable? = null,
-            label: String? = null,
-            defines: Collection<IXmlDefineType>? = emptyList(),
-            results: Collection<IXmlResultType>? = emptyList(),
-            condition: Condition? = null,
-            name: String? = null,
-            x: Double = Double.NaN,
-            y: Double = Double.NaN,
-            isMultiInstance: Boolean = false
+            id: String?,
+            predecessor: Identifiable?,
+            successor: Identifiable?,
+            label: String?,
+            defines: Collection<IXmlDefineType>?,
+            results: Collection<IXmlResultType>?,
+            condition: Condition?,
+            name: String?,
+            x: Double,
+            y: Double,
+            isMultiInstance: Boolean
        ) : super(id, label, defines, results, x, y, isMultiInstance) {
             this.predecessor = predecessor
             this.successor = successor
@@ -130,7 +122,7 @@ abstract class ActivityBase(
     @Serializable
     @SerialName(Activity.ELEMENTLOCALNAME)
     @XmlSerialName(Activity.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
-    open class SerialDelegate : ProcessNodeBase.SerialDelegate {
+    class SerialDelegate : ProcessNodeBase.SerialDelegate {
         var childId: Identifier? = null
 
         var message: XmlMessage? = null
@@ -142,18 +134,18 @@ abstract class ActivityBase(
         var name: String? = null
 
         constructor(
-            id: String? = null,
-            label: String? = null,
-            x: Double = Double.NaN,
-            y: Double = Double.NaN,
-            isMultiInstance: Boolean = false,
-            predecessor: Identifier? = null,
-            defines: List<XmlDefineType> = emptyList(),
-            results: List<XmlResultType> = emptyList(),
-            message: XmlMessage? = null,
-            childId: Identifier? = null,
-            condition: XmlCondition? = null,
-            name: String? = null,
+            id: String?,
+            label: String?,
+            x: Double,
+            y: Double,
+            isMultiInstance: Boolean,
+            predecessor: Identifier?,
+            defines: List<XmlDefineType>,
+            results: List<XmlResultType>,
+            message: XmlMessage?,
+            childId: Identifier?,
+            condition: XmlCondition?,
+            name: String?,
         ) : super(
             id = id,
             label = label,
@@ -172,44 +164,47 @@ abstract class ActivityBase(
 
         @Suppress("DEPRECATION")
         constructor(node: MessageActivity) : this(
-            node.id,
-            node.label,
-            node.x,
-            node.y,
-            node.isMultiInstance,
-            node.predecessor?.identifier,
-            node.defines.map { XmlDefineType(it) },
-            node.results.map { XmlResultType(it) },
-            XmlMessage.from(node.message),
+            id = node.id,
+            label = node.label,
+            x = node.x,
+            y = node.y,
+            isMultiInstance = node.isMultiInstance,
+            predecessor = node.predecessor?.identifier,
+            defines = node.defines.map { XmlDefineType(it) },
+            results = node.results.map { XmlResultType(it) },
+            message = XmlMessage.from(node.message),
             condition = node.condition?.let { XmlCondition(it.condition) },
-            name = node.name
+            name = node.name,
+            childId = null
         )
 
         @Suppress("DEPRECATION")
         constructor(node: MessageActivity.Builder) : this(
-            node.id,
-            node.label,
-            node.x,
-            node.y,
-            node.isMultiInstance,
-            node.predecessor?.identifier,
-            node.defines.map { XmlDefineType(it) },
-            node.results.map { XmlResultType(it) },
-            XmlMessage.from(node.message),
+            id = node.id,
+            label = node.label,
+            x = node.x,
+            y = node.y,
+            isMultiInstance = node.isMultiInstance,
+            predecessor = node.predecessor?.identifier,
+            defines = node.defines.map { XmlDefineType(it) },
+            results = node.results.map { XmlResultType(it) },
+            message = XmlMessage.from(node.message),
             condition = node.condition?.let { XmlCondition(it.condition) },
-            name = node.name
+            name = node.name,
+            childId = null
         )
 
         @Suppress("DEPRECATION")
         constructor(node: CompositeActivity) : this(
-            node.id,
-            node.label,
-            node.x,
-            node.y,
-            node.isMultiInstance,
-            node.predecessor?.identifier,
-            node.defines.map { XmlDefineType(it) },
-            node.results.map { XmlResultType(it) },
+            id = node.id,
+            label = node.label,
+            x = node.x,
+            y = node.y,
+            isMultiInstance = node.isMultiInstance,
+            predecessor = node.predecessor?.identifier,
+            defines = node.defines.map { XmlDefineType(it) },
+            results = node.results.map { XmlResultType(it) },
+            message = null,
             childId = node.childModel?.identifier,
             condition = node.condition?.let { XmlCondition(it.condition) },
             name = node.name
@@ -217,14 +212,15 @@ abstract class ActivityBase(
 
         @Suppress("DEPRECATION")
         constructor(node: CompositeActivity.ReferenceBuilder) : this(
-            node.id,
-            node.label,
-            node.x,
-            node.y,
-            node.isMultiInstance,
-            node.predecessor?.identifier,
-            node.defines.map { XmlDefineType(it) },
-            node.results.map { XmlResultType(it) },
+            id = node.id,
+            label = node.label,
+            x = node.x,
+            y = node.y,
+            isMultiInstance = node.isMultiInstance,
+            predecessor = node.predecessor?.identifier,
+            defines = node.defines.map { XmlDefineType(it) },
+            results = node.results.map { XmlResultType(it) },
+            message = null,
             childId = node.childId?.let { Identifier(it) },
             condition = node.condition?.let { XmlCondition(it.condition) },
             name = node.name
@@ -232,14 +228,15 @@ abstract class ActivityBase(
 
         @Suppress("DEPRECATION")
         constructor(node: CompositeActivity.ModelBuilder) : this(
-            node.id,
-            node.label,
-            node.x,
-            node.y,
-            node.isMultiInstance,
-            node.predecessor?.identifier,
-            node.defines.map { XmlDefineType(it) },
-            node.results.map { XmlResultType(it) },
+            id = node.id,
+            label = node.label,
+            x = node.x,
+            y = node.y,
+            isMultiInstance = node.isMultiInstance,
+            predecessor = node.predecessor?.identifier,
+            defines = node.defines.map { XmlDefineType(it) },
+            results = node.results.map { XmlResultType(it) },
+            message = null,
             childId = node.childId?.let { Identifier(it) },
             condition = node.condition?.let { XmlCondition(it.condition) },
             name = node.name

@@ -27,18 +27,18 @@ abstract class JoinSplitBase : ProcessNodeBase, JoinSplit {
 
     constructor(
         ownerModel: ProcessModel<ProcessNode>,
-        predecessors: Collection<Identified> = emptyList(),
-        successors: Collection<Identified> = emptyList(),
+        predecessors: Collection<Identified>,
+        successors: Collection<Identified>,
         id: String?,
-        label: String? = null,
-        x: Double = Double.NaN,
-        y: Double = Double.NaN,
-        defines: Collection<IXmlDefineType> = emptyList(),
-        results: Collection<IXmlResultType> = emptyList(),
-        min: Int = -1,
-        max: Int = -1
-    ) :
-        super(ownerModel, predecessors, successors, id, label, x, y, defines, results) {
+        label: String?,
+        x: Double,
+        y: Double,
+        defines: Collection<IXmlDefineType>,
+        results: Collection<IXmlResultType>,
+        min: Int,
+        max: Int,
+        isMultiInstance: Boolean,
+    ) : super(ownerModel, predecessors, successors, id, label, x, y, defines, results, isMultiInstance) {
         this.min = min
         this.max = max
     }
