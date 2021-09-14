@@ -54,6 +54,7 @@ import kotlin.reflect.KClass
 /**
  * Created by pdvrieze on 24/08/15.
  */
+@OptIn(XmlUtilInternal::class)
 class TestEngineProcessData {
 
     @Test
@@ -193,7 +194,7 @@ class TestEngineProcessData {
         }
 
         @Throws(IOException::class, IllegalAccessException::class, InstantiationException::class, XmlException::class)
-        fun <T: Any> testRoundTrip(
+        fun <T : Any> testRoundTrip(
             reader: InputStream, target: KClass<out T>,
             serializer: KSerializer<T>,
             serialModule: SerializersModule,
@@ -224,7 +225,7 @@ class TestEngineProcessData {
             IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
             SAXException::class
         )
-        fun <T: Any> testRoundTrip(
+        fun <T : Any> testRoundTrip(
             xml: String, target: KClass<out T>,
             serializer: KSerializer<T>,
             serialModule: SerializersModule,
@@ -243,7 +244,7 @@ class TestEngineProcessData {
             IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
             SAXException::class
         )
-        fun <T: Any> testRoundTrip(
+        fun <T : Any> testRoundTrip(
             xml: String, target: KClass<out T>,
             serializer: KSerializer<T>,
             serialModule: SerializersModule = EmptySerializersModule,
@@ -263,7 +264,7 @@ class TestEngineProcessData {
             IllegalAccessException::class, InstantiationException::class, XmlException::class, IOException::class,
             SAXException::class
         )
-        fun <T: Any> testRoundTrip(
+        fun <T : Any> testRoundTrip(
             xml: String, target: KClass<out T>,
             serializer: KSerializer<T>,
             @Suppress("UNUSED_PARAMETER") ignoreNs: Boolean,
@@ -300,7 +301,7 @@ class TestEngineProcessData {
             )
         }
 
-        private inline fun <T: Any> testRoundTripCombined(
+        private inline fun <T : Any> testRoundTripCombined(
             expected: String,
             readerFactory: () -> XmlReader,
             target: KClass<out T>,
@@ -340,10 +341,10 @@ class TestEngineProcessData {
                 this.indent = 4
                 this.autoPolymorphic = true
             }
-            val obj = xml.parse(target, reader)
+            val obj = xml.decodeFromReader(target, reader)
             testObject(obj)
 
-            val actual = xml.stringify(target, obj)
+            val actual = xml.encodeToString(target, obj)
 
             assertXMLEqual(expected, actual)
 
@@ -371,7 +372,7 @@ val NAMESPACE_DIFF_EVAL: DifferenceEvaluator = DifferenceEvaluator { comparison,
         else                                                   -> DifferenceEvaluators.Default.evaluate(
             comparison,
             outcome
-                                                                                                       )
+        )
     }
 }
 

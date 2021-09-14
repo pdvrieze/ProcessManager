@@ -158,9 +158,19 @@ tasks.withType<KotlinCompile> {
     }
 }
 
+tasks.register<Test>("jvmSpekTest") {
+    useJUnitPlatform {
+        includeEngines("spek2")
+    }
+    include("**/TestWorkflowPatterns**")
+    include("**/TestProcessEngine**")
+    include("**/TestLoanOrigination**")
+
+}
+
 tasks.named<Test>("jvmTest") {
     useJUnitPlatform {
-        includeEngines(/*"spek2",*/ "junit-jupiter")
+        includeEngines("junit-jupiter")
     }
     include("**/TestWorkflowPatterns**")
     include("**/TestProcessEngine**")

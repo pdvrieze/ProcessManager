@@ -164,7 +164,8 @@ abstract class ModelSpek(
             isLenient = true
         }
 
-        val model by memoized(CachingMode.SCOPE) { modelData.model }
+//        val model by memoized(CachingMode.SCOPE) { modelData.model }
+        val model = modelData.model
         val valid = modelData.valid.selectN(maxValid)
         val invalid = modelData.invalid.selectN(maxInvalid)
         val principal by getter { model.owner }

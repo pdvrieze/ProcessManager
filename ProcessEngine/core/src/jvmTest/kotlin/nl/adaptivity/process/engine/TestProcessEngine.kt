@@ -57,7 +57,7 @@ import javax.xml.transform.dom.DOMSource
 class TestProcessEngine: ProcessEngineTestSupport() {
 
     private fun getXml(name: String): ByteArray? {
-        javaClass.getResourceAsStream("/nl/adaptivity/process/engine/test/" + name).use { reader ->
+        javaClass.getResourceAsStream("/nl/adaptivity/process/engine/test/" + name)!!.use { reader ->
             val out = ByteArrayOutputStream()
             if (!InputStreamOutputStream.getInputStreamOutputStream(reader, out).get()) {
                 return null
@@ -351,16 +351,14 @@ class TestProcessEngine: ProcessEngineTestSupport() {
                 "testInstance1",
                 UUID.randomUUID(),
                 null
-                                                           )
+            )
 
             assertEquals(1, stubMessageService._messages.size)
 
             assertEqualsXml(
-                getXml("testModel2_task1.xml")!!, serializeToXmlCharArray(
-                    stubMessageService
-                        ._messages[0].base
-                                                                         )
-                           )
+                getXml("testModel2_task1.xml")!!,
+                serializeToXmlCharArray(stubMessageService._messages[0].base)
+            )
 
             var ac1: ProcessNodeInstance<*> =
                 processEngine.getNodeInstance(transaction, stubMessageService.getMessageNode(0), modelOwnerPrincipal)
@@ -397,7 +395,7 @@ class TestProcessEngine: ProcessEngineTestSupport() {
                 |        </fullname>
                 |      </user>
                 |    """.trimMargin("|")
-                assertEquals(result2ExpectedContent, String(r[1].content!!))
+                assertEquals(result2ExpectedContent, String(r[1].content!!).replace(" />", "/>"))
             }
 
             stubMessageService.clear() // (Process the message)
