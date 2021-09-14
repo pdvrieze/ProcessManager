@@ -75,8 +75,7 @@ fun ConfigurableNodeContainer<*>.join(predecessors: Collection<Identified>): Joi
 fun ConfigurableNodeContainer<*>.join(
     vararg predecessors: Identified,
     config: @ConfigurationDsl Join.Builder.() -> Unit
-                                     ): Join.Builder =
-    JoinBase.Builder(predecessors = predecessors.toList()).apply(config)
+): Join.Builder = JoinBase.Builder(predecessors = predecessors.toList()).apply(config)
 
 @ConfigurationDsl
 fun ConfigurableNodeContainer<*>.join(

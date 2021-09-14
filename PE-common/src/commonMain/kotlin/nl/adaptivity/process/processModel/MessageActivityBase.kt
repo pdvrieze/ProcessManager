@@ -75,7 +75,7 @@ abstract class MessageActivityBase(
             name: String? = null,
             x: Double = Double.NaN,
             y: Double = Double.NaN,
-            multiInstance: Boolean = false
+            isMultiInstance: Boolean = false
         ) : super(
             id,
             predecessor,
@@ -87,7 +87,7 @@ abstract class MessageActivityBase(
             name,
             x,
             y,
-            multiInstance
+            isMultiInstance
         ) {
             this.message = message
         }
@@ -104,7 +104,8 @@ abstract class MessageActivityBase(
             activity.condition,
             activity.name,
             activity.x,
-            activity.y
+            activity.y,
+            activity.isMultiInstance
         )
 
         constructor(serialDelegate: SerialDelegate) : this(
@@ -117,7 +118,8 @@ abstract class MessageActivityBase(
             condition = serialDelegate.condition,
             name = serialDelegate.name,
             x = serialDelegate.x,
-            y = serialDelegate.y
+            y = serialDelegate.y,
+            isMultiInstance = serialDelegate.isMultiInstance
         )
     }
 }
