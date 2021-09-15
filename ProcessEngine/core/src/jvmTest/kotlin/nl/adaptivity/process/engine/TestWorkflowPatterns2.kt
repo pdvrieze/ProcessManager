@@ -60,6 +60,7 @@ object TestWorkflowPatterns2 : Spek(
 */
 
             describe("Advanced branching and synchronization patterns") {
+/*
                 describe("WCP6: multi-choice / or-split") {
                     context("ac1.condition=true, ac2.condition=false") {
                         includeLocal(WCP6(true, false))
@@ -85,6 +86,7 @@ object TestWorkflowPatterns2 : Spek(
                     }
 
                 }
+*/
 
                 describe("WCP8: Multi-merge") {
                     includeLocal(WCP8(15))
