@@ -133,6 +133,12 @@ kotlin {
                 }
 
             }
+            val commonTest by getting {
+                dependencies {
+                    implementation("io.github.pdvrieze.xmlutil:core:$xmlutilVersion")
+                    implementation("io.github.pdvrieze.xmlutil:serialization:$xmlutilVersion")
+                }
+            }
             val jvmTest by getting {
                 dependencies {
                     implementation(project(":PE-common"))
@@ -186,10 +192,10 @@ tasks.named<Test>("jvmTest") {
     useJUnitPlatform {
         includeEngines("junit-jupiter")
     }
-    include("**/TestWorkflowPatterns**")
-    include("**/TestProcessEngine**")
-    include("**/TestLoanOrigination**")
-    dependsOn(tasks.named("jvmSpekTest"))
+//    include("**/TestWorkflowPatterns**")
+//    include("**/TestProcessEngine**")
+//    include("**/TestLoanOrigination**")
+//    dependsOn(tasks.named("jvmSpekTest"))
 }
 
 idea {

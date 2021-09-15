@@ -176,7 +176,7 @@ class TestEngineProcessData {
         private fun getProcessModel(name: String): XmlProcessModel {
             getDocument(name).use { inputStream ->
                 val input = XmlStreaming.newReader(inputStream, "UTF-8")
-                return XML.parse(input, XmlProcessModel.serializer())
+                return XML{ autoPolymorphic = true }.decodeFromReader(XmlProcessModel.serializer(), input)
             }
         }
 
@@ -377,18 +377,28 @@ val NAMESPACE_DIFF_EVAL: DifferenceEvaluator = DifferenceEvaluator { comparison,
 }
 
 
-fun assertXMLEqual(expected: String, actual: String) {
-    val diff = DiffBuilder
-        .compare(expected)
-        .withTest(actual)
-        .checkForSimilar()
-        .ignoreWhitespace()
-        .ignoreComments()
-        .withDifferenceEvaluator(NAMESPACE_DIFF_EVAL)
-        .build()
+fun assertXMLEqual(expected: String, actual: String, message: String? = null) {
+    val diff: Diff
+    try {
+        diff = DiffBuilder
+            .compare(expected)
+            .withTest(actual)
+            .checkForSimilar()
+            .ignoreWhitespace()
+            .ignoreComments()
+            .withDifferenceEvaluator(NAMESPACE_DIFF_EVAL)
+            .build()
+    } catch (e: Exception) {
+        assertEquals(expected, actual, message)
+        throw e // in case it is textually equal
+    }
 
     if (diff.hasDifferences()) {
-        assertEquals(expected, actual, diff.toString(DefaultComparisonFormatter()))
+        val msg = when (message) {
+            null -> diff.toString(DefaultComparisonFormatter())
+            else -> "$message\n"+diff.toString(DefaultComparisonFormatter()).prependIndent("    ")
+        }
+        assertEquals(expected, actual, msg)
     }
 }
 

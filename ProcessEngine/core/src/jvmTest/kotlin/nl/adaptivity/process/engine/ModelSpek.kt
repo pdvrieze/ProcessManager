@@ -16,9 +16,11 @@
 
 package nl.adaptivity.process.engine
 
-import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.json.Json
-import kotlinx.serialization.json.JsonConfiguration
+import net.devrieze.util.ComparableHandle
+import net.devrieze.util.Handle
+import net.devrieze.util.security.SecureObject
+import net.devrieze.util.toComparableHandle
 import nl.adaptivity.process.engine.processModel.CompositeInstance
 import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
@@ -411,7 +413,7 @@ private fun EngineSuite.testTraceStarting(processInstanceF: Getter<ProcessInstan
         it("Only start nodes should be finished") {
             val processInstance = processInstanceF()
             val predicate: (ProcessNodeInstance<*>) -> Boolean =
-                { it.state == NodeInstanceState.Skipped || it.node is StartNode || it.node is Split || it.node is Join }
+                { it.state == Skipped || it.node is StartNode || it.node is Split || it.node is Join }
             val onlyStartNodesCompleted = processInstance.finishedNodes.all(predicate)
             Assertions.assertTrue(onlyStartNodesCompleted) {
                 processInstance.finishedNodes
@@ -472,7 +474,7 @@ private fun EngineSuite.testTraceCompletion(
                             }"
                         )
                     nodeInstance.state !in listOf(
-                        NodeInstanceState.Skipped,
+                        Skipped,
                         NodeInstanceState.SkippedCancel,
                         NodeInstanceState.SkippedFail
                     )
@@ -659,16 +661,16 @@ private fun EngineTestBody.testAssertNodeFinished(
     Assertions.assertEquals(Complete, nodeInstanceF().state)
 }
 
-fun StubProcessTransaction.finishNodeInstance(hProcessInstance: HProcessInstance, traceElement: TraceElement) {
+fun StubProcessTransaction.finishNodeInstance(hProcessInstance: Handle<SecureObject<ProcessInstance>>, traceElement: TraceElement):
+Handle<SecureObject<ProcessNodeInstance<*>>> {
     val instance = readableEngineData.instance(hProcessInstance).withPermission()
     val nodeInstance: ProcessNodeInstance<*> =
-        traceElement.getNodeInstance(this, instance) ?: throw ProcessTestingException(
-            "No node instance for the trace element $traceElement could be found in instance: ${
-                instance.toDebugString(
-                    this
-                )
-            }"
-        )
+        traceElement.getNodeInstance(this, instance)
+            ?: throw ProcessTestingException(
+                "No node instance for the trace element $traceElement could be found in instance: ${
+                    instance.toDebugString(this)
+                }"
+            )
     if (nodeInstance.state != Complete) {
         System.err.println("Re-finishing node ${nodeInstance.node.id} $nodeInstance for instance $instance")
         instance.update(writableEngineData) {
@@ -678,37 +680,7 @@ fun StubProcessTransaction.finishNodeInstance(hProcessInstance: HProcessInstance
         }
     }
     assert(nodeInstance.state == Complete)
-}
-
-/** A Queue of operations to perform */
-private class StateQueue {
-    /** The specific operationsin the queue. */
-    private val operations = mutableListOf<() -> Unit>()
-
-    /** The state of the operation execution. A `true` value means it has been executed, `false` not.*/
-    private val operationState = mutableListOf<Boolean>()
-
-    /** Add an operation to the queue */
-    fun add(operation: () -> Unit) {
-        operations.add(operation)
-        operationState.add(false)
-    }
-
-    /**
-     * Create a [SolidQueue] that can be executed to the current state. It remembers the current list so if the
-     * queue grows in the future the subqueue is still valid.
-     */
-    fun solidify() = SolidQueue(operations.size - 1)
-
-
-    inner class SolidQueue(val position: Int) {
-        operator fun invoke() = (0 until position).map { idx ->
-            if (!operationState[idx]) {
-                operations[idx]()
-                operationState[idx] = true
-            }
-        }
-    }
+    return nodeInstance.handle
 }
 
 class CustomDsl(
