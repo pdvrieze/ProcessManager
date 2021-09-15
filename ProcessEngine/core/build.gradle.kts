@@ -82,7 +82,7 @@ kotlin {
 
                 executionTask.configure {
                     useJUnitPlatform {
-                        includeEngines("spek2")
+                        includeEngines("junit-jupiter")
                     }
 
                     filter {

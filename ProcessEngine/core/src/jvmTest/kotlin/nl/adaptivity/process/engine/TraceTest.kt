@@ -542,7 +542,10 @@ private fun <T> Boolean.pick(onTrue:T, onFalse: T): T =
     if (this) onTrue else onFalse
 
 fun createInvalidTraceTest(config: TraceTest.CompanionBase, trace: Trace, failureExpected:Boolean = true): DynamicContainer {
-    val label = "given ${failureExpected.pick("invalid", "valid")} trace [${trace.joinToString()}]"
+    val label = when(failureExpected) {
+        true -> "Given invalid trace [${trace.joinToString()}]"
+        else -> "Executing using the invalid trace testing mechanism"
+    }
     return config.dynamicContainer(label) {
         addTest("Executing the trace should ${failureExpected.pick("fail", "not fail")}") {
             var success = false
