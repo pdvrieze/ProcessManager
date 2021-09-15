@@ -90,17 +90,17 @@ object TestWorkflowPatterns2 : Spek(
                 describe("WCP8: Multi-merge") {
                     includeLocal(WCP8(15))
                 }
-*/
 
                 describe("WCP9: Structured Discriminator") {
                     includeLocal(WCP9())
                 }
+*/
             }
 
             describe("Structural patterns") {
-                describe("WCP10: arbitrary cycles"/*, "Multiple instantiations of a single node are not yet supported"*/) {
-                    includeLocal(WCP10())
-                }
+//                describe("WCP10: arbitrary cycles"/*, "Multiple instantiations of a single node are not yet supported"*/) {
+//                    includeLocal(WCP10())
+//                }
 
                 describe("WCP11: Implicit termination") {
                     includeLocal(WCP11())

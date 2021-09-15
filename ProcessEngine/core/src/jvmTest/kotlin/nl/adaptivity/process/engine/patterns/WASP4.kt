@@ -16,39 +16,45 @@
 
 package nl.adaptivity.process.engine.patterns
 
-import nl.adaptivity.process.engine.ModelData
-import nl.adaptivity.process.engine.ModelSpek
-import nl.adaptivity.process.engine.TestConfigurableModel
-import nl.adaptivity.process.engine.trace
+import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.configurableModel.activity
 import nl.adaptivity.process.processModel.configurableModel.endNode
 import nl.adaptivity.process.processModel.configurableModel.startNode
 
-class WASP4: ModelSpek(run {
-  val model = object : TestConfigurableModel("WASP4") {
-    val start1 by startNode
-    val ac1    by activity(start1)
+class WASP4: TraceTest(Companion) {
+    companion object : TraceTest.CompanionBase() {
+        override val modelData: ModelData = run {
+            val model = object : TestConfigurableModel("WASP4") {
+                val start1 by startNode
+                val ac1 by activity(start1)
 
-    val comp1 by object : ConfigurableCompositeActivity(ac1) {
-      val start2 by startNode
-      val ac2    by activity(start2)
-      val end2   by endNode(ac2)
+                val comp1 by object : ConfigurableCompositeActivity(ac1) {
+                    val start2 by startNode
+                    val ac2 by activity(start2)
+                    val end2 by endNode(ac2)
+                }
+                val ac3 by activity(comp1)
+                val end by endNode(ac3)
+            }
+            val start2 = model.comp1.start2
+            val ac2 = model.comp1.ac2
+            val end2 = model.comp1.end2
+
+            val validTraces = with(model) {
+                trace {
+                    (start1..ac1..start2..ac2) * (end2 % comp1)..ac3..end
+                }
+            }
+            val invalidTraces = with(model) {
+                trace {
+                    ac1 or comp1 or start2 or ac2 or end2 or ac3 or end or
+                        (start1..(comp1 or start2 or ac2 or end2 or ac3 or end or
+                            ((ac1..start2.opt) * (comp1 or end2 or ac3 or end or
+                                (ac2..(comp1.opt % end2.opt)..end)))))
+                }
+            }
+            ModelData(model, validTraces, invalidTraces)
+        }
     }
-    val ac3    by activity(comp1)
-    val end    by endNode(ac3)
-  }
-  val start2 = model.comp1.start2
-  val ac2 = model.comp1.ac2
-  val end2 = model.comp1.end2
 
-  val validTraces = with(model) { trace{
-    (start1 .. ac1 .. start2 .. ac2) * (end2 % comp1).. ac3 ..end
-  }}
-  val invalidTraces = with(model) { trace {
-    ac1 or comp1 or start2 or ac2 or end2 or ac3 or end or
-      (start1 ..(comp1 or start2 or ac2 or end2 or ac3 or end or
-        ((ac1.. start2.opt) * (comp1 or end2 or ac3 or end or
-          ( ac2 .. (comp1.opt % end2.opt) .. end )))))
-  }}
-  ModelData(model, validTraces, invalidTraces)
-})
+}
