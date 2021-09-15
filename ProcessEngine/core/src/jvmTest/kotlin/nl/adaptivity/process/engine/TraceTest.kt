@@ -30,6 +30,7 @@ import nl.adaptivity.process.engine.processModel.CompositeInstance
 import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.spek.InstanceSupport
 import nl.adaptivity.process.engine.spek.assertComplete
 import nl.adaptivity.process.engine.spek.assertTracePossible
 import nl.adaptivity.process.engine.spek.toDebugString
@@ -127,6 +128,12 @@ abstract class TraceTest(val config: CompanionBase) {
     @DisplayName("Valid traces")
     fun testValidTraces(): List<DynamicNode> {
         return config.validTraces.map { createValidTraceTest(config, it) }
+    }
+
+    @TestFactory
+    @DisplayName("Invalid traces")
+    fun testInvalidTraces(): List<DynamicNode> {
+        return config.inValidTraces.map { createInvalidTraceTest(config, it) }
     }
 
     abstract class CompanionBase {
@@ -369,6 +376,7 @@ fun createValidTraceTest(config: TraceTest.CompanionBase, trace: Trace): Dynamic
                 createTraceElementTest(trace, i)
             }
         }
+        addTest(createInvalidTraceTest(config, trace, false))
     }
 }
 
@@ -528,6 +536,41 @@ private fun ContainerContext.createEndElementTest(trace: Trace, elementIdx: Int,
         assertEquals(NodeInstanceState.Complete, trace[elementIdx].getNodeInstance()?.state)
     }
 
+}
+
+private fun <T> Boolean.pick(onTrue:T, onFalse: T): T =
+    if (this) onTrue else onFalse
+
+fun createInvalidTraceTest(config: TraceTest.CompanionBase, trace: Trace, failureExpected:Boolean = true): DynamicContainer {
+    val label = "given ${failureExpected.pick("invalid", "valid")} trace [${trace.joinToString()}]"
+    return config.dynamicContainer(label) {
+        addTest("Executing the trace should ${failureExpected.pick("fail", "not fail")}") {
+            var success = false
+            try {
+                val instanceSupport = object : InstanceSupport {
+                    override val transaction: StubProcessTransaction get() = this@addTest.transaction
+                    override val engine: ProcessEngine<StubProcessTransaction, *>
+                        get() = engineData.engine
+
+                }
+                instanceSupport.testTraceExceptionThrowing(getProcessInstance(), trace)
+            } catch (e: ProcessTestingException) {
+                if (!failureExpected) {
+                    throw e
+                }
+                success = true
+            }
+            if (failureExpected && !success) kfail(
+                "The invalid trace ${trace.joinToString(prefix = "[", postfix = "]")} could be executed"
+            )
+        }
+        if (!failureExpected) {
+            addTest("The process instance should have a finished state") {
+                runTrace(trace)
+                assertEquals(ProcessInstance.State.FINISHED, getProcessInstance().state)
+            }
+        }
+    }
 }
 
 fun ProcessNodeInstance<*>.assertFinished() {
