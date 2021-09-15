@@ -49,6 +49,14 @@ import kotlin.reflect.KClass
 
 abstract class TraceTest(val config: CompanionBase) {
 
+    val model: ExecutableProcessModel get() = config.modelData.model
+
+    @Suppress("unused")
+    fun newEngineData() = config.modelData.engineData()
+
+    val validTraces get() = config.modelData.valid
+    val inValidTraces get() = config.modelData.invalid
+
     @Nested
     @DisplayName("Serialization")
     @OptIn(ExperimentalSerializationApi::class)
@@ -78,7 +86,7 @@ abstract class TraceTest(val config: CompanionBase) {
                 val methodUri = URI("method:${sourceClass}#$methodName()")
                 listOf(
                     dynamicTest("Serializing to ${format.name} should be valid", methodUri) {
-                        val actual = format.encodeToString(config.model)
+                        val actual = format.encodeToString(model)
                         assertSerialEquals(
                             format,
                             expectedSerial,
@@ -91,7 +99,7 @@ abstract class TraceTest(val config: CompanionBase) {
                         URI("method:${sourceClass}#${methodName}")
                     ) {
                         val actual = format.decodeFromString<ExecutableProcessModel>(expectedSerial)
-                        assertEquals(config.model, actual, "They should be equal")
+                        assertEquals(model, actual, "They should be equal")
                     }
                 )
             }
@@ -116,9 +124,9 @@ abstract class TraceTest(val config: CompanionBase) {
         @DisplayName("Round trip serialization to xml and back should be correct.")
         fun testRoundTrip() {
             val xml = XML { autoPolymorphic = true }
-            val serialized = xml.encodeToString(config.model)
+            val serialized = xml.encodeToString(model)
             val deSerialized = xml.decodeFromString<ExecutableProcessModel>(serialized)
-            assertEquals(config.model, deSerialized, "The result of deserialization should be equal to the original")
+            assertEquals(model, deSerialized, "The result of deserialization should be equal to the original")
             val reserialized = xml.encodeToString(deSerialized)
             assertEquals(serialized, reserialized, "Serializing and back should have equal result")
         }
@@ -127,24 +135,18 @@ abstract class TraceTest(val config: CompanionBase) {
     @TestFactory
     @DisplayName("Valid traces")
     fun testValidTraces(): List<DynamicNode> {
-        return config.validTraces.map { createValidTraceTest(config, it) }
+        return validTraces.map { createValidTraceTest(config, it) }
     }
 
     @TestFactory
     @DisplayName("Invalid traces")
     fun testInvalidTraces(): List<DynamicNode> {
-        return config.inValidTraces.map { createInvalidTraceTest(config, it) }
+        return inValidTraces.map { createInvalidTraceTest(config, it) }
     }
 
     abstract class CompanionBase {
 
-        val model: ExecutableProcessModel get() = modelData.model
-
-        protected abstract val modelData: ModelData
-
-        fun newEngineData() = modelData.engineData()
-        val validTraces get() = modelData.valid
-        val inValidTraces get() = modelData.invalid
+        abstract val modelData: ModelData
 
         open val expectedJson: String? get() = null
         open val expectedXml: String? get() = null
@@ -152,23 +154,28 @@ abstract class TraceTest(val config: CompanionBase) {
 }
 
 class TestContext(private val config: TraceTest.CompanionBase) {
-    val engineData = config.newEngineData()
-    val transaction = engineData.engine.startTransaction()
-    val principal = config.model.owner
-    val model = config.model
 
-    val hmodel: Handle<ExecutableProcessModel> =
-        with(config) {//engineData.engine.addProcessModel(transaction, config.model, principal)
-            if (model.handle.isValid &&
-                model.handle in transaction.readableEngineData.processModels &&
-                transaction.readableEngineData.processModels[model.handle]?.withPermission()?.uuid == model.uuid
-            ) {
-                model.handle
-            } else {
-                model.setHandleValue(-1)
-                engineData.engine.addProcessModel(transaction, model.builder(), model.owner)
-            }
+//    val model: ExecutableProcessModel get() = modelData.model
+//    fun newEngineData() = modelData.engineData()
+//    val validTraces get() = modelData.valid
+//    val inValidTraces get() = modelData.invalid
+
+    val engineData = config.modelData.engineData()
+    val transaction = engineData.engine.startTransaction()
+    val model get() = config.modelData.model
+    val principal get() = model.owner
+
+    val hmodel: Handle<ExecutableProcessModel> = when {
+        model.handle.isValid &&
+            model.handle in transaction.readableEngineData.processModels &&
+            transaction.readableEngineData.processModels[model.handle]?.withPermission()?.uuid == model.uuid
+             -> model.handle
+
+        else -> {
+            model.setHandleValue(-1)
+            engineData.engine.addProcessModel(transaction, model.builder(), model.owner)
         }
+    }
 
     var hInstance: ComparableHandle<SecureObject<ProcessInstance>> = getInvalidHandle()
         get() {
@@ -179,14 +186,14 @@ class TestContext(private val config: TraceTest.CompanionBase) {
         }
         private set
 
-    val instanceUuid = UUID.randomUUID()
+    val instanceUuid: UUID = UUID.randomUUID()
 
     fun dbgInstance(): String {
         return getProcessInstance().toDebugString(transaction)
     }
 
     fun startProcess(): ComparableHandle<SecureObject<ProcessInstance>> {
-        val name = "${config.model.name} instance"
+        val name = "${model.name} instance"
         hInstance = engineData.engine.startProcess(transaction, principal, hmodel, name, instanceUuid, null)
             .toComparableHandle()
         return hInstance
@@ -238,7 +245,11 @@ class TestContext(private val config: TraceTest.CompanionBase) {
                 }
             }
             val ni = traceElement.getNodeInstance(transaction, getProcessInstance(instanceHandle))!!
-            assertEquals(NodeInstanceState.Complete, ni.state, "Expected the state of $ni to be complete, not ${ni.state}\n${dbgInstance()}")
+            assertEquals(
+                NodeInstanceState.Complete,
+                ni.state,
+                "Expected the state of $ni to be complete, not ${ni.state}\n${dbgInstance()}"
+            )
             lastInstance = ni.handle
 
             engineData.engine.processTickleQueue(transaction)
@@ -246,17 +257,20 @@ class TestContext(private val config: TraceTest.CompanionBase) {
         return lastInstance
     }
 
-    inline fun <reified T:ProcessNode> Trace.nodes(): Sequence<T> {
+    inline fun <reified T : ProcessNode> Trace.nodes(): Sequence<T> {
         return asSequence().map { model.findNode(it) }.filterIsInstance<T>()
     }
 
-    inline fun <reified T:ProcessNode> Trace.nodeInstances(): Sequence<ProcessNodeInstance<*>?> {
-        return nodes<T>().zip(asSequence()) { node, traceElement ->
-            traceElement.getNodeInstance(transaction, getProcessInstance())
-        }
+    @Suppress("unused")
+    inline fun <reified T : ProcessNode> Trace.nodeInstances(): Sequence<ProcessNodeInstance<*>?> {
+        return asSequence()
+            .filter { model.findNode(it) is T }
+            .map { traceElement ->
+                traceElement.getNodeInstance(transaction, getProcessInstance())
+            }
     }
 
-    inline fun <reified T:ProcessNode> Trace.allNodeInstances(): Sequence<ProcessNodeInstance<*>> {
+    inline fun <reified T : ProcessNode> Trace.allNodeInstances(): Sequence<ProcessNodeInstance<*>> {
         return allNodeInstances(T::class)
     }
 
@@ -265,10 +279,10 @@ class TestContext(private val config: TraceTest.CompanionBase) {
         return asSequence().mapNotNull { traceElement ->
             val node = model.findNode(traceElement)
             when {
-                node == null -> kfail("No node with name ${traceElement.nodeId} present in the model")
+                node == null          -> kfail("No node with name ${traceElement.nodeId} present in the model")
                 type.isInstance(node) -> traceElement.getNodeInstance(transaction, processInstance)
                     ?: kfail("Nodeinstance $traceElement does not exist; ${dbgInstance()}")
-                else -> null
+                else                  -> null
             }
         }
     }
@@ -281,6 +295,8 @@ class TestContext(private val config: TraceTest.CompanionBase) {
 
 class ContainerContext(val config: TraceTest.CompanionBase, private val children: MutableCollection<DynamicNode>) {
 
+    val model get() = config.modelData.model
+
     fun addTest(node: DynamicNode) {
         children.add(node)
     }
@@ -289,6 +305,7 @@ class ContainerContext(val config: TraceTest.CompanionBase, private val children
         addTest(dynamicTest(displayName) { TestContext(config).executable() })
     }
 
+    @Suppress("unused")
     inline fun addTest(displayName: String, testSourceUri: URI, crossinline executable: TestContext.() -> Unit) {
         addTest(dynamicTest(displayName, testSourceUri) { TestContext(config).executable() })
     }
@@ -381,32 +398,32 @@ fun createValidTraceTest(config: TraceTest.CompanionBase, trace: Trace): Dynamic
 }
 
 fun ContainerContext.createTraceElementTest(trace: Trace, elementIdx: Int) {
-    val node = config.model.getNode(trace[elementIdx])
+    val node = model.getNode(trace[elementIdx])
         ?: kfail("Node ${trace[elementIdx]} not found in the model")
 
     when (node) {
-        is StartNode -> createStartElementTest(trace, elementIdx, node)
-        is Split -> createSplitElementTest(trace, elementIdx, node)
-        is Join -> createJoinElementTest(trace, elementIdx, node)
-        is MessageActivity -> createMessageElementTest(trace, elementIdx, node)
-        is CompositeActivity -> createCompositeElementTest(trace, elementIdx, node)
-        is EndNode -> createEndElementTest(trace, elementIdx, node)
-        else -> kfail("Unexpected node type found: ${node?.javaClass}")
+        is StartNode         -> createStartElementTest(trace, elementIdx)
+        is Split             -> createSplitElementTest(trace, elementIdx)
+        is Join              -> createJoinElementTest(trace, elementIdx)
+        is MessageActivity   -> createMessageElementTest(trace, elementIdx, node)
+        is CompositeActivity -> createCompositeElementTest(trace, elementIdx)
+        is EndNode           -> createEndElementTest(trace, elementIdx)
+        else                 -> kfail("Unexpected node type found: ${node.javaClass}")
     }
 }
 
-private fun ContainerContext.createStartElementTest(trace: Trace, elementIdx: Int, node: StartNode) {
+private fun ContainerContext.createStartElementTest(trace: Trace, elementIdx: Int) {
     addTest("Start node ${trace[elementIdx]} should be finished") {
         runTrace(trace, elementIdx) // just before the element
         assertEquals(NodeInstanceState.Complete, trace[elementIdx].getNodeInstance()?.state)
     }
     addTest("Start node ${trace[elementIdx]} should still be finished on completion") {
-        runTrace(trace, elementIdx+1) // just before the element
+        runTrace(trace, elementIdx + 1) // just before the element
         assertEquals(NodeInstanceState.Complete, trace[elementIdx].getNodeInstance()?.state)
     }
 }
 
-private fun ContainerContext.createSplitElementTest(trace: Trace, elementIdx: Int, node: Split) {
+private fun ContainerContext.createSplitElementTest(trace: Trace, elementIdx: Int) {
     val traceElement = trace[elementIdx]
     addTest("Split $traceElement should already be finished") {
         runTrace(trace, elementIdx)
@@ -416,21 +433,22 @@ private fun ContainerContext.createSplitElementTest(trace: Trace, elementIdx: In
     }
 }
 
-private fun ContainerContext.createJoinElementTest(trace: Trace, elementIdx: Int, node: Join) {
+private fun ContainerContext.createJoinElementTest(trace: Trace, elementIdx: Int) {
     val traceElement = trace[elementIdx]
     addTest("Join $traceElement is finished or can finish") {
         runTrace(trace, elementIdx)
         val pni = traceElement.getNodeInstance()
-        val activePredecessors = getProcessInstance().getActivePredecessorsFor(transaction.readableEngineData, pni as JoinInstance)
+        val activePredecessors =
+            getProcessInstance().getActivePredecessorsFor(transaction.readableEngineData, pni as JoinInstance)
 
-        if (! (activePredecessors.isEmpty() && pni.canFinish())) {
+        if (!(activePredecessors.isEmpty() && pni.canFinish())) {
             assertEquals(NodeInstanceState.Complete, traceElement.getNodeInstance()?.state) {
                 "There are still active predecessors $activePredecessors for $traceElement;${dbgInstance()}"
             }
         }
     }
     addTest("Join $traceElement should be finished afterwards") {
-        runTrace(trace, elementIdx+1)
+        runTrace(trace, elementIdx + 1)
         assertEquals(NodeInstanceState.Complete, traceElement.getNodeInstance()?.state) {
             "Node $traceElement should be finished. The current nodes are: ${dbgInstance()}"
         }
@@ -446,7 +464,7 @@ private fun ContainerContext.createMessageElementTest(trace: Trace, elementIdx: 
         assertFalse(nodeInstance.state.isFinal, nodeInstance.toString())
     }
     addTest("Activity node $traceElement should be finished on completion") {
-        runTrace(trace, elementIdx+1) // just before the element
+        runTrace(trace, elementIdx + 1) // just before the element
         assertEquals(NodeInstanceState.Complete, traceElement.getNodeInstance()?.state)
     }
     addTest("$traceElement should not be in pending or sent state") {
@@ -479,39 +497,43 @@ private fun ContainerContext.createMessageElementTest(trace: Trace, elementIdx: 
     }
     addTest("the node instance $traceElement should be final after finishing") {
         runTrace(trace, elementIdx)
-        var nodeInstance = traceElement.getNodeInstance()!!
-        getProcessInstance(nodeInstance.hProcessInstance).update(transaction.writableEngineData) {
-            updateChild(nodeInstance) {
-                finishTask(transaction.writableEngineData, traceElement.resultPayload)
+        run {
+            val nodeInstance = traceElement.getNodeInstance()!!
+            getProcessInstance(nodeInstance.hProcessInstance).update(transaction.writableEngineData) {
+                updateChild(nodeInstance) {
+                    finishTask(transaction.writableEngineData, traceElement.resultPayload)
+                }
             }
         }
         assertEquals(NodeInstanceState.Complete, traceElement.getNodeInstance()?.state)
     }
 }
 
-private fun ContainerContext.createCompositeElementTest(trace: Trace, elementIdx: Int, node: CompositeActivity) {
+private fun ContainerContext.createCompositeElementTest(trace: Trace, elementIdx: Int) {
     val traceElement = trace[elementIdx]
     addTest("A child instance should have been created for $traceElement") {
         runTrace(trace, elementIdx)
-        Assertions.assertTrue(
-            (traceElement.getNodeInstance() as CompositeInstance).hChildInstance.isValid
-        ) { "No child instance was recorded" }
+        assertTrue((traceElement.getNodeInstance() as CompositeInstance).hChildInstance.isValid) {
+            "No child instance was recorded"
+        }
     }
+
     addTest("The child instance was finished for $traceElement") {
-        runTrace(trace, elementIdx+1)
+        runTrace(trace, elementIdx + 1)
         val nodeInstance = traceElement.getNodeInstance() as CompositeInstance
         val childInstance = getProcessInstance(nodeInstance.hChildInstance)
 
         assertEquals(ProcessInstance.State.FINISHED, childInstance.state)
     }
+
     addTest("The activity itself should be finished for $traceElement") {
-        runTrace(trace, elementIdx+1)
+        runTrace(trace, elementIdx + 1)
         assertEquals(NodeInstanceState.Complete, traceElement.getNodeInstance()?.state)
     }
 
 }
 
-private fun ContainerContext.createEndElementTest(trace: Trace, elementIdx: Int, node: EndNode) {
+private fun ContainerContext.createEndElementTest(trace: Trace, elementIdx: Int) {
     val traceElement = trace[elementIdx]
     addTest("$traceElement should be part of the completion nodes") {
         runTrace(trace, elementIdx)
@@ -520,8 +542,9 @@ private fun ContainerContext.createEndElementTest(trace: Trace, elementIdx: Int,
             parentInstance.completedNodeInstances.asSequence()
                 .map { it.withPermission() }
                 .any { it.node.id == traceElement.nodeId }
-        )  { "The end node should be complete; ${dbgInstance()}" }
+        ) { "The end node should be complete; ${dbgInstance()}" }
     }
+
     addTest("The predecessors of $traceElement should be final") {
         runTrace(trace, elementIdx)
         assertTrue(
@@ -531,18 +554,23 @@ private fun ContainerContext.createEndElementTest(trace: Trace, elementIdx: Int,
             "All immediate predecessors of an end node should be final"
         )
     }
+
     addTest("End node ${trace[elementIdx]} should be finished") {
-        runTrace(trace, elementIdx+1) // just before the element
+        runTrace(trace, elementIdx + 1) // just before the element
         assertEquals(NodeInstanceState.Complete, trace[elementIdx].getNodeInstance()?.state)
     }
 
 }
 
-private fun <T> Boolean.pick(onTrue:T, onFalse: T): T =
+private fun <T> Boolean.pick(onTrue: T, onFalse: T): T =
     if (this) onTrue else onFalse
 
-fun createInvalidTraceTest(config: TraceTest.CompanionBase, trace: Trace, failureExpected:Boolean = true): DynamicContainer {
-    val label = when(failureExpected) {
+fun createInvalidTraceTest(
+    config: TraceTest.CompanionBase,
+    trace: Trace,
+    failureExpected: Boolean = true
+): DynamicContainer {
+    val label = when (failureExpected) {
         true -> "Given invalid trace [${trace.joinToString()}]"
         else -> "Executing using the invalid trace testing mechanism"
     }

@@ -56,8 +56,27 @@ data class ModelData(
     val valid: List<Trace>,
     val invalid: List<Trace>
 ) {
-    internal constructor(model: TestConfigurableModel, valid: List<Trace>, invalid: List<Trace>) : this(
-        { EngineTestData.defaultEngine() }, model.rootModel, valid, invalid
+    internal constructor(model: TestConfigurableModel, valid: List<Trace>, invalid: List<Trace>) :
+        this({ EngineTestData.defaultEngine() }, model.rootModel, valid, invalid)
+
+    constructor(model: ProcessModel<*>, valid: List<Trace>, invalid: List<Trace>) :
+        this(
+            { EngineTestData.defaultEngine() },
+            model.rootModel as? ExecutableProcessModel ?: ExecutableProcessModel(model.rootModel.builder()),
+            valid,
+            invalid
+        )
+
+    constructor(
+        engineData: () -> EngineTestData,
+        model: ProcessModel<*>,
+        valid: List<Trace>,
+        invalid: List<Trace>
+    ) : this(
+        engineData,
+        model.rootModel as? ExecutableProcessModel ?: ExecutableProcessModel(model.rootModel.builder()),
+        valid,
+        invalid
     )
 }
 
@@ -661,8 +680,11 @@ private fun EngineTestBody.testAssertNodeFinished(
     Assertions.assertEquals(Complete, nodeInstanceF().state)
 }
 
-fun StubProcessTransaction.finishNodeInstance(hProcessInstance: Handle<SecureObject<ProcessInstance>>, traceElement: TraceElement):
-Handle<SecureObject<ProcessNodeInstance<*>>> {
+fun StubProcessTransaction.finishNodeInstance(
+    hProcessInstance: Handle<SecureObject<ProcessInstance>>,
+    traceElement: TraceElement
+):
+    Handle<SecureObject<ProcessNodeInstance<*>>> {
     val instance = readableEngineData.instance(hProcessInstance).withPermission()
     val nodeInstance: ProcessNodeInstance<*> =
         traceElement.getNodeInstance(this, instance)

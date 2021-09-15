@@ -18,6 +18,7 @@ package nl.adaptivity.process.engine
 
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.spek.allChildren
+import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xmlutil.util.CompactFragment
 
@@ -102,7 +103,10 @@ class TraceElement(val nodeId: String, val instanceNo: Int, val outputs: List<Pr
         }
     }
 
-
+    override fun compareTo(other: Identifiable): Int = when (other) {
+        is TraceElement -> id.compareTo(other.id).let { if (it == 0) instanceNo-other.instanceNo else it }
+        else -> super.compareTo(other)
+    }
 }
 
 class BTrace(val elems: Array<TraceElement>) : Iterable<TraceElement> {
