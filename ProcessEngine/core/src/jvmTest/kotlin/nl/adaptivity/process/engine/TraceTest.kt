@@ -410,7 +410,7 @@ private fun ContainerContext.createSplitElementTest(trace: Trace, elementIdx: In
     val traceElement = trace[elementIdx]
     addTest("Split $traceElement should already be finished") {
         runTrace(trace, elementIdx)
-        assertEquals(NodeInstanceState.Complete, traceElement.getNodeInstance()) {
+        assertEquals(NodeInstanceState.Complete, traceElement.getNodeInstance()?.state) {
             "Node $traceElement should be finished. The current nodes are: ${dbgInstance()}"
         }
     }

@@ -16,43 +16,45 @@
 
 package nl.adaptivity.process.engine.patterns
 
-import nl.adaptivity.process.engine.ModelData
-import nl.adaptivity.process.engine.ModelSpek
-import nl.adaptivity.process.engine.TestConfigurableModel
-import nl.adaptivity.process.engine.trace
+import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.configurableModel.activity
 import nl.adaptivity.process.processModel.configurableModel.endNode
 import nl.adaptivity.process.processModel.configurableModel.split
 import nl.adaptivity.process.processModel.configurableModel.startNode
 
-class WCP2: ModelSpek(run{
-  val model = object : TestConfigurableModel("WCP2") {
-    val start by startNode
-    val split by split(start) { min = 2; max = 2 }
-    val ac1   by activity(split)
-    val ac2   by activity(split)
-    val end1  by endNode(ac1)
-    val end2  by endNode(ac2)
-  }
-  val validTraces = with(model) { trace {
-    start ..(
-      ((ac1 .. end1 .. ac2) * (split % end2)) or
-        ((ac2 .. end2 .. ac1) * (split % end1)))
-  } }
+class WCP2: TraceTest(Companion) {
 
-  val invalidTraces = with(model) { trace {
-    end1 or end2 or split or
-      (start ..(split or
-        end1 or
-        end2 or
-        ((ac1 or
-          (ac1..end1)) * (split or
-          end2)) or
-        ((ac2 or
-          (ac2..end1)) * (split or
-          end1))
-               )
-      )
-  } }
-  ModelData(model, validTraces, invalidTraces)
-})
+    companion object: TraceTest.CompanionBase() {
+        override val modelData: ModelData = run{
+            val model = object : TestConfigurableModel("WCP2") {
+                val start by startNode
+                val split by split(start) { min = 2; max = 2 }
+                val ac1   by activity(split)
+                val ac2   by activity(split)
+                val end1  by endNode(ac1)
+                val end2  by endNode(ac2)
+            }
+            val validTraces = with(model) { trace {
+                start ..(
+                    ((ac1 .. end1 .. ac2) * (split % end2)) or
+                        ((ac2 .. end2 .. ac1) * (split % end1)))
+            } }
+
+            val invalidTraces = with(model) { trace {
+                end1 or end2 or split or
+                    (start ..(split or
+                        end1 or
+                        end2 or
+                        ((ac1 or
+                            (ac1..end1)) * (split or
+                            end2)) or
+                        ((ac2 or
+                            (ac2..end1)) * (split or
+                            end1))
+                        )
+                        )
+            } }
+            ModelData(model, validTraces, invalidTraces)
+        }
+    }
+}

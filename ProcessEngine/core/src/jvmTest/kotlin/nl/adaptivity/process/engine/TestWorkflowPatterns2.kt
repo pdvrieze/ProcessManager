@@ -40,11 +40,11 @@ object TestWorkflowPatterns2 : Spek(
                 describe("WCP1: A sequential process") {
                     includeLocal(WCP1)
                 }
-*/
 
                 describe("WCP2: Parallel split") {
                     includeLocal(WCP2())
                 }
+*/
 
                 describe("WCP3: Synchronization / And join") {
                     includeLocal(WCP3())
