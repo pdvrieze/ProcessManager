@@ -34,9 +34,9 @@ object TestWorkflowPatterns2 : Spek(
 
         describe("control flow patterns") {
 
+/*
             describe("basic control-flow patterns") {
 
-/*
                 describe("WCP1: A sequential process") {
                     includeLocal(WCP1)
                 }
@@ -48,7 +48,6 @@ object TestWorkflowPatterns2 : Spek(
                 describe("WCP3: Synchronization / And join") {
                     includeLocal(WCP3())
                 }
-*/
 
                 describe("WCP4: XOR split") {
                     includeLocal(WCP4())
@@ -58,6 +57,7 @@ object TestWorkflowPatterns2 : Spek(
                     includeLocal(WCP5())
                 }
             }
+*/
 
             describe("Advanced branching and synchronization patterns") {
                 describe("WCP6: multi-choice / or-split") {

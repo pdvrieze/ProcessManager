@@ -16,30 +16,33 @@
 
 package nl.adaptivity.process.engine.patterns
 
-import nl.adaptivity.process.engine.ModelData
-import nl.adaptivity.process.engine.ModelSpek
-import nl.adaptivity.process.engine.TestConfigurableModel
-import nl.adaptivity.process.engine.trace
+import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.configurableModel.*
+import org.junit.jupiter.api.DisplayName
 
-class WCP5: ModelSpek(run{
-  val model = object: TestConfigurableModel("WCP5") {
-    val start by startNode
-    val split by split(start) { min = 1; max = 1 }
-    val ac1 by activity(split)
-    val ac2 by activity(split)
-    val join by join(ac1, ac2) { min = 1; max = 1 }
-    val ac3 by activity(join )
-    val end by endNode(ac3 )
-  }
-  val validTraces = with(model) { trace {
-    start ..((ac1 or ac2) * (((split % join).. ac3 ..end)))
-  } }
-  val invalidTraces = with(model) { trace {
-    ac1 or ac2 or ac3 or end or join or split or
-      (start .. (ac3 or join or split or end or
-        //        ((ac1 or ac2) .. ac3) or, this passes as the system verify nonexistence of join/split/end nodes
-        (ac1 % ac2)))
-  } }
-  ModelData(model, validTraces, invalidTraces)
-})
+@DisplayName("WCP5: simple-merge")
+class WCP5: TraceTest(Companion) {
+    companion object: TraceTest.CompanionBase() {
+        override val modelData: ModelData = run{
+            val model = object: TestConfigurableModel("WCP5") {
+                val start by startNode
+                val split by split(start) { min = 1; max = 1 }
+                val ac1 by activity(split)
+                val ac2 by activity(split)
+                val join by join(ac1, ac2) { min = 1; max = 1 }
+                val ac3 by activity(join )
+                val end by endNode(ac3 )
+            }
+            val validTraces = with(model) { trace {
+                start ..((ac1 or ac2) * (((split % join).. ac3 ..end)))
+            } }
+            val invalidTraces = with(model) { trace {
+                ac1 or ac2 or ac3 or end or join or split or
+                    (start .. (ac3 or join or split or end or
+                        //        ((ac1 or ac2) .. ac3) or, this passes as the system verify nonexistence of join/split/end nodes
+                        (ac1 % ac2)))
+            } }
+            ModelData(model, validTraces, invalidTraces)
+        }
+    }
+}
