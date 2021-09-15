@@ -44,11 +44,11 @@ object TestWorkflowPatterns2 : Spek(
                 describe("WCP2: Parallel split") {
                     includeLocal(WCP2())
                 }
-*/
 
                 describe("WCP3: Synchronization / And join") {
                     includeLocal(WCP3())
                 }
+*/
 
                 describe("WCP4: XOR split") {
                     includeLocal(WCP4())

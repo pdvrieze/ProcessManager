@@ -424,14 +424,14 @@ private fun ContainerContext.createJoinElementTest(trace: Trace, elementIdx: Int
         val activePredecessors = getProcessInstance().getActivePredecessorsFor(transaction.readableEngineData, pni as JoinInstance)
 
         if (! (activePredecessors.isEmpty() && pni.canFinish())) {
-            assertEquals(NodeInstanceState.Complete, traceElement.getNodeInstance()) {
+            assertEquals(NodeInstanceState.Complete, traceElement.getNodeInstance()?.state) {
                 "There are still active predecessors $activePredecessors for $traceElement;${dbgInstance()}"
             }
         }
     }
     addTest("Join $traceElement should be finished afterwards") {
         runTrace(trace, elementIdx+1)
-        assertEquals(NodeInstanceState.Complete, traceElement.getNodeInstance()) {
+        assertEquals(NodeInstanceState.Complete, traceElement.getNodeInstance()?.state) {
             "Node $traceElement should be finished. The current nodes are: ${dbgInstance()}"
         }
     }

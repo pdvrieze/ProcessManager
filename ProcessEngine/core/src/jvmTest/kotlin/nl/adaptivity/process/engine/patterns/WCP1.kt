@@ -27,6 +27,7 @@ import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Test
 
+@DisplayName("WCP1: A sequential process")
 class WCP1: TraceTest(Companion) {
 
     @Test
