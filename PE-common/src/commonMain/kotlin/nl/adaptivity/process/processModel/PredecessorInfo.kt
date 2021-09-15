@@ -26,7 +26,7 @@ import nl.adaptivity.xmlutil.serialization.XmlValue
 class PredecessorInfo(
     @SerialName("predecessor")
     @XmlValue(true) val id: String,
-    @Serializable(XmlCondition.Companion::class)
+    @Serializable(Condition.Serializer::class)
     @XmlElement(false) val condition: Condition? = null
 ) {
     init {

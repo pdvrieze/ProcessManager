@@ -201,7 +201,14 @@ internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineD
         processInstanceBuilder.storeChild(successorBuilder)
         if (successorBuilder.state == NodeInstanceState.Pending) {
             // temporaryly build a node to evaluate the condition against, but don't register it.
-            val conditionResult = successorBuilder.build().run { condition(engineData, this) }
+            val conditionResult = when {
+                // If we have a join with missing predecessors we can't do it yet
+                successorBuilder.node is Join &&
+                    successorBuilder.predecessors.any { ! it.isValid } -> ConditionResult.MAYBE
+
+                else -> successorBuilder.build().run { condition(engineData, this) }
+            }
+
             when (conditionResult) {
                 ConditionResult.TRUE  -> { // only if it can be executed, otherwise just drop it.
                     successorBuilder.provideTask(engineData)

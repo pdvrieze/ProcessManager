@@ -97,22 +97,26 @@ object TestWorkflowPatterns2 : Spek(
 */
             }
 
+/*
             describe("Structural patterns") {
-//                describe("WCP10: arbitrary cycles"/*, "Multiple instantiations of a single node are not yet supported"*/) {
-//                    includeLocal(WCP10())
-//                }
+                describe("WCP10: arbitrary cycles") {
+                    includeLocal(WCP10())
+                }
 
                 describe("WCP11: Implicit termination") {
                     includeLocal(WCP11())
                 }
             }
+*/
         }
 
+/*
         describe("Abstract syntax patterns") {
             describe("WASP4: Vertical modularisation (subprocesses)") {
                 includeLocal(WASP4())
             }
         }
+*/
 
 
     })

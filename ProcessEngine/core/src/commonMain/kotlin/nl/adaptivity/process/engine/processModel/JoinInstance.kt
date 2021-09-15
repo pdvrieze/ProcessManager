@@ -115,10 +115,20 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
         owner: Principal,
         entryNo: Int,
         handle: Handle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
-        state: NodeInstanceState = NodeInstanceState.Pending)
-        : ProcessNodeInstance.BaseBuilder<ExecutableJoin, JoinInstance>(node, predecessors, processInstanceBuilder, owner, entryNo, handle, state), Builder {
+        state: NodeInstanceState = NodeInstanceState.Pending
+    ) : ProcessNodeInstance.BaseBuilder<ExecutableJoin, JoinInstance>(
+        node,
+        predecessors,
+        processInstanceBuilder,
+        owner,
+        entryNo,
+        handle,
+        state
+    ), Builder {
+
         override fun build() = JoinInstance(this)
-        override fun skipTask(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState) = skipTaskImpl(engineData, newState)
+        override fun skipTask(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState) =
+            skipTaskImpl(engineData, newState)
 
     }
 
@@ -141,7 +151,9 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
                 state: NodeInstanceState = NodeInstanceState.Pending,
                 results: Iterable<ProcessData> = emptyList()) :
         super(node, predecessors, processInstanceBuilder, hProcessInstance, owner, entryNo, handle, state, results) {
-        assert(predecessors.none { !it.isValid }, {"When creating joins all handles should be valid $predecessors"})
+        if (predecessors.any { !it.isValid }) {
+            throw ProcessException("When creating joins all handles should be valid $predecessors")
+        }
     }
 
     constructor(builder:Builder): this(builder.node, builder.predecessors, builder.processInstanceBuilder, builder.hProcessInstance, builder.owner, builder.entryNo, builder.handle, builder.state, builder.results)

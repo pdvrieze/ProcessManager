@@ -17,10 +17,8 @@
 package nl.adaptivity.process.engine
 
 import kotlinx.serialization.json.Json
-import net.devrieze.util.ComparableHandle
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
-import net.devrieze.util.toComparableHandle
 import nl.adaptivity.process.engine.processModel.CompositeInstance
 import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
@@ -170,122 +168,6 @@ open class EngineSuite(val delegate: Suite) : LifecycleAware by delegate {
         afterEachTest(cb)
     }
 
-}
-
-abstract class ModelSpek(
-    val modelData: ModelData,
-    custom: (CustomDsl.() -> Unit)? = null,
-    val maxValid: Int = Int.MAX_VALUE,
-    val maxInvalid: Int = maxValid,
-    val modelJson: String? = null
-) : Spek(
-    {
-
-        val json = Json {
-            encodeDefaults = false
-            isLenient = true
-        }
-
-//        val model by memoized(CachingMode.SCOPE) { modelData.model }
-        val model = modelData.model
-        val valid = modelData.valid.selectN(maxValid)
-        val invalid = modelData.invalid.selectN(maxInvalid)
-        val principal by getter { model.owner }
-
-        val engineData by memoized<EngineTestData>(mode = CachingMode.SCOPE) {
-            if (subjectCreated) {
-                System.err.println("Recreating the subject")
-            } else {
-                subjectCreated = true
-            }
-            modelData.engineData()
-        }
-
-        describe("model ${model.name}") {
-            with(EngineSuite(this)) {
-                it("${model.name} should be valid") {
-                    model.builder().validate()
-                }
-
-                context("XML") {
-
-                    lateinit var xmlSerialization: String
-                    it("${model.name} should be able to be serialized to XML") {
-                        Assertions.assertDoesNotThrow {
-                            xmlSerialization = XML { indent = 4 }.stringify(
-                                XmlProcessModel.serializer(),
-                                XmlProcessModel(model.builder())
-                            )
-                        }
-                    }
-                    it("${model.name} should also be able to be deserialized from XML") {
-                        lateinit var deserializedModel: XmlProcessModel.Builder
-                        try {
-                            Assertions.assertDoesNotThrow {
-                                deserializedModel = XML.parse(XmlProcessModel.Builder.serializer(), xmlSerialization)
-                            }
-                            val executableProcessModel = ExecutableProcessModel(deserializedModel)
-                            assertEquals(model, executableProcessModel)
-                        } catch (e: Throwable) {
-                            fail("Failure to deserialize the model:\n$xmlSerialization", e)
-                        }
-                    }
-
-                }
-                context("JSON") {
-                    lateinit var jsonSerialization: String
-
-                    it("${model.name} should be able to be serialized to JSON") {
-                        Assertions.assertDoesNotThrow {
-                            jsonSerialization = json.encodeToString(
-                                XmlProcessModel.serializer(),
-                                XmlProcessModel(model.builder())
-                            )
-                        }
-                    }
-                    if (modelJson != null) {
-                        it("${model.name} should match the expected JSON") {
-                            assertJsonEquals(modelJson, jsonSerialization)
-                        }
-                    }
-                    it("${model.name} should also be able to be deserialized from JSON") {
-                        lateinit var deserializedModel: XmlProcessModel.Builder
-                        Assertions.assertDoesNotThrow {
-                            deserializedModel = json.decodeFromString(
-                                XmlProcessModel.Builder.serializer(),
-                                jsonSerialization
-                            )
-                        }
-                        assertEquals(
-                            model,
-                            ExecutableProcessModel(deserializedModel),
-                            "The result of deserializing the json should be equal to the original\n$jsonSerialization\n"
-                        )
-                    }
-
-                }
-
-                if (custom != null) {
-                    context("${model.name} -- Custom checks") {
-                        CustomDsl(delegate, model, valid, invalid).custom()
-                    }
-                }
-
-                for (validTrace in valid) {
-                    testValidTrace(model, principal, validTrace) // valid group
-
-                } // for valid traces
-                for (validTrace in valid) {
-                    testInvalidTrace(model, principal, validTrace, false)
-                }
-                for (invalidTrace in invalid) {
-                    testInvalidTrace(model, principal, invalidTrace)
-                }
-
-            }
-        }
-
-    }) {
 }
 
 internal fun EngineSuite.testValidTrace(
@@ -484,7 +366,7 @@ private fun EngineSuite.testTraceCompletion(
                 .map { model.findNode(it)!! }
                 .filterIsInstance(EndNode::class.java)
                 .filter { endNode ->
-                    val nodeInstance = processInstance.allChildren(transaction).firstOrNull { it.node.id == endNode.id }
+                    val nodeInstance = processInstance.transitiveChildren(transaction).firstOrNull { it.node.id == endNode.id }
                         ?: kfail(
                             "Nodeinstance ${endNode.identifier} does not exist, the instance is ${
                                 processInstance.toDebugString(

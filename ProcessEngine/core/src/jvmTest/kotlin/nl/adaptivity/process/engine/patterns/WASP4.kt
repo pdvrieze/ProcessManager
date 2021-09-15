@@ -20,7 +20,9 @@ import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.configurableModel.activity
 import nl.adaptivity.process.processModel.configurableModel.endNode
 import nl.adaptivity.process.processModel.configurableModel.startNode
+import org.junit.jupiter.api.DisplayName
 
+@DisplayName("WASP4: Vertical modularisation (subprocesses)")
 class WASP4: TraceTest(Companion) {
     companion object : TraceTest.CompanionBase() {
         override val modelData: ModelData = run {

@@ -16,6 +16,11 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.processModel.Condition
@@ -27,13 +32,11 @@ import nl.adaptivity.xmlutil.XmlWriter
  *
  * @author Paul de Vrieze
  */
-expect class ExecutableXSLTCondition(condition: String) : ExecutableCondition, XmlSerializable {
+expect class ExecutableXSLTCondition(condition: String) : ExecutableCondition {
 
     constructor(condition: Condition)
 
     override val condition: String
-
-    override fun serialize(out: XmlWriter)
 
     /**
      * Evaluate the condition.
@@ -44,4 +47,17 @@ expect class ExecutableXSLTCondition(condition: String) : ExecutableCondition, X
      */
     override fun eval(engineData: ProcessEngineDataAccess, instance: IProcessNodeInstance): ConditionResult
 
+}
+
+object ExecutableXSLTConditionSerializer: KSerializer<ExecutableXSLTCondition> {
+    @OptIn(ExperimentalSerializationApi::class)
+    override val descriptor: SerialDescriptor = SerialDescriptor("ExecutableXSLTCondition", XmlCondition.serializer().descriptor)
+
+    override fun deserialize(decoder: Decoder): ExecutableXSLTCondition {
+        return ExecutableXSLTCondition(decoder.decodeString())
+    }
+
+    override fun serialize(encoder: Encoder, value: ExecutableXSLTCondition) {
+        encoder.encodeString(value.condition)
+    }
 }

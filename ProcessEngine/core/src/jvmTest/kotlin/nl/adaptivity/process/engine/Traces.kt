@@ -17,7 +17,7 @@
 package nl.adaptivity.process.engine
 
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
-import nl.adaptivity.process.engine.spek.allChildren
+import nl.adaptivity.process.engine.spek.transitiveChildren
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xmlutil.util.CompactFragment
@@ -92,14 +92,14 @@ class TraceElement(val nodeId: String, val instanceNo: Int, val outputs: List<Pr
 
     fun getNodeInstance(transaction: StubProcessTransaction, instance: ProcessInstance): ProcessNodeInstance<*>? {
         return when (instanceNo) {
-            ANYINSTANCE    -> instance.allChildren(transaction).firstOrNull { it.node.id == nodeId }
-            LASTINSTANCE   -> instance.allChildren(transaction).filter { it.node.id == nodeId }.maxByOrNull { it.entryNo }
-            SINGLEINSTANCE -> instance.allChildren(transaction).filter { it.node.id == nodeId }.also {
+            ANYINSTANCE    -> instance.transitiveChildren(transaction).firstOrNull { it.node.id == nodeId }
+            LASTINSTANCE   -> instance.transitiveChildren(transaction).filter { it.node.id == nodeId }.maxByOrNull { it.entryNo }
+            SINGLEINSTANCE -> instance.transitiveChildren(transaction).filter { it.node.id == nodeId }.also {
                 if (it.count() > 1) throw ProcessTestingException(
                     "Only one instance is allowed with this trace: $this found: [${it.joinToString()}]")
             }.singleOrNull()
-            else           -> instance.allChildren(
-                transaction).firstOrNull { it.node.id == nodeId && it.entryNo == instanceNo }
+            else           -> instance.transitiveChildren(transaction)
+                .firstOrNull { it.node.id == nodeId && it.entryNo == instanceNo }
         }
     }
 

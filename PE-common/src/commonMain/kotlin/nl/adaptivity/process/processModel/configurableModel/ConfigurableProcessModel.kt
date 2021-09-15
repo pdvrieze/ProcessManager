@@ -35,12 +35,10 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
     override val name: String? = null,
     override val owner: Principal,
     override val uuid: UUID
-                                                            ) :
-    RootProcessModel<NodeT>, ConfigurableNodeContainer<NodeT> {
+) : RootProcessModel<NodeT>, ConfigurableNodeContainer<NodeT> {
 
-
-    class NodeDelegate<T : Identifiable>(override val id: String) : ReadOnlyProperty<ConfigurableProcessModel<*>, T>,
-                                                                    Identifiable {
+    class NodeDelegate<T : Identifiable>(override val id: String) :
+        ReadOnlyProperty<ConfigurableProcessModel<*>, T>, Identifiable {
         override fun getValue(thisRef: ConfigurableProcessModel<*>, property: KProperty<*>): T {
             @Suppress("UNCHECKED_CAST")
             return when {
@@ -50,8 +48,8 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
         }
     }
 
-    class ChildDelegate<T : Identifiable>(override val id: String) : ReadOnlyProperty<ConfigurableProcessModel<*>, T>,
-                                                                     Identifiable {
+    class ChildDelegate<T : Identifiable>(override val id: String) :
+        ReadOnlyProperty<ConfigurableProcessModel<*>, T>, Identifiable {
         override fun getValue(thisRef: ConfigurableProcessModel<*>, property: KProperty<*>): T {
             @Suppress("UNCHECKED_CAST")
             return when {

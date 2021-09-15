@@ -15,6 +15,7 @@
  */
 package nl.adaptivity.process.processModel.engine
 
+import kotlinx.serialization.Serializable
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
@@ -32,17 +33,13 @@ import javax.xml.xpath.*
  *
  * @author Paul de Vrieze
  */
-actual class ExecutableXSLTCondition actual constructor(condition: String) : ExecutableCondition(), XmlSerializable {
+@Serializable(ExecutableXSLTConditionSerializer::class)
+actual class ExecutableXSLTCondition actual constructor(condition: String) : ExecutableCondition() {
 
     actual constructor(condition: Condition): this(condition.condition)
 
     override val isAlternate: Boolean = condition.trim().toLowercase(Locales.ENGLISH) == "otherwise"
     actual override val condition: String = if (isAlternate) "" else condition
-
-    @Throws(XmlException::class)
-    override actual fun serialize(out: XmlWriter) {
-        out.writeSimpleElement(QName(Engine.NAMESPACE, Condition.ELEMENTLOCALNAME, Engine.NSPREFIX), condition)
-    }
 
     /**
      * Evaluate the condition.

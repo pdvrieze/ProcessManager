@@ -30,10 +30,7 @@ import nl.adaptivity.process.engine.processModel.CompositeInstance
 import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
-import nl.adaptivity.process.engine.spek.InstanceSupport
-import nl.adaptivity.process.engine.spek.assertComplete
-import nl.adaptivity.process.engine.spek.assertTracePossible
-import nl.adaptivity.process.engine.spek.toDebugString
+import nl.adaptivity.process.engine.spek.*
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
@@ -216,10 +213,10 @@ class TestContext(private val config: TraceTest.CompanionBase) {
         instanceHandle: ComparableHandle<SecureObject<ProcessInstance>> = hInstance,
         action: ProcessNodeInstance.Builder<out ExecutableProcessNode, *>.() -> Unit
     ) {
-        val processInstance = getProcessInstance(instanceHandle)
+        val nodeInstance = traceElement.getNodeInstance(transaction, getProcessInstance(instanceHandle))
+            ?: fail("Missing node instance for $traceElement")
+        val processInstance = getProcessInstance(nodeInstance.hProcessInstance)
         processInstance.update(transaction.writableEngineData) {
-            val nodeInstance = traceElement.getNodeInstance(transaction, processInstance)
-                ?: fail("Missing node instance for $traceElement")
             updateChild(nodeInstance, action)
         }
 
@@ -233,7 +230,7 @@ class TestContext(private val config: TraceTest.CompanionBase) {
         var lastInstance: Handle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle()
         for (idx in 0 until (if (lastElement < 0) trace.size else lastElement)) {
             val traceElement = trace[idx]
-            when (model.getNode(traceElement.nodeId)) {
+            when (model.findNode(traceElement)) {
                 is MessageActivity -> {
                     updateNodeInstance(traceElement, instanceHandle) {
                         startTask(transaction.writableEngineData)
@@ -349,13 +346,14 @@ fun createValidTraceTest(config: TraceTest.CompanionBase, trace: Trace): Dynamic
                     .sorted()
                     .toList()
 
-                val actualFinishedNodes = getProcessInstance().childNodes
+                val actualFinishedNodes = getProcessInstance().transitiveChildren(transaction)
                     .map { it.withPermission() }
                     .filter { it.state.isFinal && it.node !is EndNode }
                     .onEach(ProcessNodeInstance<*>::assertFinished)
                     .filterNot { it.state.isSkipped }
                     .map { TraceElement(it.node.id, it.entryNo) }
                     .sorted()
+                    .toList()
 
                 assertEquals(expectedFinishedNodes, actualFinishedNodes) {
                     "\"The list of finished nodes does not match (" +
@@ -398,7 +396,7 @@ fun createValidTraceTest(config: TraceTest.CompanionBase, trace: Trace): Dynamic
 }
 
 fun ContainerContext.createTraceElementTest(trace: Trace, elementIdx: Int) {
-    val node = model.getNode(trace[elementIdx])
+    val node = model.findNode(trace[elementIdx])
         ?: kfail("Node ${trace[elementIdx]} not found in the model")
 
     when (node) {

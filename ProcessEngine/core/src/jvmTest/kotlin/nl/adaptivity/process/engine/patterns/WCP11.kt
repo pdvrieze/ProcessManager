@@ -20,7 +20,9 @@ import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.configurableModel.activity
 import nl.adaptivity.process.processModel.configurableModel.endNode
 import nl.adaptivity.process.processModel.configurableModel.startNode
+import org.junit.jupiter.api.DisplayName
 
+@DisplayName("WCP11: Implicit termination")
 class WCP11: TraceTest(Companion) {
     companion object : TraceTest.CompanionBase() {
         override val modelData: ModelData = run {

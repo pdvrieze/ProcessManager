@@ -40,7 +40,7 @@ interface InstanceSupport {
     val engine: ProcessEngine<StubProcessTransaction, *>
 
     fun ProcessInstance.allChildren(): Sequence<ProcessNodeInstance<*>> {
-        return allChildren(this@InstanceSupport.transaction)
+        return transitiveChildren(this@InstanceSupport.transaction)
     }
 
     val ProcessInstance.nodeInstances: Gettable<Identified, ProcessNodeInstanceDelegate> get() = object: Gettable<Identified,ProcessNodeInstanceDelegate> {
@@ -123,7 +123,7 @@ interface InstanceSupport {
 }
 
 
-fun ProcessInstance.allChildren(transaction: StubProcessTransaction): Sequence<ProcessNodeInstance<*>> {
+fun ProcessInstance.transitiveChildren(transaction: StubProcessTransaction): Sequence<ProcessNodeInstance<*>> {
     return childNodes.asSequence().flatMap {
         val child = it.withPermission()
         when (child) {
@@ -131,7 +131,7 @@ fun ProcessInstance.allChildren(transaction: StubProcessTransaction): Sequence<P
                 sequenceOf(child) +
                     transaction.readableEngineData
                         .instance(child.hChildInstance)
-                        .withPermission().allChildren(transaction)
+                        .withPermission().transitiveChildren(transaction)
             } else {
                 sequenceOf(child)
             }
@@ -152,7 +152,7 @@ fun ProcessInstance.toDebugString(transaction: StubProcessTransaction): String {
         }
         append('[').append(handle).append(']')
         append(", allnodes: [")
-        this@toDebugString.allChildren(transaction).joinTo(this) {
+        this@toDebugString.transitiveChildren(transaction).joinTo(this) {
             val inst = it.withPermission()
             "${inst.node.id}[${inst.entryNo}]:${inst.state}"
         }
@@ -162,12 +162,12 @@ fun ProcessInstance.toDebugString(transaction: StubProcessTransaction): String {
     }
 }
 
-fun ProcessInstance.findChild(transaction: StubProcessTransaction, id: String) = allChildren(transaction).firstOrNull { it.node.id==id }
+fun ProcessInstance.findChild(transaction: StubProcessTransaction, id: String) = transitiveChildren(transaction).firstOrNull { it.node.id==id }
 fun ProcessInstance.findChild(transaction: StubProcessTransaction, id: Identified) = findChild(transaction, id.id)
 
 fun ProcessInstance.trace(transaction: StubProcessTransaction,
                           filter: (ProcessNodeInstance<*>) -> Boolean): Sequence<TraceElement> {
-    return allChildren(transaction)
+    return transitiveChildren(transaction)
         .map { it.withPermission() }
         .filter(filter)
         .sortedBy { handle.handleValue }
@@ -214,7 +214,7 @@ fun ProcessInstance.assertFinished(transaction: StubProcessTransaction, vararg n
 }
 
 fun ProcessInstance.assertFinished(transaction: StubProcessTransaction, vararg nodeIds: String) {
-    val finished = allChildren(transaction)
+    val finished = transitiveChildren(transaction)
         .filter { it.state.isFinal && it.node !is EndNode }
         .mapNotNull { nodeInstance ->
             assertTrue(nodeInstance.state.isFinal,
@@ -236,7 +236,7 @@ fun ProcessInstance.assertComplete(transaction: StubProcessTransaction, vararg n
 }
 
 fun  ProcessInstance.assertComplete(transaction: StubProcessTransaction, vararg nodeIds: String) {
-    val complete = allChildren(transaction)
+    val complete = transitiveChildren(transaction)
         .filter { it.state.isFinal && it.node is EndNode }
         .mapNotNull { nodeInstance ->
             Assertions.assertTrue(nodeInstance.state.isFinal,
@@ -256,7 +256,7 @@ fun ProcessInstance.assertActive(transaction: StubProcessTransaction, vararg nod
 }
 
 fun  ProcessInstance.assertActive(transaction: StubProcessTransaction, vararg nodeIds: String) {
-    val active = allChildren(transaction)
+    val active = transitiveChildren(transaction)
         .filter { !it.state.isFinal }
         .mapNotNull { nodeInstance ->
             Assertions.assertTrue(nodeInstance.state.isActive,
