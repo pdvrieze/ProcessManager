@@ -23,15 +23,27 @@ import nl.adaptivity.xmlutil.serialization.XmlElement
 import nl.adaptivity.xmlutil.serialization.XmlValue
 
 @Serializable
-class PredecessorInfo(
+class PredecessorInfo private constructor(
     @SerialName("predecessor")
     @XmlValue(true) val id: String,
-    @Serializable(Condition.Serializer::class)
-    @XmlElement(false) val condition: Condition? = null
+
+    @SerialName("condition")
+    @XmlElement(false)
+    private val rawCondition: String? = null,
+
+    @SerialName("label")
+    @XmlElement(false)
+    val conditionLabel: String? = null
 ) {
+    val condition: Condition?
+        get() = rawCondition?.let { XmlCondition(it, conditionLabel) }
+
     init {
         if (id.isEmpty()) throw IllegalArgumentException("Empty id's are not valid")
     }
+
+    constructor(id: String, condition: Condition? = null) :
+        this(id, condition?.condition, condition?.label)
 
     override fun toString(): String {
         return "PredecessorInfo(id='$id', condition=$condition)"
@@ -43,6 +55,7 @@ class PredecessorInfo(
 
         if (id != other.id) return false
         if ((condition?: "") != (other.condition ?: "")) return false
+        if ((conditionLabel != other.conditionLabel)) return false
 
         return true
     }

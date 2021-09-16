@@ -132,7 +132,7 @@ abstract class MessageActivityBase(
             defines = serialDelegate.defines,
             results = serialDelegate.results,
             message = XmlMessage.from(serialDelegate.message),
-            condition = serialDelegate.condition,
+            condition = serialDelegate.elementCondition,
             name = serialDelegate.name,
             x = serialDelegate.x,
             y = serialDelegate.y,

@@ -34,9 +34,9 @@ import javax.xml.xpath.*
  * @author Paul de Vrieze
  */
 @Serializable(ExecutableXSLTConditionSerializer::class)
-actual class ExecutableXSLTCondition actual constructor(condition: String) : ExecutableCondition() {
+actual class ExecutableXSLTCondition actual constructor(condition: String, override val label: String?) : ExecutableCondition() {
 
-    actual constructor(condition: Condition): this(condition.condition)
+    actual constructor(condition: Condition): this(condition.condition, condition.label)
 
     override val isAlternate: Boolean = condition.trim().toLowercase(Locales.ENGLISH) == "otherwise"
     actual override val condition: String = if (isAlternate) "" else condition

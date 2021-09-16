@@ -30,9 +30,11 @@ interface Condition {
 
     val condition: String
 
+    val label: String?
+
     companion object {
 
-        val ELEMENTLOCALNAME = "condition"
+        const val ELEMENTLOCALNAME = "condition"
         val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
     }
 
@@ -45,7 +47,7 @@ interface Condition {
         }
 
         override fun serialize(encoder: Encoder, value: Condition) {
-            delegate.serialize(encoder, value as? XmlCondition ?: XmlCondition(value.condition))
+            delegate.serialize(encoder, value as? XmlCondition ?: XmlCondition(value.condition, value.label))
         }
     }
 

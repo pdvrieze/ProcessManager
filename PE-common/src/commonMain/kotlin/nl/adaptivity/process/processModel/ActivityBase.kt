@@ -24,6 +24,7 @@ import nl.adaptivity.process.processModel.engine.XmlActivity
 import nl.adaptivity.process.processModel.engine.XmlCondition
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
+import nl.adaptivity.xmlutil.serialization.XmlElement
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 
@@ -124,14 +125,27 @@ abstract class ActivityBase(
     @XmlSerialName(Activity.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     class SerialDelegate : ProcessNodeBase.SerialDelegate {
         var childId: Identifier? = null
+            private set
 
         var message: XmlMessage? = null
+            private set
 
         var predecessor: Identifier? = null
+            private set
 
-        var condition: XmlCondition? = null
+        @SerialName("condition")
+        @XmlSerialName(Condition.ELEMENTLOCALNAME, "", "")
+        @XmlElement(false)
+        var rawCondition: String? = null
+            private set
+
+        @SerialName("labeledCondition")
+        var elementCondition: XmlCondition? = null
+            get() = field ?: rawCondition?.let { XmlCondition(it)}
+            private set
 
         var name: String? = null
+            private set
 
         constructor(
             id: String?,
@@ -158,7 +172,10 @@ abstract class ActivityBase(
             this.predecessor = predecessor
             this.message = message
             this.childId = childId
-            this.condition = condition
+            when (condition?.label) {
+                null -> rawCondition = condition?.condition
+                else -> elementCondition
+            }
             this.name = name
         }
 
@@ -173,7 +190,7 @@ abstract class ActivityBase(
             defines = node.defines.map { XmlDefineType(it) },
             results = node.results.map { XmlResultType(it) },
             message = XmlMessage.from(node.message),
-            condition = node.condition?.let { XmlCondition(it.condition) },
+            condition = node.condition?.let { XmlCondition(it.condition, it.label) },
             name = node.name,
             childId = null
         )
@@ -189,7 +206,7 @@ abstract class ActivityBase(
             defines = node.defines.map { XmlDefineType(it) },
             results = node.results.map { XmlResultType(it) },
             message = XmlMessage.from(node.message),
-            condition = node.condition?.let { XmlCondition(it.condition) },
+            condition = node.condition?.let { XmlCondition(it.condition, it.label) },
             name = node.name,
             childId = null
         )
@@ -206,7 +223,7 @@ abstract class ActivityBase(
             results = node.results.map { XmlResultType(it) },
             message = null,
             childId = node.childModel?.identifier,
-            condition = node.condition?.let { XmlCondition(it.condition) },
+            condition = node.condition?.let { XmlCondition(it.condition, it.label) },
             name = node.name
         )
 
@@ -222,7 +239,7 @@ abstract class ActivityBase(
             results = node.results.map { XmlResultType(it) },
             message = null,
             childId = node.childId?.let { Identifier(it) },
-            condition = node.condition?.let { XmlCondition(it.condition) },
+            condition = node.condition?.let { XmlCondition(it.condition, it.label) },
             name = node.name
         )
 
@@ -238,59 +255,9 @@ abstract class ActivityBase(
             results = node.results.map { XmlResultType(it) },
             message = null,
             childId = node.childId?.let { Identifier(it) },
-            condition = node.condition?.let { XmlCondition(it.condition) },
+            condition = node.condition?.let { XmlCondition(it.condition, it.label) },
             name = node.name
         )
-
-    }
-
-    open class DeserializationBuilder : BaseBuilder, MessageActivity.Builder, CompositeActivity.ReferenceBuilder {
-        final override var childId: String? = null
-
-        @Serializable(with = IXmlMessage.Companion::class)
-        final override var message: IXmlMessage? = null
-
-        constructor(
-            id: String? = null,
-            predecessor: Identifiable? = null,
-            successor: Identifiable? = null,
-            label: String? = null,
-            defines: Collection<IXmlDefineType> = emptyList(),
-            results: Collection<IXmlResultType> = emptyList(),
-            message: XmlMessage? = null,
-            childId: String? = null,
-            condition: Condition? = null,
-            name: String? = null,
-            x: Double = Double.NaN,
-            y: Double = Double.NaN,
-            multiInstance: Boolean = false
-        ) : super(
-            id,
-            predecessor,
-            successor,
-            label,
-            defines,
-            results,
-            condition,
-            name,
-            x,
-            y,
-            multiInstance
-        ) {
-            this.message = message
-            this.childId = childId
-        }
-
-
-        constructor(node: Activity) : super(node) {
-            childId = (node as? CompositeActivity)?.childModel?.id
-            message = (node as? MessageActivity)?.message
-        }
-
-        override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>): R = when (childId) {
-            null -> visitor.visitActivity(this as MessageActivity.Builder)
-            else -> visitor.visitActivity(this as CompositeActivity.ReferenceBuilder)
-        }
 
     }
 

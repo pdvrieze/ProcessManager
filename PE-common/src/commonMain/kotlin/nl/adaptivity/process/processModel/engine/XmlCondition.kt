@@ -19,17 +19,21 @@ package nl.adaptivity.process.processModel.engine
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.Serializer
 import kotlinx.serialization.*
+import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.ProcessConsts.Engine
+import nl.adaptivity.process.processModel.Activity
 import nl.adaptivity.process.processModel.Condition
 import nl.adaptivity.serialutil.DelegatingSerializer
 import nl.adaptivity.serialutil.withName
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 
 /**
@@ -38,8 +42,9 @@ import nl.adaptivity.xmlutil.*
  * @author Paul de Vrieze
  */
 @OptIn(ExperimentalSerializationApi::class)
-@Serializable(XmlCondition.Companion::class)
-class XmlCondition(override val condition: String) : Condition {
+@Serializable(/*XmlCondition.Companion::class*/)
+@XmlSerialName(Condition.ELEMENTLOCALNAME, Engine.NAMESPACE, Engine.NSPREFIX)
+class XmlCondition(override val condition: String, override val label: String? = null) : Condition {
 
     override fun toString(): String {
         return "XmlCondition(condition='$condition')"

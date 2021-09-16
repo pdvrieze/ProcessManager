@@ -123,7 +123,7 @@ abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
             defines = node.defines,
             results = node.results,
             childId = node.childId?.id,
-            condition = node.condition,
+            condition = node.elementCondition,
             name = node.name,
             x = node.x,
             y = node.y,

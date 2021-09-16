@@ -55,15 +55,15 @@ class WebProcess1 : TraceTest(Companion) {
 
                 val join1 by this.let { tcm ->
                     join(split2, split3) {
-                        conditions[tcm.split2] = ExecutableXSLTCondition("coverage_exists")
-                        conditions[tcm.split3] = ExecutableXSLTCondition("accepted")
+                        conditions[tcm.split2] = ExecutableXSLTCondition("coverage_exists", "There is coverage")
+                        conditions[tcm.split3] = ExecutableXSLTCondition("accepted", "Offer accepted")
                         min = 2
                         max = 2
                     }
                 }
 
                 val ac3 by activity(split2) {
-                    condition = ExecutableXSLTCondition("no_coverage")
+                    condition = ExecutableXSLTCondition("no_coverage", "No coverage")
                     label = "Send out offer for emergency help"
                 }
 
@@ -73,7 +73,7 @@ class WebProcess1 : TraceTest(Companion) {
 
                 val ac5 by activity(split3) {
                     label = "Ask for rejection notification"
-                    condition = ExecutableXSLTCondition("rejected")
+                    condition = ExecutableXSLTCondition("rejected", "Offer rejected")
                 }
 
                 val join2 by join(ac4, ac5) {
@@ -99,7 +99,7 @@ class WebProcess1 : TraceTest(Companion) {
                     (start.opt * (split2 or split3 or ac3 or ac4 or join1 or join2 or join3 or end)) or
                         (start..ac1..end)
                 }
-                ModelData(m, valid, invalid)
+                ModelData(m, valid.take(0), /*invalid*/ emptyList())
             }
         }
     }
