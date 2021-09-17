@@ -603,7 +603,7 @@ fun createInvalidTraceTest(
 }
 
 fun ProcessNodeInstance<*>.assertFinished() {
-    assertTrue(this.state.isFinal) { "The node instance state should be final (but is ${state})" }
+    assertTrue(this.state.isFinal) { "The node instance state should be final (but is $state)" }
     assertTrue(this.node !is EndNode) { "Completed nodes should not be endnodes" }
 }
 

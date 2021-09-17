@@ -84,8 +84,8 @@ class WebProcess1 : TraceTest(Companion) {
                 }
 
                 val join3 by join(ac3, join2) {
-                    min = 2
-                    max = 2
+                    min = 1
+                    max = 1
                 }
 
                 val end by endNode(join3)
@@ -97,7 +97,7 @@ class WebProcess1 : TraceTest(Companion) {
 //                            (join1..(split2 % split3)..ac4..join2)
 //                        )..join3..end
 //                        ) or (
-                        start..(ac1("<coverage_exists/>") .. ac2("<accepted/>").. split2..split3..join1..ac4..join2..join3..end)
+                        start..(ac1("<coverage_exists/>") .. ac2("<accepted/>")..split1.. split2..split3..join1..ac4..join2..join3..end)
 //                        )
                 }
                 val invalid = trace {

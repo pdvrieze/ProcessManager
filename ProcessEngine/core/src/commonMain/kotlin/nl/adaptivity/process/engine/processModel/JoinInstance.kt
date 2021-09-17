@@ -200,16 +200,27 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
             var realizedPredecessors = 0
 
             val predecessorsToAdd = mutableListOf<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>()
-            // register existing predecessors
-            val instantiatedPredecessors = processInstanceBuilder.allChildren { nodeInstance ->
-                join in nodeInstance.node.successors &&
-                    ( nodeInstance.handle in predecessors ||
-                        node.getExistingInstance(engineData, processInstanceBuilder, nodeInstance, nodeInstance.entryNo, true).first?.let {
-                            predecessorsToAdd.add(nodeInstance.handle.toComparableHandle())
-                            if (it.state.isFinal) realizedPredecessors+=1
-                            it.handle
-                        } == handle )
-            }.toList()
+            val instantiatedPredecessors = mutableListOf<IProcessNodeInstance>()
+
+            for (nodeInstance in processInstanceBuilder.allChildren { join.identifier in it.node.successors }) {
+                if (nodeInstance.state.isFinal) realizedPredecessors++
+
+                if (nodeInstance.handle in predecessors) {
+                    instantiatedPredecessors.add(nodeInstance)
+                    val hNodeInst = nodeInstance.handle.toComparableHandle()
+                    if (hNodeInst !in predecessors) {
+                        predecessorsToAdd.add(hNodeInst)
+                    }
+/*
+                } else {
+                    if (nodeInstance.entryNo == entryNo) {
+                        predecessorsToAdd.add(nodeInstance.handle.toComparableHandle())
+                        instantiatedPredecessors.add(nodeInstance)
+                    }
+*/
+                }
+            }
+
             if (predecessorsToAdd.isNotEmpty()) { // make sure to store these existing predecessors
                 predecessors.addAll(predecessorsToAdd)
                 processInstanceBuilder.storeChild(this)

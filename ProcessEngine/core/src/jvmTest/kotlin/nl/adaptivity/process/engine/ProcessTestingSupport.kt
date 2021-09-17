@@ -314,6 +314,7 @@ private fun InstanceTestBody.testTraceExceptionThrowing(trace: Trace) {
     testTraceExceptionThrowing(instance, trace)
 }
 
+@Throws(ProcessTestingException::class)
 fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
                                                trace: Trace) {
     try {
@@ -328,14 +329,19 @@ fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
             val nodeInstance = traceElement.getNodeInstance(transaction, outerInstance) ?: throw ProcessTestingException("The node instance (${traceElement}) should exist")
 
             if (nodeInstance.state != NodeInstanceState.Complete) {
-                if (!(nodeInstance.node is Join || nodeInstance.node is Split)) {
+                val processInstance = transaction.readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
+                if (nodeInstance is JoinInstance) {
+                    processInstance.update(transaction.writableEngineData) {
+                        updateChild(nodeInstance) {
+                            startTask(transaction.writableEngineData)
+                        }
+                    }
+                } else if (nodeInstance.node !is Split) {
                     if (nodeInstance is CompositeInstance) {
                         val childInstance = transaction.readableEngineData.instance(nodeInstance.hChildInstance).withPermission()
                         if (childInstance.state != ProcessInstance.State.FINISHED && nodeInstance.state != NodeInstanceState.Complete) {
                             try {
-                                transaction.readableEngineData.instance(nodeInstance.hProcessInstance)
-                                    .withPermission()
-                                    .update( transaction.writableEngineData) {
+                                processInstance.update( transaction.writableEngineData) {
                                         updateChild(nodeInstance) {
                                             finishTask(transaction.writableEngineData, null)
                                         }
@@ -350,13 +356,11 @@ fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
                         }
                     } else if (nodeInstance.state.isFinal && nodeInstance.state != NodeInstanceState.Complete) {
                         try {
-                            transaction.readableEngineData.instance(nodeInstance.hProcessInstance)
-                                .withPermission()
-                                .update(transaction.writableEngineData) {
-                                    updateChild(nodeInstance) {
-                                        finishTask(transaction.writableEngineData, null)
-                                    }
+                            processInstance.update(transaction.writableEngineData) {
+                                updateChild(nodeInstance) {
+                                    finishTask(transaction.writableEngineData, null)
                                 }
+                            }
                             engine.processTickleQueue(transaction)
                         } catch (e: ProcessException) {
                             assertNotNull(e.message)
@@ -365,9 +369,8 @@ fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
                         }
                         throw ProcessTestingException("The node is final but not complete (failed, skipped)")
                     }
-                    val instance = transaction.readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
                     try {
-                        instance.update(transaction.writableEngineData) {
+                        processInstance.update(transaction.writableEngineData) {
                             updateChild(nodeInstance) {
                                 finishTask(transaction.writableEngineData, null)
                             }
@@ -379,11 +382,11 @@ fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
                 }
             }
         }
-        run {
+        if(true) {
             val instance = transaction.readableEngineData.instance(_instance.handle).withPermission()
             val nodeInstance = traceElement.getNodeInstance(transaction, instance) ?: throw ProcessTestingException("The node instance should exist")
             if (nodeInstance.state != NodeInstanceState.Complete) throw ProcessTestingException(
-                "At trace ${traceElement} -  State of node ${nodeInstance} not complete but ${nodeInstance.state} ${instance.toDebugString()}")
+                "At trace $traceElement -  State of node $nodeInstance not complete but ${nodeInstance.state} ${instance.toDebugString()}")
         }
     }
 }

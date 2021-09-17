@@ -379,6 +379,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             }
             doFinishTask(engineData, resultPayload)
             state = Complete
+            processInstanceBuilder.store(engineData)
             store(engineData)
             engineData.commit()
             engineData.processContextFactory.onActivityTermination(engineData, this)

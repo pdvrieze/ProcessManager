@@ -168,7 +168,8 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                     .mustExist(successorId)
                     .createOrReuseInstance(engineData, this, predecessor, predecessor.entryNo, false)
 
-                nonRegisteredNodeInstance.predecessors.add(predecessor.handle.toComparableHandle())
+                // TODO remove the line below
+//                nonRegisteredNodeInstance.predecessors.add(predecessor.handle.toComparableHandle())
                 val conditionResult = nonRegisteredNodeInstance.condition(engineData, predecessor)
                 if (conditionResult == ConditionResult.NEVER) {
                     nonRegisteredNodeInstance.state = NodeInstanceState.Skipped
@@ -224,6 +225,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
             assert(predecessor.handle.isValid) {
                 "Successors can only be skipped for a node with a handle"
             }
+            val joinsToEvaluate = mutableListOf<JoinInstance.Builder>()
             for (successorNode in predecessor.node.successors.map { processModel.getNode(it.id)!! }.toList()) {
                 // Attempt to get the successor instance as it may already be final. In that case the system would attempt to
                 // create a new instance. We don't want to do that just to skip it.
@@ -236,8 +238,15 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                         true
                     ).also { storeChild(it) }
                 if (! successorInstance.state.isFinal) { // If the successor is already final no skipping is possible.
-                    successorInstance.skipTask(engineData, state)
+                    if (successorInstance is JoinInstance.Builder) {
+                        joinsToEvaluate.add(successorInstance)
+                    } else {
+                        successorInstance.skipTask(engineData, state)
+                    }
                 }
+            }
+            for (join in joinsToEvaluate) {
+                join.startTask(engineData)
             }
         }
 
