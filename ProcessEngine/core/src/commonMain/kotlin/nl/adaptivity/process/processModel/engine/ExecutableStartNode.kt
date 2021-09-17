@@ -55,8 +55,6 @@ class ExecutableStartNode(builder: StartNode.Builder, buildHelper: ProcessModel.
                                                   processInstanceBuilder.owner,
                                                   entryNo)
 
-    override fun evalCondition(engineData: ProcessEngineDataAccess, predecessor: IProcessNodeInstance, instance: IProcessNodeInstance) = ConditionResult.TRUE
-
     override fun provideTask(engineData: ProcessEngineDataAccess,
                              instanceBuilder: ProcessNodeInstance.Builder<*, *>) = true
 

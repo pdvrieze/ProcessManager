@@ -26,6 +26,7 @@ import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
+import nl.adaptivity.process.processModel.engine.ExecutableProcessNode.Companion.evalCondition
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.process.util.MutableIdentifyableSet
@@ -69,11 +70,13 @@ class ExecutableJoin(
         return null to candidateNo
     }
 
-    override fun evalCondition(engineData: ProcessEngineDataAccess,
-                               predecessor: IProcessNodeInstance,
-                               instance: IProcessNodeInstance): ConditionResult {
-        val condition = conditions[predecessor.node.identifier] as ExecutableCondition?
-        return condition?.run { eval(engineData, instance) } ?: ConditionResult.TRUE
+    override fun evalCondition(
+        engineData: ProcessEngineDataAccess,
+        predecessor: IProcessNodeInstance,
+        instance: IProcessNodeInstance
+    ): ConditionResult {
+        return (conditions[predecessor.node.identifier] as ExecutableCondition?)
+            .evalCondition(engineData, predecessor, instance)
     }
 
     override fun createOrReuseInstance(

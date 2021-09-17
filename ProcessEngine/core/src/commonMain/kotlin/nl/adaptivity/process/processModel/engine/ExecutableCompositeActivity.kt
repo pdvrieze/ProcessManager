@@ -24,7 +24,7 @@ import nl.adaptivity.process.engine.processModel.CompositeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
-import nl.adaptivity.process.util.MutableIdentifyableSet
+import nl.adaptivity.process.processModel.engine.ExecutableProcessNode.Companion.evalCondition
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlWriter
@@ -75,8 +75,8 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableProcessNode
         engineData: ProcessEngineDataAccess,
         predecessor: IProcessNodeInstance,
         instance: IProcessNodeInstance
-                          ): ConditionResult {
-        return _condition?.run { eval(engineData, instance) } ?: ConditionResult.TRUE
+    ): ConditionResult {
+        return _condition.evalCondition(engineData, predecessor, instance)
     }
 
     override fun createOrReuseInstance(

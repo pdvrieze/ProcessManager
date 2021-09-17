@@ -44,6 +44,7 @@ interface IProcessNodeInstance: ReadableHandleAware<SecureObject<ProcessNodeInst
     override val owner: Principal
 
     override val handle: Handle<SecureObject<ProcessNodeInstance<*>>>
+    val hProcessInstance: Handle<SecureObject<ProcessInstance>>
 
     val entryNo: Int
     override val state: NodeInstanceState

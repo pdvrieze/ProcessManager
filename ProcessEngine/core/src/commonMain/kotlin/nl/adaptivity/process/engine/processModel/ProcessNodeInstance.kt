@@ -70,7 +70,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
     override val handle: Handle<SecureObject<ProcessNodeInstance<*>>> get() = _handle
 
-    val hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>> = hProcessInstance.toComparableHandle()
+    override val hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>> = hProcessInstance.toComparableHandle()
     override val results: List<ProcessData> = results.toList()
 
     override val predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>> =
@@ -195,7 +195,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         override var node: N
         override val predecessors: MutableSet<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>
         val processInstanceBuilder: ProcessInstance.Builder
-        val hProcessInstance: Handle<SecureObject<ProcessInstance>> get() = processInstanceBuilder.handle
+        override val hProcessInstance: Handle<SecureObject<ProcessInstance>> get() = processInstanceBuilder.handle
         override var owner: Principal
         override var handle: Handle<SecureObject<ProcessNodeInstance<*>>>
         override var state: NodeInstanceState

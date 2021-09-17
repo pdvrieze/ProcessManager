@@ -43,6 +43,9 @@ class PseudoInstance(
 
     override var state: NodeInstanceState = NodeInstanceState.Pending
 
+    override val hProcessInstance: Handle<SecureObject<ProcessInstance>>
+        get() = processContext.processInstance.handle
+
     override val results: List<ProcessData>
         get() = emptyList()
 

@@ -210,7 +210,12 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
                             it.handle
                         } == handle )
             }.toList()
-            predecessors.addAll(predecessorsToAdd)
+            if (predecessorsToAdd.isNotEmpty()) { // make sure to store these existing predecessors
+                predecessors.addAll(predecessorsToAdd)
+                processInstanceBuilder.storeChild(this)
+                processInstanceBuilder.store(engineData)
+            }
+
 
             var mustDecide = false
 
