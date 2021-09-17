@@ -22,6 +22,7 @@ import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
+import nl.adaptivity.process.util.MutableIdentifyableSet
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlWriter
@@ -57,7 +58,7 @@ class ExecutableMessageActivity : MessageActivityBase, ExecutableProcessNode {
     /**
      * Determine whether the process can start.
      */
-    override fun condition(
+    override fun evalCondition(
         engineData: ProcessEngineDataAccess,
         predecessor: IProcessNodeInstance,
         instance: IProcessNodeInstance
@@ -69,9 +70,10 @@ class ExecutableMessageActivity : MessageActivityBase, ExecutableProcessNode {
         data: MutableProcessEngineDataAccess,
         processInstanceBuilder: ProcessInstance.Builder,
         predecessor: IProcessNodeInstance,
-        entryNo: Int
+        entryNo: Int,
+        allowFinalInstance: Boolean
     ): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
-        return super.createOrReuseInstance(data, processInstanceBuilder, predecessor, entryNo)
+        return super.createOrReuseInstance(data, processInstanceBuilder, predecessor, entryNo, allowFinalInstance)
     }
 
     override fun provideTask(

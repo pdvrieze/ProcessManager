@@ -21,7 +21,6 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.processModel.Condition
 import nl.adaptivity.process.processModel.engine.ConditionResult.*
 import nl.adaptivity.util.multiplatform.name
-import nl.adaptivity.xmlutil.XmlSerializable
 
 
 /**
@@ -50,12 +49,14 @@ abstract class ExecutableCondition : Condition, Function2<ProcessEngineDataAcces
         override fun eval(engineData: ProcessEngineDataAccess, instance: IProcessNodeInstance): ConditionResult = ConditionResult.TRUE
 
         override val condition: String get() = "true()"
+        override val label: String? get() = null
     }
 
     object FALSE: ExecutableCondition() {
         override fun eval(engineData: ProcessEngineDataAccess, instance: IProcessNodeInstance): ConditionResult = NEVER
 
         override val condition: String get() = "false()"
+        override val label: String? get() = null
     }
 
     object OTHERWISE: ExecutableCondition() {
@@ -64,12 +65,13 @@ abstract class ExecutableCondition : Condition, Function2<ProcessEngineDataAcces
         override fun eval(engineData: ProcessEngineDataAccess, instance: IProcessNodeInstance): ConditionResult = MAYBE
 
         override val condition: String get() = "otherwise"
+        override val label: String? get() = null
     }
 }
 
 fun Condition.toExecutableCondition(): ExecutableCondition = when (this) {
     is ExecutableCondition -> this
-    else                   -> ExecutableXSLTCondition(condition)
+    else                   -> ExecutableXSLTCondition(this)
 }
 
 enum class ConditionResult {

@@ -197,11 +197,21 @@ internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineD
         // Don't attempt to create an additional instance for a non-multi-instance successor
         if (!successorNode.isMultiInstance && processInstanceBuilder.allChildren { it.node == successorNode && !it.state.isSkipped && it.entryNo != entryNo }.count() > 0) continue
 
-        val successorBuilder = successorNode.createOrReuseInstance(engineData, processInstanceBuilder, this, entryNo)
+        val successorBuilder = successorNode.createOrReuseInstance(
+            engineData,
+            processInstanceBuilder,
+            this,
+            entryNo,
+            allowFinalInstance = true
+        )
         processInstanceBuilder.storeChild(successorBuilder)
         if (successorBuilder.state == NodeInstanceState.Pending) {
             // temporaryly build a node to evaluate the condition against, but don't register it.
             val conditionResult = when {
+                successorBuilder.state.isFinal -> when (successorBuilder.state) {
+                    NodeInstanceState.Complete -> ConditionResult.TRUE
+                    else                       -> ConditionResult.NEVER
+                }
                 // If we have a join with missing predecessors we can't do it yet
                 successorBuilder.node is Join &&
                     successorBuilder.predecessors.any { ! it.isValid } -> ConditionResult.MAYBE

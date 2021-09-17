@@ -159,19 +159,24 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
             val startedTasks = ArrayList<ProcessNodeInstance.Builder<*, *>>(predecessor.node.successors.size)
             val joinsToEvaluate = ArrayList<JoinInstance.Builder>()
+            val nodesToSkipSuccessorsOf = mutableListOf<ProcessNodeInstance.Builder<*,*>>()
+            val nodesToSkipPredecessorsOf = ArrayDeque<ProcessNodeInstance.Builder<*,*>>()
 
             for (successorId in predecessor.node.successors) {
                 val nonRegisteredNodeInstance = processModel
                     .getNode(successorId.id)
                     .mustExist(successorId)
-                    .createOrReuseInstance(engineData, this, predecessor, predecessor.entryNo)
+                    .createOrReuseInstance(engineData, this, predecessor, predecessor.entryNo, false)
 
                 nonRegisteredNodeInstance.predecessors.add(predecessor.handle.toComparableHandle())
                 val conditionResult = nonRegisteredNodeInstance.condition(engineData, predecessor)
                 if (conditionResult == ConditionResult.NEVER) {
                     nonRegisteredNodeInstance.state = NodeInstanceState.Skipped
-                    storeChild(nonRegisteredNodeInstance)
-                    skipSuccessors(engineData, nonRegisteredNodeInstance, NodeInstanceState.Skipped)
+                    storeChild(nonRegisteredNodeInstance)//.get()
+                    if (nonRegisteredNodeInstance is JoinInstance.Builder) {
+                        nodesToSkipPredecessorsOf.add(nonRegisteredNodeInstance)
+                    }
+                    nodesToSkipSuccessorsOf.add(nonRegisteredNodeInstance)
                 } else if (conditionResult == ConditionResult.TRUE) {
                     storeChild(nonRegisteredNodeInstance)
 
@@ -188,6 +193,10 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
             // Commit the registration of the follow up nodes before starting them.
             engineData.commit()
+
+            for (node in nodesToSkipSuccessorsOf) {
+                skipSuccessors(engineData, node, NodeInstanceState.Skipped)
+            }
 
             for (startedTask in startedTasks) {
                 when (predecessor.state) {
@@ -211,7 +220,10 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
             engineData: MutableProcessEngineDataAccess,
             predecessor: IProcessNodeInstance,
             state: NodeInstanceState
-                          ) {
+        ) {
+            assert(predecessor.handle.isValid) {
+                "Successors can only be skipped for a node with a handle"
+            }
             for (successorNode in predecessor.node.successors.map { processModel.getNode(it.id)!! }.toList()) {
                 // Attempt to get the successor instance as it may already be final. In that case the system would attempt to
                 // create a new instance. We don't want to do that just to skip it.
@@ -220,9 +232,12 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                         engineData,
                         this,
                         predecessor,
-                        predecessor.entryNo
-                                                          ).also { storeChild(it) }
-                successorInstance.skipTask(engineData, state)
+                        predecessor.entryNo,
+                        true
+                    ).also { storeChild(it) }
+                if (! successorInstance.state.isFinal) { // If the successor is already final no skipping is possible.
+                    successorInstance.skipTask(engineData, state)
+                }
             }
         }
 

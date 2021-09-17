@@ -23,47 +23,57 @@ import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.SplitInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
+import nl.adaptivity.process.util.MutableIdentifyableSet
 
 
 class ExecutableSplit(
     builder: Split.Builder,
     newOwner: ProcessModel<ExecutableProcessNode>,
     otherNodes: Iterable<ProcessNode.Builder>
-                     ) :
+) :
     SplitBase(builder, newOwner, otherNodes), ExecutableProcessNode {
 
     override val ownerModel: ExecutableModelCommon
         get() = super.ownerModel as ExecutableModelCommon
 
-
-    class Builder : SplitBase.Builder, ExecutableProcessNode.Builder {
-        constructor(id: String? = null,
-                    predecessor: Identified? = null,
-                    successors: Collection<Identified> = emptyList(), label: String? = null,
-                    defines: Collection<IXmlDefineType> = emptyList(),
-                    results: Collection<IXmlResultType> = emptyList(),
-                    min: Int = -1,
-                    max: Int = -1,
-                    x: Double = Double.NaN,
-                    y: Double = Double.NaN,
-                    multiInstance: Boolean = false) : super(id, predecessor, successors, label, defines, results, x, y,
-                                                            min, max, multiInstance)
-
-        constructor(node: Split) : super(node)
-    }
-
     override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
-    override fun createOrReuseInstance(data: MutableProcessEngineDataAccess,
-                                       processInstanceBuilder: ProcessInstance.Builder,
-                                       predecessor: IProcessNodeInstance,
-                                       entryNo: Int): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
+    override fun createOrReuseInstance(
+        data: MutableProcessEngineDataAccess,
+        processInstanceBuilder: ProcessInstance.Builder,
+        predecessor: IProcessNodeInstance,
+        entryNo: Int,
+        allowFinalInstance: Boolean
+    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
         // TODO handle reentry
-        return processInstanceBuilder.getChild(this, entryNo) ?: SplitInstance.BaseBuilder(this, predecessor.handle,
-                                                                                           processInstanceBuilder,
-                                                                                           processInstanceBuilder.owner,
-                                                                                           entryNo)
+        return processInstanceBuilder.getChild(this, entryNo)
+            ?: SplitInstance.BaseBuilder(
+                this, predecessor.handle,
+                processInstanceBuilder,
+                processInstanceBuilder.owner,
+                entryNo
+            )
     }
 
     override fun startTask(instance: ProcessNodeInstance.Builder<*, *>) = false
+
+    class Builder : SplitBase.Builder, ExecutableProcessNode.Builder {
+        constructor(
+            id: String? = null,
+            predecessor: Identified? = null,
+            successors: Collection<Identified> = emptyList(), label: String? = null,
+            defines: Collection<IXmlDefineType> = emptyList(),
+            results: Collection<IXmlResultType> = emptyList(),
+            min: Int = -1,
+            max: Int = -1,
+            x: Double = Double.NaN,
+            y: Double = Double.NaN,
+            multiInstance: Boolean = false
+        ) : super(
+            id, predecessor, successors, label, defines, results, x, y,
+            min, max, multiInstance
+        )
+
+        constructor(node: Split) : super(node)
+    }
 }

@@ -32,7 +32,7 @@ import nl.adaptivity.xmlutil.XmlWriter
  *
  * @author Paul de Vrieze
  */
-expect class ExecutableXSLTCondition(condition: String) : ExecutableCondition {
+expect class ExecutableXSLTCondition(condition: String, label: String? = null) : ExecutableCondition {
 
     constructor(condition: Condition)
 
@@ -50,14 +50,16 @@ expect class ExecutableXSLTCondition(condition: String) : ExecutableCondition {
 }
 
 object ExecutableXSLTConditionSerializer: KSerializer<ExecutableXSLTCondition> {
+    private val delegateSerializer = XmlCondition.serializer()
+
     @OptIn(ExperimentalSerializationApi::class)
-    override val descriptor: SerialDescriptor = SerialDescriptor("ExecutableXSLTCondition", XmlCondition.serializer().descriptor)
+    override val descriptor: SerialDescriptor = SerialDescriptor("ExecutableXSLTCondition", delegateSerializer.descriptor)
 
     override fun deserialize(decoder: Decoder): ExecutableXSLTCondition {
-        return ExecutableXSLTCondition(decoder.decodeString())
+        return ExecutableXSLTCondition(delegateSerializer.deserialize(decoder))
     }
 
     override fun serialize(encoder: Encoder, value: ExecutableXSLTCondition) {
-        encoder.encodeString(value.condition)
+        delegateSerializer.serialize(encoder, XmlCondition(value.condition, value.label))
     }
 }

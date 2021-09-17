@@ -23,44 +23,45 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
+import nl.adaptivity.process.util.MutableIdentifyableSet
 
 
 class ExecutableStartNode(builder: StartNode.Builder, buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>) : StartNodeBase<ExecutableProcessNode, ExecutableModelCommon>(
-  builder, buildHelper), ExecutableProcessNode {
+    builder, buildHelper), ExecutableProcessNode {
 
     override val ownerModel: ExecutableModelCommon
         get() = super.ownerModel as ExecutableModelCommon
 
 
     class Builder : StartNodeBase.Builder, ExecutableProcessNode.Builder {
-    constructor(id: String? = null,
-                successor: Identified? = null,
-                label: String? = null,
-                defines: Collection<IXmlDefineType> = emptyList(),
-                results: Collection<IXmlResultType> = emptyList(),
-                x: Double = Double.NaN,
-                y: Double = Double.NaN,
-                multiInstance: Boolean = false) : super(id, successor, label, defines, results, x, y, multiInstance)
-    constructor(node: StartNode) : super(node)
+        constructor(id: String? = null,
+                    successor: Identified? = null,
+                    label: String? = null,
+                    defines: Collection<IXmlDefineType> = emptyList(),
+                    results: Collection<IXmlResultType> = emptyList(),
+                    x: Double = Double.NaN,
+                    y: Double = Double.NaN,
+                    multiInstance: Boolean = false) : super(id, successor, label, defines, results, x, y, multiInstance)
+        constructor(node: StartNode) : super(node)
 
-  }
+    }
 
-  override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
+    override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
-  fun createOrReuseInstance(processInstanceBuilder: ProcessInstance.Builder, entryNo: Int)
-      = processInstanceBuilder.getChild(this, entryNo)
+    fun createOrReuseInstance(processInstanceBuilder: ProcessInstance.Builder, entryNo: Int)
+        = processInstanceBuilder.getChild(this, entryNo)
         ?: DefaultProcessNodeInstance.BaseBuilder(this, emptyList(),
                                                   processInstanceBuilder,
                                                   processInstanceBuilder.owner,
                                                   entryNo)
 
-  override fun condition(engineData: ProcessEngineDataAccess, predecessor: IProcessNodeInstance, instance: IProcessNodeInstance) = ConditionResult.TRUE
+    override fun evalCondition(engineData: ProcessEngineDataAccess, predecessor: IProcessNodeInstance, instance: IProcessNodeInstance) = ConditionResult.TRUE
 
-  override fun provideTask(engineData: ProcessEngineDataAccess,
-                           instanceBuilder: ProcessNodeInstance.Builder<*, *>) = true
+    override fun provideTask(engineData: ProcessEngineDataAccess,
+                             instanceBuilder: ProcessNodeInstance.Builder<*, *>) = true
 
-  override fun takeTask(instance: ProcessNodeInstance.Builder<*, *>) = true
+    override fun takeTask(instance: ProcessNodeInstance.Builder<*, *>) = true
 
-  override fun startTask(instance: ProcessNodeInstance.Builder<*, *>) = true
+    override fun startTask(instance: ProcessNodeInstance.Builder<*, *>) = true
 
 }

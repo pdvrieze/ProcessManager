@@ -29,8 +29,8 @@ import nl.adaptivity.process.processModel.configurableModel.ConfigurableNodeCont
 import nl.adaptivity.process.processModel.configurableModel.ConfigurationDsl
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
+import nl.adaptivity.process.util.MutableIdentifyableSet
 import nl.adaptivity.xmlutil.Namespace
-import nl.adaptivity.xmlutil.XmlWriter
 import nl.adaptivity.xmlutil.serialization.XML
 
 typealias RunnableAction<I, O> = ActivityInstanceContext.(I) -> O
@@ -83,7 +83,8 @@ class RunnableActivity<I : Any, O : Any> : ActivityBase, ExecutableProcessNode {
         data: MutableProcessEngineDataAccess,
         processInstanceBuilder: ProcessInstance.Builder,
         predecessor: IProcessNodeInstance,
-        entryNo: Int
+        entryNo: Int,
+        allowFinalInstance: Boolean
     ): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
         processInstanceBuilder.getChild(this, entryNo)?.let { return it }
         if (!isMultiInstance && entryNo > 1) {

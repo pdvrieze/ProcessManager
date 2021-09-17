@@ -86,6 +86,8 @@ actual constructor(delegate: MutableSet<T>, observers: Iterable<(ObservableSet<T
     }
 
     override fun spliterator(): Spliterator<T> = delegate.spliterator()
+
+    override fun toString(): String = joinToString(prefix = "ObservableSet[", postfix = "]")
 }
 
 actual class ObservableList<T>
@@ -155,4 +157,6 @@ actual constructor(delegate: MutableList<T>, observers: Iterable<(ObservableList
     override val size: Int get() = delegate.size
 
     override fun isEmpty() = delegate.isEmpty()
+
+    override fun toString(): String = joinToString(prefix = "ObservableList[", postfix = "]")
 }

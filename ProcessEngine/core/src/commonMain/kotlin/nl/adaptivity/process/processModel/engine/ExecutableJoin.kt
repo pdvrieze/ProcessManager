@@ -22,9 +22,12 @@ import nl.adaptivity.process.engine.ProcessException
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.JoinInstance
+import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
+import nl.adaptivity.process.util.IdentifyableSet
+import nl.adaptivity.process.util.MutableIdentifyableSet
 
 
 class ExecutableJoin(
@@ -35,6 +38,55 @@ class ExecutableJoin(
 
     override val ownerModel: ExecutableModelCommon
         get() = super.ownerModel as ExecutableModelCommon
+
+    override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
+
+    fun getExistingInstance(
+        data: ProcessEngineDataAccess,
+        processInstanceBuilder: ProcessInstance.Builder,
+        predecessor: IProcessNodeInstance,
+        entryNo: Int,
+        allowFinalInstance: Boolean
+    ): Pair<JoinInstance.Builder?, Int> {
+        var candidateNo = entryNo
+        for(candidate in processInstanceBuilder.getChildren(this).sortedBy { it.entryNo }) {
+            if ((allowFinalInstance || candidate.state != NodeInstanceState.Complete) &&
+                (candidate.entryNo == entryNo || candidate.predecessors.any {
+                    when (predecessor.handle.isValid && it.isValid) {
+                        true -> predecessor.handle == it
+                        else -> data.nodeInstance(it).withPermission().run { entryNo == entryNo && node.id == predecessor.node.id }
+                    }
+                })) {
+                return (candidate as JoinInstance.Builder) to candidateNo
+            }
+            // TODO Throw exceptions for cases where this is not allowed
+            if (candidate.entryNo == candidateNo) { candidateNo++ } // Increase the candidate entry number
+        }
+        return null to candidateNo
+    }
+
+    override fun evalCondition(engineData: ProcessEngineDataAccess,
+                               predecessor: IProcessNodeInstance,
+                               instance: IProcessNodeInstance): ConditionResult {
+        val condition = conditions[predecessor.node.identifier] as ExecutableCondition?
+        return condition?.run { eval(engineData, instance) } ?: ConditionResult.TRUE
+    }
+
+    override fun createOrReuseInstance(
+        data: MutableProcessEngineDataAccess,
+        processInstanceBuilder: ProcessInstance.Builder,
+        predecessor: IProcessNodeInstance,
+        entryNo: Int,
+        allowFinalInstance: Boolean
+    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
+        val (existingInstance, candidateNo) = getExistingInstance(data, processInstanceBuilder, predecessor, entryNo, allowFinalInstance)
+        existingInstance?.let { return it }
+
+        if (!(isMultiInstance || isMultiMerge) && candidateNo!=1) {
+            throw ProcessException("Attempting to start a second instance of a single instantiation join $id:$entryNo")
+        }
+        return JoinInstance.BaseBuilder(this, listOf(predecessor.handle), processInstanceBuilder, processInstanceBuilder.owner, candidateNo)
+    }
 
     class Builder : JoinBase.Builder,
                     ExecutableProcessNode.Builder {
@@ -59,35 +111,4 @@ class ExecutableJoin(
 
     }
 
-    override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
-
-    fun getExistingInstance(data: ProcessEngineDataAccess, processInstanceBuilder: ProcessInstance.Builder, predecessor: IProcessNodeInstance, entryNo:Int): Pair<JoinInstance.Builder?, Int> {
-        var candidateNo = entryNo
-        for(candidate in processInstanceBuilder.getChildren(this).sortedBy { it.entryNo }) {
-            if (! candidate.state.isFinal && (candidate.entryNo == entryNo || candidate.predecessors.any { data.nodeInstance(it).withPermission().entryNo == entryNo })) {
-                return (candidate as JoinInstance.Builder) to candidateNo
-            }
-            // TODO Throw exceptions for cases where this is not allowed
-            if (candidate.entryNo == candidateNo) { candidateNo++ } // Increase the candidate entry number
-        }
-        return null to candidateNo
-    }
-
-    override fun condition(engineData: ProcessEngineDataAccess,
-                           predecessor: IProcessNodeInstance,
-                           instance: IProcessNodeInstance): ConditionResult {
-        val condition = conditions[predecessor.node.identifier] as ExecutableCondition?
-        return condition?.run { eval(engineData, instance) } ?: ConditionResult.TRUE
-    }
-
-    override fun createOrReuseInstance(data: MutableProcessEngineDataAccess,
-                                       processInstanceBuilder: ProcessInstance.Builder,
-                                       predecessor: IProcessNodeInstance,
-                                       entryNo: Int): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
-        val (existingInstance, candidateNo) = getExistingInstance(data, processInstanceBuilder, predecessor, entryNo)
-        existingInstance?.let { return it }
-
-        if (!(isMultiInstance || isMultiMerge) && candidateNo!=1) { throw ProcessException("Attempting to start a second instance of a single instantiation join") }
-        return JoinInstance.BaseBuilder(this, listOf(predecessor.handle), processInstanceBuilder, processInstanceBuilder.owner, candidateNo)
-    }
 }

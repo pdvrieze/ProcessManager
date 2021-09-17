@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018.
+ * Copyright (c) 2021.
  *
  * This file is part of ProcessManager.
  *
@@ -20,6 +20,8 @@ import java.util.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
+import kotlin.jvm.JvmOverloads
+import kotlin.jvm.javaClass
 
 
 /**
@@ -49,10 +51,12 @@ import kotlin.concurrent.write
  * @param loadFactor The load factor to use for the map.
  */
 @Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
-open class MemHandleMap<V : Any>
-@JvmOverloads constructor(capacity: Int = MemHandleMap.DEFAULT_CAPACITY,
-                          private var loadFactor: Float = MemHandleMap.DEFAULT_LOADFACTOR,
+actual open class MemHandleMap<V : Any>
+@JvmOverloads constructor(capacity: Int = DEFAULT_CAPACITY,
+                          private var loadFactor: Float = DEFAULT_LOADFACTOR,
                           val handleAssigner: (V, Handle<V>) -> V? = ::HANDLE_AWARE_ASSIGNER) : MutableHandleMap<V>, MutableIterable<V> {
+
+    actual constructor(handleAssigner: (V, Handle<V>) -> V?): this (DEFAULT_CAPACITY, DEFAULT_LOADFACTOR, handleAssigner)
 
     private var changeMagic = 0 // Counter that increases every change. This can detect concurrentmodification.
 
@@ -95,8 +99,8 @@ open class MemHandleMap<V : Any>
      */
     fun reset() {
         lock.write {
-            Arrays.fill(_values, null)
-            Arrays.fill(generations, 0)
+            _values.fill(null)
+            generations.fill(0)
             size = 0
             barrier = _values.size
             offset = 0
@@ -110,8 +114,8 @@ open class MemHandleMap<V : Any>
      */
     override fun clear() {
         lock.write {
-            Arrays.fill(_values, null)
-            Arrays.fill(generations, 0)
+            _values.fill(null)
+            generations.fill(0)
             size = 0
             updateBarrier()
         }
@@ -142,12 +146,11 @@ open class MemHandleMap<V : Any>
     }
 
     override fun contains(handle: Handle<V>): Boolean {
-        lock.read {
+        return lock.read {
             val index = indexFromHandle(handle.handleValue)
             if (index < 0 || index >= _values.size) {
-                return false
-            }
-            return _values[index] != null
+                false
+            } else _values[index] != null
         }
     }
 

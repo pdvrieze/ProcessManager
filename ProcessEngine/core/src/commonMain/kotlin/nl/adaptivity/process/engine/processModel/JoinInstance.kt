@@ -19,6 +19,7 @@ package nl.adaptivity.process.engine.processModel
 import net.devrieze.util.*
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
+import nl.adaptivity.process.processModel.Split
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.util.security.Principal
@@ -158,7 +159,8 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
     constructor(builder:Builder): this(builder.node, builder.predecessors, builder.processInstanceBuilder, builder.hProcessInstance, builder.owner, builder.entryNo, builder.handle, builder.state, builder.results)
 
-    override fun builder(processInstanceBuilder: ProcessInstance.Builder) = ExtBuilder(this, processInstanceBuilder)
+    override fun builder(processInstanceBuilder: ProcessInstance.Builder) =
+        ExtBuilder(this, processInstanceBuilder)
 
     companion object {
         fun build(joinImpl: ExecutableJoin,
@@ -187,8 +189,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
          */
         @JvmStatic
         private fun Builder.updateTaskState(engineData: MutableProcessEngineDataAccess): Boolean {
-
-            if (state == NodeInstanceState.Complete) return false // Don't update if we're already complete
+            if (state.isFinal) return false // Don't update if we're already complete
 
             val join = node
             val totalPossiblePredecessors = join.predecessors.size
@@ -196,18 +197,21 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
             val predecessorsToAdd = mutableListOf<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>()
             // register existing predecessors
-            val instantiatedPredecessors = processInstanceBuilder.allChildren { pred ->
-                join in pred.node.successors &&
-                    ( pred.handle in predecessors ||
-                        node.getExistingInstance(engineData, processInstanceBuilder, pred, pred.entryNo).first?.let { predecessorsToAdd.add(
-                            pred.handle.toComparableHandle()); it.handle
+            val instantiatedPredecessors = processInstanceBuilder.allChildren { nodeInstance ->
+                join in nodeInstance.node.successors &&
+                    ( nodeInstance.handle in predecessors ||
+                        node.getExistingInstance(engineData, processInstanceBuilder, nodeInstance, nodeInstance.entryNo, true).first?.let { predecessorsToAdd.add(
+                            nodeInstance.handle.toComparableHandle()); it.handle
                         } == handle )
             }.toList()
             predecessors.addAll(predecessorsToAdd)
 
-            if (realizedPredecessors == totalPossiblePredecessors) { // Did we receive all possible predecessors
+            var mustDecide = false
+
+            if (realizedPredecessors == totalPossiblePredecessors) {
+                /* Did we receive all possible predecessors. In this case we need to decide */
                 state = NodeInstanceState.Started
-                return true
+                mustDecide = true
             }
 
             var complete = 0
@@ -236,15 +240,55 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
                     return true
                 }
             }
+            if (mustDecide) failTask(engineData, ProcessException("Unexpected failure to complete join"))
             return false
         }
 
         private fun Builder.skipTaskImpl(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState) {
             // Skipping a join merely triggers a recalculation
             assert(newState == NodeInstanceState.Skipped || newState == NodeInstanceState.SkippedCancel || newState == NodeInstanceState.SkippedFail)
-            updateTaskState(engineData)
-            store(engineData)
+            val updateResult = updateTaskState(engineData)
             processInstanceBuilder.storeChild(this)
+            store(engineData)
+
+            if (state.isSkipped) {
+
+                val pseudoContext = PseudoInstance.PseudoContext(engineData, hProcessInstance)
+
+                pseudoContext.createPredecessorsFor(handle)
+
+                val toSkipCancel = mutableListOf<ProcessNodeInstance<*>>()
+                val predQueue = ArrayDeque<IProcessNodeInstance>().apply { add(pseudoContext.getInstance(handle)!!) }
+                while (predQueue.isNotEmpty()) {
+                    when (val pred = predQueue.removeFirst()) {
+                        is PseudoInstance         -> when (pred.node) {
+                            is Split -> {
+                            }
+                            else     -> {
+                                pred.state = NodeInstanceState.AutoCancelled
+                                for (hppred in pred.predecessors) {
+                                    pseudoContext.getInstance(hppred)?.let { predQueue.add(it) }
+                                }
+                            }
+                        }
+                        is ProcessNodeInstance<*> -> {
+                            if (!pred.state.isFinal && pred.node !is Split) {
+                                toSkipCancel.add(pred)
+                            }
+                        }
+                    }
+
+                }
+
+                engineData.instance(hProcessInstance).withPermission().update(engineData) {
+                    for (predecessor in toSkipCancel) {
+                        updateChild(predecessor.handle) {
+                            cancelAndSkip(engineData)
+                        }
+                    }
+
+                }
+            }
         }
 
 

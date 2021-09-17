@@ -54,7 +54,7 @@ interface IProcessNodeInstance: ReadableHandleAware<SecureObject<ProcessNodeInst
     fun build(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance<*> = builder(processInstanceBuilder).build()
 
     fun condition(engineData: ProcessEngineDataAccess, predecessor: IProcessNodeInstance) =
-        node.condition(engineData, predecessor, this)
+        node.evalCondition(engineData, predecessor, this)
 
     fun resolvePredecessor(engineData: ProcessEngineDataAccess, nodeName: String): ProcessNodeInstance<*>? {
         val handle = getPredecessor(engineData, nodeName)

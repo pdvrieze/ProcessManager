@@ -22,21 +22,26 @@ import kotlin.reflect.KProperty
  * Created by pdvrieze on 21/11/16.
  */
 class OverlayProp<T>(private val update:(T)->T = {it}, private val base: () -> T) {
-  private var set=false
-  private var value:T? = null
+    private var set=false
+    private var value:T? = null
 
-  operator fun getValue(thisRef: Any?, property: KProperty<*>):T {
-    @Suppress("UNCHECKED_CAST")
-    return if (set) value as T else base()
-  }
+    operator fun getValue(thisRef: Any?, property: KProperty<*>):T {
+        @Suppress("UNCHECKED_CAST")
+        return if (set) value as T else base()
+    }
 
-  operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
-      val oldValue = getValue(thisRef, property)
-      if(oldValue!=value) {
-          set = true
-          this.value = update(value)
-      }
-  }
+    operator fun setValue(thisRef: Any?, property: KProperty<*>, value: T) {
+        val oldValue = getValue(thisRef, property)
+        if(oldValue!=value) {
+            set = true
+            this.value = update(value)
+        }
+    }
+
+    override fun toString(): String = when {
+        set -> "= $value"
+        else -> "<unset>"
+    }
 }
 
 fun <T> overlay(update:(T)->T = {it}, base: () ->T) = OverlayProp<T>(update, base)

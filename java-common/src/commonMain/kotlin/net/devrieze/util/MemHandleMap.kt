@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018.
+ * Copyright (c) 2021.
  *
  * This file is part of ProcessManager.
  *
@@ -14,27 +14,8 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.util.multiplatform
+package net.devrieze.util
 
-expect class SimpleQueue<E>() {
-
-    val size: Int
-
-    fun peekFirst(): E?
-    fun peekLast(): E?
-
-    fun removeFirst(): E
-    fun removeLast(): E
-
-    fun addLast(e:E)
-    fun add(element: E): Boolean
-
-    fun clear()
-}
-
-fun SimpleQueue<*>.isNotEmpty() = size>0
-fun <E> SimpleQueue<E>.addAll(elements: Iterable<E>):Boolean {
-    return elements.fold(false) { acc, e ->
-        acc or add(e)
-    }
+expect open class MemHandleMap<V : Any>: MutableHandleMap<V> {
+    constructor(handleAssigner: (V, Handle<V>) -> V? = ::HANDLE_AWARE_ASSIGNER)
 }

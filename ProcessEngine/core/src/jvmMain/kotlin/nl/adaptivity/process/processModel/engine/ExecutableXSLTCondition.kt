@@ -66,6 +66,10 @@ actual class ExecutableXSLTCondition actual constructor(condition: String, overr
         return (expression.evaluate(doc.createDocumentFragment(), XPathConstants.BOOLEAN) as Boolean).toResult(resolver)
     }
 
+    override fun toString(): String {
+        return "ExecutableXSLTCondition(label=$label, condition='$condition')"
+    }
+
 }
 
 private fun Boolean.toResult(resolver: ConditionResolver) = ConditionResult(this)

@@ -18,6 +18,7 @@ package nl.adaptivity.process.processModel.engine
 
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
+import nl.adaptivity.process.util.MutableIdentifyableSet
 
 
 class ExecutableEndNode(

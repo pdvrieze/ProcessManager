@@ -226,7 +226,9 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         fun store(engineData: MutableProcessEngineDataAccess) {
             val mutableNodeInstances =
                 engineData.nodeInstances as MutableHandleMap<SecureObject<ProcessNodeInstance<*>>>
-            if (handle.isValid) mutableNodeInstances[handle] = build() else {
+            if (handle.isValid) {
+                mutableNodeInstances[handle] = build()
+            } else {
                 processInstanceBuilder.storeChild(this)
             }
             // Must be updated as well as the process node instance may mean the process instance is changed.
@@ -271,6 +273,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
                 FailRetry    -> state = Skipped
                 Sent,
                 Taken,
+                Started,
                 Acknowledged -> {
                     // The full cancel will trigger successors. We only want to do the actual cancellation
                     // action without triggering successors. This is still marked as cancelled, but successors
@@ -390,12 +393,16 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         }
 
         override fun skipTask(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState) {
-            assert(newState == Skipped || newState == SkippedCancel || newState == SkippedFail)
+            assert(newState == Skipped || newState == SkippedCancel || newState == SkippedFail) {
+                "Skipping task with unsupported new state $newState"
+            }
             doSkipTask(engineData, newState)
             softUpdateState(engineData, newState)
             store(engineData)
             processInstanceBuilder.storeChild(this)
-            assert(state == Skipped || state == SkippedCancel || state == SkippedFail)
+            assert(state == Skipped || state == SkippedCancel || state == SkippedFail) {
+                "When skipping a task ($node:$handle) the current state was not a skipped type as expected: $state"
+            }
             processInstanceBuilder.skipSuccessors(engineData, this, newState)
         }
 
@@ -413,6 +420,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             failureCause = cause
             state = if (state == Pending) FailRetry else Failed
             engineData.processContextFactory.onActivityTermination(engineData, this)
+            store(engineData)
             processInstanceBuilder.skipSuccessors(engineData, this, SkippedFail)
         }
 
