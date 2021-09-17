@@ -18,12 +18,13 @@ package nl.adaptivity.process.processModel.engine
 import kotlinx.serialization.Serializable
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
+import nl.adaptivity.process.engine.impl.dom.toDocumentFragment
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.processModel.Condition
 import nl.adaptivity.util.multiplatform.Locales
-import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.multiplatform.toLowercase
 import nl.adaptivity.xmlutil.*
+import org.w3c.dom.Document
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.xpath.*
 
@@ -32,6 +33,8 @@ import javax.xml.xpath.*
  * Class encapsulating a condition.
  *
  * @author Paul de Vrieze
+ *
+ * TODO: Add namespace inheritance support
  */
 @Serializable(ExecutableXSLTConditionSerializer::class)
 actual class ExecutableXSLTCondition actual constructor(condition: String, override val label: String?) : ExecutableCondition() {
@@ -50,18 +53,26 @@ actual class ExecutableXSLTCondition actual constructor(condition: String, overr
      *
      * @return `true` if the condition holds, `false` if not
      */
+    @OptIn(XmlUtilInternal::class)
     actual override fun eval(engineData: ProcessEngineDataAccess, instance: IProcessNodeInstance): ConditionResult {
         if (condition.isBlank()) return ConditionResult.TRUE
+
+        val documentBuilder =
+            DocumentBuilderFactory.newInstance().apply { isNamespaceAware = true }.newDocumentBuilder()
+
         // TODO process the condition as xpath, expose the node's defines as variables
         val factory = XPathFactory.newInstance()
-        val resolver = ConditionResolver(engineData, instance)
+        val resolver = ConditionResolver(engineData, instance, documentBuilder.newDocument())
         factory.setXPathFunctionResolver(resolver)
         factory.setXPathVariableResolver(resolver)
 
         val doc =
-            DocumentBuilderFactory.newInstance().apply { isNamespaceAware = true }.newDocumentBuilder().newDocument()
+            documentBuilder.newDocument()
 
         val xpath = factory.newXPath()
+
+        xpath.namespaceContext = SimpleNamespaceContext(Engine.NSPREFIX, Engine.NAMESPACE)
+
         val expression = xpath.compile(condition)
         return (expression.evaluate(doc.createDocumentFragment(), XPathConstants.BOOLEAN) as Boolean).toResult(resolver)
     }
@@ -74,7 +85,7 @@ actual class ExecutableXSLTCondition actual constructor(condition: String, overr
 
 private fun Boolean.toResult(resolver: ConditionResolver) = ConditionResult(this)
 
-private class ConditionResolver(val engineData: ProcessEngineDataAccess, val instance: IProcessNodeInstance) :
+private class ConditionResolver(val engineData: ProcessEngineDataAccess, val instance: IProcessNodeInstance, val document: Document) :
     XPathFunctionResolver, XPathVariableResolver {
     override fun resolveVariable(variableName: QName): Any? {
         // Actually resolve variables
@@ -82,8 +93,40 @@ private class ConditionResolver(val engineData: ProcessEngineDataAccess, val ins
     }
 
     override fun resolveFunction(functionName: QName, arity: Int): XPathFunction? {
-        // TODO Actually resolve functions
+        if (functionName.namespaceURI!=Engine.NAMESPACE) return null
+        when (functionName.localPart) {
+            "node" -> when (arity) {
+                1 -> return defaultNodeFunction
+                2 -> return resultNodeFunction
+            }
+        }
         return null
+    }
+
+    private val defaultNodeFunction: XPathFunction = object : XPathFunction {
+        override fun evaluate(args: List<*>): Any? {
+            val pred = instance.resolvePredecessor(engineData, args.single().toString())
+            return when {
+                pred == null -> null
+                pred.results.size==1 -> pred.results.single().content.toDocumentFragment()
+                else -> pred.results.firstOrNull { it.name=="result" }?.content?.toDocumentFragment()
+            }
+        }
+    }
+
+    private val resultNodeFunction: XPathFunction = object : XPathFunction {
+        override fun evaluate(args: List<*>): Any? {
+            val pred = instance.resolvePredecessor(engineData, args[0].toString())
+            val resultName = args[1].toString()
+            return when {
+                pred == null -> null
+                else -> pred.results.firstOrNull { it.name==resultName }?.content?.toDocumentFragment()
+            }
+        }
+    }
+
+    companion object {
+        const val DEFAULT_PREFIX="pe"
     }
 
 }
