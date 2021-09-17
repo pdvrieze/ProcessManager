@@ -115,7 +115,7 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
         override var hChildInstance: ComparableHandle<SecureObject<ProcessInstance>> by overlay(observer()) { base.hChildInstance }
 
         override fun build(): CompositeInstance {
-            return if (changed) CompositeInstance(this) else base
+            return if (changed) CompositeInstance(this).also { invalidateBuilder(it) } else base
         }
     }
 

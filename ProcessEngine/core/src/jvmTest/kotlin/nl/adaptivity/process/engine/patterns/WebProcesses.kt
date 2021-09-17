@@ -37,6 +37,7 @@ class WebProcess1 : TraceTest(Companion) {
 
                 val ac1 by activity(split1) {
                     label = "Analyze insurance agreement"
+                    result { name="result"; path="/" }
                 }
 
                 val split2 by split(ac1) {
@@ -46,6 +47,7 @@ class WebProcess1 : TraceTest(Companion) {
 
                 val ac2 by activity(split1) {
                     label = "Offer immediate help"
+                    result { name="result"; path="/" }
                 }
 
                 val split3 by split(ac2) {
@@ -55,15 +57,15 @@ class WebProcess1 : TraceTest(Companion) {
 
                 val join1 by this.let { tcm ->
                     join(split2, split3) {
-                        conditions[tcm.split2] = ExecutableXSLTCondition("coverage_exists", "There is coverage")
-                        conditions[tcm.split3] = ExecutableXSLTCondition("accepted", "Offer accepted")
+                        conditions[tcm.split2] = ExecutableXSLTCondition("pe:node('ac1')/coverage_exists", "There is coverage")
+                        conditions[tcm.split3] = ExecutableXSLTCondition("pe:node('ac2')/accepted", "Offer accepted")
                         min = 2
                         max = 2
                     }
                 }
 
                 val ac3 by activity(split2) {
-                    condition = ExecutableXSLTCondition("no_coverage", "No coverage")
+                    condition = ExecutableXSLTCondition("otherwise", "No coverage")
                     label = "Send out offer for emergency help"
                 }
 
@@ -73,7 +75,7 @@ class WebProcess1 : TraceTest(Companion) {
 
                 val ac5 by activity(split3) {
                     label = "Ask for rejection notification"
-                    condition = ExecutableXSLTCondition("rejected", "Offer rejected")
+                    condition = ExecutableXSLTCondition("otherwise", "Offer rejected")
                 }
 
                 val join2 by join(ac4, ac5) {
@@ -90,16 +92,19 @@ class WebProcess1 : TraceTest(Companion) {
             }
             with(m) {
                 val valid = trace {
-                    start..ac1..ac2..split1..(
-                        (ac3 % (ac5..split3..join2)) or
-                            (join1..split3..ac4..join2)
-                        )..join3..end
+//                    (start..ac1..ac2..split1..(
+//                        ((ac3 .. split2) % (ac5..split3..join2)) or
+//                            (join1..(split2 % split3)..ac4..join2)
+//                        )..join3..end
+//                        ) or (
+                        start..(ac1("<coverage_exists/>") .. ac2("<accepted/>").. split2..split3..join1..ac4..join2..join3..end)
+//                        )
                 }
                 val invalid = trace {
                     (start.opt * (split2 or split3 or ac3 or ac4 or join1 or join2 or join3 or end)) or
                         (start..ac1..end)
                 }
-                ModelData(m, valid.take(0), /*invalid*/ emptyList())
+                ModelData(m, valid, /*invalid*/ emptyList())
             }
         }
     }

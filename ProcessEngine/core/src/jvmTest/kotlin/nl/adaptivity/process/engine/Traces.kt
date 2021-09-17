@@ -43,20 +43,26 @@ private fun String.toTraceNo(): Int {
 @DslMarker
 annotation class TraceDsl
 
-class TraceElement(val nodeId: String, val instanceNo: Int, val outputs: List<ProcessData> = emptyList()) : Identified {
-    private constructor(stringdescrs: Iterator<String>) : this(stringdescrs.next(),
-                                                               if (stringdescrs.hasNext()) stringdescrs.next().toInt() else SINGLEINSTANCE)
+class TraceElement(val nodeId: String, val instanceNo: Int, val resultPayload: CompactFragment? = null) : Identified {
+    private constructor(stringdescrs: Iterator<String>) : this(
+        stringdescrs.next(),
+        if (stringdescrs.hasNext()) stringdescrs.next().toInt() else SINGLEINSTANCE
+    )
 
     constructor(stringdescr: String) : this(stringdescr.splitToSequence(':').iterator())
 
     override val id: String get() = nodeId
 
     override fun toString(): String {
+        val base = when (resultPayload?.contentString.isNullOrEmpty()) {
+            true -> nodeId
+            else -> "$nodeId(${resultPayload?.contentString})"
+        }
         return when (instanceNo) {
-            SINGLEINSTANCE -> nodeId
-            ANYINSTANCE    -> "$nodeId[*]"
-            LASTINSTANCE   -> "$nodeId[#]"
-            else           -> "$nodeId[$instanceNo]"
+            SINGLEINSTANCE -> base
+            ANYINSTANCE    -> "$base[*]"
+            LASTINSTANCE   -> "$base[#]"
+            else           -> "$base[$instanceNo]"
         }
     }
 
@@ -76,7 +82,7 @@ class TraceElement(val nodeId: String, val instanceNo: Int, val outputs: List<Pr
             instanceNo == 1 && other.instanceNo == SINGLEINSTANCE          -> Unit
             else                                                           -> return false
         }
-        if (outputs != other.outputs) return false
+        if (resultPayload != other.resultPayload) return false
 
         return true
     }
@@ -84,11 +90,6 @@ class TraceElement(val nodeId: String, val instanceNo: Int, val outputs: List<Pr
     override fun hashCode(): Int {
         return nodeId.hashCode()
     }
-
-    /**
-     * The data that will be used as the return of the service behind the node.
-     */
-    val resultPayload: CompactFragment? get() = null
 
     fun getNodeInstance(transaction: StubProcessTransaction, instance: ProcessInstance): ProcessNodeInstance<*>? {
         return when (instanceNo) {
@@ -137,6 +138,9 @@ private operator fun <T> T.plus(array: Array<T>): Array<T> {
 @TraceDsl
 class TraceBuilder {
     internal inline operator fun Identified.get(instanceNo: Int) = TraceElement(id, instanceNo)
+    internal inline operator fun Identified.invoke(data: String, name: String="result", instanceNo:Int = SINGLEINSTANCE) =
+        TraceElement(id, SINGLEINSTANCE, CompactFragment(data))
+    internal inline operator fun TraceElement.get(instanceNo: Int) = TraceElement(id, instanceNo, resultPayload)
 
     /** Create trace element */
     @TraceDsl
@@ -329,66 +333,66 @@ class TraceBuilder {
     @TraceDsl
     operator fun Traces.div(other: Traces): Traces = other.flatMap { div(it) }
 
-    /* unordered */
+    /** unordered */
     @TraceDsl
     inline operator fun String.rem(other: String): Traces = this.toTraceElem().rem(other.toTraceElem())
-    /* unordered */
+    /** unordered */
     @TraceDsl
     inline operator fun String.rem(other: Identified): Traces = this.toTraceElem().rem(other.toTraceElem())
-    /* unordered */
+    /** unordered */
     @TraceDsl
     inline operator fun String.rem(other: TraceElement): Traces = this.toTraceElem().rem(other)
-    /* unordered */
+    /** unordered */
     @TraceDsl
     inline operator fun String.rem(other: BTrace): Traces = this.toTraceElem().rem(other)
-    /* unordered */
+    /** unordered */
     @TraceDsl
     inline operator fun String.rem(other: Traces): Traces = this.toTraceElem().rem(other)
-    /* unordered */
+    /** unordered */
     @TraceDsl
     inline operator fun Identified.rem(other: String): Traces = this.toTraceElem().rem(other.toTraceElem())
-    /* unordered */
+    /** unordered */
     @TraceDsl
     inline operator fun Identified.rem(other: Identified): Traces = this.toTraceElem().rem(other.toTraceElem())
-    /* unordered */
+    /** unordered */
     @TraceDsl
     inline operator fun Identified.rem(other: TraceElement): Traces = this.toTraceElem().rem(other)
-    /* unordered */
+    /** unordered */
     @TraceDsl
     inline operator fun Identified.rem(other: BTrace): Traces = this.toTraceElem().rem(other)
-    /* unordered */
+    /** unordered */
     @TraceDsl
     inline operator fun Identified.rem(other: Traces): Traces = this.toTraceElem().rem(other)
-    /* unordered */
+    /** unordered */
     @TraceDsl
     inline operator fun TraceElement.rem(other: String): Traces = this.rem(other.toTraceElem())
-    /* unordered */
+    /** unordered */
     @TraceDsl
     inline operator fun TraceElement.rem(other: Identified): Traces = this.rem(other.toTraceElem())
-    /* unordered */
+    /** unordered */
     @TraceDsl
     operator fun TraceElement.rem(other: TraceElement): Traces = listOf(trace(this, other), trace(other, this))
-    /* unordered */
+    /** unordered */
     @TraceDsl
     operator fun TraceElement.rem(other: BTrace): Traces = listOf((trace(this) + other), (other + trace(this)))
-    /* unordered */
+    /** unordered */
     @TraceDsl
     operator fun TraceElement.rem(other: Traces): Traces = other.flatMap { (this..it) or (it..this) }
 
 
-    /* unordered */
+    /** unordered */
     @TraceDsl
     inline operator fun Traces.rem(other: String): Traces = this.rem(trace(other.toTraceElem()))
-    /* unordered */
+    /** unordered */
     @TraceDsl
     inline operator fun Traces.rem(other: Identified): Traces = this.rem(trace(other.toTraceElem()))
-    /* unordered */
+    /** unordered */
     @TraceDsl
     inline operator fun Traces.rem(other: TraceElement): Traces = this.rem(trace(other))
-    /* unordered */
+    /** unordered */
     @TraceDsl
     inline operator fun Traces.rem(other: BTrace): Traces = flatMap { left -> listOf(left + other, other + left) }
-    /* unordered */
+    /** unordered */
     @TraceDsl
     operator fun Traces.rem(other: Traces): Traces = flatMap { left ->
         other.flatMap { right ->

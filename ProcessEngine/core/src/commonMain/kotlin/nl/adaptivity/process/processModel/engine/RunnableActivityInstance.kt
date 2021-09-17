@@ -114,7 +114,7 @@ class RunnableActivityInstance<I: Any,O: Any>(builder: Builder<I,O>):
         override var node: RunnableActivity<I,O> by overlay { base.node }
 
         override fun build(): RunnableActivityInstance<I,O> {
-            return if(changed) RunnableActivityInstance(this) else base
+            return if(changed) RunnableActivityInstance(this).also { invalidateBuilder(it) } else base
         }
     }
 

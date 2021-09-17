@@ -488,7 +488,13 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         @Suppress("UNCHECKED_CAST")
         protected fun <T> observer(): Observer<T> = observer as Observer<T>
 
-        final override var predecessors = ObservableSet(base.predecessors.toMutableArraySet(), { changed = true })
+        final override val predecessors = ObservableSet(base.predecessors.toMutableArraySet(), { changed = true })
+/*
+            set(value) {
+                field.replaceBy(value)
+                changed = true
+            }
+*/
         final override var owner by overlay(observer()) { base.owner }
         final override var handle: Handle<SecureObject<ProcessNodeInstance<*>>> by overlay(observer()) { base.handle }
 
@@ -506,16 +512,21 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         var changed: Boolean = false
         final override val entryNo: Int = base.entryNo
 
-        override fun invalidateBuilder(engineData: ProcessEngineDataAccess) {
+        fun invalidateBuilder(newBase: T) {
             changed = false
-            @Suppress("UNCHECKED_CAST")
-            val newBase = engineData.nodeInstance(handle).withPermission() as T
+
             base = newBase
             predecessors.replaceBy(newBase.predecessors)
             owner = newBase.owner
             handle = newBase.handle
             _state = newBase.state
             results.replaceBy(newBase.results)
+
+        }
+
+        override fun invalidateBuilder(engineData: ProcessEngineDataAccess) {
+            @Suppress("UNCHECKED_CAST")
+            invalidateBuilder(engineData.nodeInstance(handle).withPermission() as T)
         }
 
         override abstract fun build(): T

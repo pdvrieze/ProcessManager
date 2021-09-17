@@ -51,6 +51,9 @@ class ExecutableJoin(
     ): Pair<JoinInstance.Builder?, Int> {
         var candidateNo = entryNo
         for(candidate in processInstanceBuilder.getChildren(this).sortedBy { it.entryNo }) {
+            if(predecessor.handle.toComparableHandle() in candidate.predecessors) {
+                return (candidate as JoinInstance.Builder) to candidateNo
+            }
             if ((allowFinalInstance || candidate.state != NodeInstanceState.Complete) &&
                 (candidate.entryNo == entryNo || candidate.predecessors.any {
                     when (predecessor.handle.isValid && it.isValid) {
@@ -82,7 +85,13 @@ class ExecutableJoin(
     ): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
         val (existingInstance, candidateNo) = getExistingInstance(data, processInstanceBuilder, predecessor, entryNo, allowFinalInstance)
         existingInstance?.let {
-            if (predecessor.handle.isValid) { it.predecessors.add(predecessor.handle.toComparableHandle()) }
+            if (predecessor.handle.isValid) {
+                if(it.predecessors.add(predecessor.handle.toComparableHandle())) {
+                    // Store the new predecessor, so when resetting the predecessor isn't lost
+                    processInstanceBuilder.storeChild(it)
+                    processInstanceBuilder.store(data)
+                }
+            }
             return it
         }
 

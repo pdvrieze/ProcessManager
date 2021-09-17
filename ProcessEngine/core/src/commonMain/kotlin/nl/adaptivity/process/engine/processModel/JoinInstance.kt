@@ -20,6 +20,8 @@ import net.devrieze.util.*
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.Split
+import nl.adaptivity.process.processModel.engine.ConditionResult
+import nl.adaptivity.process.processModel.engine.ExecutableCondition
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.util.security.Principal
@@ -40,7 +42,6 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
                     val directSuccessors = processInstanceBuilder.getDirectSuccessorsFor(this.handle)
 
                     val canAdd = directSuccessors
-                        .asSequence()
                         .none { it.state.isCommitted || it.state.isFinal }
                     if (canAdd) {
                         state = NodeInstanceState.Acknowledged
@@ -76,8 +77,11 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
                         throw ProcessException("Predecessor $it is committed but not final, cannot finish join without cancelling the predecessor")
                     } else {
                         committedPredecessorCount++
+
                         if (it.state== NodeInstanceState.Complete) {
-                            completedPredecessorCount++
+                            if (node.evalCondition(engineData, it, this) == ConditionResult.TRUE) {
+                                completedPredecessorCount++
+                            }
                         }
                     }
                 }
@@ -104,7 +108,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
     class ExtBuilder(instance:JoinInstance, processInstanceBuilder: ProcessInstance.Builder) : ProcessNodeInstance.ExtBuilder<ExecutableJoin, JoinInstance>(instance, processInstanceBuilder), Builder {
         override var node: ExecutableJoin by overlay { instance.node }
-        override fun build() = if (changed) JoinInstance(this) else base
+        override fun build() = if (changed) JoinInstance(this).also { invalidateBuilder(it) } else base
         override fun skipTask(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState) = skipTaskImpl(engineData, newState)
 
     }
@@ -193,15 +197,17 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
             val join = node
             val totalPossiblePredecessors = join.predecessors.size
-            val realizedPredecessors = predecessors.size
+            var realizedPredecessors = 0
 
             val predecessorsToAdd = mutableListOf<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>()
             // register existing predecessors
             val instantiatedPredecessors = processInstanceBuilder.allChildren { nodeInstance ->
                 join in nodeInstance.node.successors &&
                     ( nodeInstance.handle in predecessors ||
-                        node.getExistingInstance(engineData, processInstanceBuilder, nodeInstance, nodeInstance.entryNo, true).first?.let { predecessorsToAdd.add(
-                            nodeInstance.handle.toComparableHandle()); it.handle
+                        node.getExistingInstance(engineData, processInstanceBuilder, nodeInstance, nodeInstance.entryNo, true).first?.let {
+                            predecessorsToAdd.add(nodeInstance.handle.toComparableHandle())
+                            if (it.state.isFinal) realizedPredecessors+=1
+                            it.handle
                         } == handle )
             }.toList()
             predecessors.addAll(predecessorsToAdd)
@@ -216,6 +222,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
             var complete = 0
             var skipped = 0
+            var pending = 0
             for (predecessor in instantiatedPredecessors ) {
                 when (predecessor.state) {
                     NodeInstanceState.Complete -> complete += 1
@@ -224,8 +231,8 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
                     NodeInstanceState.SkippedCancel,
                     NodeInstanceState.Cancelled,
                     NodeInstanceState.SkippedFail,
-                    NodeInstanceState.Failed   -> skipped += 1
-                    else                                                                 -> Unit // do nothing
+                    NodeInstanceState.Failed -> skipped += 1
+                    else -> pending +=1
                 }
             }
             if (totalPossiblePredecessors - skipped < join.min) {

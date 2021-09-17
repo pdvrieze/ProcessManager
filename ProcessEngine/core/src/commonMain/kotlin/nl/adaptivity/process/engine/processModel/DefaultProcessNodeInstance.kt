@@ -155,7 +155,7 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
 
     private class ExtBuilderImpl(base: DefaultProcessNodeInstance, processInstanceBuilder: ProcessInstance.Builder) : ExtBuilder<ExecutableProcessNode, DefaultProcessNodeInstance>(base, processInstanceBuilder), Builder {
         override var node: ExecutableProcessNode by overlay { base.node }
-        override fun build() = if (changed) DefaultProcessNodeInstance(this) else base
+        override fun build() = if (changed) DefaultProcessNodeInstance(this).also { invalidateBuilder(it) } else base
     }
 
     class BaseBuilder(

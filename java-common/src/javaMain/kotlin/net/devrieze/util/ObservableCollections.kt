@@ -39,6 +39,27 @@ constructor(protected val delegate: C, observers: Iterable<(S) -> Unit> = emptyL
 
     abstract fun triggerObservers()
 
+    actual fun replaceBy(elements: Iterable<T>): Boolean {
+        var hasChanges = false
+        val oldElements = delegate.toMutableList()
+        delegate.clear()
+        for (element in elements) {
+            if (hasChanges) {
+                delegate.add(element)
+            } else {
+                if (!oldElements.remove(element)) {
+                    hasChanges = true
+                }
+                delegate.add(element)
+            }
+        }
+        if (!hasChanges && oldElements.isNotEmpty()) hasChanges = true
+        if (hasChanges) {
+            triggerObservers()
+        }
+        return hasChanges
+    }
+
     override fun addAll(elements: Collection<T>) = delegate.addAll(elements).apply { if (this) triggerObservers() }
 
     override fun removeIf(filter: Predicate<in T>) = delegate.removeIf(filter).apply { if (this) triggerObservers() }

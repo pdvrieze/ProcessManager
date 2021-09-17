@@ -68,7 +68,7 @@ abstract class TraceTest(val config: CompanionBase) {
         @TestFactory
         @DisplayName("Xml tests")
         fun serializeToXml(): List<DynamicTest> {
-            return serializeToFormat(config.expectedXml, XML { autoPolymorphic = true }, "getExpectedXml")
+            return serializeToFormat(config.expectedXml, XML { autoPolymorphic = true; indent=4 }, "getExpectedXml")
         }
 
         private fun serializeToFormat(

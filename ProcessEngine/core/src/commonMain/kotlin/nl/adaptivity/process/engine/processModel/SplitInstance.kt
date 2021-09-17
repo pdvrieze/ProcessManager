@@ -66,7 +66,7 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
     class ExtBuilder(private val instance: SplitInstance, processInstanceBuilder: ProcessInstance.Builder) :
         ProcessNodeInstance.ExtBuilder<ExecutableSplit, SplitInstance>(instance, processInstanceBuilder), Builder {
         override var node: ExecutableSplit by overlay { instance.node }
-        override fun build() = if (changed) SplitInstance(this) else base
+        override fun build() = if (changed) SplitInstance(this).also { invalidateBuilder(it) } else base
     }
 
     class BaseBuilder(
@@ -77,10 +77,10 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
         entryNo: Int,
         handle: Handle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
         state: NodeInstanceState = NodeInstanceState.Pending
-                     ) : ProcessNodeInstance.BaseBuilder<ExecutableSplit, SplitInstance>(
+    ) : ProcessNodeInstance.BaseBuilder<ExecutableSplit, SplitInstance>(
         node, listOf(predecessor), processInstanceBuilder, owner, entryNo,
         handle, state
-                                                                                        ), Builder {
+    ), Builder {
         override fun build() = SplitInstance(this)
     }
 
@@ -101,7 +101,7 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
         state: NodeInstanceState = NodeInstanceState.Pending,
         results: Iterable<ProcessData> = emptyList(),
         entryNo: Int
-               ) :
+    ) :
         super(
             node,
             listOf(predecessor),
@@ -112,7 +112,7 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
             handle,
             state,
             results
-             )
+        )
 
     constructor(builder: Builder) : this(
         builder.node,
@@ -124,7 +124,7 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
         builder.state,
         builder.results,
         builder.entryNo
-                                                      )
+    )
 
     override fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder {
         return ExtBuilder(this, processInstanceBuilder)
@@ -190,12 +190,12 @@ internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineD
     for (successorNode in successorNodes) {
         if (committedCount >= node.max) break // stop the loop when we are at the maximum successor count
 
-        if (successorNode is Join) {
-            if (successorNode.conditions[node.identifier] == null)
+        if (successorNode is Join&& successorNode.conditions[node.identifier] == null) {
                 throw IllegalStateException("Splits cannot be immediately followed by unconditional joins")
         }
         // Don't attempt to create an additional instance for a non-multi-instance successor
-        if (!successorNode.isMultiInstance && processInstanceBuilder.allChildren { it.node == successorNode && !it.state.isSkipped && it.entryNo != entryNo }.count() > 0) continue
+        if (!successorNode.isMultiInstance && processInstanceBuilder.allChildren { it.node == successorNode && !it.state.isSkipped && it.entryNo != entryNo }
+                .count() > 0) continue
 
         val successorBuilder = successorNode.createOrReuseInstance(
             engineData,
@@ -205,18 +205,20 @@ internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineD
             allowFinalInstance = true
         )
         processInstanceBuilder.storeChild(successorBuilder)
-        if (successorBuilder.state == NodeInstanceState.Pending) {
+        if (successorBuilder.state == NodeInstanceState.Pending ||
+            (successorBuilder.node is Join && successorBuilder.state.isActive)) {
             // temporaryly build a node to evaluate the condition against, but don't register it.
             val conditionResult = when {
                 successorBuilder.state.isFinal -> when (successorBuilder.state) {
                     NodeInstanceState.Complete -> ConditionResult.TRUE
-                    else                       -> ConditionResult.NEVER
+                    else -> ConditionResult.NEVER
                 }
                 // If we have a join with missing predecessors we can't do it yet
                 successorBuilder.node is Join &&
-                    successorBuilder.predecessors.any { ! it.isValid } -> ConditionResult.MAYBE
+                    successorBuilder.predecessors.any { !it.isValid } -> ConditionResult.MAYBE
 
-                else -> successorBuilder.build().run { condition(engineData, this) }
+                else -> successorBuilder.build()
+                    .condition(engineData, this)
             }
 
             when (conditionResult) {
@@ -226,7 +228,8 @@ internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineD
                 ConditionResult.NEVER -> {
                     successorBuilder.skipTask(engineData, NodeInstanceState.Skipped)
                 }
-                ConditionResult.MAYBE -> {} /*option can not be advanced for now*/
+                ConditionResult.MAYBE -> {
+                } /*option can not be advanced for now*/
             }
 
 

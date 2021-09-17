@@ -757,7 +757,10 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         for (future in pending) {
             if (!future.origBuilder.handle.isValid) {
                 // Set the handle on the builder so that lookups in the future will be more correct.
-                createdNodes += data.putNodeInstance(future).also { future.origBuilder.handle = it.handle.toComparableHandle() }
+                createdNodes += data.putNodeInstance(future).also {
+                    future.origBuilder.handle = it.handle.toComparableHandle()
+                    future.origBuilder.invalidateBuilder(data) // Actually invalidate the original builder/keep it valid
+                }
             } else {
                 assert(future.origBuilder.hProcessInstance == handle)
                 updatedNodes[future.origBuilder.handle] = data.storeNodeInstance(future)
@@ -1112,7 +1115,9 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                 (nodeInstances as MutableHandleMap)[handle] = value.origBuilder.build()
                 @Suppress("UNCHECKED_CAST") // Semantically this should always be valid
                 return (nodeInstance(handle).withPermission() as T).also {
-                    (value as InstanceFuture<T, *>).set(it)
+                    (value as InstanceFuture<T, *>).run {
+                        set(it)
+                    }
                 }
             }
 
