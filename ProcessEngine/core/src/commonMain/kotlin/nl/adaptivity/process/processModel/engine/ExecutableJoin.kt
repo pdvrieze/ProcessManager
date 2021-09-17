@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import net.devrieze.util.toComparableHandle
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessException
@@ -80,7 +81,10 @@ class ExecutableJoin(
         allowFinalInstance: Boolean
     ): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
         val (existingInstance, candidateNo) = getExistingInstance(data, processInstanceBuilder, predecessor, entryNo, allowFinalInstance)
-        existingInstance?.let { return it }
+        existingInstance?.let {
+            if (predecessor.handle.isValid) { it.predecessors.add(predecessor.handle.toComparableHandle()) }
+            return it
+        }
 
         if (!(isMultiInstance || isMultiMerge) && candidateNo!=1) {
             throw ProcessException("Attempting to start a second instance of a single instantiation join $id:$entryNo")
