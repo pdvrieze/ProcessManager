@@ -108,6 +108,11 @@ kotlin {
         }
 */
         sourceSets {
+            all {
+                languageSettings {
+                    optIn("kotlin.RequiresOptIn")
+                }
+            }
             val commonMain by getting {
                 dependencies {
                     api(project(":java-common"))
@@ -179,13 +184,6 @@ tasks.withType<Jar> {
 java {
     sourceCompatibility = JavaVersion.VERSION_1_8
     targetCompatibility = JavaVersion.VERSION_1_8
-}
-
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        val newArgs = freeCompilerArgs.toMutableSet().apply { add("-Xuse-experimental=kotlin.Experimental")}.toList()
-        freeCompilerArgs=newArgs
-    }
 }
 
 tasks.named<Test>("jvmTest") {

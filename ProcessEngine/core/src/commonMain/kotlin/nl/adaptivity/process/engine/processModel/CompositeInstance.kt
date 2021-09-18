@@ -22,6 +22,7 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.impl.generateXmlString
 import nl.adaptivity.process.processModel.engine.ExecutableCompositeActivity
+import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.serialize
@@ -49,15 +50,17 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
         }
 
 
+        @OptIn(ProcessInstanceStorage::class)
         override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {
             val shouldProgress = tryCreateTask { node.startTask(this) }
 
-            val inst = tryCreateTask {
-                engineData.instance(hChildInstance)
-                    .withPermission()
-                    .start(engineData, build().getPayload(engineData))
+            assert(hChildInstance.isValid) { "The task can only be started if the child instance already exists" }
+            tryCreateTask {
+                engineData.updateInstance(hChildInstance) {
+                    start(engineData, build().getPayload(engineData))
+                }
             }
-            engineData.queueTickle(inst.handle)
+            engineData.queueTickle(hChildInstance)
             return shouldProgress
         }
 

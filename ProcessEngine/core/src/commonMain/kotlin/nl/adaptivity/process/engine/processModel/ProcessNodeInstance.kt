@@ -279,7 +279,9 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
                     // action without triggering successors. This is still marked as cancelled, but successors
                     // may be marked as skipped.
                     doCancel(engineData)
-                    state = AutoCancelled
+                    if (! state.isSkipped) { // allow skipping if that is more appropriate
+                        state = AutoCancelled
+                    }
                 }
             }
         }
@@ -288,7 +290,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
         fun doFinishTask(engineData: MutableProcessEngineDataAccess, resultPayload: ICompactFragment? = null) {
             if (state.isFinal) {
-                throw ProcessException("instance ${node.id}:$handle($state) cannot be finished as it is already in a final state.")
+                throw ProcessException("instance ${node.id}:${handle.handleValue}($state) cannot be finished as it is already in a final state.")
             }
             state = Complete
             node.results.mapTo(results.apply { clear() }) { (it as IPlatformXmlResultType).applyData(resultPayload) }
@@ -339,8 +341,12 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
                 Complete      -> state == Started
                 SkippedCancel -> state == Pending
                 SkippedFail   -> state == Pending
-                Skipped       -> false
-                else          -> TODO("Not needed, not yet implemented, the semantics are not clear yet ($targetState)")
+                Skipped       -> state == Pending
+                SkippedInvalidated -> state == Pending
+                Cancelled,
+                AutoCancelled -> ! state.isFinal
+                FailRetry -> throw ProcessException("Recovering a retryable failed state is not a soft state update")
+                Failed -> throw ProcessException("Failed states can not be changed, this should not be attempted")
             }
             if (doSet) {
                 state = targetState
@@ -375,7 +381,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
         final override fun finishTask(engineData: MutableProcessEngineDataAccess, resultPayload: ICompactFragment?) {
             if (state.isFinal) {
-                throw ProcessException("instance ${node.id}:$handle($state) cannot be finished as it is already in a final state.")
+                throw ProcessException("instance ${node.id}:${handle.handleValue}($state) cannot be finished as it is already in a final state.")
             }
             doFinishTask(engineData, resultPayload)
             state = Complete
@@ -383,7 +389,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             store(engineData)
             engineData.commit()
             engineData.processContextFactory.onActivityTermination(engineData, this)
-
+            // TODO use tickle instead
             // The splits need to be updated before successors are started. This prevents unneeded/unexpected cancellations.
             // Joins should trigger updates before cancellations anyway though as a safeguard.
             processInstanceBuilder.updateSplits(engineData)
@@ -398,7 +404,6 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
                 "Skipping task with unsupported new state $newState"
             }
             doSkipTask(engineData, newState)
-            softUpdateState(engineData, newState)
             store(engineData)
             processInstanceBuilder.storeChild(this)
             assert(state == Skipped || state == SkippedCancel || state == SkippedFail) {
@@ -428,8 +433,11 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         final override fun cancel(engineData: MutableProcessEngineDataAccess) {
             doCancel(engineData)
             softUpdateState(engineData, Cancelled)
+//            processInstanceBuilder.storeChild(this)
+//            processInstanceBuilder.store(engineData)
             engineData.processContextFactory.onActivityTermination(engineData, this)
-            processInstanceBuilder.skipSuccessors(engineData, this, SkippedCancel)
+            engineData.queueTickle(processInstanceBuilder.handle)
+//            processInstanceBuilder.skipSuccessors(engineData, this, SkippedCancel)
         }
 
         final override fun cancelAndSkip(
@@ -490,12 +498,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         protected fun <T> observer(): Observer<T> = observer as Observer<T>
 
         final override val predecessors = ObservableSet(base.predecessors.toMutableArraySet(), { changed = true })
-/*
-            set(value) {
-                field.replaceBy(value)
-                changed = true
-            }
-*/
+
         final override var owner by overlay(observer()) { base.owner }
         final override var handle: Handle<SecureObject<ProcessNodeInstance<*>>> by overlay(observer()) { base.handle }
 

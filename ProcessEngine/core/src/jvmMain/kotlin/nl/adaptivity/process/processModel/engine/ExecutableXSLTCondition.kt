@@ -66,8 +66,7 @@ actual class ExecutableXSLTCondition actual constructor(condition: String, overr
         factory.setXPathFunctionResolver(resolver)
         factory.setXPathVariableResolver(resolver)
 
-        val doc =
-            documentBuilder.newDocument()
+        val doc = documentBuilder.newDocument()
 
         val xpath = factory.newXPath()
 

@@ -454,7 +454,9 @@ class ProcessEngine<TR : ProcessTransaction, PIC : ActivityInstanceContext> {
             if (processModel.uuid == null && dataAccess is MutableProcessEngineDataAccess) {
                 processModel.update {
                     uuid = UUID.randomUUID()
-                }.apply { dataAccess.processModels[handle] = this }
+                }.apply {
+                    dataAccess.processModels[handle] = this
+                }
             } else {
                 processModel
             }
@@ -608,20 +610,12 @@ class ProcessEngine<TR : ProcessTransaction, PIC : ActivityInstanceContext> {
                 invalidateCachePI(getInvalidHandle())
                 invalidateCachePNI(getInvalidHandle())
 
-                (instances[handle] ?: return false).withPermission(
-                    securityProvider,
-                    Permissions.TICKLE_INSTANCE,
-                    user
-                ) {
-//                    if (it.state.isFinal) return false
+                securityProvider.ensurePermission(Permissions.TICKLE_INSTANCE, user, (instances[handle]?: return false))
 
-                    it.update(transaction.writableEngineData) {
-                        tickle(transaction.writableEngineData, messageService)
-                    }
-
-                    return true
+                updateInstance(handle) {
+                    tickle(this@run, messageService)
                 }
-
+                return true
             }
         } finally {
             processTickleQueue(transaction, processingTickles)
@@ -653,6 +647,7 @@ class ProcessEngine<TR : ProcessTransaction, PIC : ActivityInstanceContext> {
      *
      * @throws SQLException When database operations fail.
      */
+    @OptIn(ProcessInstanceStorage::class)
     private fun startProcess(
         transaction: TR,
         user: Principal?,
@@ -669,7 +664,7 @@ class ProcessEngine<TR : ProcessTransaction, PIC : ActivityInstanceContext> {
                 "Annonymous users are not allowed to start processes"
             )
         }
-        val instance = model.withPermission(securityProvider, ExecutableProcessModel.Permissions.INSTANTIATE, user) {
+        val unstoredInstance = model.withPermission(securityProvider, ExecutableProcessModel.Permissions.INSTANTIATE, user) {
             ProcessInstance(transaction.writableEngineData, it, parentActivity) {
                 this.instancename = name
                 this.uuid = uuid
@@ -680,15 +675,14 @@ class ProcessEngine<TR : ProcessTransaction, PIC : ActivityInstanceContext> {
 
         val resultHandle: ComparableHandle<ProcessInstance>
         engineData.inWriteTransaction(transaction) {
-            resultHandle = instances.put(instance)
-            instance(resultHandle).withPermission().let { instance ->
-                assert(instance.handle.handleValue == resultHandle.handleValue)
-                instance.initialize(transaction.writableEngineData)
-            }.let { instance ->
-                commit()
-
+            resultHandle = instances.put(unstoredInstance)
+            updateInstance(resultHandle) {
+                initialize()
+            }
+            commit()
+            updateInstance(resultHandle) {
                 try {
-                    instance.start(transaction.writableEngineData, payload)
+                    start(this@inWriteTransaction, payload)
                 } catch (e: Exception) {
                     logger.log(Level.WARNING, "Error starting instance (it is already stored)", e)
                     throw e
@@ -821,29 +815,20 @@ class ProcessEngine<TR : ProcessTransaction, PIC : ActivityInstanceContext> {
     ): NodeInstanceState {
         try {
             val engineData = transaction.writableEngineData
-            engineData.nodeInstances[handle].shouldExist(handle).withPermission(
-                securityProvider,
-                SecureObject.Permissions.UPDATE,
-                user
-            ) { task ->
+            engineData.nodeInstances[handle]
+                .shouldExist(handle)
+                .withPermission(securityProvider, SecureObject.Permissions.UPDATE, user) { task ->
 
-                val pi = engineData.instance(task.hProcessInstance).withPermission()
-
-                var finalState = newState // must be initialized due to capture use
-                synchronized(pi) {
-                    // XXX Should not be needed if pi is immutable
-                    pi.update(engineData) {
+                var finalState: NodeInstanceState = newState
+                engineData.updateInstance(task.hProcessInstance) {
+                    synchronized(this.base) {
                         finalState = updateChild(handle) {
                             when (newState) {
-                                Sent -> throw IllegalArgumentException(
-                                    "Updating task state to initial state not possible"
-                                )
+                                Sent -> throw IllegalArgumentException("Updating task state to initial state not possible")
                                 Acknowledged -> state = newState
                                 Taken -> takeTask(engineData)
                                 Started -> startTask(engineData)
-                                Complete -> throw IllegalArgumentException(
-                                    "Finishing a task must be done by a separate method"
-                                )
+                                Complete -> throw IllegalArgumentException("Finishing a task must be done by a separate method")
                                 // TODO don't just make up a failure cause
                                 Failed -> failTask(engineData, IllegalArgumentException("Missing failure cause"))
                                 Cancelled -> cancel(engineData)
@@ -852,6 +837,7 @@ class ProcessEngine<TR : ProcessTransaction, PIC : ActivityInstanceContext> {
                         }.state
                     }
                 }
+
                 return finalState
             }
         } finally {
@@ -868,29 +854,16 @@ class ProcessEngine<TR : ProcessTransaction, PIC : ActivityInstanceContext> {
         user: Principal
     ): ProcessNodeInstance<*> {
         try {
-            engineData.inWriteTransaction(transaction) {
-                val dataAccess = this
-                nodeInstances[handle].shouldExist(handle).withPermission(
-                    securityProvider, SecureObject.Permissions.UPDATE,
-                    user
-                ) { task ->
-                    val pi = instance(task.hProcessInstance).withPermission()
-                    try {
-                        synchronized(pi) {
-                            pi.update(dataAccess) {
-                                updateChild(handle) {
-                                    finishTask(dataAccess, payload)
-                                }
-                            }
-                            return dataAccess.nodeInstance(handle).withPermission()
-                        }
-                    } catch (e: Exception) {
-                        engineData.invalidateCachePNI(handle)
-                        engineData.invalidateCachePI(pi.handle)
-                        throw e
-                    }
-                }
-
+            securityProvider.ensurePermission(
+                SecureObject.Permissions.UPDATE,
+                user,
+                transaction.readableEngineData.nodeInstance(handle).shouldExist(handle)
+            )
+            transaction.readableEngineData.nodeInstance(handle)
+            with(transaction.writableEngineData) {
+                return updateNodeInstance(handle) {
+                    finishTask(this@with, payload)
+                }.withPermission()
             }
         } finally {
             processTickleQueue(transaction)
@@ -956,16 +929,14 @@ class ProcessEngine<TR : ProcessTransaction, PIC : ActivityInstanceContext> {
         cause: Throwable,
         user: Principal
     ) {
-        engineData.inWriteTransaction(transaction) {
-            nodeInstances[handle].shouldExist(handle).withPermission(
-                securityProvider, SecureObject.Permissions.UPDATE,
-                user
-            ) { task ->
-                instance(task.hProcessInstance).withPermission().update(this) {
-                    updateChild(task) {
-                        failTask(this@inWriteTransaction, cause)
-                    }
-                }
+        with(transaction.writableEngineData) {
+            securityProvider.ensurePermission(
+                SecureObject.Permissions.UPDATE,
+                user,
+                nodeInstance(handle)
+            )
+            updateNodeInstance(handle) {
+                failTask(this@with, cause)
             }
         }
         processTickleQueue(transaction)

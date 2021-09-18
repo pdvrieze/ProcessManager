@@ -23,6 +23,7 @@ import nl.adaptivity.process.processModel.Split
 import nl.adaptivity.process.processModel.engine.ConditionResult
 import nl.adaptivity.process.processModel.engine.ExecutableCondition
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
+import nl.adaptivity.process.processModel.engine.evalCondition
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xmlutil.util.ICompactFragment
@@ -59,57 +60,85 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
         }
 
         override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {
-            if(node.startTask(this)) {
-                return updateTaskState(engineData)
+            if (node.startTask(this)) {
+                return updateTaskState(engineData, NodeInstanceState.Cancelled)
             } else {
                 return false
             }
         }
 
         override fun doFinishTask(engineData: MutableProcessEngineDataAccess, resultPayload: ICompactFragment?) {
+            if (state == NodeInstanceState.Complete) {
+                return
+            }
             var committedPredecessorCount = 0
             var completedPredecessorCount = 0
             predecessors
                 .map { processInstanceBuilder.getChild(it) }
                 .filter { it.state.isCommitted }
                 .forEach {
-                    if (! it.state.isFinal) {
+                    if (!it.state.isFinal) {
                         throw ProcessException("Predecessor $it is committed but not final, cannot finish join without cancelling the predecessor")
                     } else {
                         committedPredecessorCount++
 
-                        if (it.state== NodeInstanceState.Complete) {
+                        if (it.state == NodeInstanceState.Complete) {
                             if (node.evalCondition(engineData, it, this) == ConditionResult.TRUE) {
                                 completedPredecessorCount++
                             }
                         }
                     }
                 }
-            val cancelablePredecessors = mutableListOf<IProcessNodeInstance>()
+            val cancelablePredecessors = mutableListOf<Handle<SecureObject<ProcessNodeInstance<*>>>>()
             if (!node.isMultiMerge) {
                 processInstanceBuilder
-                    .allChildren { ! it.state.isFinal && it.entryNo == entryNo && it.node preceeds node }
-                    .mapTo(cancelablePredecessors) { it }
+                    .allChildren { !it.state.isFinal && it.entryNo == entryNo && it.node preceeds node }
+                    .mapTo(cancelablePredecessors) { it.handle }
             }
 
-            if (committedPredecessorCount<node.min) {
+            if (committedPredecessorCount < node.min) {
                 throw ProcessException("Finishing the join is not possible as the minimum amount of predecessors ${node.min} was not reached (predecessor count: $committedPredecessorCount)")
             }
-            for(instanceToCancel in cancelablePredecessors) {
-                processInstanceBuilder.updateChild(instanceToCancel) {
-                    if(this is Builder && this.updateTaskState(engineData)) {
-                        this.state = NodeInstanceState.Complete
-                    } else if (! state.isFinal) this.cancelAndSkip(engineData)
+
+            processInstanceBuilder.storeChild(this)
+            processInstanceBuilder.store(engineData)
+            engineData.commit() // Store before cancelling predecessors, the cancelling will likely hit this child
+
+            for (hInstanceToCancel in cancelablePredecessors) {
+                processInstanceBuilder.updateChild(hInstanceToCancel) {
+                    when {
+                        this is Builder &&
+                            this.updateTaskState(engineData, NodeInstanceState.Cancelled) ->
+                            this.state = NodeInstanceState.AutoCancelled
+
+                        !state.isFinal -> this.cancelAndSkip(engineData)
+                    }
                 }
             }
             super.doFinishTask(engineData, resultPayload)
         }
+
+        fun failSkipOrCancel(
+            engineData: MutableProcessEngineDataAccess,
+            cancelState: NodeInstanceState,
+            cause: Throwable
+        ) {
+            when {
+                state.isCommitted -> failTask(engineData, cause)
+
+                cancelState.isSkipped -> state = NodeInstanceState.Skipped
+
+                else -> cancel(engineData)
+            }
+        }
     }
 
-    class ExtBuilder(instance:JoinInstance, processInstanceBuilder: ProcessInstance.Builder) : ProcessNodeInstance.ExtBuilder<ExecutableJoin, JoinInstance>(instance, processInstanceBuilder), Builder {
+    class ExtBuilder(instance: JoinInstance, processInstanceBuilder: ProcessInstance.Builder) :
+        ProcessNodeInstance.ExtBuilder<ExecutableJoin, JoinInstance>(instance, processInstanceBuilder), Builder {
         override var node: ExecutableJoin by overlay { instance.node }
         override fun build() = if (changed) JoinInstance(this).also { invalidateBuilder(it) } else base
-        override fun skipTask(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState) = skipTaskImpl(engineData, newState)
+        override fun skipTask(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState) =
+            skipTaskImpl(engineData, newState)
 
     }
 
@@ -144,55 +173,85 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
     override val handle: Handle<SecureObject<JoinInstance>>
         get() = super.handle as Handle<SecureObject<JoinInstance>>
 
-    fun canFinish() = predecessors.size>=node.min
+    fun canFinish() = predecessors.size >= node.min
 
-    constructor(node: ExecutableJoin,
-                predecessors: Collection<Handle<SecureObject<ProcessNodeInstance<*>>>>,
-                processInstanceBuilder: ProcessInstance.Builder,
-                hProcessInstance: Handle<SecureObject<ProcessInstance>>,
-                owner: Principal,
-                entryNo: Int,
-                handle: Handle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
-                state: NodeInstanceState = NodeInstanceState.Pending,
-                results: Iterable<ProcessData> = emptyList()) :
+    constructor(
+        node: ExecutableJoin,
+        predecessors: Collection<Handle<SecureObject<ProcessNodeInstance<*>>>>,
+        processInstanceBuilder: ProcessInstance.Builder,
+        hProcessInstance: Handle<SecureObject<ProcessInstance>>,
+        owner: Principal,
+        entryNo: Int,
+        handle: Handle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
+        state: NodeInstanceState = NodeInstanceState.Pending,
+        results: Iterable<ProcessData> = emptyList()
+    ) :
         super(node, predecessors, processInstanceBuilder, hProcessInstance, owner, entryNo, handle, state, results) {
         if (predecessors.any { !it.isValid }) {
             throw ProcessException("When creating joins all handles should be valid $predecessors")
         }
     }
 
-    constructor(builder:Builder): this(builder.node, builder.predecessors, builder.processInstanceBuilder, builder.hProcessInstance, builder.owner, builder.entryNo, builder.handle, builder.state, builder.results)
+    constructor(builder: Builder) : this(
+        builder.node,
+        builder.predecessors,
+        builder.processInstanceBuilder,
+        builder.hProcessInstance,
+        builder.owner,
+        builder.entryNo,
+        builder.handle,
+        builder.state,
+        builder.results
+    )
 
     override fun builder(processInstanceBuilder: ProcessInstance.Builder) =
         ExtBuilder(this, processInstanceBuilder)
 
     companion object {
-        fun build(joinImpl: ExecutableJoin,
-                  predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
-                  processInstanceBuilder: ProcessInstance.Builder,
-                  entryNo: Int,
-                  handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
-                  state: NodeInstanceState = NodeInstanceState.Pending,
-                  body: Builder.() -> Unit):JoinInstance {
-            return JoinInstance(BaseBuilder(joinImpl, predecessors, processInstanceBuilder, processInstanceBuilder.owner, entryNo, handle, state).apply(body))
+        fun build(
+            joinImpl: ExecutableJoin,
+            predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
+            processInstanceBuilder: ProcessInstance.Builder,
+            entryNo: Int,
+            handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
+            state: NodeInstanceState = NodeInstanceState.Pending,
+            body: Builder.() -> Unit
+        ): JoinInstance {
+            return JoinInstance(
+                BaseBuilder(
+                    joinImpl,
+                    predecessors,
+                    processInstanceBuilder,
+                    processInstanceBuilder.owner,
+                    entryNo,
+                    handle,
+                    state
+                ).apply(body)
+            )
         }
 
-        fun build(joinImpl: ExecutableJoin,
-                  predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
-                  processInstance: ProcessInstance,
-                  entryNo: Int,
-                  handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
-                  state: NodeInstanceState = NodeInstanceState.Pending,
-                  body: Builder.() -> Unit):JoinInstance {
+        fun build(
+            joinImpl: ExecutableJoin,
+            predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
+            processInstance: ProcessInstance,
+            entryNo: Int,
+            handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
+            state: NodeInstanceState = NodeInstanceState.Pending,
+            body: Builder.() -> Unit
+        ): JoinInstance {
             return build(joinImpl, predecessors, processInstance.builder(), entryNo, handle, state, body)
         }
 
         /**
          * Update the state of the task. Returns true if the task should now be finished by the caller.
+         * @param cancelState The state to use when the instance cannot work
          * @return `true` if the caller should finish the task, `false` if not
          */
         @JvmStatic
-        private fun Builder.updateTaskState(engineData: MutableProcessEngineDataAccess): Boolean {
+        private fun Builder.updateTaskState(
+            engineData: MutableProcessEngineDataAccess,
+            cancelState: NodeInstanceState
+        ): Boolean {
             if (state.isFinal) return false // Don't update if we're already complete
 
             val join = node
@@ -211,13 +270,6 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
                     if (hNodeInst !in predecessors) {
                         predecessorsToAdd.add(hNodeInst)
                     }
-/*
-                } else {
-                    if (nodeInstance.entryNo == entryNo) {
-                        predecessorsToAdd.add(nodeInstance.handle.toComparableHandle())
-                        instantiatedPredecessors.add(nodeInstance)
-                    }
-*/
                 }
             }
 
@@ -237,42 +289,59 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
             }
 
             var complete = 0
-            var skipped = 0
+            var skippedOrNever = 0
             var pending = 0
-            for (predecessor in instantiatedPredecessors ) {
-                when (predecessor.state) {
-                    NodeInstanceState.Complete -> complete += 1
+            for (predecessor in instantiatedPredecessors) {
+                val condition = node.conditions[predecessor.node.identifier] as? ExecutableCondition
 
-                    NodeInstanceState.Skipped,
-                    NodeInstanceState.SkippedCancel,
-                    NodeInstanceState.Cancelled,
-                    NodeInstanceState.SkippedFail,
-                    NodeInstanceState.Failed -> skipped += 1
-                    else -> pending +=1
+                val conditionResult = condition.evalCondition(engineData, predecessor, this)
+                if (conditionResult == ConditionResult.NEVER) {
+                    skippedOrNever += 1
+                } else {
+                    when (predecessor.state) {
+                        NodeInstanceState.Complete -> complete += 1
+
+                        NodeInstanceState.Skipped,
+                        NodeInstanceState.SkippedCancel,
+                        NodeInstanceState.Cancelled,
+                        NodeInstanceState.SkippedFail,
+                        NodeInstanceState.Failed -> skippedOrNever += 1
+                        else -> pending += 1
+                    }
                 }
             }
-            if (totalPossiblePredecessors - skipped < join.min) {
+            if (totalPossiblePredecessors - skippedOrNever < join.min) {
                 // XXX this needs to be done in the caller
-                // cancelNoncompletedPredecessors(engineData)
-                failTask(engineData, ProcessException("Too many predecessors have failed"))
+                if (complete > 0) {
+                    failTask(engineData, ProcessException("Too many predecessors have failed"))
+                } else {
+                    // cancelNoncompletedPredecessors(engineData)
+                    failSkipOrCancel(engineData, cancelState, ProcessException("Too many predecessors have failed"))
+                }
             }
 
             if (complete >= join.min) {
-                if (totalPossiblePredecessors-complete-skipped ==0) return true
-                if (complete >= join.max || instantiatedPredecessors.none()) {
+                if (totalPossiblePredecessors - complete - skippedOrNever == 0) return true
+                if (complete >= join.max || (realizedPredecessors == totalPossiblePredecessors)) {
                     return true
                 }
             }
-            if (mustDecide) failTask(engineData, ProcessException("Unexpected failure to complete join"))
+            if (mustDecide) {
+                if (state==NodeInstanceState.Started) {
+                    cancel(engineData)
+                } else {
+                    failSkipOrCancel(engineData, cancelState, ProcessException("Unexpected failure to complete join"))
+                }
+            }
             return false
         }
 
         private fun Builder.skipTaskImpl(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState) {
             // Skipping a join merely triggers a recalculation
             assert(newState == NodeInstanceState.Skipped || newState == NodeInstanceState.SkippedCancel || newState == NodeInstanceState.SkippedFail)
-            val updateResult = updateTaskState(engineData)
+            val updateResult = updateTaskState(engineData, newState)
             processInstanceBuilder.storeChild(this)
-            store(engineData)
+            processInstanceBuilder.store(engineData)
 
             if (state.isSkipped) {
 
@@ -284,10 +353,10 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
                 val predQueue = ArrayDeque<IProcessNodeInstance>().apply { add(pseudoContext.getInstance(handle)!!) }
                 while (predQueue.isNotEmpty()) {
                     when (val pred = predQueue.removeFirst()) {
-                        is PseudoInstance         -> when (pred.node) {
+                        is PseudoInstance -> when (pred.node) {
                             is Split -> {
                             }
-                            else     -> {
+                            else -> {
                                 pred.state = NodeInstanceState.AutoCancelled
                                 for (hppred in pred.predecessors) {
                                     pseudoContext.getInstance(hppred)?.let { predQueue.add(it) }
@@ -303,13 +372,10 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
                 }
 
-                engineData.instance(hProcessInstance).withPermission().update(engineData) {
-                    for (predecessor in toSkipCancel) {
-                        updateChild(predecessor.handle) {
-                            cancelAndSkip(engineData)
-                        }
+                for (predecessor in toSkipCancel) {
+                    processInstanceBuilder.updateChild(predecessor.handle) {
+                        cancelAndSkip(engineData)
                     }
-
                 }
             }
         }

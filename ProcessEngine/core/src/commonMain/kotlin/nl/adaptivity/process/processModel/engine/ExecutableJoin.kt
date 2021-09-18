@@ -26,10 +26,7 @@ import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
-import nl.adaptivity.process.processModel.engine.ExecutableProcessNode.Companion.evalCondition
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.process.util.IdentifyableSet
-import nl.adaptivity.process.util.MutableIdentifyableSet
 
 
 class ExecutableJoin(
@@ -42,6 +39,10 @@ class ExecutableJoin(
         get() = super.ownerModel as ExecutableModelCommon
 
     override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
+
+    override fun startTask(instance: ProcessNodeInstance.Builder<*, *>): Boolean {
+        return super.startTask(instance)
+    }
 
     fun getExistingInstance(
         data: ProcessEngineDataAccess,

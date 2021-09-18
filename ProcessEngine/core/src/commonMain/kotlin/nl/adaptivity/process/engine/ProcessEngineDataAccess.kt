@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.engine
 
-import net.devrieze.util.ComparableHandle
 import net.devrieze.util.Handle
 import net.devrieze.util.HandleMap
 import net.devrieze.util.MutableHandleMap
@@ -65,4 +64,35 @@ interface MutableProcessEngineDataAccess : ProcessEngineDataAccess {
 
     /** Handle a process instance completing. This allows the policy of deleting or not to be delegated here. */
     fun handleFinishedInstance(handle: Handle<SecureObject<ProcessInstance>>)
+
+    @OptIn(ProcessInstanceStorage::class)
+    fun updateInstance(
+        hProcessInstance: Handle<SecureObject<ProcessInstance>>,
+        transform: ProcessInstance.ExtBuilder.() -> Unit
+    ) {
+        try {
+            (instances[hProcessInstance] ?: throw ProcessException("Unexpected invalid handle: $hProcessInstance"))
+                .withPermission()
+                .update(this, transform)
+        } catch (e: Exception) {
+            invalidateCachePI(hProcessInstance)
+            throw e
+        }
+    }
+
+    @OptIn(ProcessInstanceStorage::class)
+    fun updateNodeInstance(
+        hNodeInstance: Handle<SecureObject<ProcessNodeInstance<*>>>,
+        transform: ProcessNodeInstance.Builder<*, *>.() -> Unit
+    ): SecureObject<ProcessNodeInstance<*>> {
+        updateInstance(nodeInstance(hNodeInstance).shouldExist(hNodeInstance).withPermission().hProcessInstance) {
+            try {
+                updateChild(hNodeInstance, transform)
+            } catch (e: Exception) {
+                invalidateCachePNI(hNodeInstance)
+                throw e
+            }
+        }
+        return nodeInstance(hNodeInstance)
+    }
 }

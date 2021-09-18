@@ -211,15 +211,15 @@ class TestContext(private val config: TraceTest.CompanionBase) {
     inline fun updateNodeInstance(
         traceElement: TraceElement,
         instanceHandle: ComparableHandle<SecureObject<ProcessInstance>> = hInstance,
-        action: ProcessNodeInstance.Builder<out ExecutableProcessNode, *>.() -> Unit
+        crossinline action: ProcessNodeInstance.Builder<out ExecutableProcessNode, *>.() -> Unit
     ) {
+
         val nodeInstance = traceElement.getNodeInstance(transaction, getProcessInstance(instanceHandle))
             ?: fail("Missing node instance for $traceElement")
-        val processInstance = getProcessInstance(nodeInstance.hProcessInstance)
-        processInstance.update(transaction.writableEngineData) {
-            updateChild(nodeInstance, action)
-        }
 
+        transaction.writableEngineData.updateInstance(instanceHandle) {
+            updateChild(nodeInstance.handle, action)
+        }
     }
 
     fun runTrace(
@@ -456,10 +456,12 @@ private fun ContainerContext.createJoinElementTest(trace: Trace, elementIdx: Int
 
 private fun ContainerContext.createMessageElementTest(trace: Trace, elementIdx: Int, node: MessageActivity) {
     val traceElement = trace[elementIdx]
-    addTest("Activity node $traceElement should be not be finished before completion") {
+    addTest("Activity node $traceElement should not be be finished before completion") {
         runTrace(trace, elementIdx) // just before the element
         val nodeInstance = traceElement.getNodeInstance()!!
-        assertFalse(nodeInstance.state.isFinal, nodeInstance.toString())
+        assertFalse(nodeInstance.state.isFinal) {
+            "Node ${nodeInstance} should not be final"
+        }
     }
     addTest("Activity node $traceElement should be finished on completion") {
         runTrace(trace, elementIdx + 1) // just before the element
@@ -479,17 +481,16 @@ private fun ContainerContext.createMessageElementTest(trace: Trace, elementIdx: 
         runTrace(trace, elementIdx)
         var nodeInstance = traceElement.getNodeInstance()!!
         assertEquals(traceElement.nodeId, node.id)
-        val tr = transaction
-        val processInstance = getProcessInstance(nodeInstance.hProcessInstance)
-        processInstance.update(tr.writableEngineData) {
-            updateChild(nodeInstance) {
-                startTask(tr.writableEngineData)
-            }
+        nodeInstance = transaction.writableEngineData.updateNodeInstance(nodeInstance.handle) {
+            startTask(transaction.writableEngineData)
+        }.withPermission()
+        val finalNodeInstance = traceElement.getNodeInstance()!!
+        assertEquals(finalNodeInstance, nodeInstance) {
+            "A node from the data access and returned from update should be the same."
         }
-        nodeInstance = traceElement.getNodeInstance()!!
 
         assertTrue(nodeInstance.state.isCommitted) {
-            "The instance state was ${processInstance.toDebugString(transaction)}"
+            "The instance state was ${getProcessInstance(nodeInstance.hProcessInstance).toDebugString(transaction)}"
         }
         assertEquals(NodeInstanceState.Started, nodeInstance.state)
     }
@@ -497,10 +498,8 @@ private fun ContainerContext.createMessageElementTest(trace: Trace, elementIdx: 
         runTrace(trace, elementIdx)
         run {
             val nodeInstance = traceElement.getNodeInstance()!!
-            getProcessInstance(nodeInstance.hProcessInstance).update(transaction.writableEngineData) {
-                updateChild(nodeInstance) {
-                    finishTask(transaction.writableEngineData, traceElement.resultPayload)
-                }
+            transaction.writableEngineData.updateNodeInstance(nodeInstance.handle) {
+                finishTask(transaction.writableEngineData, traceElement.resultPayload)
             }
         }
         assertEquals(NodeInstanceState.Complete, traceElement.getNodeInstance()?.state)

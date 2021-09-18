@@ -54,7 +54,7 @@ import javax.xml.transform.dom.DOMSource
 /**
  * Created by pdvrieze on 18/08/15.
  */
-class TestProcessEngine: ProcessEngineTestSupport() {
+class TestProcessEngine : ProcessEngineTestSupport() {
 
     private fun getXml(name: String): ByteArray? {
         javaClass.getResourceAsStream("/nl/adaptivity/process/engine/test/" + name)!!.use { reader ->
@@ -80,7 +80,8 @@ class TestProcessEngine: ProcessEngineTestSupport() {
 
     private fun getDocument(name: String): Document {
         try {
-            javaClass.getResourceAsStream("/nl/adaptivity/process/engine/test/" + name).use { reader -> return documentBuilder.parse(reader) }
+            javaClass.getResourceAsStream("/nl/adaptivity/process/engine/test/" + name)
+                .use { reader -> return documentBuilder.parse(reader) }
         } catch (e: Exception) {
             if (e is RuntimeException) {
                 throw e
@@ -105,12 +106,12 @@ class TestProcessEngine: ProcessEngineTestSupport() {
     }
 
     fun assertEqualsXml(expected: ByteArray, actual: CharArray?) {
-        if (actual==null) org.junit.jupiter.api.fail("No actual result")
+        if (actual == null) org.junit.jupiter.api.fail("No actual result")
         val expected = String(expected)
         val actual = String(actual)
 
         val expectedDoc = DocumentBuilderFactory
-            .newInstance().apply { isNamespaceAware=true }
+            .newInstance().apply { isNamespaceAware = true }
             .newDocumentBuilder()
             .parse(InputSource(StringReader(expected)))
         assertNotNull(expectedDoc)
@@ -127,8 +128,10 @@ class TestProcessEngine: ProcessEngineTestSupport() {
         }
 
         if (diff.hasDifferences()) {
-            assertEquals(expected, actual,
-                         diff.toString(DefaultComparisonFormatter()))
+            assertEquals(
+                expected, actual,
+                diff.toString(DefaultComparisonFormatter())
+            )
         }
     }
 
@@ -148,7 +151,7 @@ class TestProcessEngine: ProcessEngineTestSupport() {
                 "testInstance1",
                 UUID.randomUUID(),
                 null
-                                                           )
+            )
 
             assertEquals(1, stubMessageService._messages.size)
             assertEquals(1L, stubMessageService.getMessageNode(0).handleValue)
@@ -174,7 +177,7 @@ class TestProcessEngine: ProcessEngineTestSupport() {
                 val taskNode = stubMessageService.messageNode(transaction, 0)
                 taskNode.assertAcknowledged()
                 processInstance.assertActive(taskNode)
-                processInstance.update(engineData) {
+                engineData.updateInstance(processInstance.handle) {
                     updateChild(taskNode) {
                         finishTask(engineData)
                         assertComplete()
@@ -201,9 +204,9 @@ class TestProcessEngine: ProcessEngineTestSupport() {
     fun testConditionFalse() {
         val model = ExecutableProcessModel.build {
             owner = modelOwnerPrincipal
-            val start = startNode { id="start" }
-            val ac = activity { id="ac"; predecessor=start.identifier; condition=ExecutableCondition.FALSE }
-            val end = endNode { id="end"; predecessor=ac }
+            val start = startNode { id = "start" }
+            val ac = activity { id = "ac"; predecessor = start.identifier; condition = ExecutableCondition.FALSE }
+            val end = endNode { id = "end"; predecessor = ac }
         }
         testProcess(model) { processEngine, transaction, model, instanceHandle ->
             transaction.readableEngineData.instance(instanceHandle).withPermission().let { instance ->
@@ -220,9 +223,9 @@ class TestProcessEngine: ProcessEngineTestSupport() {
     fun testConditionTrue() {
         val model = ExecutableProcessModel.build {
             owner = modelOwnerPrincipal
-            val start = startNode { id="start" }
-            val ac = activity { id="ac"; predecessor=start.identifier; condition("true()") }
-            val end = endNode { id="end"; predecessor=ac }
+            val start = startNode { id = "start" }
+            val ac = activity { id = "ac"; predecessor = start.identifier; condition("true()") }
+            val end = endNode { id = "end"; predecessor = ac }
         }
         testProcess(model) { processEngine, transaction, model, instanceHandle ->
             transaction.readableEngineData.instance(instanceHandle).withPermission().let { instance ->
@@ -261,7 +264,7 @@ class TestProcessEngine: ProcessEngineTestSupport() {
                         }
                     }
 
-                    instance.update(engineData) {
+                    engineData.updateInstance(instance.handle) {
                         updateChild(ac1) {
                             finishTask(engineData)
                             assertComplete()
@@ -282,7 +285,7 @@ class TestProcessEngine: ProcessEngineTestSupport() {
                     instance.assertActive(ac2, split, join)
                     // check join is in the pending set
 
-                    instance.update(transaction.writableEngineData) {
+                    transaction.writableEngineData.updateInstance(instanceHandle) {
                         updateChild(ac2) {
                             startTask(transaction.writableEngineData)
                         }
@@ -300,7 +303,7 @@ class TestProcessEngine: ProcessEngineTestSupport() {
                     instance.assertFinished(ac1, start)
                     instance.assertActive(ac2, split, join)
 
-                    instance.update(engineData) {
+                    engineData.updateInstance(instanceHandle) {
                         updateChild(ac2) {
                             finishTask(engineData)
                             assertComplete()
@@ -377,14 +380,15 @@ class TestProcessEngine: ProcessEngineTestSupport() {
                     assertEquals(
                         listOf(XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")),
                         r[1].originalNSContext.toList()
-                                )
+                    )
                 } else {
-                    assertEquals(listOf(
-                        XmlEvent.NamespaceImpl("", "http://adaptivity.nl/ProcessEngine/"),
-                        XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")
-                                       ),
-                                 r[1].originalNSContext.sortedBy { it.prefix })
-
+                    assertEquals(
+                        listOf(
+                            XmlEvent.NamespaceImpl("", "http://adaptivity.nl/ProcessEngine/"),
+                            XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")
+                        ),
+                        r[1].originalNSContext.sortedBy { it.prefix }
+                    )
                 }
 
 
@@ -403,12 +407,12 @@ class TestProcessEngine: ProcessEngineTestSupport() {
             ac1 = processEngine.finishTask(
                 transaction,
                 ac1.handle, getDocument("testModel2_response1.xml").toFragment(), modelOwnerPrincipal
-                                          )
+            )
             assertEquals(NodeInstanceState.Complete, ac1.state)
             ac1 = processEngine.getNodeInstance(
                 transaction,
                 ac1.handle, modelOwnerPrincipal
-                                               ) ?: throw AssertionError("Node ${ac1.handle} not found")
+            ) ?: throw AssertionError("Node ${ac1.handle} not found")
             assertEquals(2, ac1.results.size)
             val result1 = ac1.results[0]
             val result2 = ac1.results[1]
@@ -424,7 +428,7 @@ class TestProcessEngine: ProcessEngineTestSupport() {
             assertEquals(
                 2L,
                 stubMessageService.getMessageNode(0).handleValue
-                        ) //We should have a new message with the new task (with the data)
+            ) //We should have a new message with the new task (with the data)
             val ac2 =
                 processEngine.getNodeInstance(transaction, stubMessageService.getMessageNode(0), modelOwnerPrincipal)
 
@@ -438,48 +442,49 @@ class TestProcessEngine: ProcessEngineTestSupport() {
         }
     }
 
-    private val simpleSplitModel: ExecutableProcessModel get() {
-        return ExecutableProcessModel.build {
-            owner = modelOwnerPrincipal
-            val start = startNode {
-                id = "start"
-            }
-            val split1 = split {
-                predecessor = start.identifier
-                id = "split1"
-                min = 2
-                max = 2
-            }
-            val ac1 = activity {
-                predecessor = split1.identifier
-                id = "ac1"
-                message = XmlMessage()
-                result {
-                    name = "ac1result"
-                    content = "ac1content".toCharArray()
+    private val simpleSplitModel: ExecutableProcessModel
+        get() {
+            return ExecutableProcessModel.build {
+                owner = modelOwnerPrincipal
+                val start = startNode {
+                    id = "start"
                 }
-            }
-            val ac2 = activity {
-                predecessor = split1.identifier
-                id = "ac2"
-                message = XmlMessage()
-                result {
-                    name = "ac2result"
-                    content = "ac2content".toCharArray()
+                val split1 = split {
+                    predecessor = start.identifier
+                    id = "split1"
+                    min = 2
+                    max = 2
                 }
-            }
-            val join = join {
-                predecessors(ac1, ac2)
-                id = "join1"
-                min = 2
-                max = 2
-            }
-            endNode {
-                id = "end"
-                predecessor = join
+                val ac1 = activity {
+                    predecessor = split1.identifier
+                    id = "ac1"
+                    message = XmlMessage()
+                    result {
+                        name = "ac1result"
+                        content = "ac1content".toCharArray()
+                    }
+                }
+                val ac2 = activity {
+                    predecessor = split1.identifier
+                    id = "ac2"
+                    message = XmlMessage()
+                    result {
+                        name = "ac2result"
+                        content = "ac2content".toCharArray()
+                    }
+                }
+                val join = join {
+                    predecessors(ac1, ac2)
+                    id = "join1"
+                    min = 2
+                    max = 2
+                }
+                endNode {
+                    id = "end"
+                    predecessor = join
+                }
             }
         }
-    }
 
     companion object {
 

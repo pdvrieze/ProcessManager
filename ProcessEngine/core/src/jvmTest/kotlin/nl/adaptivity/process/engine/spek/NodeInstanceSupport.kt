@@ -28,48 +28,50 @@ import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xmlutil.util.CompactFragment
 import kotlin.reflect.KProperty
 
-class ProcessNodeInstanceDelegate(val instanceSupport: InstanceSupport, val instanceHandle: Handle<SecureObject<ProcessInstance>>, val nodeId: Identified) {
-  operator fun getValue(thisRef: Any?, property: KProperty<*>): ProcessNodeInstance<*> {
-    val idString = nodeId.id
-    val instance = instanceSupport.transaction.readableEngineData.instance(instanceHandle).withPermission()
-    return with(instanceSupport) {
-      instance.allChildren().firstOrNull { it.node.id == idString }
-      ?: kfail("The process node instance for node id $nodeId could not be found. Instance is: ${instance.toDebugString()}")
+class ProcessNodeInstanceDelegate(
+    val instanceSupport: InstanceSupport,
+    val instanceHandle: Handle<SecureObject<ProcessInstance>>,
+    val nodeId: Identified
+) {
+    operator fun getValue(thisRef: Any?, property: KProperty<*>): ProcessNodeInstance<*> {
+        val idString = nodeId.id
+        val instance = instanceSupport.transaction.readableEngineData.instance(instanceHandle).withPermission()
+        return with(instanceSupport) {
+            instance.allChildren().firstOrNull { it.node.id == idString }
+                ?: kfail("The process node instance for node id $nodeId could not be found. Instance is: ${instance.toDebugString()}")
+        }
     }
-  }
 }
 
 interface SafeNodeActions {
-  val transaction: ProcessTransaction
+    val transaction: ProcessTransaction
 
-  fun ProcessNodeInstance<*>.take(): ProcessNodeInstance<*> {
-    val ib = transaction.writableEngineData.instance(hProcessInstance).withPermission().builder()
-    this.update(ib) { state= NodeInstanceState.Taken }
-    return transaction.readableEngineData.nodeInstance(handle).withPermission()
-  }
-
-  fun ProcessNodeInstance<*>.start(): ProcessNodeInstance<*> {
-    val instance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
-    instance.update(transaction.writableEngineData) {
-      updateChild(this@start) {
-        startTask(transaction.writableEngineData)
-      }
+    fun ProcessNodeInstance<*>.take(): ProcessNodeInstance<*> {
+        val ib = transaction.writableEngineData.instance(hProcessInstance).withPermission().builder()
+        this.update(ib) { state = NodeInstanceState.Taken }
+        return transaction.readableEngineData.nodeInstance(handle).withPermission()
     }
-    return transaction.readableEngineData.nodeInstance(handle).withPermission()
-  }
+
+    fun ProcessNodeInstance<*>.start(): ProcessNodeInstance<*> {
+        transaction.writableEngineData.updateInstance(hProcessInstance) {
+            updateChild(this@start.handle) {
+                startTask(transaction.writableEngineData)
+            }
+        }
+        return transaction.readableEngineData.nodeInstance(handle).withPermission()
+    }
 
 }
 
-interface ProcessNodeActions: SafeNodeActions {
+interface ProcessNodeActions : SafeNodeActions {
 
-  fun ProcessNodeInstance<*>.finish(payload: CompactFragment? = null): ProcessNodeInstance<*> {
-    val instance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
-    instance.update(transaction.writableEngineData) {
-      updateChild(this@finish) {
-        finishTask(transaction.writableEngineData, payload)
-      }
+    fun ProcessNodeInstance<*>.finish(payload: CompactFragment? = null): ProcessNodeInstance<*> {
+        transaction.writableEngineData.updateInstance(hProcessInstance) {
+            updateChild(this@finish.handle) {
+                finishTask(transaction.writableEngineData, payload)
+            }
+        }
+        return transaction.readableEngineData.nodeInstance(handle).withPermission()
     }
-    return transaction.readableEngineData.nodeInstance(handle).withPermission()
-  }
 
 }

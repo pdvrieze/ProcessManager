@@ -156,53 +156,49 @@ interface ExecutableProcessNode : ProcessNode, Identified {
         return preds
     }
 
-    companion object {
-
-        /**
-         * Should this node be able to be provided?
-         * @param engineData
-         *
-         * @param The predecessor that is evaluating the condition
-         *
-         * @param instance The instance against which the condition should be evaluated.
-         *
-         * @return `true` if the node can be started, `false` if
-         *          not.
-         */
-        internal fun ExecutableCondition?.evalCondition(engineData: ProcessEngineDataAccess, predecessor: IProcessNodeInstance, instance: IProcessNodeInstance): ConditionResult {
-            // If the instance is final, the condition maps to the state
-            if (instance.state.isFinal) {
-                return if(instance.state == NodeInstanceState.Complete) ConditionResult.TRUE else ConditionResult.NEVER
-            }
-            // A lack of condition is a true result
-            if (this==null) return ConditionResult.TRUE
-
-            if (isAlternate) { // An alternate is only true if all others are never/finalised
-                val processInstance = engineData.instance(predecessor.hProcessInstance).withPermission()
-                val successorCount = predecessor.node.maxSuccessorCount
-                val hPred = predecessor.handle.toComparableHandle()
-                var nonTakenSuccessorCount:Int = 0
-                for (sibling in processInstance.childNodes.asSequence().map { it.withPermission() }) {
-                    if (sibling.handle!=instance.handle && hPred in sibling.predecessors) {
-                        when (sibling.condition(engineData, predecessor)) {
-                            ConditionResult.TRUE -> return ConditionResult.NEVER
-                            ConditionResult.MAYBE -> return ConditionResult.MAYBE
-                            ConditionResult.NEVER -> nonTakenSuccessorCount++
-                        }
-                        if (sibling.state.isFinal) {
-                            if (sibling.state == NodeInstanceState.Complete) return ConditionResult.NEVER
-                            nonTakenSuccessorCount++
-                        } else {
-                        }
-                    }
-                }
-                if (nonTakenSuccessorCount+1>=successorCount) return ConditionResult.TRUE
-                return ConditionResult.MAYBE
-            }
-
-            return eval(engineData, instance)
-        }
-
-    }
 }
 
+/**
+ * Should this node be able to be provided?
+ * @param engineData
+ *
+ * @param The predecessor that is evaluating the condition
+ *
+ * @param instance The instance against which the condition should be evaluated.
+ *
+ * @return `true` if the node can be started, `false` if
+ *          not.
+ */
+internal fun ExecutableCondition?.evalCondition(engineData: ProcessEngineDataAccess, predecessor: IProcessNodeInstance, instance: IProcessNodeInstance): ConditionResult {
+    // If the instance is final, the condition maps to the state
+    if (instance.state.isFinal) {
+        return if(instance.state == NodeInstanceState.Complete) ConditionResult.TRUE else ConditionResult.NEVER
+    }
+    // A lack of condition is a true result
+    if (this==null) return ConditionResult.TRUE
+
+    if (isAlternate) { // An alternate is only true if all others are never/finalised
+        val processInstance = engineData.instance(predecessor.hProcessInstance).withPermission()
+        val successorCount = predecessor.node.maxSuccessorCount
+        val hPred = predecessor.handle.toComparableHandle()
+        var nonTakenSuccessorCount:Int = 0
+        for (sibling in processInstance.childNodes.asSequence().map { it.withPermission() }) {
+            if (sibling.handle!=instance.handle && hPred in sibling.predecessors) {
+                when (sibling.condition(engineData, predecessor)) {
+                    ConditionResult.TRUE -> return ConditionResult.NEVER
+                    ConditionResult.MAYBE -> return ConditionResult.MAYBE
+                    ConditionResult.NEVER -> nonTakenSuccessorCount++
+                }
+                if (sibling.state.isFinal) {
+                    if (sibling.state == NodeInstanceState.Complete) return ConditionResult.NEVER
+                    nonTakenSuccessorCount++
+                } else {
+                }
+            }
+        }
+        if (nonTakenSuccessorCount+1>=successorCount) return ConditionResult.TRUE
+        return ConditionResult.MAYBE
+    }
+
+    return eval(engineData, instance)
+}

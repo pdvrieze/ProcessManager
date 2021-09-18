@@ -331,21 +331,17 @@ fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
             if (nodeInstance.state != NodeInstanceState.Complete) {
                 val processInstance = transaction.readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
                 if (nodeInstance is JoinInstance) {
-                    processInstance.update(transaction.writableEngineData) {
-                        updateChild(nodeInstance) {
-                            startTask(transaction.writableEngineData)
-                        }
+                    transaction.writableEngineData.updateNodeInstance(nodeInstance.handle) {
+                        startTask(transaction.writableEngineData)
                     }
                 } else if (nodeInstance.node !is Split) {
                     if (nodeInstance is CompositeInstance) {
                         val childInstance = transaction.readableEngineData.instance(nodeInstance.hChildInstance).withPermission()
                         if (childInstance.state != ProcessInstance.State.FINISHED && nodeInstance.state != NodeInstanceState.Complete) {
                             try {
-                                processInstance.update( transaction.writableEngineData) {
-                                        updateChild(nodeInstance) {
-                                            finishTask(transaction.writableEngineData, null)
-                                        }
-                                    }
+                                transaction.writableEngineData.updateNodeInstance(nodeInstance.handle) {
+                                    finishTask(transaction.writableEngineData, null)
+                                }
                                 engine.processTickleQueue(transaction)
                             } catch (e: ProcessException) {
                                 if (e.message?.startsWith(
@@ -356,10 +352,8 @@ fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
                         }
                     } else if (nodeInstance.state.isFinal && nodeInstance.state != NodeInstanceState.Complete) {
                         try {
-                            processInstance.update(transaction.writableEngineData) {
-                                updateChild(nodeInstance) {
-                                    finishTask(transaction.writableEngineData, null)
-                                }
+                            transaction.writableEngineData.updateNodeInstance(nodeInstance.handle) {
+                                finishTask(transaction.writableEngineData, null)
                             }
                             engine.processTickleQueue(transaction)
                         } catch (e: ProcessException) {
@@ -370,10 +364,8 @@ fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
                         throw ProcessTestingException("The node is final but not complete (failed, skipped)")
                     }
                     try {
-                        processInstance.update(transaction.writableEngineData) {
-                            updateChild(nodeInstance) {
-                                finishTask(transaction.writableEngineData, null)
-                            }
+                        transaction.writableEngineData.updateNodeInstance(nodeInstance.handle) {
+                            finishTask(transaction.writableEngineData, null)
                         }
                         engine.processTickleQueue(transaction)
                     } catch (e:ProcessException) {
@@ -385,8 +377,10 @@ fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
         if(true) {
             val instance = transaction.readableEngineData.instance(_instance.handle).withPermission()
             val nodeInstance = traceElement.getNodeInstance(transaction, instance) ?: throw ProcessTestingException("The node instance should exist")
-            if (nodeInstance.state != NodeInstanceState.Complete) throw ProcessTestingException(
-                "At trace $traceElement -  State of node $nodeInstance not complete but ${nodeInstance.state} ${instance.toDebugString()}")
+            if (nodeInstance.state != NodeInstanceState.Complete) {
+                throw ProcessTestingException(
+                    "At trace $traceElement -  State of node $nodeInstance not complete but ${nodeInstance.state} ${instance.toDebugString()}")
+            }
         }
     }
 }

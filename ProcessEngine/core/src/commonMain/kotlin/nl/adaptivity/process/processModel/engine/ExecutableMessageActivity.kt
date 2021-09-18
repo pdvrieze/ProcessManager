@@ -22,8 +22,6 @@ import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
-import nl.adaptivity.process.processModel.engine.ExecutableProcessNode.Companion.evalCondition
-import nl.adaptivity.process.util.MutableIdentifyableSet
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlWriter

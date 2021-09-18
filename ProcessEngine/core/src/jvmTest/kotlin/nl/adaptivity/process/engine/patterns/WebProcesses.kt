@@ -83,22 +83,22 @@ class WebProcess1 : TraceTest(Companion) {
                     max = 1
                 }
 
-                val join3 by join(ac3, join2) {
+                val join3 by join(ac3, join2) { // this is a nasty or join | could be collapsed into join2 or using a split after ac4
                     min = 1
-                    max = 1
+                    max = 2
                 }
 
                 val end by endNode(join3)
             }
             with(m) {
                 val valid = trace {
-//                    (start..ac1..ac2..split1..(
-//                        ((ac3 .. split2) % (ac5..split3..join2)) or
-//                            (join1..(split2 % split3)..ac4..join2)
-//                        )..join3..end
-//                        ) or (
-                        start..(ac1("<coverage_exists/>") .. ac2("<accepted/>")..split1.. split2..split3..join1..ac4..join2..join3..end)
-//                        )
+                    (start..ac1..ac2..split1..(
+                        ((ac3 .. split2) % (ac5..split3..join2)) or
+                            (join1..(split2 % split3)..ac4..join2)
+                        )..join3..end
+                        ) or (
+                            start..(ac1("<coverage_exists/>") .. ac2("<accepted/>")..split1.. split2..split3..join1..ac4..join2..join3..end)
+                        )
                 }
                 val invalid = trace {
                     (start.opt * (split2 or split3 or ac3 or ac4 or join1 or join2 or join3 or end)) or

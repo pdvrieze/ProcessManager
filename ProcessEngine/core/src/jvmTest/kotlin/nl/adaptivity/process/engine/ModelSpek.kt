@@ -316,7 +316,7 @@ private fun EngineSuite.testTraceStarting(processInstanceF: Getter<ProcessInstan
             val predicate: (ProcessNodeInstance<*>) -> Boolean =
                 { it.state == Skipped || it.node is StartNode || it.node is Split || it.node is Join }
             val onlyStartNodesCompleted = processInstance.finishedNodes.all(predicate)
-            Assertions.assertTrue(onlyStartNodesCompleted) {
+            assertTrue(onlyStartNodesCompleted) {
                 processInstance.finishedNodes
                     .filterNot(predicate)
                     .joinToString(
@@ -376,8 +376,8 @@ private fun EngineSuite.testTraceCompletion(
                         )
                     nodeInstance.state !in listOf(
                         Skipped,
-                        NodeInstanceState.SkippedCancel,
-                        NodeInstanceState.SkippedFail
+                        SkippedCancel,
+                        SkippedFail
                     )
                 }
                 .map { it.id!! }
@@ -399,7 +399,7 @@ private fun EngineSuite.testComposite(
     traceElement: TraceElement
 ) {
     it("A child instance should have been created for $traceElement") {
-        Assertions.assertTrue(
+        assertTrue(
             (nodeInstanceF() as CompositeInstance).hChildInstance.isValid
         ) { "No child instance was recorded" }
     }
@@ -407,10 +407,10 @@ private fun EngineSuite.testComposite(
         val childInstance = transaction().readableEngineData.instance(
             (nodeInstanceF() as CompositeInstance).hChildInstance
         ).withPermission()
-        Assertions.assertEquals(ProcessInstance.State.FINISHED, childInstance.state)
+        assertEquals(ProcessInstance.State.FINISHED, childInstance.state)
     }
     it("The activity itself should be finished for $traceElement") {
-        assertEquals(NodeInstanceState.Complete, nodeInstanceF().state)
+        assertEquals(Complete, nodeInstanceF().state)
     }
 
 }
@@ -422,7 +422,7 @@ private fun EngineSuite.testActivity(
 ) {
     it("$traceElement should not be in a final state") {
         val nodeInstance = nodeInstanceF()
-        Assertions.assertFalse(nodeInstance.state.isFinal) {
+        assertFalse(nodeInstance.state.isFinal) {
             "The node ${nodeInstance.node.id} of type ${nodeInstance.node.javaClass.simpleName} is in final state ${nodeInstance.state}"
         }
     }
@@ -448,29 +448,22 @@ private fun EngineSuite.testActivity(
         var nodeInstance = nodeInstanceF()
         assertEquals(traceElement.nodeId, nodeInstance.node.id)
         val tr = transaction()
+        nodeInstance = tr.writableEngineData.updateNodeInstance(nodeInstance.handle) {
+            startTask(tr.writableEngineData)
+        }.withPermission()
         val processInstance = tr.readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
-        processInstance.update(tr.writableEngineData) {
-            updateChild(nodeInstance) {
-                startTask(tr.writableEngineData)
-            }
-        }
-        nodeInstance = nodeInstanceF()
 
-        Assertions.assertTrue(nodeInstance.state.isCommitted) {
+        assertTrue(nodeInstance.state.isCommitted) {
             "The instance state was ${processInstance.toDebugString(transaction)}"
         }
-        Assertions.assertEquals(NodeInstanceState.Started, nodeInstance.state)
+        assertEquals(Started, nodeInstance.state)
     }
     it("the node instance ${traceElement} should be final after finishing") {
         val tr = transaction()
-        tr.readableEngineData.instance(nodeInstanceF().hProcessInstance).withPermission().update(
-            tr.writableEngineData
-        ) {
-            updateChild(nodeInstanceF()) {
-                finishTask(tr.writableEngineData, traceElement.resultPayload)
-            }
+        tr.writableEngineData.updateNodeInstance(nodeInstanceF().handle) {
+            finishTask(tr.writableEngineData, traceElement.resultPayload)
         }
-        assertEquals(NodeInstanceState.Complete, nodeInstanceF().state)
+        assertEquals(Complete, nodeInstanceF().state)
     }
 }
 
@@ -481,7 +474,7 @@ private fun EngineSuite.testSplit(
 ) {
     it("Split $traceElement should already be finished") {
         val nodeInstance = nodeInstanceF()
-        Assertions.assertEquals(Complete, nodeInstance.state) {
+        assertEquals(Complete, nodeInstance.state) {
             val processInstance = transaction().readableEngineData.instance(
                 nodeInstance.hProcessInstance
             ).withPermission()
@@ -508,7 +501,7 @@ private fun EngineSuite.testJoin(
         )
         // Allow this to continue when there are
         if (!(activePredecessors.isEmpty() && nodeInstance.canFinish())) {
-            Assertions.assertEquals(Complete, nodeInstance.state) {
+            assertEquals(Complete, nodeInstance.state) {
                 "There are still active predecessors: $activePredecessors, instance: ${
                     processInstance.toDebugString(
                         transaction
@@ -528,13 +521,13 @@ private fun EngineSuite.testEndNode(
     it("$traceElement should be part of the completion nodes") {
         val nodeInstance = nodeInstanceF()
         val parentInstance = transaction().readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
-        Assertions.assertTrue(
+        assertTrue(
             parentInstance.completedNodeInstances.any { it.withPermission().node.id == traceElement.id }) {
             "Instance is: ${parentInstance.toDebugString(transaction)}"
         }
     }
     it("The predecessors of $traceElement should be final") {
-        Assertions.assertTrue(
+        assertTrue(
             nodeInstanceF().predecessors.map {
                 transaction().readableEngineData.nodeInstance(it).withPermission()
             }.all { it.state.isFinal },
@@ -559,7 +552,7 @@ private fun EngineTestBody.testAssertNodeFinished(
     nodeInstanceF: Getter<ProcessNodeInstance<*>>,
     traceElement: TraceElement
 ) {
-    Assertions.assertEquals(Complete, nodeInstanceF().state)
+    assertEquals(Complete, nodeInstanceF().state)
 }
 
 fun StubProcessTransaction.finishNodeInstance(
@@ -577,10 +570,8 @@ fun StubProcessTransaction.finishNodeInstance(
             )
     if (nodeInstance.state != Complete) {
         System.err.println("Re-finishing node ${nodeInstance.node.id} $nodeInstance for instance $instance")
-        instance.update(writableEngineData) {
-            updateChild(nodeInstance) {
-                finishTask(writableEngineData, traceElement.resultPayload)
-            }
+        writableEngineData.updateNodeInstance(nodeInstance.handle) {
+            finishTask(writableEngineData, traceElement.resultPayload)
         }
     }
     assert(nodeInstance.state == Complete)

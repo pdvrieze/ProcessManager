@@ -50,7 +50,7 @@ class PseudoInstance(
         get() = emptyList()
 
     override fun builder(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance.Builder<*, *> {
-        TODO("not implemented")
+        throw UnsupportedOperationException("Pseudo instances should not be made into builders")
     }
 
     class PseudoContext(

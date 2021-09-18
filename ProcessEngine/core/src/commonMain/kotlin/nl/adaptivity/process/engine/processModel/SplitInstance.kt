@@ -149,7 +149,7 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
                 NodeInstanceState.SkippedFail,
                 NodeInstanceState.Failed,
                 NodeInstanceState.Taken -> true
-                else                    -> false
+                else -> false
             }
         }
 
@@ -175,75 +175,55 @@ internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineD
     var activeCount = 0
     var committedCount = 0
 
+/*
     processInstanceBuilder
         .allChildren { handle in it.predecessors }
         .map { it.state }
         .forEach { state ->
             when {
-                state.isSkipped                   -> skippedCount++
+                state.isSkipped -> skippedCount++
                 state == NodeInstanceState.Failed -> failedCount++
-                state.isCommitted                 -> committedCount++
-                state.isActive                    -> activeCount++
+                state.isCommitted -> committedCount++
+                state.isActive -> activeCount++
             }
         }
+*/
 
     for (successorNode in successorNodes) {
         if (committedCount >= node.max) break // stop the loop when we are at the maximum successor count
 
-        if (successorNode is Join&& successorNode.conditions[node.identifier] == null) {
-                throw IllegalStateException("Splits cannot be immediately followed by unconditional joins")
+        if (successorNode is Join && successorNode.conditions[node.identifier] == null) {
+            throw IllegalStateException("Splits cannot be immediately followed by unconditional joins")
         }
         // Don't attempt to create an additional instance for a non-multi-instance successor
         if (!successorNode.isMultiInstance && processInstanceBuilder.allChildren { it.node == successorNode && !it.state.isSkipped && it.entryNo != entryNo }
                 .count() > 0) continue
 
-        val successorBuilder = successorNode.createOrReuseInstance(
-            engineData,
-            processInstanceBuilder,
-            this,
-            entryNo,
-            allowFinalInstance = true
-        )
+        val successorBuilder = successorNode
+            .createOrReuseInstance(engineData, processInstanceBuilder, this, entryNo, allowFinalInstance = true)
+
         processInstanceBuilder.storeChild(successorBuilder)
         if (successorBuilder.state == NodeInstanceState.Pending ||
             (successorBuilder.node is Join && successorBuilder.state.isActive)) {
-            // temporaryly build a node to evaluate the condition against, but don't register it.
-            val conditionResult = when {
-                successorBuilder.state.isFinal -> when (successorBuilder.state) {
-                    NodeInstanceState.Complete -> ConditionResult.TRUE
-                    else -> ConditionResult.NEVER
-                }
-                // If we have a join with missing predecessors we can't do it yet
-                successorBuilder.node is Join &&
-                    successorBuilder.predecessors.any { !it.isValid } -> ConditionResult.MAYBE
 
-                else -> successorBuilder.build()
-                    .condition(engineData, this)
+            when (successorBuilder.condition(engineData, this)) {
+                // only if it can be executed, otherwise just drop it.
+                ConditionResult.TRUE -> if (successorBuilder.state.canRestart ||
+                    successorBuilder is Join.Builder
+                ) successorBuilder.provideTask(engineData)
+
+                ConditionResult.NEVER -> successorBuilder.skipTask(engineData, NodeInstanceState.Skipped)
+
+                ConditionResult.MAYBE -> Unit /*option can not be advanced for now*/
             }
+        }
 
-            when (conditionResult) {
-                ConditionResult.TRUE  -> { // only if it can be executed, otherwise just drop it.
-                    successorBuilder.provideTask(engineData)
-                }
-                ConditionResult.NEVER -> {
-                    successorBuilder.skipTask(engineData, NodeInstanceState.Skipped)
-                }
-                ConditionResult.MAYBE -> {
-                } /*option can not be advanced for now*/
-            }
-
-
-            val successorInstance =
-                processInstanceBuilder.allChildren { it.node == successorNode && handle in it.predecessors }
-                    .firstOrNull()
-            successorInstance?.state?.also { state ->
-                when {
-                    state.isSkipped                   -> skippedCount++
-                    state == NodeInstanceState.Failed -> failedCount++
-                    state.isCommitted                 -> committedCount++
-                    state.isActive                    -> activeCount++
-                }
-
+        successorBuilder.state.also { state ->
+            when {
+                state.isSkipped -> skippedCount++
+                state == NodeInstanceState.Failed -> failedCount++
+                state.isCommitted -> committedCount++
+                state.isActive -> activeCount++
             }
         }
 
