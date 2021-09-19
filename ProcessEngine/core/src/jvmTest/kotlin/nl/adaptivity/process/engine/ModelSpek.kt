@@ -268,7 +268,7 @@ internal fun EngineSuite.testInvalidTrace(
                         get() = engineData.engine
 
                 }
-                instanceSupport.testTraceExceptionThrowing(processInstanceF(), invalidTrace)
+                instanceSupport.testTraceExceptionThrowing(hinstance(), invalidTrace)
             } catch (e: ProcessTestingException) {
                 if (!failureExpected) {
                     throw e

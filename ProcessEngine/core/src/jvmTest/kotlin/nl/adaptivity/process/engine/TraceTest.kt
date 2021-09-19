@@ -581,7 +581,7 @@ fun createInvalidTraceTest(
                         get() = engineData.engine
 
                 }
-                instanceSupport.testTraceExceptionThrowing(getProcessInstance(), trace)
+                instanceSupport.testTraceExceptionThrowing(hInstance, trace)
             } catch (e: ProcessTestingException) {
                 if (!failureExpected) {
                     throw e

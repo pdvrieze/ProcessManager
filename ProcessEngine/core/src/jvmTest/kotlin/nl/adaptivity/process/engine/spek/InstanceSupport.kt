@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine.spek
 
+import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.writer
 import nl.adaptivity.process.engine.*
@@ -119,7 +120,10 @@ interface InstanceSupport {
         Assertions.assertEquals(nodeIds.sorted(), active, { "The list of active nodes does not match (Expected: [${nodeIds.joinToString()}], found: [${active.joinToString()}])" })
     }
 
-
+    fun TraceElement.getNodeInstance(hInstance: Handle<SecureObject<ProcessInstance>>): ProcessNodeInstance<*>? {
+        val instance = transaction.readableEngineData.instance(hInstance).withPermission()
+        return getNodeInstance(transaction, instance)
+    }
 }
 
 

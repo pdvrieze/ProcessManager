@@ -81,7 +81,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         if (state != SkippedInvalidated &&
             !(node.isMultiInstance || ((node as? ExecutableJoin)?.isMultiMerge == true))
         ) {
-            if (processInstanceBuilder.allChildren { it.node == node && it.entryNo != entryNo && it.state != SkippedInvalidated }
+            if (processInstanceBuilder.allChildNodeInstances { it.node == node && it.entryNo != entryNo && it.state != SkippedInvalidated }
                     .any()) {
                 throw ProcessException("Attempting to create a new instance $entryNo for node $node that does not support reentry")
             }
@@ -127,11 +127,6 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         get() = this as T
 
     override fun withPermission(): ProcessNodeInstance<T> = this
-
-    @Suppress("UNUSED_PARAMETER")
-    fun getResult(engineData: ProcessEngineDataAccess, name: String): ProcessData? {
-        return results.firstOrNull { name == it.name }
-    }
 
     private fun hasDirectPredecessor(handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>): Boolean {
         return predecessors.any { it.handleValue == handle.handleValue }

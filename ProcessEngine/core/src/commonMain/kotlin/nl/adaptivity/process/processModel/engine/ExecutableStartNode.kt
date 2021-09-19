@@ -19,11 +19,9 @@ package nl.adaptivity.process.processModel.engine
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.process.util.MutableIdentifyableSet
 
 
 class ExecutableStartNode(builder: StartNode.Builder, buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>) : StartNodeBase<ExecutableProcessNode, ExecutableModelCommon>(
@@ -49,7 +47,7 @@ class ExecutableStartNode(builder: StartNode.Builder, buildHelper: ProcessModel.
     override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
     fun createOrReuseInstance(processInstanceBuilder: ProcessInstance.Builder, entryNo: Int)
-        = processInstanceBuilder.getChild(this, entryNo)
+        = processInstanceBuilder.getChildNodeInstance(this, entryNo)
         ?: DefaultProcessNodeInstance.BaseBuilder(this, emptyList(),
                                                   processInstanceBuilder,
                                                   processInstanceBuilder.owner,

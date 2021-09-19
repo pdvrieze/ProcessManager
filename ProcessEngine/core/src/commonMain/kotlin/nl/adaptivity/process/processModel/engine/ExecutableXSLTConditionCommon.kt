@@ -21,11 +21,9 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import nl.adaptivity.process.engine.ProcessEngineDataAccess
+import nl.adaptivity.process.engine.NodeInstanceSource
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.processModel.Condition
-import nl.adaptivity.xmlutil.XmlSerializable
-import nl.adaptivity.xmlutil.XmlWriter
 
 /**
  * Class encapsulating a condition.
@@ -42,10 +40,10 @@ expect class ExecutableXSLTCondition(condition: String, label: String? = null) :
      * Evaluate the condition.
      *
      * @param engineData The transaction to use for reading state
-     * @param instance The instance to use to evaluate against.
+     * @param nodeInstance The instance to use to evaluate against.
      * @return `true` if the condition holds, `false` if not
      */
-    override fun eval(engineData: ProcessEngineDataAccess, instance: IProcessNodeInstance): ConditionResult
+    override fun eval(nodeInstanceSource: NodeInstanceSource, nodeInstance: IProcessNodeInstance): ConditionResult
 
 }
 

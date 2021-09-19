@@ -54,30 +54,36 @@ interface IProcessNodeInstance: ReadableHandleAware<SecureObject<ProcessNodeInst
 
     fun build(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance<*> = builder(processInstanceBuilder).build()
 
-    fun condition(engineData: ProcessEngineDataAccess, predecessor: IProcessNodeInstance) =
-        node.evalCondition(engineData, predecessor, this)
+    fun condition(
+        nodeInstanceSource: NodeInstanceSource,
+        predecessor: IProcessNodeInstance
+    ) = node.evalCondition(nodeInstanceSource, predecessor, this)
 
-    fun resolvePredecessor(engineData: ProcessEngineDataAccess, nodeName: String): ProcessNodeInstance<*>? {
-        val handle = getPredecessor(engineData, nodeName)
+    fun resolvePredecessor(nodeInstanceSource: NodeInstanceSource, nodeName: String): IProcessNodeInstance? {
+        val handle = getPredecessor(nodeInstanceSource, nodeName)
             ?: throw NullPointerException("Missing predecessor with name $nodeName referenced from node ${node.id}")
-        return engineData.nodeInstances[handle]?.withPermission()
+        return nodeInstanceSource.getChildNodeInstance(handle)
+    }
+
+    @Suppress("UNUSED_PARAMETER")
+    fun getResult(engineData: ProcessEngineDataAccess, name: String): ProcessData? {
+        return results.firstOrNull { name == it.name }
     }
 
 }
 
 private fun IProcessNodeInstance.getPredecessor(
-    engineData: ProcessEngineDataAccess,
+    nodeInstanceSource: NodeInstanceSource,
     nodeName: String
-                                               ): Handle<SecureObject<ProcessNodeInstance<*>>>? {
+): Handle<SecureObject<ProcessNodeInstance<*>>>? {
     // TODO Use process structure knowledge to do this better/faster without as many database lookups.
-    predecessors
-        .asSequence()
-        .map { engineData.nodeInstance(it).withPermission() }
-        .forEach {
-            if (nodeName == it.node.id) {
-                return it.handle
+    predecessors.asSequence()
+        .map { hPred -> nodeInstanceSource.getChildNodeInstance(hPred) }
+        .forEach { predNode ->
+            if (nodeName == predNode.node.id) {
+                return predNode.handle
             } else {
-                val result = it.getPredecessor(engineData, nodeName)
+                val result = predNode.getPredecessor(nodeInstanceSource, nodeName)
                 if (result != null) {
                     return result
                 }

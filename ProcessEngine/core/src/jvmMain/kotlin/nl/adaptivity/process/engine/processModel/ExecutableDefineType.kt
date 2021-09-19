@@ -36,8 +36,10 @@ import javax.xml.xpath.XPathConstants
 
 @Throws(SQLException::class)
 actual fun IXmlDefineType.applyData(engineData: ProcessEngineDataAccess, context: ActivityInstanceContext): ProcessData {
+    // TODO, make this not need engineData
+    val processInstance = engineData.instance(context.processContext.handle).withPermission()
     val node = engineData.nodeInstance(context.handle).withPermission()
-    return applyDataImpl(engineData, refNode?.let { node.resolvePredecessor(engineData, it)}, node.hProcessInstance)
+    return applyDataImpl(engineData, refNode?.let { node.resolvePredecessor(processInstance, it)}, node.hProcessInstance)
 }
 
 
@@ -54,7 +56,7 @@ actual fun IXmlDefineType.applyFromProcessInstance(engineData: ProcessEngineData
 @Throws(SQLException::class)
 actual fun IXmlDefineType.applyFromProcessInstance(engineData: ProcessEngineDataAccess, processInstance: ProcessInstance.Builder): ProcessData {
     val predecessor: IProcessNodeInstance? = refNode?.let { refNode -> processInstance
-        .allChildren { it.node.id == refNode }
+        .allChildNodeInstances { it.node.id == refNode }
         .lastOrNull()
     }
     return applyDataImpl(engineData, predecessor?.build(processInstance), processInstance.handle)
@@ -62,7 +64,7 @@ actual fun IXmlDefineType.applyFromProcessInstance(engineData: ProcessEngineData
 
 
 @OptIn(XmlUtilInternal::class)
-private fun IXmlDefineType.applyDataImpl(engineData: ProcessEngineDataAccess, predecessor: ProcessNodeInstance<*>?, hProcessInstance: Handle<SecureObject<ProcessInstance>>): ProcessData {
+private fun IXmlDefineType.applyDataImpl(engineData: ProcessEngineDataAccess, predecessor: IProcessNodeInstance?, hProcessInstance: Handle<SecureObject<ProcessInstance>>): ProcessData {
     val processData: ProcessData
 
     val predRefName = predecessor?.node?.effectiveRefName(refName)

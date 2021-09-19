@@ -29,7 +29,6 @@ import nl.adaptivity.process.processModel.configurableModel.ConfigurableNodeCont
 import nl.adaptivity.process.processModel.configurableModel.ConfigurationDsl
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
-import nl.adaptivity.process.util.MutableIdentifyableSet
 import nl.adaptivity.xmlutil.Namespace
 import nl.adaptivity.xmlutil.serialization.XML
 
@@ -86,9 +85,9 @@ class RunnableActivity<I : Any, O : Any> : ActivityBase, ExecutableProcessNode {
         entryNo: Int,
         allowFinalInstance: Boolean
     ): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
-        processInstanceBuilder.getChild(this, entryNo)?.let { return it }
+        processInstanceBuilder.getChildNodeInstance(this, entryNo)?.let { return it }
         if (!isMultiInstance && entryNo > 1) {
-            processInstanceBuilder.allChildren { it.node == this && it.entryNo != entryNo }.forEach {
+            processInstanceBuilder.allChildNodeInstances { it.node == this && it.entryNo != entryNo }.forEach {
                 processInstanceBuilder.updateChild(it) {
                     invalidateTask(data)
                 }

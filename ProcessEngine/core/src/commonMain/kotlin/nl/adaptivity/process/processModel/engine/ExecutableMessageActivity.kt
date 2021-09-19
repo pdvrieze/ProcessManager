@@ -17,6 +17,7 @@
 package nl.adaptivity.process.processModel.engine
 
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
+import nl.adaptivity.process.engine.NodeInstanceSource
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
@@ -58,11 +59,11 @@ class ExecutableMessageActivity : MessageActivityBase, ExecutableProcessNode {
      * Determine whether the process can start.
      */
     override fun evalCondition(
-        engineData: ProcessEngineDataAccess,
+        nodeInstanceSource: NodeInstanceSource,
         predecessor: IProcessNodeInstance,
-        instance: IProcessNodeInstance
+        nodeInstance: IProcessNodeInstance
     ): ConditionResult {
-        return _condition.evalCondition(engineData, predecessor, instance)
+        return _condition.evalCondition(nodeInstanceSource, predecessor, nodeInstance)
     }
 
     override fun createOrReuseInstance(
@@ -78,7 +79,7 @@ class ExecutableMessageActivity : MessageActivityBase, ExecutableProcessNode {
     override fun provideTask(
         engineData: ProcessEngineDataAccess,
         instanceBuilder: ProcessNodeInstance.Builder<*, *>
-                            ) = false
+    ) = false
 
     /**
      * Take the task. Tasks are either process aware or finished when a reply is

@@ -55,7 +55,8 @@ typealias PNIHandle = Handle<SecureObject<ProcessNodeInstance<*>>>
 class EngineTesting {
 
     @ProcessTestingDslMarker
-    inner class EngineSpecBody(delegate:GroupBody): DelegateSpecBody<EngineSpecBody, EngineTestBody, EngineTestBody, Any>(delegate) {
+    inner class EngineSpecBody(delegate: GroupBody) :
+        DelegateSpecBody<EngineSpecBody, EngineTestBody, EngineTestBody, Any>(delegate) {
         val stubMessageService = this@EngineTesting.testData.messageService
         val processEngine = this@EngineTesting.testData.engine
 
@@ -68,12 +69,18 @@ class EngineTesting {
         override fun otherBody() = Any()
 
 
-        fun givenProcess(processModel: ExecutableProcessModel, description: String="Given a process instance", principal: Principal = EngineTestData.principal, payload: CompactFragment? = null, body: InstanceSpecBody.() -> Unit) {
+        fun givenProcess(
+            processModel: ExecutableProcessModel,
+            description: String = "Given a process instance",
+            principal: Principal = EngineTestData.principal,
+            payload: CompactFragment? = null,
+            body: InstanceSpecBody.() -> Unit
+        ) {
             val transaction = processEngine.startTransaction()
             val instance = with(transaction) {
                 processEngine.testProcess(processModel, principal, payload)
             }
-            val ptd :ProcessTestingDsl = ProcessTestingDsl(this@EngineTesting, transaction, instance.instanceHandle)
+            val ptd = ProcessTestingDsl(this@EngineTesting, transaction, instance.instanceHandle)
 
             group(description, extbody = { ptd.InstanceSpecBody(this).body() })
 
@@ -85,7 +92,7 @@ class EngineTesting {
 
 }
 
-inline fun GroupBody.givenEngine(body: EngineSpecBody.()->Unit) {
+inline fun GroupBody.givenEngine(body: EngineSpecBody.() -> Unit) {
     EngineTesting().EngineSpecBody(this).body()
 }
 
@@ -93,10 +100,16 @@ inline fun GroupBody.givenEngine(body: EngineSpecBody.()->Unit) {
 /**
  * An extended dsl for testing processes without having to carry around large amounts of local variables.
  */
-class ProcessTestingDsl(val engineTesting:EngineTesting, val transaction: StubProcessTransaction, val instanceHandle: HProcessInstance) {
+class ProcessTestingDsl(
+    val engineTesting: EngineTesting,
+    val transaction: StubProcessTransaction,
+    val instanceHandle: HProcessInstance
+) {
 
     @ProcessTestingDslMarker
-    inner class InstanceSpecBody(delegate:EngineSpecBody): DelegateSpecBody<InstanceSpecBody, InstanceActionBody, InstanceTestBody, InstanceFixtureBody>(delegate.delegate), InstanceSupport {
+    inner class InstanceSpecBody(delegate: EngineSpecBody) :
+        DelegateSpecBody<InstanceSpecBody, InstanceActionBody, InstanceTestBody, InstanceFixtureBody>(delegate.delegate),
+        InstanceSupport {
         override val transaction get() = this@ProcessTestingDsl.transaction
         override val engine: ProcessEngine<StubProcessTransaction, *>
             get() = engineTesting.testData.engine
@@ -105,108 +118,133 @@ class ProcessTestingDsl(val engineTesting:EngineTesting, val transaction: StubPr
 
         override fun testBody(base: TestBody) = InstanceTestBody(base as? EngineTestBody ?: EngineTestBody(base))
 
-        override fun actionBody(base: TestBody): InstanceActionBody = InstanceActionBody(base as? EngineTestBody ?: EngineTestBody(base))
+        override fun actionBody(base: TestBody): InstanceActionBody =
+            InstanceActionBody(base as? EngineTestBody ?: EngineTestBody(base))
 
-        override fun specBody(base: GroupBody) = InstanceSpecBody(base as? EngineSpecBody ?: engineTesting.EngineSpecBody(base))
+        override fun specBody(base: GroupBody) =
+            InstanceSpecBody(engineTesting.EngineSpecBody(base))
 
         override fun otherBody() = InstanceFixtureBody()
     }
 
     @ProcessTestingDslMarker
-    inner class InstanceActionBody(delegate: EngineTestBody): DelegateTestBody(delegate.delegate), ProcessNodeActions {
+    inner class InstanceActionBody(delegate: EngineTestBody) : DelegateTestBody(delegate.delegate), ProcessNodeActions {
         /*override*/ fun testBody(base: TestBody) = InstanceTestBody(base as? EngineTestBody ?: EngineTestBody(base))
         override val transaction get() = this@ProcessTestingDsl.transaction
     }
 
     @ProcessTestingDslMarker
-    inner class InstanceTestBody(delegate: EngineTestBody): DelegateTestBody(delegate), InstanceSupport, SafeNodeActions {
+    inner class InstanceTestBody(delegate: EngineTestBody) : DelegateTestBody(delegate), InstanceSupport,
+                                                             SafeNodeActions {
         override val transaction get() = this@ProcessTestingDsl.transaction
         val instance: ProcessInstance get() = this@ProcessTestingDsl.instance
+        val instanceHandle: HProcessInstance get() = this@ProcessTestingDsl.instanceHandle
         override val engine: ProcessEngine<StubProcessTransaction, *> get() = engineTesting.testData.engine
     }
 
-    inner class InstanceFixtureBody: ProcessNodeActions {
+    inner class InstanceFixtureBody : ProcessNodeActions {
         override val transaction get() = this@ProcessTestingDsl.transaction
 
     }
 
-    val instance: ProcessInstance get() {
-        return transaction.readableEngineData.instance(instanceHandle).mustExist(instanceHandle).withPermission()
-    }
+    val instance: ProcessInstance
+        get() {
+            return transaction.readableEngineData.instance(instanceHandle).mustExist(instanceHandle).withPermission()
+        }
 
 }
 
 fun ExecutableProcessModel.findNode(nodeIdentified: Identified): ExecutableProcessNode? {
     val nodeId = nodeIdentified.id
-    return modelNodes.firstOrNull { it.id==nodeId } ?:
-    childModels.asSequence().flatMap { it.modelNodes.asSequence() }.firstOrNull{ it.id==nodeId }
+    return modelNodes.firstOrNull { it.id == nodeId } ?: childModels.asSequence().flatMap { it.modelNodes.asSequence() }
+        .firstOrNull { it.id == nodeId }
 }
 
 @Suppress("NOTHING_TO_INLINE")
 @ProcessTestingDslMarker
-inline fun EngineSpecBody.testTraces(model:RootProcessModel<*>, valid: List<Trace>, invalid:List<Trace>) {
+inline fun EngineSpecBody.testTraces(model: RootProcessModel<*>, valid: List<Trace>, invalid: List<Trace>) {
     return testTraces(ExecutableProcessModel.from(model.rootModel), valid, invalid)
 }
 
 
-private operator fun ProcessNodeInstanceDelegate.getValue(nothing: Nothing?, property: KProperty<*>): ProcessNodeInstance<*> {
+private operator fun ProcessNodeInstanceDelegate.getValue(
+    nothing: Nothing?,
+    property: KProperty<*>
+): ProcessNodeInstance<*> {
     return this.getValue(null, property)
 }
 
 @ProcessTestingDslMarker
-fun EngineSpecBody.testTraces(model:ExecutableProcessModel, valid: List<Trace>, invalid:List<Trace>) {
+fun EngineSpecBody.testTraces(model: ExecutableProcessModel, valid: List<Trace>, invalid: List<Trace>) {
 
-    fun InstanceSpecBody.addStartedNodeContext(trace: Trace, i: Int):InstanceSpecBody {
+    fun InstanceSpecBody.addStartedNodeContext(trace: Trace, i: Int): InstanceSpecBody {
         val traceElement = trace[i]
         val nodeInstance by with(this) { instance.nodeInstances[traceElement] }
         val node = model.findNode(traceElement)
-            ?: throw AssertionError("No node with id $traceElement was defined in the tested model\n\n${XML.encodeToString(model).prependIndent(">  ")}\n")
-        when(node) {
+            ?: throw AssertionError(
+                "No node with id $traceElement was defined in the tested model\n\n${
+                    XML.encodeToString(
+                        model
+                    ).prependIndent(">  ")
+                }\n"
+            )
+        when (node) {
             is StartNode -> {
                 test("$traceElement should be finished") {
                     assertEquals(NodeInstanceState.Complete, nodeInstance.state)
                 }
             }
-            is EndNode   -> {
+            is EndNode -> {
                 test("$traceElement should be finished") {
                     assertEquals(NodeInstanceState.Complete, nodeInstance.state)
                 }
                 test("$traceElement should be part of the completion nodes") {
-                    val parentInstance = transaction.readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
-                    assertTrue(parentInstance.completedNodeInstances.any { it.withPermission().node.id==traceElement.id }) { "Instance is: ${parentInstance.toDebugString()}" }
+                    val parentInstance =
+                        transaction.readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
+                    assertTrue(parentInstance.completedNodeInstances.any { it.withPermission().node.id == traceElement.id }) { "Instance is: ${parentInstance.toDebugString()}" }
                 }
             }
-            is Join     -> test("Join $traceElement should already be finished") {
-                assertEquals(NodeInstanceState.Complete, nodeInstance.state) { "There are still active predecessors: ${instance.getActivePredecessorsFor(
-                    transaction.readableEngineData, nodeInstance as JoinInstance)}" }
+            is Join -> test("Join $traceElement should already be finished") {
+                assertEquals(NodeInstanceState.Complete, nodeInstance.state) {
+                    "There are still active predecessors: ${
+                        instance.getActivePredecessorsFor(
+                            transaction.readableEngineData, nodeInstance as JoinInstance
+                        )
+                    }"
+                }
             }
-            is Split    -> test("Split $traceElement should already be finished") {
-                assertEquals(NodeInstanceState.Complete, nodeInstance.state) { "Node $traceElement should be finished. The current nodes are: ${instance.toDebugString()}"}
+            is Split -> test("Split $traceElement should already be finished") {
+                assertEquals(
+                    NodeInstanceState.Complete,
+                    nodeInstance.state
+                ) { "Node $traceElement should be finished. The current nodes are: ${instance.toDebugString()}" }
             }
             is MessageActivity -> {
                 test("$traceElement should not be in a final state") {
-                    assertFalse(nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id} of type ${node?.javaClass?.simpleName} is in final state ${nodeInstance.state}" }
+                    assertFalse(nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id} of type ${node.javaClass.simpleName} is in final state ${nodeInstance.state}" }
                 }
             }
-            else        -> {
+            else -> {
                 test("$traceElement should not be in a final state") {
-                    assertFalse(nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id} of type ${node?.javaClass?.simpleName} is in final state ${nodeInstance.state}" }
+                    assertFalse(nodeInstance.state.isFinal) { "The node ${nodeInstance.node.id} of type ${node.javaClass.simpleName} is in final state ${nodeInstance.state}" }
                 }
             }
         }
         if (node is CompositeActivity) {
             test("A child instance should have been created for $traceElement") {
-                assertTrue((nodeInstance as CompositeInstance).hChildInstance.isValid) {"No child instance was recorded"}
+                assertTrue((nodeInstance as CompositeInstance).hChildInstance.isValid) { "No child instance was recorded" }
             }
             test("The child instance was finished for $traceElement") {
-                val childInstance = transaction.readableEngineData.instance((nodeInstance as CompositeInstance).hChildInstance).withPermission()
+                val childInstance =
+                    transaction.readableEngineData.instance((nodeInstance as CompositeInstance).hChildInstance)
+                        .withPermission()
                 assertEquals(ProcessInstance.State.FINISHED, childInstance.state)
             }
         }
         test("The trace should still be possible") {
             instance.assertTracePossible(trace)
         }
-        return when(node) {
+        return when (node) {
             is EndNode,
             is StartNode,
             is Join,
@@ -215,7 +253,7 @@ fun EngineSpecBody.testTraces(model:ExecutableProcessModel, valid: List<Trace>, 
             } else {
                 this
             }
-            else     -> {
+            else -> {
                 test("node instance ${traceElement} should be committed after starting") {
                     nodeInstance.start()
                     assertTrue(nodeInstance.state.isCommitted) { "The instance state was ${instance.toDebugString()}" }
@@ -237,10 +275,10 @@ fun EngineSpecBody.testTraces(model:ExecutableProcessModel, valid: List<Trace>, 
         }
     }
 
-    for(validTrace in valid) {
+    for (validTrace in valid) {
         givenProcess(model, description = validTrace.joinToString(prefix = "For trace: [", postfix = "]")) {
             test("Only start nodes should be finished") {
-                assertTrue(instance.finishedNodes.all { it.state== NodeInstanceState.Skipped || it.node is StartNode }) { "Nodes [${instance.finishedNodes.filter { it.state != NodeInstanceState.Skipped && it.node !is StartNode }}] are not startnodes, but already finished" }
+                assertTrue(instance.finishedNodes.all { it.state == NodeInstanceState.Skipped || it.node is StartNode }) { "Nodes [${instance.finishedNodes.filter { it.state != NodeInstanceState.Skipped && it.node !is StartNode }}] are not startnodes, but already finished" }
             }
 
             val startPos = 0
@@ -263,8 +301,13 @@ fun EngineSpecBody.testTraces(model:ExecutableProcessModel, valid: List<Trace>, 
                             .map { model.findNode(it)!! }
                             .filterIsInstance(EndNode::class.java)
                             .filter { endNode ->
-                                val nodeInstance = instance.allChildren().firstOrNull { it.node.id== endNode.id} ?: kfail("Nodeinstance ${endNode.identifier} does not exist, the instance is ${instance.toDebugString()}")
-                                nodeInstance.state !in listOf(NodeInstanceState.Skipped, NodeInstanceState.SkippedCancel, NodeInstanceState.SkippedFail)
+                                val nodeInstance = instance.allChildren().firstOrNull { it.node.id == endNode.id }
+                                    ?: kfail("Nodeinstance ${endNode.identifier} does not exist, the instance is ${instance.toDebugString()}")
+                                nodeInstance.state !in listOf(
+                                    NodeInstanceState.Skipped,
+                                    NodeInstanceState.SkippedCancel,
+                                    NodeInstanceState.SkippedFail
+                                )
                             }
                             .map { it.id!! }
                             .toList().toTypedArray()
@@ -287,7 +330,11 @@ fun EngineSpecBody.testTraces(model:ExecutableProcessModel, valid: List<Trace>, 
                     try {
                         testTraceExceptionThrowing(trace)
                     } catch (e: Exception) {
-                        throw AssertionError("the subtrace checking failed with model \n\n${XML.encodeToString(model).prependIndent("> ")}", e)
+                        throw AssertionError(
+                            "the subtrace checking failed with model \n\n${
+                                XML.encodeToString(model).prependIndent("> ")
+                            }", e
+                        )
                     }
                 }
             }
@@ -295,7 +342,7 @@ fun EngineSpecBody.testTraces(model:ExecutableProcessModel, valid: List<Trace>, 
 
     }
 
-    for(trace in invalid) {
+    for (trace in invalid) {
         givenProcess(model, description = "For invalid trace: ${trace.joinToString(prefix = "[", postfix = "]")}") {
             test("Executing the trace should fail") {
                 var success = false
@@ -304,48 +351,58 @@ fun EngineSpecBody.testTraces(model:ExecutableProcessModel, valid: List<Trace>, 
                 } catch (e: ProcessTestingException) {
                     success = true
                 }
-                if (! success) kfail("The invalid trace ${trace.joinToString(prefix = "[", postfix = "]")} could be executed")
+                if (!success) kfail(
+                    "The invalid trace ${
+                        trace.joinToString(
+                            prefix = "[",
+                            postfix = "]"
+                        )
+                    } could be executed"
+                )
             }
         }
     }
 }
 
 private fun InstanceTestBody.testTraceExceptionThrowing(trace: Trace) {
-    testTraceExceptionThrowing(instance, trace)
+    testTraceExceptionThrowing(instanceHandle, trace)
 }
 
 @Throws(ProcessTestingException::class)
-fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
-                                               trace: Trace) {
+fun InstanceSupport.testTraceExceptionThrowing(
+    hProcessInstance: Handle<SecureObject<ProcessInstance>>,
+    trace: Trace
+) {
     try {
-        _instance.assertTracePossible(trace)
+        transaction.readableEngineData.instance(hProcessInstance).withPermission().assertTracePossible(trace)
     } catch (e: AssertionError) {
         throw ProcessTestingException(e)
     }
     for (traceElement in trace) {
 
         run {
-            val outerInstance = transaction.readableEngineData.instance(_instance.handle).withPermission()
-            val nodeInstance = traceElement.getNodeInstance(transaction, outerInstance) ?: throw ProcessTestingException("The node instance (${traceElement}) should exist")
+            val nodeInstance = traceElement.getNodeInstance(hProcessInstance)
+                ?: throw ProcessTestingException("The node instance (${traceElement}) should exist")
 
             if (nodeInstance.state != NodeInstanceState.Complete) {
-                val processInstance = transaction.readableEngineData.instance(nodeInstance.hProcessInstance).withPermission()
                 if (nodeInstance is JoinInstance) {
                     transaction.writableEngineData.updateNodeInstance(nodeInstance.handle) {
                         startTask(transaction.writableEngineData)
                     }
                 } else if (nodeInstance.node !is Split) {
                     if (nodeInstance is CompositeInstance) {
-                        val childInstance = transaction.readableEngineData.instance(nodeInstance.hChildInstance).withPermission()
+                        val childInstance =
+                            transaction.readableEngineData.instance(nodeInstance.hChildInstance).withPermission()
                         if (childInstance.state != ProcessInstance.State.FINISHED && nodeInstance.state != NodeInstanceState.Complete) {
                             try {
                                 transaction.writableEngineData.updateNodeInstance(nodeInstance.handle) {
                                     finishTask(transaction.writableEngineData, null)
                                 }
-                                engine.processTickleQueue(transaction)
                             } catch (e: ProcessException) {
                                 if (e.message?.startsWith(
-                                        "A Composite task cannot be finished until its child process is. The child state is:") ?: false) {
+                                        "A Composite task cannot be finished until its child process is. The child state is:"
+                                    ) == true
+                                ) {
                                     throw ProcessTestingException("The composite instance cannot be finished yet")
                                 } else throw e
                             }
@@ -358,35 +415,41 @@ fun InstanceSupport.testTraceExceptionThrowing(_instance: ProcessInstance,
                             engine.processTickleQueue(transaction)
                         } catch (e: ProcessException) {
                             assertNotNull(e.message)
-                            assertTrue(e.message!!.startsWith("instance ${nodeInstance.node.id}") &&
-                                           e.message!!.endsWith(" cannot be finished as it is already in a final state."))
+                            assertTrue(
+                                e.message!!.startsWith("instance ${nodeInstance.node.id}") &&
+                                    e.message!!.endsWith(" cannot be finished as it is already in a final state.")
+                            )
                         }
                         throw ProcessTestingException("The node is final but not complete (failed, skipped)")
                     }
                     try {
                         transaction.writableEngineData.updateNodeInstance(nodeInstance.handle) {
-                            finishTask(transaction.writableEngineData, null)
+                            finishTask(transaction.writableEngineData, traceElement.resultPayload)
                         }
-                        engine.processTickleQueue(transaction)
-                    } catch (e:ProcessException) {
+                    } catch (e: ProcessException) {
                         throw ProcessTestingException(e)
                     }
                 }
             }
         }
-        if(true) {
-            val instance = transaction.readableEngineData.instance(_instance.handle).withPermission()
-            val nodeInstance = traceElement.getNodeInstance(transaction, instance) ?: throw ProcessTestingException("The node instance should exist")
+        engine.processTickleQueue(transaction)
+
+        if (true) {
+            val nodeInstance = traceElement.getNodeInstance(hProcessInstance)
+                ?: throw ProcessTestingException("The node instance should exist")
+
             if (nodeInstance.state != NodeInstanceState.Complete) {
+                val instance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
                 throw ProcessTestingException(
-                    "At trace $traceElement -  State of node $nodeInstance not complete but ${nodeInstance.state} ${instance.toDebugString()}")
+                    "At trace $traceElement -  State of node $nodeInstance not complete but ${nodeInstance.state} ${instance.toDebugString()}"
+                )
             }
         }
     }
 }
 
 internal class ProcessTestingException(message: String? = null, cause: Throwable? = null) : Exception(message, cause) {
-    constructor(cause: Throwable): this(cause.message, cause)
+    constructor(cause: Throwable) : this(cause.message, cause)
 }
 /*
 
@@ -401,7 +464,7 @@ fun Dsl.givenProcess(engine: ProcessEngine<StubProcessTransaction>, processModel
 }
 */
 
-fun kfail(message:String):Nothing {
+fun kfail(message: String): Nothing {
     fail<Any?>(message)
     throw UnsupportedOperationException("This code should not be reachable")
 }

@@ -69,9 +69,11 @@ abstract class ProcessNodeBase : ProcessNode {
 
     final override val label: String?
 
+    /** The maximum amount of successors this *type* of node can have */
     override val maxSuccessorCount: Int
-        get() = Int.MAX_VALUE
+        get() = 1
 
+    /** The maximum amount of predecessors this *type* of node can have */
     override val maxPredecessorCount: Int
         get() = 1
 

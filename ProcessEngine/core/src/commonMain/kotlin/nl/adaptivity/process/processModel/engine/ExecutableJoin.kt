@@ -17,10 +17,7 @@
 package nl.adaptivity.process.processModel.engine
 
 import net.devrieze.util.toComparableHandle
-import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
-import nl.adaptivity.process.engine.ProcessEngineDataAccess
-import nl.adaptivity.process.engine.ProcessException
-import nl.adaptivity.process.engine.ProcessInstance
+import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
@@ -72,12 +69,12 @@ class ExecutableJoin(
     }
 
     override fun evalCondition(
-        engineData: ProcessEngineDataAccess,
+        nodeInstanceSource: NodeInstanceSource,
         predecessor: IProcessNodeInstance,
-        instance: IProcessNodeInstance
+        nodeInstance: IProcessNodeInstance
     ): ConditionResult {
         return (conditions[predecessor.node.identifier] as ExecutableCondition?)
-            .evalCondition(engineData, predecessor, instance)
+            .evalCondition(nodeInstanceSource, predecessor, nodeInstance)
     }
 
     override fun createOrReuseInstance(

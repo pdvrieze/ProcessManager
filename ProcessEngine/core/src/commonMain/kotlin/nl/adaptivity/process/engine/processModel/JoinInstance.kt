@@ -74,7 +74,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
             var committedPredecessorCount = 0
             var completedPredecessorCount = 0
             predecessors
-                .map { processInstanceBuilder.getChild(it) }
+                .map { processInstanceBuilder.getChildNodeInstance(it) }
                 .filter { it.state.isCommitted }
                 .forEach {
                     if (!it.state.isFinal) {
@@ -83,7 +83,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
                         committedPredecessorCount++
 
                         if (it.state == NodeInstanceState.Complete) {
-                            if (node.evalCondition(engineData, it, this) == ConditionResult.TRUE) {
+                            if (node.evalCondition(processInstanceBuilder, it, this) == ConditionResult.TRUE) {
                                 completedPredecessorCount++
                             }
                         }
@@ -92,7 +92,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
             val cancelablePredecessors = mutableListOf<Handle<SecureObject<ProcessNodeInstance<*>>>>()
             if (!node.isMultiMerge) {
                 processInstanceBuilder
-                    .allChildren { !it.state.isFinal && it.entryNo == entryNo && it.node preceeds node }
+                    .allChildNodeInstances { !it.state.isFinal && it.entryNo == entryNo && it.node preceeds node }
                     .mapTo(cancelablePredecessors) { it.handle }
             }
 
@@ -261,7 +261,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
             val predecessorsToAdd = mutableListOf<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>()
             val instantiatedPredecessors = mutableListOf<IProcessNodeInstance>()
 
-            for (nodeInstance in processInstanceBuilder.allChildren { join.identifier in it.node.successors }) {
+            for (nodeInstance in processInstanceBuilder.allChildNodeInstances { join.identifier in it.node.successors }) {
                 if (nodeInstance.state.isFinal) realizedPredecessors++
 
                 if (nodeInstance.handle in predecessors) {
@@ -294,7 +294,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
             for (predecessor in instantiatedPredecessors) {
                 val condition = node.conditions[predecessor.node.identifier] as? ExecutableCondition
 
-                val conditionResult = condition.evalCondition(engineData, predecessor, this)
+                val conditionResult = condition.evalCondition(processInstanceBuilder, predecessor, this)
                 if (conditionResult == ConditionResult.NEVER) {
                     skippedOrNever += 1
                 } else {

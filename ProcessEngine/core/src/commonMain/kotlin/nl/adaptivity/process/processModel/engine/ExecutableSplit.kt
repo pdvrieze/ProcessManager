@@ -23,15 +23,13 @@ import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.SplitInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.process.util.MutableIdentifyableSet
 
 
 class ExecutableSplit(
     builder: Split.Builder,
     newOwner: ProcessModel<ExecutableProcessNode>,
     otherNodes: Iterable<ProcessNode.Builder>
-) :
-    SplitBase(builder, newOwner, otherNodes), ExecutableProcessNode {
+) : SplitBase(builder, newOwner, otherNodes), ExecutableProcessNode {
 
     override val ownerModel: ExecutableModelCommon
         get() = super.ownerModel as ExecutableModelCommon
@@ -46,7 +44,7 @@ class ExecutableSplit(
         allowFinalInstance: Boolean
     ): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
         // TODO handle reentry
-        return processInstanceBuilder.getChild(this, entryNo)
+        return processInstanceBuilder.getChildNodeInstance(this, entryNo)
             ?: SplitInstance.BaseBuilder(
                 this, predecessor.handle,
                 processInstanceBuilder,

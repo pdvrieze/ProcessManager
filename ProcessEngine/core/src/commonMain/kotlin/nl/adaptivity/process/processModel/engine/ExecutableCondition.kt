@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import nl.adaptivity.process.engine.ProcessEngineDataAccess
+import nl.adaptivity.process.engine.NodeInstanceSource
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.processModel.Condition
 import nl.adaptivity.process.processModel.engine.ConditionResult.*
@@ -28,32 +28,32 @@ import nl.adaptivity.util.multiplatform.name
  *
  * @author Paul de Vrieze
  */
-abstract class ExecutableCondition : Condition, Function2<ProcessEngineDataAccess, IProcessNodeInstance, ConditionResult> {
+abstract class ExecutableCondition : Condition, Function2<NodeInstanceSource, IProcessNodeInstance, ConditionResult> {
     open val isAlternate: Boolean get()= false
 
     /**
      * Evaluate the condition.
      *
-     * @param engineData The transaction to use for reading state
+     * @param nodeInstanceSource Source for nodes in the same process instance
      * @param instance The instance to use to evaluate against.
      * @return `true` if the condition holds, `false` if not
      */
-    abstract fun eval(engineData: ProcessEngineDataAccess, instance: IProcessNodeInstance): ConditionResult
+    abstract fun eval(nodeInstanceSource: NodeInstanceSource, instance: IProcessNodeInstance): ConditionResult
 
-    final override operator fun invoke(engineData: ProcessEngineDataAccess, instance: IProcessNodeInstance): ConditionResult =
-        eval(engineData, instance)
+    final override operator fun invoke(nodeInstanceSource: NodeInstanceSource, instance: IProcessNodeInstance): ConditionResult =
+        eval(nodeInstanceSource, instance)
 
     override val condition: String get() = "class:${this::class.name}"
 
     object TRUE: ExecutableCondition() {
-        override fun eval(engineData: ProcessEngineDataAccess, instance: IProcessNodeInstance): ConditionResult = ConditionResult.TRUE
+        override fun eval(nodeInstanceSource: NodeInstanceSource, instance: IProcessNodeInstance): ConditionResult = ConditionResult.TRUE
 
         override val condition: String get() = "true()"
         override val label: String? get() = null
     }
 
     object FALSE: ExecutableCondition() {
-        override fun eval(engineData: ProcessEngineDataAccess, instance: IProcessNodeInstance): ConditionResult = NEVER
+        override fun eval(nodeInstanceSource: NodeInstanceSource, instance: IProcessNodeInstance): ConditionResult = NEVER
 
         override val condition: String get() = "false()"
         override val label: String? get() = null
@@ -62,7 +62,7 @@ abstract class ExecutableCondition : Condition, Function2<ProcessEngineDataAcces
     object OTHERWISE: ExecutableCondition() {
         override val isAlternate: Boolean get() = true
 
-        override fun eval(engineData: ProcessEngineDataAccess, instance: IProcessNodeInstance): ConditionResult = MAYBE
+        override fun eval(nodeInstanceSource: NodeInstanceSource, instance: IProcessNodeInstance): ConditionResult = MAYBE
 
         override val condition: String get() = "otherwise"
         override val label: String? get() = null

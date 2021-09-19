@@ -18,16 +18,13 @@ package nl.adaptivity.process.processModel.engine
 
 import net.devrieze.util.getInvalidHandle
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
+import nl.adaptivity.process.engine.NodeInstanceSource
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.CompositeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
-import nl.adaptivity.util.multiplatform.Throws
-import nl.adaptivity.xmlutil.XmlException
-import nl.adaptivity.xmlutil.XmlWriter
-import nl.adaptivity.xmlutil.serialization.XML
 
 
 /**
@@ -71,11 +68,11 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableProcessNode
      * Determine whether the process can start.
      */
     override fun evalCondition(
-        engineData: ProcessEngineDataAccess,
+        nodeInstanceSource: NodeInstanceSource,
         predecessor: IProcessNodeInstance,
-        instance: IProcessNodeInstance
+        nodeInstance: IProcessNodeInstance
     ): ConditionResult {
-        return _condition.evalCondition(engineData, predecessor, instance)
+        return _condition.evalCondition(nodeInstanceSource, predecessor, nodeInstance)
     }
 
     override fun createOrReuseInstance(
@@ -85,7 +82,7 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableProcessNode
         entryNo: Int,
         allowFinalInstance: Boolean
     ): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
-        return processInstanceBuilder.getChild(this, entryNo) ?: CompositeInstance.BaseBuilder(
+        return processInstanceBuilder.getChildNodeInstance(this, entryNo) ?: CompositeInstance.BaseBuilder(
             this, predecessor.handle,
             processInstanceBuilder,
             getInvalidHandle(),
@@ -114,12 +111,5 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableProcessNode
      * @return `false`
      */
     override fun startTask(instance: ProcessNodeInstance.Builder<*, *>) = false
-
-    @Throws(XmlException::class)
-    fun serializeCondition(out: XmlWriter) {
-        condition?.let {
-            XML.Companion.encodeToWriter(out, XmlCondition(it.condition))
-        }
-    }
 
 }

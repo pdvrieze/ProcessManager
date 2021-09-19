@@ -22,6 +22,7 @@ import net.devrieze.util.collection.replaceByNotNull
 import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
+import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.impl.LogLevel
 import nl.adaptivity.process.processModel.Join
@@ -55,7 +56,7 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
         }
 
         override fun doFinishTask(engineData: MutableProcessEngineDataAccess, resultPayload: ICompactFragment?) {
-            val committedSuccessors = processInstanceBuilder.allChildren { it.state.isCommitted }
+            val committedSuccessors = processInstanceBuilder.allChildNodeInstances { it.state.isCommitted }
             if (committedSuccessors.count() < node.min) {
                 throw ProcessException("A split can only be finished once the minimum amount of children is committed")
             }
@@ -67,6 +68,10 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
         ProcessNodeInstance.ExtBuilder<ExecutableSplit, SplitInstance>(instance, processInstanceBuilder), Builder {
         override var node: ExecutableSplit by overlay { instance.node }
         override fun build() = if (changed) SplitInstance(this).also { invalidateBuilder(it) } else base
+
+        override fun tickle(engineData: MutableProcessEngineDataAccess, messageService: IMessageService<*>) {
+            super<Builder>.tickle(engineData, messageService) // XXX for debugging
+        }
     }
 
     class BaseBuilder(
@@ -82,6 +87,10 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
         handle, state
     ), Builder {
         override fun build() = SplitInstance(this)
+
+        override fun tickle(engineData: MutableProcessEngineDataAccess, messageService: IMessageService<*>) {
+            super<Builder>.tickle(engineData, messageService)
+        }
     }
 
     override val node: ExecutableSplit
@@ -175,20 +184,6 @@ internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineD
     var activeCount = 0
     var committedCount = 0
 
-/*
-    processInstanceBuilder
-        .allChildren { handle in it.predecessors }
-        .map { it.state }
-        .forEach { state ->
-            when {
-                state.isSkipped -> skippedCount++
-                state == NodeInstanceState.Failed -> failedCount++
-                state.isCommitted -> committedCount++
-                state.isActive -> activeCount++
-            }
-        }
-*/
-
     for (successorNode in successorNodes) {
         if (committedCount >= node.max) break // stop the loop when we are at the maximum successor count
 
@@ -196,7 +191,7 @@ internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineD
             throw IllegalStateException("Splits cannot be immediately followed by unconditional joins")
         }
         // Don't attempt to create an additional instance for a non-multi-instance successor
-        if (!successorNode.isMultiInstance && processInstanceBuilder.allChildren { it.node == successorNode && !it.state.isSkipped && it.entryNo != entryNo }
+        if (!successorNode.isMultiInstance && processInstanceBuilder.allChildNodeInstances { it.node == successorNode && !it.state.isSkipped && it.entryNo != entryNo }
                 .count() > 0) continue
 
         val successorBuilder = successorNode
@@ -206,7 +201,7 @@ internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineD
         if (successorBuilder.state == NodeInstanceState.Pending ||
             (successorBuilder.node is Join && successorBuilder.state.isActive)) {
 
-            when (successorBuilder.condition(engineData, this)) {
+            when (successorBuilder.condition(processInstanceBuilder, this)) {
                 // only if it can be executed, otherwise just drop it.
                 ConditionResult.TRUE -> if (successorBuilder.state.canRestart ||
                     successorBuilder is Join.Builder
@@ -229,7 +224,7 @@ internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineD
 
     }
     if ((successorNodes.size - (skippedCount + failedCount)) < node.min) { // No way to succeed, try to cancel anything that is not in a final state
-        for (successor in processInstanceBuilder.allChildren { handle in it.predecessors && !it.state.isFinal }) {
+        for (successor in processInstanceBuilder.allChildNodeInstances { handle in it.predecessors && !it.state.isFinal }) {
             try {
                 successor.builder(processInstanceBuilder).cancel(engineData)
             } catch (e: IllegalArgumentException) {
@@ -241,8 +236,13 @@ internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineD
     }
     // If we determined the maximum
     if (committedCount >= node.max) {
-        processInstanceBuilder.allChildren { !SplitInstance.isActiveOrCompleted(it) && handle in it.predecessors }
-            .forEach { it.builder(processInstanceBuilder).cancelAndSkip(engineData) }
+        processInstanceBuilder
+            .allChildNodeInstances { !SplitInstance.isActiveOrCompleted(it) && handle in it.predecessors }
+            .forEach {
+                processInstanceBuilder.updateChild(it) {
+                    cancelAndSkip(engineData)
+                }
+            }
         return true // We reached the max
     }
 
