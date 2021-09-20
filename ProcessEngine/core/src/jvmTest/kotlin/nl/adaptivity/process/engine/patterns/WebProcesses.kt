@@ -95,7 +95,7 @@ class WebProcess1 : TraceTest(Companion) {
                     (start..
                         ((ac1%ac2) or (ac1("<coverage_exists/>") % ac2) or (ac1 % ac2("<accepted/>")) )
                         ..split1..(
-                        ((ac3 .. split2) % (ac5..split3..join2))
+                        ((ac3 % split2) % ((ac5 % split3)..join2))
                         )..join3..end
                         ) or (
                             start..((ac1("<coverage_exists/>") % ac2("<accepted/>"))..
@@ -107,8 +107,9 @@ class WebProcess1 : TraceTest(Companion) {
                         (start..ac1..end) or
                         (start..
                             ((ac1%ac2) or (ac1("<coverage_exists/>") % ac2) or (ac1 % ac2("<accepted/>")) )..
+                            split1.. (split2 % split3) ..
                             (join1 or ac4)) or
-                        (start .. (ac1("<coverage_exists/>") % ac2("<accepted/>"))..(ac3 or ac5))
+                        (start .. (ac1("<coverage_exists/>") % ac2("<accepted/>"))..((ac3 % split2) or (ac5 % split3)))
                 }
                 ModelData(m, valid, invalid)
             }

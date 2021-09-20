@@ -181,6 +181,8 @@ internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineD
     var activeCount = 0
     var committedCount = 0
 
+    var otherwiseNode: ProcessNodeInstance.Builder<*, *>? = null
+
     for (successorNode in successorNodes) {
         if (committedCount >= node.max) break // stop the loop when we are at the maximum successor count
 
@@ -188,19 +190,25 @@ internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineD
             throw IllegalStateException("Splits cannot be immediately followed by unconditional joins")
         }
         // Don't attempt to create an additional instance for a non-multi-instance successor
-        if (!successorNode.isMultiInstance && processInstanceBuilder.allChildNodeInstances { it.node == successorNode && !it.state.isSkipped && it.entryNo != entryNo }
-                .count() > 0) continue
+        if (!successorNode.isMultiInstance &&
+            processInstanceBuilder.allChildNodeInstances {
+                it.node == successorNode && !it.state.isSkipped && it.entryNo != entryNo
+            }.count() > 0) continue
 
         val successorBuilder = successorNode
             .createOrReuseInstance(engineData, processInstanceBuilder, this, entryNo, allowFinalInstance = true)
 
         processInstanceBuilder.storeChild(successorBuilder)
         if (successorBuilder.state == NodeInstanceState.Pending ||
-            (successorBuilder.node is Join && successorBuilder.state.isActive)) {
-
+            (successorBuilder.node is Join && successorBuilder.state.isActive)
+        ) {
+            if (successorBuilder.isOtherwiseCondition(this)) {
+                otherwiseNode = successorBuilder
+            }
             when (successorBuilder.condition(processInstanceBuilder, this)) {
                 // only if it can be executed, otherwise just drop it.
-                ConditionResult.TRUE -> if (successorBuilder.state.canRestart ||
+                ConditionResult.TRUE -> if (
+                    successorBuilder.state.canRestart ||
                     successorBuilder is Join.Builder
                 ) successorBuilder.provideTask(engineData)
 
@@ -220,6 +228,7 @@ internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineD
         }
 
     }
+
     if ((successorNodes.size - (skippedCount + failedCount)) < node.min) { // No way to succeed, try to cancel anything that is not in a final state
         for (successor in processInstanceBuilder.allChildNodeInstances { handle in it.predecessors && !it.state.isFinal }) {
             try {
@@ -248,5 +257,13 @@ internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineD
         // no need to cancel, just complete
         return true
     }
+
+    // If we have an otherwise node
+    if (otherwiseNode != null && (skippedCount + failedCount + 1) == successorNodes.size) {
+        otherwiseNode.provideTask(engineData)
+        return true
+    }
+
+
     return false
 }

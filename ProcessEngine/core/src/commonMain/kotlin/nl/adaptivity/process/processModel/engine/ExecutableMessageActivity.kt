@@ -62,6 +62,10 @@ class ExecutableMessageActivity(
         return _condition.evalCondition(nodeInstanceSource, predecessor, nodeInstance)
     }
 
+    override fun isOtherwiseCondition(predecessor: ExecutableProcessNode): Boolean {
+        return _condition?.isOtherwise == true
+    }
+
     override fun createOrReuseInstance(
         data: MutableProcessEngineDataAccess,
         processInstanceBuilder: ProcessInstance.Builder,

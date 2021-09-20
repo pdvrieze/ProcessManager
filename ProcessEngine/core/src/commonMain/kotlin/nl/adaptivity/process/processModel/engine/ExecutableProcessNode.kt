@@ -75,6 +75,7 @@ interface ExecutableProcessNode : ProcessNode, Identified {
         )
     }
 
+    fun isOtherwiseCondition(predecessor: ExecutableProcessNode): Boolean = false
 
     /**
      * Should this node be able to be provided?
@@ -179,7 +180,7 @@ internal fun ExecutableCondition?.evalCondition(
     // A lack of condition is a true result
     if (this==null) return ConditionResult.TRUE
 
-    if (isAlternate) { // An alternate is only true if all others are never/finalised
+    if (isOtherwise) { // An alternate is only true if all others are never/finalised
         val successorCount = predecessor.node.successors.size
         val hPred = predecessor.handle
         var nonTakenSuccessorCount:Int = 0

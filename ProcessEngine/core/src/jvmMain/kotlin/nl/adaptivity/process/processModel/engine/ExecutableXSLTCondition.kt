@@ -41,8 +41,8 @@ actual class ExecutableXSLTCondition actual constructor(condition: String, overr
 
     actual constructor(condition: Condition): this(condition.condition, condition.label)
 
-    override val isAlternate: Boolean = condition.trim().toLowercase(Locales.ENGLISH) == "otherwise"
-    actual override val condition: String = if (isAlternate) "" else condition
+    override val isOtherwise: Boolean = condition.trim().toLowercase(Locales.ENGLISH) == "otherwise"
+    actual override val condition: String = if (isOtherwise) "" else condition
 
     /**
      * Evaluate the condition.

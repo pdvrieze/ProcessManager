@@ -94,6 +94,18 @@ class RunnableActivity<I : Any, O : Any>(
 
     override fun takeTask(instance: ProcessNodeInstance.Builder<*, *>): Boolean = true
 
+    override fun isOtherwiseCondition(predecessor: ExecutableProcessNode): Boolean {
+        return condition?.isOtherwise == true
+    }
+
+    override fun evalCondition(
+        nodeInstanceSource: IProcessInstance,
+        predecessor: IProcessNodeInstance,
+        nodeInstance: IProcessNodeInstance
+    ): ConditionResult {
+        return condition.evalCondition(nodeInstanceSource, predecessor, nodeInstance)
+    }
+
     fun getInputData(data: List<ProcessData>): I {
         val mappedData = mutableMapOf<String, Any?>()
         for (define in this.defines) {

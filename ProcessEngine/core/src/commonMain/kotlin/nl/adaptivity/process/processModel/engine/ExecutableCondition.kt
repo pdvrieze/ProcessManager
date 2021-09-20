@@ -29,7 +29,7 @@ import nl.adaptivity.util.multiplatform.name
  * @author Paul de Vrieze
  */
 abstract class ExecutableCondition : Condition, Function2<IProcessInstance, IProcessNodeInstance, ConditionResult> {
-    open val isAlternate: Boolean get()= false
+    open val isOtherwise: Boolean get()= false
 
     /**
      * Evaluate the condition.
@@ -60,7 +60,7 @@ abstract class ExecutableCondition : Condition, Function2<IProcessInstance, IPro
     }
 
     object OTHERWISE: ExecutableCondition() {
-        override val isAlternate: Boolean get() = true
+        override val isOtherwise: Boolean get() = true
 
         override fun eval(nodeInstanceSource: IProcessInstance, instance: IProcessNodeInstance): ConditionResult = MAYBE
 

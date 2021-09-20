@@ -71,6 +71,10 @@ class ExecutableJoin(
         return null to candidateNo
     }
 
+    override fun isOtherwiseCondition(predecessor: ExecutableProcessNode): Boolean {
+        return conditions.get(predecessor.identifier)?.toExecutableCondition()?.isOtherwise == true
+    }
+
     override fun evalCondition(
         nodeInstanceSource: IProcessInstance,
         predecessor: IProcessNodeInstance,
@@ -100,6 +104,7 @@ class ExecutableJoin(
 
         if (alwaysCount>=min) return ConditionResult.TRUE
         if (neverCount>(predecessors.size-min)) return ConditionResult.NEVER
+        if (neverCount+1==predecessors.size && isOtherwiseCondition(predecessor.node)) return ConditionResult.TRUE
         return ConditionResult.MAYBE
     }
 

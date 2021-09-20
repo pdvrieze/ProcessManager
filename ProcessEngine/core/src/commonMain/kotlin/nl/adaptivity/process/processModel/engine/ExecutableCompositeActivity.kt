@@ -63,6 +63,10 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableProcessNode
             _condition = value?.toExecutableCondition()
         }
 
+    override fun isOtherwiseCondition(predecessor: ExecutableProcessNode): Boolean {
+        return _condition?.isOtherwise == true
+    }
+
     /**
      * Determine whether the process can start.
      */

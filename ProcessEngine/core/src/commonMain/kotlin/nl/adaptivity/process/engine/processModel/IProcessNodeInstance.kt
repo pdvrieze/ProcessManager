@@ -48,6 +48,8 @@ interface IProcessNodeInstance: ReadableHandleAware<SecureObject<ProcessNodeInst
 
     fun build(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance<*> = builder(processInstanceBuilder).build()
 
+    fun isOtherwiseCondition(predecessor: IProcessNodeInstance) = node.isOtherwiseCondition(predecessor.node)
+
     fun condition(
         nodeInstanceSource: IProcessInstance,
         predecessor: IProcessNodeInstance
