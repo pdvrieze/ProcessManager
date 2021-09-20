@@ -23,7 +23,7 @@ import nl.adaptivity.xmlutil.util.ICompactFragment
 
 expect fun IPlatformXmlResultType.applyData(payload: ICompactFragment?): ProcessData
 
-expect fun IXmlDefineType.applyData(nodeInstanceSource: NodeInstanceSource, context: ActivityInstanceContext): ProcessData
+expect fun IXmlDefineType.applyData(nodeInstanceSource: IProcessInstance, context: ActivityInstanceContext): ProcessData
 
 expect fun IXmlDefineType.applyFromProcessInstance(
     processInstance: ProcessInstance.Builder

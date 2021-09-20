@@ -34,7 +34,7 @@ import java.io.CharArrayReader
 import java.sql.SQLException
 import javax.xml.xpath.XPathConstants
 
-actual fun IXmlDefineType.applyData(nodeInstanceSource: NodeInstanceSource, context: ActivityInstanceContext): ProcessData {
+actual fun IXmlDefineType.applyData(nodeInstanceSource: IProcessInstance, context: ActivityInstanceContext): ProcessData {
     // TODO, make this not need engineData
     val nodeInstance = nodeInstanceSource.getChildNodeInstance(context.handle)
     return applyDataImpl(nodeInstanceSource, refNode?.let { nodeInstance.resolvePredecessor(nodeInstanceSource, it)}, context.processContext.handle)
@@ -51,7 +51,7 @@ actual fun IXmlDefineType.applyFromProcessInstance(processInstance: ProcessInsta
 }
 
 @OptIn(XmlUtilInternal::class)
-private fun IXmlDefineType.applyDataImpl(nodeInstanceSource: NodeInstanceSource, predecessor: IProcessNodeInstance?, hProcessInstance: Handle<SecureObject<ProcessInstance>>): ProcessData {
+private fun IXmlDefineType.applyDataImpl(nodeInstanceSource: IProcessInstance, predecessor: IProcessNodeInstance?, hProcessInstance: Handle<SecureObject<ProcessInstance>>): ProcessData {
     val processData: ProcessData
 
     val predRefName = predecessor?.node?.effectiveRefName(refName)

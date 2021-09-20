@@ -89,7 +89,7 @@ interface ExecutableProcessNode : ProcessNode, Identified {
      *          not.
      */
     fun evalCondition(
-        nodeInstanceSource: NodeInstanceSource,
+        nodeInstanceSource: IProcessInstance,
         predecessor: IProcessNodeInstance,
         nodeInstance: IProcessNodeInstance
     ): ConditionResult = when {
@@ -169,7 +169,7 @@ interface ExecutableProcessNode : ProcessNode, Identified {
  * @return `true` if the node can be started, `false` if not.
  */
 internal fun ExecutableCondition?.evalCondition(
-    nodeInstanceSource: NodeInstanceSource,
+    nodeInstanceSource: IProcessInstance,
     predecessor: IProcessNodeInstance,
     nodeInstance: IProcessNodeInstance
 ): ConditionResult {

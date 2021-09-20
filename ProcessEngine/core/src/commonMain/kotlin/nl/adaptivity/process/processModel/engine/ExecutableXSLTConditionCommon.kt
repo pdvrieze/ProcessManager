@@ -21,7 +21,7 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import nl.adaptivity.process.engine.NodeInstanceSource
+import nl.adaptivity.process.engine.IProcessInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.processModel.Condition
 
@@ -43,7 +43,7 @@ expect class ExecutableXSLTCondition(condition: String, label: String? = null) :
      * @param nodeInstance The instance to use to evaluate against.
      * @return `true` if the condition holds, `false` if not
      */
-    override fun eval(nodeInstanceSource: NodeInstanceSource, nodeInstance: IProcessNodeInstance): ConditionResult
+    override fun eval(nodeInstanceSource: IProcessInstance, nodeInstance: IProcessNodeInstance): ConditionResult
 
 }
 

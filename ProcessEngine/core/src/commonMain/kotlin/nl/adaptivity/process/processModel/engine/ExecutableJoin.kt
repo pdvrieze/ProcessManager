@@ -73,7 +73,7 @@ class ExecutableJoin(
     }
 
     override fun evalCondition(
-        nodeInstanceSource: NodeInstanceSource,
+        nodeInstanceSource: IProcessInstance,
         predecessor: IProcessNodeInstance,
         nodeInstance: IProcessNodeInstance
     ): ConditionResult {

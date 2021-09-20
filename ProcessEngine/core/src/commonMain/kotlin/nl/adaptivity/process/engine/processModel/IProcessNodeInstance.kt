@@ -50,11 +50,11 @@ interface IProcessNodeInstance: ReadableHandleAware<SecureObject<ProcessNodeInst
     fun build(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance<*> = builder(processInstanceBuilder).build()
 
     fun condition(
-        nodeInstanceSource: NodeInstanceSource,
+        nodeInstanceSource: IProcessInstance,
         predecessor: IProcessNodeInstance
     ) = node.evalCondition(nodeInstanceSource, predecessor, this)
 
-    fun resolvePredecessor(nodeInstanceSource: NodeInstanceSource, nodeName: String): IProcessNodeInstance? {
+    fun resolvePredecessor(nodeInstanceSource: IProcessInstance, nodeName: String): IProcessNodeInstance? {
         val handle = getPredecessor(nodeInstanceSource, nodeName)
             ?: throw NullPointerException("Missing predecessor with name $nodeName referenced from node ${node.id}")
         return nodeInstanceSource.getChildNodeInstance(handle)
@@ -67,7 +67,7 @@ interface IProcessNodeInstance: ReadableHandleAware<SecureObject<ProcessNodeInst
 }
 
 private fun IProcessNodeInstance.getPredecessor(
-    nodeInstanceSource: NodeInstanceSource,
+    nodeInstanceSource: IProcessInstance,
     nodeName: String
 ): Handle<SecureObject<ProcessNodeInstance<*>>>? {
     // TODO Use process structure knowledge to do this better/faster without as many database lookups.
@@ -86,14 +86,14 @@ private fun IProcessNodeInstance.getPredecessor(
     return null
 }
 
-fun ActivityInstanceContext.getDefines(nodeInstanceSource: NodeInstanceSource): List<ProcessData> {
+fun ActivityInstanceContext.getDefines(nodeInstanceSource: IProcessInstance): List<ProcessData> {
     return node.defines.map {
         it.applyData(nodeInstanceSource, this)
     }
 }
 
 fun ActivityInstanceContext.instantiateXmlPlaceholders(
-    nodeInstanceSource: NodeInstanceSource,
+    nodeInstanceSource: IProcessInstance,
     xmlReader: XmlReader,
     removeWhitespace: Boolean,
     localEndpoint: EndpointDescriptor
@@ -106,7 +106,7 @@ fun ActivityInstanceContext.instantiateXmlPlaceholders(
 }
 
 fun ActivityInstanceContext.instantiateXmlPlaceholders(
-    nodeInstanceSource: NodeInstanceSource,
+    nodeInstanceSource: IProcessInstance,
     xmlReader: XmlReader,
     out: XmlWriter,
     removeWhitespace: Boolean,

@@ -45,7 +45,7 @@ import kotlin.jvm.Synchronized
 @Target(AnnotationTarget.CLASS, AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER)
 annotation class ProcessInstanceStorage
 
-class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, SecureObject<ProcessInstance>, NodeInstanceSource {
+class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, SecureObject<ProcessInstance>, IProcessInstance {
 
     private class InstanceFuture<T : ProcessNodeInstance<*>, N : ExecutableProcessNode>(val origBuilder: ProcessNodeInstance.Builder<out ExecutableProcessNode, out T>) :
         Future<T> {
@@ -87,7 +87,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         }
     }
 
-    interface Builder : ProcessInstanceContext, NodeInstanceSource {
+    interface Builder : ProcessInstanceContext, IProcessInstance {
         val generation: Int
         val pendingChildren: List<Future<out ProcessNodeInstance<*>>>
         override var handle: Handle<SecureObject<ProcessInstance>>

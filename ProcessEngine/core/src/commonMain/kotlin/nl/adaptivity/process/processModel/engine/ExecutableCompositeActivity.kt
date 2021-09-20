@@ -18,7 +18,7 @@ package nl.adaptivity.process.processModel.engine
 
 import net.devrieze.util.getInvalidHandle
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
-import nl.adaptivity.process.engine.NodeInstanceSource
+import nl.adaptivity.process.engine.IProcessInstance
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.CompositeInstance
@@ -67,7 +67,7 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableProcessNode
      * Determine whether the process can start.
      */
     override fun evalCondition(
-        nodeInstanceSource: NodeInstanceSource,
+        nodeInstanceSource: IProcessInstance,
         predecessor: IProcessNodeInstance,
         nodeInstance: IProcessNodeInstance
     ): ConditionResult {

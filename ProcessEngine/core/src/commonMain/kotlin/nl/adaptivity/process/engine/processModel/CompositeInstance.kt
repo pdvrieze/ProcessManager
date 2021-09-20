@@ -128,7 +128,7 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
 
     override fun builder(processInstanceBuilder: ProcessInstance.Builder) = ExtBuilder(this, processInstanceBuilder)
 
-    fun getPayload(nodeInstanceSource: NodeInstanceSource): CompactFragment? {
+    fun getPayload(nodeInstanceSource: IProcessInstance): CompactFragment? {
         val defines = getDefines(nodeInstanceSource)
         if (defines.isEmpty()) return null
 

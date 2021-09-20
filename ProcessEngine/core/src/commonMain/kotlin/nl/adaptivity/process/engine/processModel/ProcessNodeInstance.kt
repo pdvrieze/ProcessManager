@@ -146,7 +146,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         return "nodeInstance  ($handle, ${node.id}[$entryNo] - $state)"
     }
 
-    fun serialize(nodeInstanceSource: NodeInstanceSource, out: XmlWriter, localEndpoint: EndpointDescriptor) {
+    fun serialize(nodeInstanceSource: IProcessInstance, out: XmlWriter, localEndpoint: EndpointDescriptor) {
         out.smartStartTag(XmlProcessNodeInstance.ELEMENTNAME) {
             writeAttribute("state", state.name)
             writeAttribute("processinstance", hProcessInstance.handleValue)
