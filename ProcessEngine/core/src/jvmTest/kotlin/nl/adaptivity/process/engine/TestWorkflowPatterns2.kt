@@ -123,7 +123,7 @@ class TestWorkflowPatterns2 {
                 dynamicContainer(
                     "Valid traces",
                     testClass.validTraces.mapIndexed { idx, trace ->
-                        createInvalidTraceTest(testClass.config, trace, idx, false)
+                        createInvalidTraceTest(testClass.config, trace, idx, false, "Validating trace #$idx: [${trace.joinToString()}]")
                     }
                 ),
                 dynamicContainer("Invalid traces", testClass.testInvalidTraces())

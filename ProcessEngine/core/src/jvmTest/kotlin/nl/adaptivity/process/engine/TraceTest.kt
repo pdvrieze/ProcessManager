@@ -566,12 +566,12 @@ fun createInvalidTraceTest(
     config: TraceTest.CompanionBase,
     trace: Trace,
     traceIdx: Int,
-    failureExpected: Boolean = true
-): DynamicContainer {
-    val label = when (failureExpected) {
+    failureExpected: Boolean = true,
+    label: String = when (failureExpected) {
         true -> "Given invalid trace #$traceIdx [${trace.joinToString()}]"
         else -> "Executing using the invalid trace testing mechanism"
     }
+): DynamicContainer {
     return config.dynamicContainer(label) {
         addTest("Executing the trace should ${failureExpected.pick("fail", "not fail")}") {
             var success = false
