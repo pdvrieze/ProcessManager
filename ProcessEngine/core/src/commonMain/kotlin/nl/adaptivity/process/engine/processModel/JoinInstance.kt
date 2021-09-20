@@ -89,33 +89,28 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
                         }
                     }
                 }
-            val cancelablePredecessors = mutableListOf<Handle<SecureObject<ProcessNodeInstance<*>>>>()
-            if (!node.isMultiMerge) {
-                processInstanceBuilder
-                    .allChildNodeInstances { !it.state.isFinal && it.entryNo == entryNo && it.node preceeds node }
-                    .mapTo(cancelablePredecessors) { it.handle }
-            }
+
+            super.doFinishTask(engineData, resultPayload)
+
+            processInstanceBuilder.storeChild(this)
+            processInstanceBuilder.store(engineData)
+
+            // Store before cancelling predecessors, the cancelling will likely hit this child
+//            val cancelablePredecessors = mutableListOf<Handle<SecureObject<ProcessNodeInstance<*>>>>()
+//            if (!node.isMultiMerge) {
+//                val predecessorNodes = node.transitivePredecessors(excludeSplit = true)
+//                processInstanceBuilder
+//                    .allChildNodeInstances { !it.state.isFinal && it.entryNo == entryNo && it.node in predecessorNodes }
+//                    .mapTo(cancelablePredecessors) { it.handle }
+//            }
+            skipPredecessors(engineData)
 
             if (committedPredecessorCount < node.min) {
                 throw ProcessException("Finishing the join is not possible as the minimum amount of predecessors ${node.min} was not reached (predecessor count: $committedPredecessorCount)")
             }
 
-            processInstanceBuilder.storeChild(this)
-            processInstanceBuilder.store(engineData)
-            engineData.commit() // Store before cancelling predecessors, the cancelling will likely hit this child
+            engineData.commit()
 
-            for (hInstanceToCancel in cancelablePredecessors) {
-                processInstanceBuilder.updateChild(hInstanceToCancel) {
-                    when {
-                        this is Builder &&
-                            this.updateTaskState(engineData, NodeInstanceState.Cancelled) ->
-                            this.state = NodeInstanceState.AutoCancelled
-
-                        !state.isFinal -> this.cancelAndSkip(engineData)
-                    }
-                }
-            }
-            super.doFinishTask(engineData, resultPayload)
         }
 
         fun failSkipOrCancel(
@@ -345,37 +340,37 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
             if (state.isSkipped) {
 
-                val pseudoContext = PseudoInstance.PseudoContext(engineData, hProcessInstance)
+                skipPredecessors(engineData)
+            }
+        }
 
-                pseudoContext.createPredecessorsFor(handle)
+        private fun Builder.skipPredecessors(engineData: MutableProcessEngineDataAccess) {
+            val pseudoContext = PseudoInstance.PseudoContext(processInstanceBuilder)
 
-                val toSkipCancel = mutableListOf<ProcessNodeInstance<*>>()
-                val predQueue = ArrayDeque<IProcessNodeInstance>().apply { add(pseudoContext.getInstance(handle)!!) }
-                while (predQueue.isNotEmpty()) {
-                    when (val pred = predQueue.removeFirst()) {
-                        is PseudoInstance -> when (pred.node) {
-                            is Split -> {
-                            }
-                            else -> {
-                                pred.state = NodeInstanceState.AutoCancelled
-                                for (hppred in pred.predecessors) {
-                                    pseudoContext.getInstance(hppred)?.let { predQueue.add(it) }
-                                }
-                            }
-                        }
-                        is ProcessNodeInstance<*> -> {
-                            if (!pred.state.isFinal && pred.node !is Split) {
-                                toSkipCancel.add(pred)
-                            }
+            pseudoContext.createPredecessorsFor(handle)
+
+            val toSkipCancel = mutableListOf<ProcessNodeInstance<*>>()
+            val predQueue = ArrayDeque<IProcessNodeInstance>().apply { add(pseudoContext.getNodeInstance(handle)!!) }
+            while (predQueue.isNotEmpty()) {
+                when (val pred = predQueue.removeFirst()) {
+                    is PseudoInstance -> if (pred.node !is Split) {
+                        pred.state = NodeInstanceState.AutoCancelled
+                        for (hppred in pred.predecessors) {
+                            pseudoContext.getNodeInstance(hppred)?.let { predQueue.add(it) }
                         }
                     }
-
+                    is ProcessNodeInstance<*> -> {
+                        if (!pred.state.isFinal && pred.node !is Split) {
+                            toSkipCancel.add(pred)
+                        }
+                    }
                 }
 
-                for (predecessor in toSkipCancel) {
-                    processInstanceBuilder.updateChild(predecessor.handle) {
-                        cancelAndSkip(engineData)
-                    }
+            }
+
+            for (predecessor in toSkipCancel) {
+                processInstanceBuilder.updateChild(predecessor.handle) {
+                    cancelAndSkip(engineData)
                 }
             }
         }

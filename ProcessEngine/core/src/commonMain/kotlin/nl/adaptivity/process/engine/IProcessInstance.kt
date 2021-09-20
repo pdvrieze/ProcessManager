@@ -17,11 +17,16 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.Handle
+import net.devrieze.util.ReadableHandleAware
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.processModel.engine.ExecutableModelCommon
+import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 
-interface IProcessInstance {
+interface IProcessInstance: ReadableHandleAware<SecureObject<ProcessInstance>> {
+    val processModel: ExecutableModelCommon
+
     val inputs: List<ProcessData>
 
     fun getChildNodeInstance(handle: Handle<SecureObject<ProcessNodeInstance<*>>>): IProcessNodeInstance

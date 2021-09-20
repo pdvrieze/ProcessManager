@@ -93,7 +93,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         override var handle: Handle<SecureObject<ProcessInstance>>
         var parentActivity: Handle<SecureObject<ProcessNodeInstance<*>>>
         var owner: Principal
-        var processModel: ExecutableModelCommon
+        override var processModel: ExecutableModelCommon
         var instancename: String?
         var uuid: UUID
         var state: State
@@ -797,7 +797,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
     val generation: Int
 
-    val processModel: ExecutableModelCommon
+    override val processModel: ExecutableModelCommon
 
     val childNodes: Collection<SecureObject<ProcessNodeInstance<*>>>
 

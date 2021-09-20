@@ -23,6 +23,7 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.ProcessNode
+import nl.adaptivity.process.processModel.Split
 import nl.adaptivity.process.processModel.XmlResultType
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
