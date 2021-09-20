@@ -433,6 +433,8 @@ private fun ContainerContext.createJoinElementTest(trace: Trace, elementIdx: Int
     addTest("Join $traceElement is finished or can finish") {
         runTrace(trace, elementIdx)
         val pni = traceElement.getNodeInstance()
+            ?: fail("An element for ${traceElement} shoulld exist")
+        
         val activePredecessors =
             getProcessInstance().getActivePredecessorsFor(transaction.readableEngineData, pni as JoinInstance)
 
