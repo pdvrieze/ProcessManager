@@ -432,7 +432,11 @@ fun InstanceSupport.testTraceExceptionThrowing(
                 }
             }
         }
-        engine.processTickleQueue(transaction)
+        try {
+            engine.processTickleQueue(transaction)
+        } catch (e: ProcessException) {
+            throw ProcessTestingException(e)
+        }
 
         if (true) {
             val nodeInstance = traceElement.getNodeInstance(hProcessInstance)
