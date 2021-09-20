@@ -19,100 +19,219 @@ package nl.adaptivity.process.engine.patterns
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.configurableModel.*
 import nl.adaptivity.process.processModel.engine.ExecutableXSLTCondition
+import org.junit.jupiter.api.DisplayName
+import org.junit.jupiter.api.Nested
 
-/**
- * Test based on
- * https://bpmai.org/foswiki/pub/BPMAcademicInitiative/AnalyzeProcessModels/ex1_execution_traces.pdf
- */
-class WebProcess1 : TraceTest(Companion) {
-    companion object: TraceTest.CompanionBase() {
-        override val modelData: ModelData = run {
-            val m = object : TestConfigurableModel("Signavio-insurance-emergency") {
-                val start by startNode { label = "Insurance emergency" }
+class WebProcesses {
+    /**
+     * Test based on
+     * https://bpmai.org/foswiki/pub/BPMAcademicInitiative/AnalyzeProcessModels/ex1_execution_traces.pdf
+     */
+    @Nested
+    @DisplayName("Signavio insurance emergency process")
+    inner class WebProcess1 : TraceTest(WebProcess1Config)
 
-                val split1 by split(start) {
+    /**
+     * Test based on
+     * https://bpmai.org/foswiki/pub/BPMAcademicInitiative/AnalyzeProcessModels/ex1_execution_traces.pdf
+     */
+    @Nested
+    @DisplayName("Variant B of Signavio insurance emergency process - single final join (1 or 2 out of 3)")
+    inner class WebProcess1b : TraceTest(WebProcess1Config2)
+
+}
+
+private object WebProcess1Config : TraceTest.CompanionBase() {
+    override val modelData: ModelData = run {
+        val m = object : TestConfigurableModel("Signavio-insurance-emergency") {
+            val start by startNode { label = "Insurance emergency" }
+
+            val split1 by split(start) {
+                min = 2
+                max = 2
+            }
+
+            val ac1 by activity(split1) {
+                label = "Analyze insurance agreement"
+                result { name = "result"; path = "/" }
+            }
+
+            val split2 by split(ac1) {
+                min = 1
+                max = 1
+            }
+
+            val ac2 by activity(split1) {
+                label = "Offer immediate help"
+                result { name = "result"; path = "/" }
+            }
+
+            val split3 by split(ac2) {
+                min = 1
+                max = 1
+            }
+
+            val join1 by this.let { tcm ->
+                join(split2, split3) {
+                    conditions[tcm.split2] =
+                        ExecutableXSLTCondition("pe:node('ac1')/coverage_exists", "There is coverage")
+                    conditions[tcm.split3] =
+                        ExecutableXSLTCondition("pe:node('ac2')/accepted", "Offer accepted")
                     min = 2
                     max = 2
                 }
+            }
 
-                val ac1 by activity(split1) {
-                    label = "Analyze insurance agreement"
-                    result { name="result"; path="/" }
-                }
+            val ac3 by activity(split2) {
+                condition = ExecutableXSLTCondition("otherwise", "No coverage")
+                label = "Send out offer for emergency help"
+            }
 
-                val split2 by split(ac1) {
-                    min = 1
-                    max = 1
-                }
+            val ac4 by activity(join1) {
+                label = "Do internal accounting"
+            }
 
-                val ac2 by activity(split1) {
-                    label = "Offer immediate help"
-                    result { name="result"; path="/" }
-                }
+            val ac5 by activity(split3) {
+                label = "Ask for rejection notification"
+                condition = ExecutableXSLTCondition("otherwise", "Offer rejected")
+            }
 
-                val split3 by split(ac2) {
-                    min = 1
-                    max = 1
-                }
+            val join2 by join(ac4, ac5) {
+                min = 1
+                max = 1
+            }
 
-                val join1 by this.let { tcm ->
-                    join(split2, split3) {
-                        conditions[tcm.split2] = ExecutableXSLTCondition("pe:node('ac1')/coverage_exists", "There is coverage")
-                        conditions[tcm.split3] = ExecutableXSLTCondition("pe:node('ac2')/accepted", "Offer accepted")
-                        min = 2
-                        max = 2
-                    }
-                }
+            val join3 by join(
+                ac3,
+                join2
+            ) { // this is a nasty or join | could be collapsed into join2 or using a split after ac4
+                min = 1
+                max = 2
+            }
 
-                val ac3 by activity(split2) {
-                    condition = ExecutableXSLTCondition("otherwise", "No coverage")
-                    label = "Send out offer for emergency help"
-                }
+            val end by endNode(join3)
+        }
+        with(m) {
+            val valid = trace {
+                (start..
+                    ((ac1 % ac2) or (ac1("<coverage_exists/>") % ac2) or (ac1 % ac2("<accepted/>")))
+                    ..split1..(
+                    ((ac3 % split2) % ((ac5 % split3)..join2))
+                    )..join3..end
+                    ) or (
+                    start..((ac1("<coverage_exists/>") % ac2("<accepted/>"))..
+                        split1..(split2 % split3)..join1..ac4..join2..join3..end)
+                    )
+            }
+            val invalid = trace {
+                (start.opt * (split2 or split3 or ac3 or ac4 or join1 or join2 or join3 or end)) or
+                    (start..ac1..end) or
+                    (start..
+                        ((ac1 % ac2) or (ac1("<coverage_exists/>") % ac2) or (ac1 % ac2("<accepted/>")))..
+                        split1..(split2 % split3)..
+                        (join1 or ac4)) or
+                    (start..(ac1("<coverage_exists/>") % ac2("<accepted/>"))..((ac3 % split2) or (ac5 % split3)))
+            }
+            ModelData(m, valid, invalid)
+        }
+    }
+}
 
-                val ac4 by activity(join1) {
-                    label = "Do internal accounting"
-                }
+private object WebProcess1Config2 : TraceTest.CompanionBase() {
+    override val modelData: ModelData = run {
+        val m = object : TestConfigurableModel("Signavio-insurance-emergency") {
+            val start by startNode { label = "Insurance emergency" }
 
-                val ac5 by activity(split3) {
-                    label = "Ask for rejection notification"
-                    condition = ExecutableXSLTCondition("otherwise", "Offer rejected")
-                }
+            val split1 by split(start) {
+                min = 2
+                max = 2
+            }
 
-                val join2 by join(ac4, ac5) {
-                    min = 1
-                    max = 1
-                }
+            val ac1 by activity(split1) {
+                label = "Analyze insurance agreement"
+                result { name = "result"; path = "/" }
+            }
 
-                val join3 by join(ac3, join2) { // this is a nasty or join | could be collapsed into join2 or using a split after ac4
-                    min = 1
+            val split2 by split(ac1) {
+                min = 1
+                max = 1
+            }
+
+            val ac2 by activity(split1) {
+                label = "Offer immediate help"
+                result { name = "result"; path = "/" }
+            }
+
+            val split3 by split(ac2) {
+                min = 1
+                max = 1
+            }
+
+            val join1 by this.let { tcm ->
+                join(split2, split3) {
+                    conditions[tcm.split2] =
+                        ExecutableXSLTCondition("pe:node('ac1')/coverage_exists", "There is coverage")
+                    conditions[tcm.split3] =
+                        ExecutableXSLTCondition("pe:node('ac2')/accepted", "Offer accepted")
+                    min = 2
                     max = 2
                 }
+            }
 
-                val end by endNode(join3)
+            val ac3 by activity(split2) {
+                condition = ExecutableXSLTCondition("otherwise", "No coverage")
+                label = "Send out offer for emergency help"
             }
-            with(m) {
-                val valid = trace {
+
+            val ac4 by activity(join1) {
+                label = "Do internal accounting"
+            }
+
+            val ac5 by activity(split3) {
+                label = "Ask for rejection notification"
+                condition = ExecutableXSLTCondition("otherwise", "Offer rejected")
+            }
+
+/*
+            val join2 by join(ac4, ac5) {
+                min = 1
+                max = 1
+            }
+*/
+
+            val join3 by join(
+                ac3,
+                ac4,
+                ac5
+            ) { // this is a nasty or join | could be collapsed into join2 or using a split after ac4
+                min = 1
+                max = 2
+            }
+
+            val end by endNode(join3)
+        }
+        with(m) {
+            val valid = trace {
+                (start..
+                    ((ac1 % ac2) or (ac1("<coverage_exists/>") % ac2) or (ac1 % ac2("<accepted/>")))
+                    ..split1..(
+                    ((ac3 % split2) % ((ac5 % split3)))
+                    )..join3..end
+                    ) or (
+                    start..((ac1("<coverage_exists/>") % ac2("<accepted/>"))..
+                        split1..(split2 % split3)..join1..ac4..join3..end)
+                    )
+            }
+            val invalid = trace {
+                (start.opt * (split2 or split3 or ac3 or ac4 or join1 or join3 or end)) or
+                    (start..ac1..end) or
                     (start..
-                        ((ac1%ac2) or (ac1("<coverage_exists/>") % ac2) or (ac1 % ac2("<accepted/>")) )
-                        ..split1..(
-                        ((ac3 % split2) % ((ac5 % split3)..join2))
-                        )..join3..end
-                        ) or (
-                            start..((ac1("<coverage_exists/>") % ac2("<accepted/>"))..
-                                split1.. (split2%split3)..join1..ac4..join2..join3..end)
-                        )
-                }
-                val invalid = trace {
-                    (start.opt * (split2 or split3 or ac3 or ac4 or join1 or join2 or join3 or end)) or
-                        (start..ac1..end) or
-                        (start..
-                            ((ac1%ac2) or (ac1("<coverage_exists/>") % ac2) or (ac1 % ac2("<accepted/>")) )..
-                            split1.. (split2 % split3) ..
-                            (join1 or ac4)) or
-                        (start .. (ac1("<coverage_exists/>") % ac2("<accepted/>"))..((ac3 % split2) or (ac5 % split3)))
-                }
-                ModelData(m, valid, invalid)
+                        ((ac1 % ac2) or (ac1("<coverage_exists/>") % ac2) or (ac1 % ac2("<accepted/>")))..
+                        split1..(split2 % split3)..
+                        (join1 or ac4)) or
+                    (start..(ac1("<coverage_exists/>") % ac2("<accepted/>"))..((ac3 % split2) or (ac5 % split3)))
             }
+            ModelData(m, valid, invalid)
         }
     }
 }
