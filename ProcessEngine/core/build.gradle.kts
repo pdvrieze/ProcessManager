@@ -14,11 +14,6 @@
  * see <http://www.gnu.org/licenses/>.
  */
 import multiplatform.androidAttribute
-import multiplatform.registerAndroidAttributeForDeps
-import org.jetbrains.kotlin.gradle.plugin.KotlinCompilation
-import org.jetbrains.kotlin.gradle.plugin.KotlinCompilationToRunnableFiles
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinJvmCompilation
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import versions.*
 
@@ -51,31 +46,7 @@ kotlin {
             }
             attributes.attribute(androidAttribute, false)
 
-            testRuns.create("spekTest") {
-                setExecutionSourceFrom(compilations[KotlinCompilation.MAIN_COMPILATION_NAME])
-                setExecutionSourceFrom(compilations[KotlinCompilation.TEST_COMPILATION_NAME])
-
-                executionTask.configure {
-                    useJUnitPlatform {
-                        includeEngines("spek2")
-                    }
-                    include("**/TestWorkflowPatterns**")
-                    include("**/TestProcessEngine**")
-                    include("**/TestLoanOrigination**")
-                }
-            }
-
-            testRuns.create("anySpek") {
-                setExecutionSourceFrom(compilations[KotlinCompilation.MAIN_COMPILATION_NAME])
-                setExecutionSourceFrom(compilations[KotlinCompilation.TEST_COMPILATION_NAME])
-
-                executionTask.configure {
-                    useJUnitPlatform {
-                        includeEngines("spek2")
-                    }
-                }
-            }
-
+/*
             testRuns.create("WCP1") {
                 setExecutionSourceFrom(compilations[KotlinCompilation.MAIN_COMPILATION_NAME])
                 setExecutionSourceFrom(compilations[KotlinCompilation.TEST_COMPILATION_NAME])
@@ -93,20 +64,10 @@ kotlin {
 
                 }
             }
+*/
 
         }
-/*
-        jvm("android") {
-            attributes.attribute(androidAttribute, true)
-            attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.androidJvm)
-            compilations.all {
-                tasks.getByName<KotlinCompile>(compileKotlinTaskName).kotlinOptions {
-                    jvmTarget = "1.6"
-                    freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental")
-                }
-            }
-        }
-*/
+
         sourceSets {
             all {
                 languageSettings {
@@ -152,9 +113,6 @@ kotlin {
 
                     implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
 
-                    implementation("org.spekframework.spek2:spek-dsl:${spek2Version}")
-                    runtimeOnly("org.spekframework.spek2:spek-runtime:${spek2Version}")
-
                     implementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
 
                     implementation("org.xmlunit:xmlunit-core:2.6.0")
@@ -166,11 +124,6 @@ kotlin {
 
                     runtimeOnly("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
                     runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
-
-                    runtimeOnly("org.spekframework.spek2:spek-runner-junit5:${spek2Version}") {
-                        exclude(group = "org.junit.platform")
-                        exclude(group = "org.jetbrains.kotlin")
-                    }
                 }
             }
         }
