@@ -214,7 +214,7 @@ class TestContext(private val config: TraceTest.CompanionBase) {
         val nodeInstance = traceElement.getNodeInstance(transaction, getProcessInstance(instanceHandle))
             ?: fail("Missing node instance for $traceElement")
 
-        transaction.writableEngineData.updateInstance(instanceHandle) {
+        transaction.writableEngineData.updateInstance(nodeInstance.hProcessInstance) {
             updateChild(nodeInstance.handle, action)
         }
     }
@@ -360,7 +360,8 @@ fun createValidTraceTest(config: TraceTest.CompanionBase, trace: Trace, traceNo:
             }
             addTest("No nodes are active") {
                 runTrace(trace)
-                val activeNodes = getProcessInstance().activeNodes.toList()
+                val activeNodes = getProcessInstance().activeNodes
+                    .filterNot { it.node is Join && it.state == NodeInstanceState.Pending }
                 assertTrue(activeNodes.none()) {
                     "The list of active nodes is not empty (Expected: [], found: [${activeNodes.joinToString()}])"
                 }
@@ -434,7 +435,7 @@ private fun ContainerContext.createJoinElementTest(trace: Trace, elementIdx: Int
         runTrace(trace, elementIdx)
         val pni = traceElement.getNodeInstance()
             ?: fail("An element for ${traceElement} shoulld exist")
-        
+
         val activePredecessors =
             getProcessInstance().getActivePredecessorsFor(transaction.readableEngineData, pni as JoinInstance)
 
