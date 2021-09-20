@@ -22,6 +22,7 @@ import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
+import nl.adaptivity.process.engine.NodeInstanceSource
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.impl.CompactFragment
@@ -59,7 +60,7 @@ class RunnableActivityInstance<I: Any,O: Any>(builder: Builder<I,O>):
 
                 val resultFragment = tryRunTask {
                     val build = build()
-                    val input: I = build.getInputData(engineData)
+                    val input: I = build.getInputData(processInstanceBuilder)
                     val action: RunnableAction<I, O> = n.action
                     val context = engineData.processContextFactory.newActivityInstanceContext(engineData, this)
                     val result: O = context.action(input)
@@ -123,10 +124,9 @@ class RunnableActivityInstance<I: Any,O: Any>(builder: Builder<I,O>):
 
     override fun builder(processInstanceBuilder: ProcessInstance.Builder) = ExtBuilder(this, processInstanceBuilder)
 
-    fun getInputData(engineData: ProcessEngineDataAccess): I {
-        val defines = getDefines(engineData)
+    fun getInputData(nodeInstanceSource: NodeInstanceSource): I {
+        val defines = getDefines(nodeInstanceSource)
         return node.getInputData(defines)
     }
-
 
 }

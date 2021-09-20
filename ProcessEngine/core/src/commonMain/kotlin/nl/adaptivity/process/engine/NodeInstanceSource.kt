@@ -22,6 +22,9 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 
 interface NodeInstanceSource {
+    val inputs: List<ProcessData>
+
     fun getChildNodeInstance(handle: Handle<SecureObject<ProcessNodeInstance<*>>>): IProcessNodeInstance
+
     fun allChildNodeInstances(): Sequence<IProcessNodeInstance>
 }

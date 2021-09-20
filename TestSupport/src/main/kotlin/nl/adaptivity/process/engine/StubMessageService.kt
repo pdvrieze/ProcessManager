@@ -59,11 +59,14 @@ class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMess
         assert(activityInstanceContext.handle.isValid) { "Sending messages from invalid nodes is a bad idea (${activityInstanceContext})" }
 
         val instantiatedContent = if (! protoMessage.messageBody.isEmpty) {
+            val processInstance = engineData.instance(activityInstanceContext.processContext.handle).withPermission()
             // This just creates a temporary copy
-            activityInstanceContext.instantiateXmlPlaceholders(engineData,
-                                                               protoMessage.messageBody.getXmlReader(),
-                                                               false,
-                                                               localEndpoint)
+            activityInstanceContext.instantiateXmlPlaceholders(
+                processInstance,
+                protoMessage.messageBody.getXmlReader(),
+                false,
+                localEndpoint
+            )
         } else {
             CompactFragment(Collections.emptyList(), CharArray(0))
         }

@@ -98,7 +98,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         var uuid: UUID
         var state: State
         val children: List<Handle<SecureObject<ProcessNodeInstance<*>>>>
-        val inputs: MutableList<ProcessData>
+        override val inputs: MutableList<ProcessData>
         val outputs: MutableList<ProcessData>
         fun build(data: MutableProcessEngineDataAccess): ProcessInstance
         fun <T : ProcessNodeInstance<*>> storeChild(child: T): Future<T>
@@ -393,7 +393,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                 store(engineData)
                 if (state == State.FINISHED) {
                     for (output in processModel.exports) {
-                        val x = output.applyFromProcessInstance(engineData, this)
+                        val x = output.applyFromProcessInstance(this)
                         outputs.add(x)
                     }
                     // Storing here is essential as the updating of the node goes of the database, not the local
@@ -854,7 +854,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
      * Get the payload that was passed to start the instance.
      * @return The process initial payload.
      */
-    val inputs: List<ProcessData>
+    override val inputs: List<ProcessData>
 
     val outputs: List<ProcessData>
 

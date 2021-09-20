@@ -46,7 +46,7 @@ actual class ExecutableXSLTCondition actual constructor(condition: String, overr
 
     /**
      * Evaluate the condition.
-
+     *
      * @param engineData The transaction to use for reading state
      *
      * @param nodeInstance The instance to use to evaluate against.

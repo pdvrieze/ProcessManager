@@ -166,8 +166,7 @@ interface ExecutableProcessNode : ProcessNode, Identified {
  *
  * @param nodeInstanceBuilder The instance against which the condition should be evaluated.
  *
- * @return `true` if the node can be started, `false` if
- *          not.
+ * @return `true` if the node can be started, `false` if not.
  */
 internal fun ExecutableCondition?.evalCondition(
     nodeInstanceSource: NodeInstanceSource,

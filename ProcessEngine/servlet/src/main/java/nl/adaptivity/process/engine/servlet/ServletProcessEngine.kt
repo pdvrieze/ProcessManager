@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.engine.servlet
 
-import net.devrieze.util.ComparableHandle
 import net.devrieze.util.*
 import net.devrieze.util.security.AuthenticationNeededException
 import net.devrieze.util.security.SYSTEMPRINCIPAL
@@ -44,7 +43,6 @@ import nl.adaptivity.util.DomUtil
 import nl.adaptivity.util.SerializableData
 import nl.adaptivity.util.commitSerializable
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.util.CompactFragment
 import org.jetbrains.annotations.TestOnly
 import org.w3.soapEnvelope.Envelope
 import org.w3c.dom.Element
@@ -223,8 +221,9 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
             this.activityInstanceContext = activityInstanceContext
 
             try {
+                val processInstance = engineData.instance(activityInstanceContext.processContext.handle).withPermission()
 
-                data = activityInstanceContext.instantiateXmlPlaceholders(engineData, source, false, localEndpoint)
+                data = activityInstanceContext.instantiateXmlPlaceholders(processInstance, source, false, localEndpoint)
 
             } catch (e: Exception) {
                 when (e) {
@@ -815,10 +814,11 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     ): XmlProcessNodeInstance? = translateExceptions {
 
         processEngine.startTransaction().use { transaction ->
-            val result = processEngine.getNodeInstance(transaction, handle<ProcessNodeInstance<*>>(handle), user)
+            val nodeInstance = processEngine.getNodeInstance(transaction, handle<ProcessNodeInstance<*>>(handle), user)
                 ?: return null
+
             return transaction.commit(
-                result.toSerializable(transaction.writableEngineData, messageService.localEndpoint)
+                nodeInstance.toSerializable(transaction.readableEngineData, messageService.localEndpoint)
             )
         }
     }

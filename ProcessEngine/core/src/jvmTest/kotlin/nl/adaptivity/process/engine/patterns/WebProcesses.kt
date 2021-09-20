@@ -93,18 +93,18 @@ class WebProcess1 : TraceTest(Companion) {
             with(m) {
                 val valid = trace {
                     (start..ac1..ac2..split1..(
-                        ((ac3 .. split2) % (ac5..split3..join2)) or
-                            (join1..(split2 % split3)..ac4..join2)
+                        ((ac3 .. split2) % (ac5..split3..join2))
                         )..join3..end
                         ) or (
-                            start..(ac1("<coverage_exists/>") .. ac2("<accepted/>")..split1.. split2..split3..join1..ac4..join2..join3..end)
+                            start..((ac1("<coverage_exists/>") % ac2("<accepted/>"))..
+                                split1.. (split2%split3)..join1..ac4..join2..join3..end)
                         )
                 }
                 val invalid = trace {
                     (start.opt * (split2 or split3 or ac3 or ac4 or join1 or join2 or join3 or end)) or
                         (start..ac1..end)
                 }
-                ModelData(m, valid.takeLast(1), /*invalid*/ emptyList())
+                ModelData(m, valid, /*invalid*/ emptyList())
             }
         }
     }

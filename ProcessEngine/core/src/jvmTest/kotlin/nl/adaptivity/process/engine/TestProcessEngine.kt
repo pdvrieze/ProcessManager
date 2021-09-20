@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.InputStreamOutputStream
+import net.devrieze.util.security.SYSTEMPRINCIPAL
 import nl.adaptivity.process.engine.ProcessInstance.State
 import nl.adaptivity.process.engine.impl.dom.toFragment
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
@@ -432,7 +433,7 @@ class TestProcessEngine : ProcessEngineTestSupport() {
             val ac2 =
                 processEngine.getNodeInstance(transaction, stubMessageService.getMessageNode(0), modelOwnerPrincipal)
 
-            val ac2Defines = ac2!!.getDefines(engineData)
+            val ac2Defines = ac2!!.getDefines(processEngine.getProcessInstance(transaction, ac2.hProcessInstance, modelOwnerPrincipal))
             assertEquals(1, ac2Defines.size)
 
 

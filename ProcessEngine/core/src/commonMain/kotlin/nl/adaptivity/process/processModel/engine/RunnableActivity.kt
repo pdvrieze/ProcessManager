@@ -34,12 +34,16 @@ import nl.adaptivity.xmlutil.serialization.XML
 
 typealias RunnableAction<I, O> = ActivityInstanceContext.(I) -> O
 
-class RunnableActivity<I : Any, O : Any> : ActivityBase, ExecutableProcessNode {
+class RunnableActivity<I : Any, O : Any>(
+    builder: Builder<I, O>,
+    newOwner: ProcessModel<*>,
+    otherNodes: Iterable<ProcessNode.Builder>
+) : ActivityBase(builder.checkDefines(), newOwner, otherNodes), ExecutableProcessNode {
 
-    internal val action: RunnableAction<I, O>
-    internal val inputCombiner: InputCombiner<I>
-    internal val outputSerializer: SerializationStrategy<O>?
-    override val condition: ExecutableCondition?
+    internal val action: RunnableAction<I, O> = builder.action
+    internal val inputCombiner: InputCombiner<I> = builder.inputCombiner
+    internal val outputSerializer: SerializationStrategy<O>? = builder.outputSerializer
+    override val condition: ExecutableCondition? = builder.condition?.toExecutableCondition()
 
     override val ownerModel: ExecutableModelCommon
         get() = super.ownerModel as ExecutableModelCommon
@@ -49,17 +53,6 @@ class RunnableActivity<I : Any, O : Any> : ActivityBase, ExecutableProcessNode {
         get() = super.defines as List<DefineType<*>>
 
     override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
-
-    constructor(
-        builder: Builder<I, O>,
-        newOwner: ProcessModel<*>,
-        otherNodes: Iterable<ProcessNode.Builder>
-    ) : super(builder.checkDefines(), newOwner, otherNodes) {
-        this.inputCombiner = builder.inputCombiner
-        this.outputSerializer = builder.outputSerializer
-        this.action = builder.action
-        this.condition = builder.condition?.toExecutableCondition()
-    }
 
     override fun builder(): Activity.Builder {
         return Builder(this)

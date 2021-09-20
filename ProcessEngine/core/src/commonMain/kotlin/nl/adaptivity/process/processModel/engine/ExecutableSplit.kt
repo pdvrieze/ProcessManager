@@ -67,10 +67,7 @@ class ExecutableSplit(
             x: Double = Double.NaN,
             y: Double = Double.NaN,
             multiInstance: Boolean = false
-        ) : super(
-            id, predecessor, successors, label, defines, results, x, y,
-            min, max, multiInstance
-        )
+        ) : super(id, predecessor, successors, label, defines, results, x, y, min, max, multiInstance)
 
         constructor(node: Split) : super(node)
     }

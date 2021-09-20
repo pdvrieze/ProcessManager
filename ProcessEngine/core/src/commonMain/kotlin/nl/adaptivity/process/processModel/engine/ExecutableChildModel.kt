@@ -21,9 +21,12 @@ import nl.adaptivity.process.processModel.*
 /**
  * Child model extension that has the behaviour needed for execution.
  */
-class ExecutableChildModel(builder: ChildProcessModel.Builder,
-                           buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>) : ChildProcessModelBase<ExecutableProcessNode>(
-    builder, buildHelper), ExecutableModelCommon {
+class ExecutableChildModel(
+    builder: ChildProcessModel.Builder,
+    buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>
+) : ChildProcessModelBase<ExecutableProcessNode>(
+    builder, buildHelper
+), ExecutableModelCommon {
 
     override val rootModel get() = super.rootModel as ExecutableProcessModel
 
@@ -31,7 +34,8 @@ class ExecutableChildModel(builder: ChildProcessModel.Builder,
 
     override fun builder(rootBuilder: RootProcessModel.Builder) = ExecutableChildModel.Builder(
         rootBuilder, id, modelNodes.map(ExecutableProcessNode::builder), imports,
-        exports)
+        exports
+    )
 
     open class Builder(
         override val rootBuilder: RootProcessModel.Builder,
@@ -39,23 +43,24 @@ class ExecutableChildModel(builder: ChildProcessModel.Builder,
         nodes: Collection<ProcessNode.Builder> = emptyList(),
         imports: Collection<IXmlResultType> = emptyList(),
         exports: Collection<IXmlDefineType> = emptyList()
-                      ) :
+    ) :
         ChildProcessModelBase.ModelBuilder(
             rootBuilder,
             childId,
             nodes,
             imports,
             exports
-                                          ) {
+        ) {
 
         constructor(rootBuilder: RootProcessModel.Builder, base: ChildProcessModel<*>)
-            : this(rootBuilder,
-                   base.id,
-                   base.modelNodes.map { it.visit(EXEC_BUILDER_VISITOR) },
-                   base.imports,
-                   base.exports)
+            : this(
+            rootBuilder,
+            base.id,
+            base.modelNodes.map { it.visit(EXEC_BUILDER_VISITOR) },
+            base.imports,
+            base.exports
+        )
 
     }
-
 
 }

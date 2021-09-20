@@ -132,7 +132,7 @@ abstract class TraceTest(val config: CompanionBase) {
     @TestFactory
     @DisplayName("Valid traces")
     fun testValidTraces(): List<DynamicNode> {
-        return validTraces.map { createValidTraceTest(config, it) }
+        return validTraces.mapIndexed { idx, trace -> createValidTraceTest(config, trace, idx) }
     }
 
     @TestFactory
@@ -315,8 +315,8 @@ class ContainerContext(val config: TraceTest.CompanionBase, private val children
 
 }
 
-fun createValidTraceTest(config: TraceTest.CompanionBase, trace: Trace): DynamicContainer {
-    return config.dynamicContainer("For valid trace [${trace.joinToString()}]") {
+fun createValidTraceTest(config: TraceTest.CompanionBase, trace: Trace, traceNo: Int): DynamicContainer {
+    return config.dynamicContainer("For valid trace #$traceNo [${trace.joinToString()}]") {
         addTest("After starting only start nodes should be finished") {
             val processInstance = getProcessInstance()
 

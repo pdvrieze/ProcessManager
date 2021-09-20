@@ -49,21 +49,25 @@ class ExecutableJoin(
         allowFinalInstance: Boolean
     ): Pair<JoinInstance.Builder?, Int> {
         var candidateNo = entryNo
-        for(candidate in processInstanceBuilder.getChildren(this).sortedBy { it.entryNo }) {
-            if(predecessor.handle.toComparableHandle() in candidate.predecessors) {
+        for (candidate in processInstanceBuilder.getChildren(this).sortedBy { it.entryNo }) {
+            if (predecessor.handle.toComparableHandle() in candidate.predecessors) {
                 return (candidate as JoinInstance.Builder) to candidateNo
             }
             if ((allowFinalInstance || candidate.state != NodeInstanceState.Complete) &&
                 (candidate.entryNo == entryNo || candidate.predecessors.any {
                     when (predecessor.handle.isValid && it.isValid) {
                         true -> predecessor.handle == it
-                        else -> data.nodeInstance(it).withPermission().run { entryNo == entryNo && node.id == predecessor.node.id }
+                        else -> data.nodeInstance(it).withPermission()
+                            .run { entryNo == entryNo && node.id == predecessor.node.id }
                     }
-                })) {
+                })
+            ) {
                 return (candidate as JoinInstance.Builder) to candidateNo
             }
             // TODO Throw exceptions for cases where this is not allowed
-            if (candidate.entryNo == candidateNo) { candidateNo++ } // Increase the candidate entry number
+            if (candidate.entryNo == candidateNo) {
+                candidateNo++
+            } // Increase the candidate entry number
         }
         return null to candidateNo
     }
@@ -84,10 +88,16 @@ class ExecutableJoin(
         entryNo: Int,
         allowFinalInstance: Boolean
     ): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
-        val (existingInstance, candidateNo) = getExistingInstance(data, processInstanceBuilder, predecessor, entryNo, allowFinalInstance)
+        val (existingInstance, candidateNo) = getExistingInstance(
+            data,
+            processInstanceBuilder,
+            predecessor,
+            entryNo,
+            allowFinalInstance
+        )
         existingInstance?.let {
             if (predecessor.handle.isValid) {
-                if(it.predecessors.add(predecessor.handle.toComparableHandle())) {
+                if (it.predecessors.add(predecessor.handle.toComparableHandle())) {
                     // Store the new predecessor, so when resetting the predecessor isn't lost
                     processInstanceBuilder.storeChild(it)
                     processInstanceBuilder.store(data)
@@ -96,14 +106,19 @@ class ExecutableJoin(
             return it
         }
 
-        if (!(isMultiInstance || isMultiMerge) && candidateNo!=1) {
+        if (!(isMultiInstance || isMultiMerge) && candidateNo != 1) {
             throw ProcessException("Attempting to start a second instance of a single instantiation join $id:$entryNo")
         }
-        return JoinInstance.BaseBuilder(this, listOf(predecessor.handle), processInstanceBuilder, processInstanceBuilder.owner, candidateNo)
+        return JoinInstance.BaseBuilder(
+            this,
+            listOf(predecessor.handle),
+            processInstanceBuilder,
+            processInstanceBuilder.owner,
+            candidateNo
+        )
     }
 
-    class Builder : JoinBase.Builder,
-                    ExecutableProcessNode.Builder {
+    class Builder : JoinBase.Builder, ExecutableProcessNode.Builder {
 
         constructor(
             id: String? = null,

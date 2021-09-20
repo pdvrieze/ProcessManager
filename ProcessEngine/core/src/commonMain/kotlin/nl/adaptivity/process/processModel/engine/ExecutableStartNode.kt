@@ -46,12 +46,14 @@ class ExecutableStartNode(builder: StartNode.Builder, buildHelper: ProcessModel.
 
     override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
-    fun createOrReuseInstance(processInstanceBuilder: ProcessInstance.Builder, entryNo: Int)
-        = processInstanceBuilder.getChildNodeInstance(this, entryNo)
-        ?: DefaultProcessNodeInstance.BaseBuilder(this, emptyList(),
-                                                  processInstanceBuilder,
-                                                  processInstanceBuilder.owner,
-                                                  entryNo)
+    fun createOrReuseInstance(processInstanceBuilder: ProcessInstance.Builder, entryNo: Int) =
+        processInstanceBuilder.getChildNodeInstance(this, entryNo)
+            ?: DefaultProcessNodeInstance.BaseBuilder(
+                this, emptyList(),
+                processInstanceBuilder,
+                processInstanceBuilder.owner,
+                entryNo
+            )
 
     override fun provideTask(engineData: ProcessEngineDataAccess,
                              instanceBuilder: ProcessNodeInstance.Builder<*, *>) = true

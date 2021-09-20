@@ -146,7 +146,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         return "nodeInstance  ($handle, ${node.id}[$entryNo] - $state)"
     }
 
-    fun serialize(engineData: ProcessEngineDataAccess, out: XmlWriter, localEndpoint: EndpointDescriptor) {
+    fun serialize(nodeInstanceSource: NodeInstanceSource, out: XmlWriter, localEndpoint: EndpointDescriptor) {
         out.smartStartTag(XmlProcessNodeInstance.ELEMENTNAME) {
             writeAttribute("state", state.name)
             writeAttribute("processinstance", hProcessInstance.handleValue)
@@ -165,7 +165,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             for (result in results) { XML.encodeToWriter(this, result) }
 
             (node as? MessageActivity)?.message?.messageBody?.let { body ->
-                instantiateXmlPlaceholders(engineData, body.getXmlReader(), out, true, localEndpoint)
+                instantiateXmlPlaceholders(nodeInstanceSource, body.getXmlReader(), out, true, localEndpoint)
             }
         }
     }
@@ -176,7 +176,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         val body: ICompactFragment? = (node as? MessageActivity)?.message?.let { message ->
             try {
                 val xmlReader = message.messageBody.getXmlReader()
-                instantiateXmlPlaceholders(engineData, xmlReader, true, localEndpoint)
+                instantiateXmlPlaceholders(builder.processInstanceBuilder, xmlReader, true, localEndpoint)
             } catch (e: XmlException) {
                 engineData.logger.log(LogLevel.WARNING, "Error processing body", e)
                 throw e

@@ -32,17 +32,13 @@ import nl.adaptivity.xmlutil.serialization.XML
 /**
  * Activity version that is used for process execution.
  */
-class ExecutableMessageActivity : MessageActivityBase, ExecutableProcessNode {
+class ExecutableMessageActivity(
+    builder: MessageActivity.Builder,
+    newOwner: ProcessModel<*>,
+    otherNodes: Iterable<ProcessNode.Builder>
+) : MessageActivityBase(builder, newOwner, otherNodes), ExecutableProcessNode {
 
-    constructor(
-        builder: MessageActivity.Builder,
-        newOwner: ProcessModel<*>,
-        otherNodes: Iterable<ProcessNode.Builder>
-    ) : super(builder, newOwner, otherNodes) {
-        this._condition = builder.condition?.toExecutableCondition()
-    }
-
-    private var _condition: ExecutableCondition?
+    private var _condition: ExecutableCondition? = builder.condition?.toExecutableCondition()
 
     override val ownerModel: ExecutableModelCommon
         get() = super.ownerModel as ExecutableModelCommon
@@ -51,7 +47,7 @@ class ExecutableMessageActivity : MessageActivityBase, ExecutableProcessNode {
 
     override var condition: Condition?
         get() = _condition
-        set(value) {
+        private set(value) {
             _condition = value?.toExecutableCondition()
         }
 

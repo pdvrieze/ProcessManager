@@ -79,10 +79,6 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode>,
     override val handle: Handle<ExecutableProcessModel>
         get() = super.handle as Handle<ExecutableProcessModel>
 
-    /* (non-Javadoc)
-       * @see nl.adaptivity.process.processModel.ProcessModel#getEndNodeCount()
-       */
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (getClass() != other?.getClass()) return false
@@ -127,14 +123,14 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode>,
 
         /**
          * Helper method that helps enumerating all elements in the model
-
+         *
          * @param destination The collection that will contain the result.
          *
          * @param seen A set of process names that have already been seen (and should
-         * *          not be added again.
+         *             not be added again.
          *
          * @param node The node to start extraction from. This will go on to the
-         * *          successors.
+         *             successors.
          */
         private fun extractElementsTo(
             destination: MutableCollection<in ExecutableProcessNode>,
@@ -150,9 +146,7 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode>,
             }
         }
 
-
     }
-
 
     enum class Permissions : SecurityProvider.Permission {
         INSTANTIATE
@@ -182,8 +176,7 @@ object EXEC_NODEFACTORY :
     private fun visitor(
         buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>,
         otherNodes: Iterable<ProcessNode.Builder>
-                       ) =
-        ExecutableProcessNodeBuilderVisitor(buildHelper, otherNodes)
+    ) = ExecutableProcessNodeBuilderVisitor(buildHelper, otherNodes)
 
     private class ExecutableProcessNodeBuilderVisitor(
         private val buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ProcessModel<ExecutableProcessNode>, *, *>,
@@ -205,7 +198,7 @@ object EXEC_NODEFACTORY :
         override fun visitGenericActivity(builder: Activity.Builder): ExecutableProcessNode {
             return when (builder) {
                 is RunnableActivity.Builder<*, *> -> RunnableActivity(builder, buildHelper.newOwner, otherNodes)
-                else                              -> super.visitGenericActivity(builder)
+                else -> super.visitGenericActivity(builder)
             }
         }
 

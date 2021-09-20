@@ -57,7 +57,7 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
             assert(hChildInstance.isValid) { "The task can only be started if the child instance already exists" }
             tryCreateTask {
                 engineData.updateInstance(hChildInstance) {
-                    start(engineData, build().getPayload(engineData))
+                    start(engineData, build().getPayload(processInstanceBuilder))
                 }
             }
             engineData.queueTickle(hChildInstance)
@@ -128,8 +128,8 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
 
     override fun builder(processInstanceBuilder: ProcessInstance.Builder) = ExtBuilder(this, processInstanceBuilder)
 
-    fun getPayload(engineData: ProcessEngineDataAccess): CompactFragment? {
-        val defines = getDefines(engineData)
+    fun getPayload(nodeInstanceSource: NodeInstanceSource): CompactFragment? {
+        val defines = getDefines(nodeInstanceSource)
         if (defines.isEmpty()) return null
 
         val content = buildString {

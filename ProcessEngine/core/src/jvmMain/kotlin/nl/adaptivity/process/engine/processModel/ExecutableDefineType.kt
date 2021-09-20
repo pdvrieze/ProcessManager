@@ -34,42 +34,29 @@ import java.io.CharArrayReader
 import java.sql.SQLException
 import javax.xml.xpath.XPathConstants
 
-@Throws(SQLException::class)
-actual fun IXmlDefineType.applyData(engineData: ProcessEngineDataAccess, context: ActivityInstanceContext): ProcessData {
+actual fun IXmlDefineType.applyData(nodeInstanceSource: NodeInstanceSource, context: ActivityInstanceContext): ProcessData {
     // TODO, make this not need engineData
-    val processInstance = engineData.instance(context.processContext.handle).withPermission()
-    val node = engineData.nodeInstance(context.handle).withPermission()
-    return applyDataImpl(engineData, refNode?.let { node.resolvePredecessor(processInstance, it)}, node.hProcessInstance)
+    val nodeInstance = nodeInstanceSource.getChildNodeInstance(context.handle)
+    return applyDataImpl(nodeInstanceSource, refNode?.let { nodeInstance.resolvePredecessor(nodeInstanceSource, it)}, context.processContext.handle)
 }
 
 
 @Throws(SQLException::class)
-actual fun IXmlDefineType.applyFromProcessInstance(engineData: ProcessEngineDataAccess, processInstance: ProcessInstance): ProcessData {
-    val predecessor: ProcessNodeInstance<*>? = refNode?.let { refNode -> processInstance.childNodes
-        .map { it.withPermission() }
-        .filter { it.node.id == refNode }
-        .lastOrNull()
-    }
-    return applyDataImpl(engineData, predecessor, processInstance.handle)
-}
-
-@Throws(SQLException::class)
-actual fun IXmlDefineType.applyFromProcessInstance(engineData: ProcessEngineDataAccess, processInstance: ProcessInstance.Builder): ProcessData {
+actual fun IXmlDefineType.applyFromProcessInstance(processInstance: ProcessInstance.Builder): ProcessData {
     val predecessor: IProcessNodeInstance? = refNode?.let { refNode -> processInstance
         .allChildNodeInstances { it.node.id == refNode }
         .lastOrNull()
     }
-    return applyDataImpl(engineData, predecessor?.build(processInstance), processInstance.handle)
+    return applyDataImpl(processInstance, predecessor?.build(processInstance), processInstance.handle)
 }
 
-
 @OptIn(XmlUtilInternal::class)
-private fun IXmlDefineType.applyDataImpl(engineData: ProcessEngineDataAccess, predecessor: IProcessNodeInstance?, hProcessInstance: Handle<SecureObject<ProcessInstance>>): ProcessData {
+private fun IXmlDefineType.applyDataImpl(nodeInstanceSource: NodeInstanceSource, predecessor: IProcessNodeInstance?, hProcessInstance: Handle<SecureObject<ProcessInstance>>): ProcessData {
     val processData: ProcessData
 
     val predRefName = predecessor?.node?.effectiveRefName(refName)
     if (predecessor != null && predRefName != null) {
-        val origpair = predecessor.getResult(engineData, predRefName)
+        val origpair = predecessor.getResult(predRefName)
         if (origpair == null) {
             // TODO on missing data do something else than an empty value
             processData = ProcessData.missingData(name)
@@ -89,8 +76,7 @@ private fun IXmlDefineType.applyDataImpl(engineData: ProcessEngineDataAccess, pr
             }
         }
     } else if (predecessor==null && !refName.isNullOrEmpty()) { // Reference to container
-        val instance = engineData.instance(hProcessInstance).withPermission()
-        return instance.inputs.single { it.name == refName }.let { ProcessData(name, it.content) }
+        return nodeInstanceSource.inputs.single { it.name == refName }.let { ProcessData(name, it.content) }
     } else {
         processData = ProcessData(name, CompactFragment(""))
     }

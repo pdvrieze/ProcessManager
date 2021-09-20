@@ -36,8 +36,7 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableProcessNode
         builder: CompositeActivity.ModelBuilder,
         buildHelper: ProcessModel.BuildHelper<*, *, *, *>,
         otherNodes: Iterable<ProcessNode.Builder>
-               ) :
-        super(builder, buildHelper, otherNodes) {
+    ) : super(builder, buildHelper, otherNodes) {
         this._condition = builder.condition?.toExecutableCondition()
     }
 
@@ -45,7 +44,7 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableProcessNode
         builder: CompositeActivity.ReferenceBuilder,
         buildHelper: ProcessModel.BuildHelper<*, *, *, *>,
         otherNodes: Iterable<ProcessNode.Builder>
-               ) : super(builder, buildHelper, otherNodes) {
+    ) : super(builder, buildHelper, otherNodes) {
         this._condition = builder.condition?.toExecutableCondition()
     }
 
@@ -88,13 +87,13 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableProcessNode
             getInvalidHandle(),
             processInstanceBuilder.owner,
             entryNo
-                                                                                          )
+        )
     }
 
     override fun provideTask(
         engineData: ProcessEngineDataAccess,
         instanceBuilder: ProcessNodeInstance.Builder<*, *>
-                            ) = true
+    ) = true
 
     /**
      * Take the task. Tasks are either process aware or finished when a reply is
