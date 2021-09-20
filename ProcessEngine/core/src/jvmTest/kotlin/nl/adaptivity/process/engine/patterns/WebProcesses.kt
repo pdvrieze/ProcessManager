@@ -104,7 +104,7 @@ class WebProcess1 : TraceTest(Companion) {
                     (start.opt * (split2 or split3 or ac3 or ac4 or join1 or join2 or join3 or end)) or
                         (start..ac1..end)
                 }
-                ModelData(m, valid.take(2).takeLast(1), /*invalid*/ emptyList())
+                ModelData(m, valid, /*invalid*/ emptyList())
             }
         }
     }
