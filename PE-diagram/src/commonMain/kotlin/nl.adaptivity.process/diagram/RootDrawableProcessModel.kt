@@ -18,7 +18,6 @@ package nl.adaptivity.process.diagram
 
 import net.devrieze.util.Handle
 import net.devrieze.util.collection.replaceBy
-import net.devrieze.util.handle
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import nl.adaptivity.diagram.Drawable
 import nl.adaptivity.diagram.ItemCache
@@ -34,7 +33,6 @@ import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.util.multiplatform.JvmOverloads
 import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.util.security.Principal
-import nl.adaptivity.xmlutil.XmlDeserializerFactory
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.serialization.XML
 import kotlin.math.max
@@ -60,33 +58,45 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
     constructor(original: RootProcessModel<*>) : this(Builder(original))
 
     @JvmOverloads
-    constructor(uuid: UUID,
-                name: String,
-                nodes: Collection<DrawableProcessNode>,
-                layoutAlgorithm: LayoutAlgorithm? = null) :
-        this(Builder(name = name, uuid = uuid, nodes = nodes.map { it.visit(DRAWABLE_BUILDER_VISITOR) },
-                     layoutAlgorithm = (layoutAlgorithm ?: LayoutAlgorithm()).apply {
-                         defaultNodeWidth = max(max(STARTNODERADIUS, ENDNODEOUTERRADIUS),
-                                                max(ACTIVITYWIDTH, JOINWIDTH))
-                         defaultNodeHeight = max(max(STARTNODERADIUS, ENDNODEOUTERRADIUS),
-                                                 max(ACTIVITYHEIGHT, JOINHEIGHT))
-                         horizSeparation = DEFAULT_HORIZ_SEPARATION
-                         vertSeparation = DEFAULT_VERT_SEPARATION
+    constructor(
+        uuid: UUID,
+        name: String,
+        nodes: Collection<DrawableProcessNode>,
+        layoutAlgorithm: LayoutAlgorithm? = null
+    ) :
+            this(
+                Builder(name = name, uuid = uuid, nodes = nodes.map { it.visit(DRAWABLE_BUILDER_VISITOR) },
+                        layoutAlgorithm = (layoutAlgorithm ?: LayoutAlgorithm()).apply {
+                            defaultNodeWidth = max(
+                                max(STARTNODERADIUS, ENDNODEOUTERRADIUS),
+                                max(ACTIVITYWIDTH, JOINWIDTH)
+                            )
+                            defaultNodeHeight = max(
+                                max(STARTNODERADIUS, ENDNODEOUTERRADIUS),
+                                max(ACTIVITYHEIGHT, JOINHEIGHT)
+                            )
+                            horizSeparation = DEFAULT_HORIZ_SEPARATION
+                            vertSeparation = DEFAULT_VERT_SEPARATION
 
-                     }))
+                        })
+            )
 
-    override fun copy(imports: Collection<IXmlResultType>,
-                      exports: Collection<IXmlDefineType>,
-                      nodes: Collection<ProcessNode>,
-                      name: String?,
-                      uuid: UUID?,
-                      roles: Set<String>,
-                      owner: Principal,
-                      childModels: Collection<ChildProcessModel<DrawableProcessNode>>,
-                      handle: Long,
-                      layoutAlgorithm: LayoutAlgorithm): RootDrawableProcessModel {
-        return Builder(nodes.map { it.builder() }, emptyList(), name, handle, owner, roles, uuid, imports, exports,
-                       isFavourite, layoutAlgorithm).also { builder ->
+    override fun copy(
+        imports: Collection<IXmlResultType>,
+        exports: Collection<IXmlDefineType>,
+        nodes: Collection<ProcessNode>,
+        name: String?,
+        uuid: UUID?,
+        roles: Set<String>,
+        owner: Principal,
+        childModels: Collection<ChildProcessModel<DrawableProcessNode>>,
+        handle: Long,
+        layoutAlgorithm: LayoutAlgorithm
+    ): RootDrawableProcessModel {
+        return Builder(
+            nodes.map { it.builder() }, emptyList(), name, handle, owner, roles, uuid, imports, exports,
+            isFavourite, layoutAlgorithm
+        ).also { builder ->
             builder.childModels.replaceBy(childModels.map { child -> child.builder(builder) })
         }.let { RootDrawableProcessModel(it) }
     }
@@ -100,10 +110,14 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
     override val ref: IProcessModelRef<DrawableProcessNode, RootDrawableProcessModel>
         get() = ProcessModelRef(name, handle, uuid)
 
-    override val handle: Handle<RootDrawableProcessModel> get() = handle(handle = handleValue)
+    override val handle: Handle<RootDrawableProcessModel>
+        get() = if (handleValue < 0) Handle.invalid() else Handle(
+            handleValue
+        )
 
     override fun getNode(nodeId: String): DrawableProcessNode? = super<RootClientProcessModel>.getNode(
-        Identifier(nodeId))
+        Identifier(nodeId)
+    )
 
     /**
      * Normalize the process model. By default this may do nothing.
@@ -150,11 +164,11 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
         @kotlin.jvm.JvmStatic
         fun get(src: ProcessModel<*>?): DrawableProcessModel? {
             return when (src) {
-                null                        -> null
-                is DrawableProcessModel     -> src
-                is ChildProcessModel        -> TODO("Support child models")
+                null -> null
+                is DrawableProcessModel -> src
+                is ChildProcessModel -> TODO("Support child models")
                 is RootDrawableProcessModel -> RootDrawableProcessModel(src)
-                else                        -> throw UnsupportedOperationException("Unknown process model subtype")
+                else -> throw UnsupportedOperationException("Unknown process model subtype")
             }
         }
 
@@ -206,19 +220,23 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
 
         constructor() : this(name = null)
 
-        constructor(nodes: Collection<ProcessNode.Builder> = mutableSetOf(),
-                    childModels: Collection<ChildProcessModel.Builder> = emptyList(),
-                    name: String? = null,
-                    handle: Long = -1L,
-                    owner: Principal = SYSTEMPRINCIPAL,
-                    roles: Collection<String> = emptyList(),
-                    uuid: UUID? = null,
-                    imports: Collection<IXmlResultType> = emptyList(),
-                    exports: Collection<IXmlDefineType> = emptyList(),
-                    isFavourite: Boolean = false,
-                    layoutAlgorithm: LayoutAlgorithm = LayoutAlgorithm()) : super(nodes, childModels, name, handle,
-                                                                                  owner, roles, uuid, imports,
-                                                                                  exports) {
+        constructor(
+            nodes: Collection<ProcessNode.Builder> = mutableSetOf(),
+            childModels: Collection<ChildProcessModel.Builder> = emptyList(),
+            name: String? = null,
+            handle: Long = -1L,
+            owner: Principal = SYSTEMPRINCIPAL,
+            roles: Collection<String> = emptyList(),
+            uuid: UUID? = null,
+            imports: Collection<IXmlResultType> = emptyList(),
+            exports: Collection<IXmlDefineType> = emptyList(),
+            isFavourite: Boolean = false,
+            layoutAlgorithm: LayoutAlgorithm = LayoutAlgorithm()
+        ) : super(
+            nodes, childModels, name, handle,
+            owner, roles, uuid, imports,
+            exports
+        ) {
             this.layoutAlgorithm = layoutAlgorithm
             this.isFavourite = isFavourite
         }
@@ -230,9 +248,12 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
 
         override fun copy(): Builder {
             if (this::class != Builder::class) throw UnsupportedOperationException(
-                "Copy must be overridden to be valid")
-            return Builder(nodes, childModels, name, handle, owner, roles, uuid, imports, exports, isFavourite,
-                           layoutAlgorithm)
+                "Copy must be overridden to be valid"
+            )
+            return Builder(
+                nodes, childModels, name, handle, owner, roles, uuid, imports, exports, isFavourite,
+                layoutAlgorithm
+            )
         }
 
         override fun getNode(nodeId: String): DrawableProcessNode.Builder<*>? {

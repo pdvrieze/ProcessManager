@@ -23,7 +23,7 @@ package net.devrieze.util
  */
 interface TransactionedHandleMap<V : Any, T : Transaction> {
 
-    fun <W : V> put(transaction: T, value: W): ComparableHandle<W>
+    fun <W : V> put(transaction: T, value: W): Handle<W>
 
     fun castOrGet(transaction: T, handle: Handle<V>): V?
 

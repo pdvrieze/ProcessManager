@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.engine
 
-import net.devrieze.util.ComparableHandle
 import net.devrieze.util.Handle
 import net.devrieze.util.MutableTransactionedHandleMap
 import net.devrieze.util.TransactionFactory

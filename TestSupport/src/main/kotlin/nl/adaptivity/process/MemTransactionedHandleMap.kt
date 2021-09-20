@@ -32,7 +32,7 @@ open class MemTransactionedHandleMap<T : Any, TR : StubTransaction>(private val 
         handleAssigner: (TR, T, Handle<T>) -> T? = { transaction, value, handle ->
             HANDLE_AWARE_ASSIGNER(transaction, value, handle)
         }
-               ) : this(Assigner(handleAssigner))
+    ) : this(Assigner(handleAssigner))
 
     class Assigner<T, TR : StubTransaction>(private val base: (TR, T, Handle<T>) -> T?) {
         lateinit var transaction: TR
@@ -66,10 +66,9 @@ open class MemTransactionedHandleMap<T : Any, TR : StubTransaction>(private val 
     }
 
     @Throws(SQLException::class)
-    override fun <W : T> put(transaction: TR, value: W): ComparableHandle<W> {
+    override fun <W : T> put(transaction: TR, value: W): Handle<W> {
         assigner.transaction = transaction
-        val put = put(value)
-        return handle(put)
+        return put(value)
     }
 
     @Throws(SQLException::class)

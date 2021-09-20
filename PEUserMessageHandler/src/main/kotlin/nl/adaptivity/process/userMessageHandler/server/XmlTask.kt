@@ -27,8 +27,6 @@ import kotlinx.serialization.encoding.Encoder
 import net.devrieze.util.Handle
 import net.devrieze.util.HandleSerializer
 import net.devrieze.util.collection.replaceBy
-import net.devrieze.util.getInvalidHandle
-import net.devrieze.util.handle
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.messaging.MessagingException
@@ -57,23 +55,24 @@ import javax.xml.parsers.ParserConfigurationException
 class XmlTask : UserTask<XmlTask> {
 
     @Serializable(HandleSerializer::class)
-    override var handle = getInvalidHandle<XmlTask>()
+    override var handle = Handle.invalid<XmlTask>()
         private set
 
     override val handleValue: Long
         get() = handle.handleValue
 
     override fun setHandleValue(handleValue: Long) {
-        if (handle.handleValue != handleValue) this.handle = handle(handleValue)
+        if (handle.handleValue != handleValue) this.handle =
+            if (handleValue < 0) Handle.invalid() else Handle(handleValue)
     }
 
     @Serializable(HandleSerializer::class)
     @SerialName("remotehandle")
-    override var remoteHandle: Handle<Unit> = getInvalidHandle()
+    override var remoteHandle: Handle<Unit> = Handle.invalid()
 
     @Serializable(HandleSerializer::class)
     @SerialName("instancehandle")
-    override var instanceHandle: Handle<Unit> = getInvalidHandle<Unit>()
+    override var instanceHandle: Handle<Unit> = Handle.invalid()
 
     // TODO make this not-nullable
     @XmlElement(false)

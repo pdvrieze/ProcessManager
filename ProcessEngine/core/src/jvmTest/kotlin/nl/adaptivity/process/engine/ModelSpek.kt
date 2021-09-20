@@ -303,7 +303,7 @@ private fun EngineSuite.startProcess(
             model.handle
         } else {
             model.setHandleValue(-1)
-            engineData.engine.addProcessModel(transaction, model.builder(), owner)
+            engineData.engine.addProcessModel(transaction, model.builder(), owner).handle
         }
         engineData.engine.startProcess(transaction, owner, hmodel, name, UUID.randomUUID(), payload)
     }

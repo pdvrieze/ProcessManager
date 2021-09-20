@@ -55,26 +55,25 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
     override val node: ExecutableProcessNode,
     predecessors: Iterable<Handle<SecureObject<ProcessNodeInstance<*>>>>,
     processInstanceBuilder: ProcessInstance.Builder,
-    hProcessInstance: Handle<SecureObject<ProcessInstance>>,
-    override final val owner: Principal,
-    override final val entryNo: Int,
-    handle: Handle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
-    override final val state: NodeInstanceState = Pending,
+    override val hProcessInstance: Handle<SecureObject<ProcessInstance>>,
+    final override val owner: Principal,
+    final override val entryNo: Int,
+    handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
+    final override val state: NodeInstanceState = Pending,
     results: Iterable<ProcessData> = emptyList(),
     val failureCause: Throwable? = null
 ) : SecureObject<ProcessNodeInstance<T>>,
     ReadableHandleAware<SecureObject<ProcessNodeInstance<*>>>,
     IProcessNodeInstance {
 
-    private var _handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = handle.toComparableHandle()
+    private val _handle: Handle<SecureObject<ProcessNodeInstance<*>>> = handle
 
     override val handle: Handle<SecureObject<ProcessNodeInstance<*>>> get() = _handle
 
-    override val hProcessInstance: ComparableHandle<SecureObject<ProcessInstance>> = hProcessInstance.toComparableHandle()
     override val results: List<ProcessData> = results.toList()
 
-    override val predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>> =
-        predecessors.asSequence().filter { it.isValid }.map { it.toComparableHandle() }.toArraySet()
+    override val predecessors: Set<Handle<SecureObject<ProcessNodeInstance<*>>>> =
+        predecessors.asSequence().filter { it.isValid }.toArraySet()
 
     init {
         @Suppress("LeakingThis")
@@ -98,7 +97,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
     override val processContext: ProcessInstanceContext
         get() = object : ProcessInstanceContext {
-            override val handle: ComparableHandle<SecureObject<ProcessInstance>> get() = hProcessInstance
+            override val handle: Handle<SecureObject<ProcessInstance>> get() = hProcessInstance
         }
 
     override fun build(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance<T> = this
@@ -128,7 +127,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
     override fun withPermission(): ProcessNodeInstance<T> = this
 
-    private fun hasDirectPredecessor(handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>): Boolean {
+    private fun hasDirectPredecessor(handle: Handle<SecureObject<ProcessNodeInstance<*>>>): Boolean {
         return predecessors.any { it.handleValue == handle.handleValue }
     }
 
@@ -162,7 +161,9 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
                 )
             }
 
-            for (result in results) { XML.encodeToWriter(this, result) }
+            for (result in results) {
+                XML.encodeToWriter(this, result)
+            }
 
             (node as? MessageActivity)?.message?.messageBody?.let { body ->
                 instantiateXmlPlaceholders(nodeInstanceSource, body.getXmlReader(), out, true, localEndpoint)
@@ -188,7 +189,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
     interface Builder<N : ExecutableProcessNode, T : ProcessNodeInstance<*>> : IProcessNodeInstance {
         override var node: N
-        override val predecessors: MutableSet<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>
+        override val predecessors: MutableSet<Handle<SecureObject<ProcessNodeInstance<*>>>>
         val processInstanceBuilder: ProcessInstance.Builder
         override val hProcessInstance: Handle<SecureObject<ProcessInstance>> get() = processInstanceBuilder.handle
         override var owner: Principal
@@ -265,7 +266,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             @Suppress("NON_EXHAUSTIVE_WHEN")
             when (state) {
                 Pending,
-                FailRetry    -> state = Skipped
+                FailRetry -> state = Skipped
                 Sent,
                 Taken,
                 Started,
@@ -274,7 +275,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
                     // action without triggering successors. This is still marked as cancelled, but successors
                     // may be marked as skipped.
                     doCancel(engineData)
-                    if (! state.isSkipped) { // allow skipping if that is more appropriate
+                    if (!state.isSkipped) { // allow skipping if that is more appropriate
                         state = AutoCancelled
                     }
                 }
@@ -310,9 +311,9 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         override fun toXmlInstance(body: ICompactFragment?): XmlProcessNodeInstance {
             return XmlProcessNodeInstance(
                 nodeId = node.id,
-                predecessors = predecessors.map { handle<XmlProcessNodeInstance>(handle = it.handleValue) },
+                predecessors = predecessors.map { if (it.handleValue < 0) Handle.invalid() else Handle(handleValue = it.handleValue) },
                 processInstance = hProcessInstance.handleValue,
-                handle = handle(handle = handle.handleValue),
+                handle = if (handle.handleValue < 0) Handle.invalid() else Handle(handleValue = handle.handleValue),
                 state = state,
                 results = results,
                 body = body
@@ -328,18 +329,18 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             invalidateBuilder(engineData)
             if (state == targetState) return
             val doSet = when (targetState) {
-                Pending       -> throw IllegalArgumentException("Updating a state to pending is not allowed")
-                Sent          -> state == Pending
-                Acknowledged  -> state == Pending || state == Sent
-                Taken         -> state == Sent || state == Acknowledged
-                Started       -> state == Taken || state == Sent || state == Acknowledged
-                Complete      -> state == Started
+                Pending -> throw IllegalArgumentException("Updating a state to pending is not allowed")
+                Sent -> state == Pending
+                Acknowledged -> state == Pending || state == Sent
+                Taken -> state == Sent || state == Acknowledged
+                Started -> state == Taken || state == Sent || state == Acknowledged
+                Complete -> state == Started
                 SkippedCancel -> state == Pending
-                SkippedFail   -> state == Pending
-                Skipped       -> state == Pending
+                SkippedFail -> state == Pending
+                Skipped -> state == Pending
                 SkippedInvalidated -> state == Pending
                 Cancelled,
-                AutoCancelled -> ! state.isFinal
+                AutoCancelled -> !state.isFinal
                 FailRetry -> throw ProcessException("Recovering a retryable failed state is not a soft state update")
                 Failed -> throw ProcessException("Failed states can not be changed, this should not be attempted")
             }
@@ -455,7 +456,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         final override val processInstanceBuilder: ProcessInstance.Builder,
         final override var owner: Principal,
         final override val entryNo: Int,
-        handle: Handle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
+        handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
         state: NodeInstanceState = Pending
     ) : AbstractBuilder<N, T>() {
 
@@ -478,8 +479,8 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             }
         }
 
-        final override var predecessors: MutableSet<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>> =
-            predecessors.asSequence().map { it.toComparableHandle() }.toMutableArraySet()
+        final override var predecessors: MutableSet<Handle<SecureObject<ProcessNodeInstance<*>>>> =
+            predecessors.asSequence().toMutableArraySet()
         final override val results = mutableListOf<ProcessData>()
     }
 

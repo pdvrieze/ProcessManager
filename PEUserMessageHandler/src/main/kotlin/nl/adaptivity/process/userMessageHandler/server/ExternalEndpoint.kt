@@ -16,9 +16,9 @@
 
 package nl.adaptivity.process.userMessageHandler.server
 
+import net.devrieze.util.Handle
 import net.devrieze.util.HandleNotFoundException
 import net.devrieze.util.Transaction
-import net.devrieze.util.handle
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.messaging.HttpResponseException
@@ -161,8 +161,9 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
     ): XmlTask = translateExceptions {
         mService.inTransaction {
             return commit {
+                val handle1 = java.lang.Long.parseLong(handle)
                 getPendingTask(
-                    handle(handle = java.lang.Long.parseLong(handle)),
+                    if (handle1 < 0) Handle.invalid() else Handle(handle1),
                     user
                 )
             } ?: throw HandleNotFoundException("The task with handle $handle does not exist")
@@ -184,7 +185,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal
     ): NodeInstanceState = translateExceptions {
         mService.inTransaction {
-            return startTask(handle(handle = handle), user)
+            return startTask(Handle(handleString = handle), user)
         }
     }
 
@@ -203,7 +204,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal
     ): NodeInstanceState = translateExceptions {
         mService.inTransaction {
-            return commit { takeTask(handle(handle = handle), user) }
+            return commit { takeTask(Handle(handleString = handle), user) }
         }
     }
 
@@ -225,8 +226,9 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
     ): NodeInstanceState = translateExceptions {
         mService.inTransaction {
             return commit {
+                val handle1 = java.lang.Long.parseLong(handle)
                 finishTask(
-                    handle(handle = java.lang.Long.parseLong(handle)),
+                    if (handle1 < 0) Handle.invalid() else Handle(handle1),
                     user
                 )
             }
@@ -240,8 +242,9 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
     ): NodeInstanceState = translateExceptions {
         mService.inTransaction {
             return commit {
+                val handle1 = java.lang.Long.parseLong(handle)
                 cancelTask(
-                    handle(handle = java.lang.Long.parseLong(handle)),
+                    if (handle1 < 0) Handle.invalid() else Handle(handle1),
                     user
                 )
             }
@@ -287,7 +290,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
         @Throws(SQLException::class)
         private fun <T : Transaction> GenericEndpoint.updateTask(
             service: UserMessageService<T>,
-            handle: String,
+            handleString: String,
             partialNewTask: XmlTask?,
             user: Principal
         ): XmlTask = translateExceptions {
@@ -298,7 +301,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
                 service.newTransaction().use { transaction ->
                     val result = service.updateTask(
                         transaction,
-                        handle(handle = handle),
+                        Handle(handleString),
                         partialNewTask,
                         user
                     ) ?: throw HandleNotFoundException()

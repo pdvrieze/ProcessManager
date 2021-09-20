@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import net.devrieze.util.toComparableHandle
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.JoinInstance
@@ -50,7 +49,7 @@ class ExecutableJoin(
     ): Pair<JoinInstance.Builder?, Int> {
         var candidateNo = entryNo
         for (candidate in processInstanceBuilder.getChildren(this).sortedBy { it.entryNo }) {
-            if (predecessor.handle.toComparableHandle() in candidate.predecessors) {
+            if (predecessor.handle in candidate.predecessors) {
                 return (candidate as JoinInstance.Builder) to candidateNo
             }
             if ((allowFinalInstance || candidate.state != NodeInstanceState.Complete) &&
@@ -97,7 +96,7 @@ class ExecutableJoin(
         )
         existingInstance?.let {
             if (predecessor.handle.isValid) {
-                if (it.predecessors.add(predecessor.handle.toComparableHandle())) {
+                if (it.predecessors.add(predecessor.handle)) {
                     // Store the new predecessor, so when resetting the predecessor isn't lost
                     processInstanceBuilder.storeChild(it)
                     processInstanceBuilder.store(data)

@@ -17,7 +17,7 @@
 package nl.adaptivity.process.engine.test
 
 import net.devrieze.util.CachingHandleMap
-import net.devrieze.util.ComparableHandle
+import net.devrieze.util.Handle
 import net.devrieze.util.MutableTransactionedHandleMap
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
@@ -66,7 +66,7 @@ open class ProcessEngineTestSupport {
         val processEngine = defaultEngineFactory(stubMessageService, stubTransactionFactory, ProcessContextFactory)
         processEngine.startTransaction().use { transaction ->
 
-            val modelHandle = processEngine.addProcessModel(transaction, model, modelOwnerPrincipal)
+            val modelHandle = processEngine.addProcessModel(transaction, model, modelOwnerPrincipal).handle
             val instanceHandle = processEngine.startProcess(transaction, modelOwnerPrincipal, modelHandle, "testInstance", UUID.randomUUID(), payload)
 
             return body(processEngine, transaction, transaction.readableEngineData.processModel(modelHandle).mustExist(modelHandle).withPermission(), instanceHandle)
@@ -77,7 +77,7 @@ open class ProcessEngineTestSupport {
         val processEngine = processEngineFactory(stubMessageService, stubTransactionFactory)
         processEngine.startTransaction().use { transaction ->
 
-            val modelHandle = processEngine.addProcessModel(transaction, model, modelOwnerPrincipal)
+            val modelHandle = processEngine.addProcessModel(transaction, model, modelOwnerPrincipal).handle
             val instanceHandle = processEngine.startProcess(transaction, modelOwnerPrincipal, modelHandle, "testInstance", UUID.randomUUID(), payload)
 
             return body(processEngine, transaction, transaction.readableEngineData.processModel(modelHandle).mustExist(modelHandle).withPermission(), instanceHandle)
@@ -101,7 +101,7 @@ open class ProcessEngineTestSupport {
         return getChild(name, 1)?.withPermission() ?: throw AssertionError("No node instance for node id ${name} found")
     }
 
-    protected fun ProcessInstance.assertFinishedHandles(vararg handles: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) = apply {
+    protected fun ProcessInstance.assertFinishedHandles(handles: Array<Handle<SecureObject<ProcessNodeInstance<*>>>>) = apply {
         assertEquals(handles.sorted(), ArrayList(sortedFinished))
     }
 
@@ -115,7 +115,7 @@ open class ProcessEngineTestSupport {
         }
     }
 
-    private fun ProcessInstance.assertActiveHandles(vararg handles: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) = apply {
+    private fun ProcessInstance.assertActiveHandles(handles: Array<Handle<SecureObject<ProcessNodeInstance<*>>>>) = apply {
         assertEquals(handles.sorted(), ArrayList(sortedActive))
     }
 
@@ -129,7 +129,7 @@ open class ProcessEngineTestSupport {
         }
     }
 
-    private fun ProcessInstance.assertCompletedHandles(vararg handles: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>) = apply {
+    private fun ProcessInstance.assertCompletedHandles(handles: Array<Handle<SecureObject<ProcessNodeInstance<*>>>>) = apply {
         assertEquals(handles.sorted(), ArrayList(sortedCompleted))
     }
 
@@ -213,7 +213,7 @@ open class ProcessEngineTestSupport {
                 return pni
             }
             val piBuilder = transaction.readableEngineData.instance(pni.withPermission().hProcessInstance).withPermission().builder()
-            return pni.withPermission().builder(piBuilder).also { it.handle = net.devrieze.util.handle(handle) }.build()
+            return pni.withPermission().builder(piBuilder).also { it.handle = handle }.build()
         }
 
         internal fun <V:Any> cacheInstances(base: MutableTransactionedHandleMap<V, StubProcessTransaction>, count: Int): MutableTransactionedHandleMap<V, StubProcessTransaction> {

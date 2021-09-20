@@ -92,7 +92,7 @@ private fun <T : ProcessTransaction> wrapNodeCache(
             val piBuilder = tr.readableEngineData.instance(
                 pni.withPermission().hProcessInstance
             ).withPermission().builder()
-            pni.withPermission().builder(piBuilder).also { it.handle = handle(handle) }.build()
+            pni.withPermission().builder(piBuilder).also { it.handle = handle }.build()
         }
     })
 
@@ -590,7 +590,7 @@ class ProcessEngine<TR : ProcessTransaction, PIC : ActivityInstanceContext> {
     }
 
     fun tickleInstance(transaction: TR, handle: Long, user: Principal): Boolean {
-        return tickleInstance(transaction, handle(handle = handle), user)
+        return tickleInstance(transaction, if (handle < 0) Handle.invalid() else Handle(handle), user)
     }
 
     fun queueTickle(instanceHandle: Handle<SecureObject<ProcessInstance>>) {
@@ -606,9 +606,9 @@ class ProcessEngine<TR : ProcessTransaction, PIC : ActivityInstanceContext> {
     ): Boolean {
         try {
             transaction.writableEngineData.run {
-                invalidateCachePM(getInvalidHandle())
-                invalidateCachePI(getInvalidHandle())
-                invalidateCachePNI(getInvalidHandle())
+                invalidateCachePM(Handle.invalid())
+                invalidateCachePI(Handle.invalid())
+                invalidateCachePNI(Handle.invalid())
 
                 securityProvider.ensurePermission(Permissions.TICKLE_INSTANCE, user, (instances[handle]?: return false))
 
@@ -664,16 +664,17 @@ class ProcessEngine<TR : ProcessTransaction, PIC : ActivityInstanceContext> {
                 "Annonymous users are not allowed to start processes"
             )
         }
-        val unstoredInstance = model.withPermission(securityProvider, ExecutableProcessModel.Permissions.INSTANTIATE, user) {
-            ProcessInstance(transaction.writableEngineData, it, parentActivity) {
-                this.instancename = name
-                this.uuid = uuid
-                this.state = State.NEW
-                this.owner = user
+        val unstoredInstance =
+            model.withPermission(securityProvider, ExecutableProcessModel.Permissions.INSTANTIATE, user) {
+                ProcessInstance(transaction.writableEngineData, it, parentActivity) {
+                    this.instancename = name
+                    this.uuid = uuid
+                    this.state = State.NEW
+                    this.owner = user
+                }
             }
-        }
 
-        val resultHandle: ComparableHandle<ProcessInstance>
+        val resultHandle: Handle<ProcessInstance>
         engineData.inWriteTransaction(transaction) {
             resultHandle = instances.put(unstoredInstance)
             updateInstance(resultHandle) {
@@ -690,7 +691,7 @@ class ProcessEngine<TR : ProcessTransaction, PIC : ActivityInstanceContext> {
             }
         }
         processTickleQueue(transaction)
-        return HProcessInstance(resultHandle)
+        return resultHandle
     }
 
     /**
@@ -715,7 +716,7 @@ class ProcessEngine<TR : ProcessTransaction, PIC : ActivityInstanceContext> {
         engineData.inWriteTransaction(transaction) {
             processModels[handle].shouldExist(handle)
         }.let { processModel ->
-            return startProcess(transaction, user, processModel, name, uuid, getInvalidHandle(), payload)
+            return startProcess(transaction, user, processModel, name, uuid, Handle.invalid(), payload)
         }
     }
 

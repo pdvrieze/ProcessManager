@@ -34,27 +34,27 @@ open class DBHandleMap<TMP, V : Any, TR : MonadicDBTransaction<DB>, DB : Databas
     override val elementFactory: HMElementFactory<TMP, V, TR, DB>
         get() = super.elementFactory as HMElementFactory<TMP, V, TR, DB>
 
-    private val pendingCreates = TreeMap<ComparableHandle<V>, TMP>()
+    private val pendingCreates = TreeMap<Handle<V>, TMP>()
 
-    protected fun isPending(handle: ComparableHandle<V>): Boolean {
+    protected fun isPending(handle: Handle<V>): Boolean {
         return pendingCreates.containsKey(handle)
     }
 
 
-    fun pendingValue(handle: ComparableHandle<V>): TMP? {
+    fun pendingValue(handle: Handle<V>): TMP? {
         return pendingCreates[handle]
     }
 
-    fun <W : V> put(value: W): ComparableHandle<W> = withDB { dbReceiver ->
+    fun <W : V> put(value: W): Handle<W> = withDB { dbReceiver ->
         put(dbReceiver, value)
     }
 
-    fun <W : V> put(receiver: DBReceiver<DB>, value: W): DBAction<DB, ComparableHandle<W>> {
+    fun <W : V> put(receiver: DBReceiver<DB>, value: W): DBAction<DB, Handle<W>> {
         return addWithKey(receiver, value).map { it ?: throw RuntimeException("Adding element $value failed") }
     }
 
     @Deprecated("Use monadic function")
-    override fun <W : V> put(transaction: TR, value: W): ComparableHandle<W> =
+    override fun <W : V> put(transaction: TR, value: W): Handle<W> =
         with(transaction) {
             put(receiver = this, value = value).evaluateNow()
         }
@@ -72,15 +72,14 @@ open class DBHandleMap<TMP, V : Any, TR : MonadicDBTransaction<DB>, DB : Databas
     fun get(dbReceiver: DBReceiver<DB>, handle: Handle<V>): DBAction<DB, V?> {
         dbReceiver.transaction {
             val tr = this
-            val comparableHandle = handle.toComparableHandle()
-            if (pendingCreates.containsKey(comparableHandle)) {
+            if (pendingCreates.containsKey(handle)) {
                 throw IllegalArgumentException("Pending create") // XXX This is not the best way
             }
 
             val factory = elementFactory
 
             return SELECT(factory.createColumns)
-                .WHERE { factory.getHandleCondition(this, comparableHandle) AND factory.filter(this) }
+                .WHERE { factory.getHandleCondition(this, handle) AND factory.filter(this) }
                 .flatMapEach { rowData ->
                     sequence {
                         yield(elementFactory.createBuilder(tr, rowData))
@@ -214,7 +213,7 @@ open class DBHandleMap<TMP, V : Any, TR : MonadicDBTransaction<DB>, DB : Databas
         @Suppress("UNCHECKED_CAST")
         return when (element) {
             is Handle<*> -> contains(dbReceiver, handle = element as Handle<V>)
-            else         -> super.contains(dbReceiver, element)
+            else -> super.contains(dbReceiver, element)
         }
     }
 

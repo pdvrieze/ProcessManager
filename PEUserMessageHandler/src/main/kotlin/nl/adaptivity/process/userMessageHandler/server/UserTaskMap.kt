@@ -32,7 +32,6 @@ import net.devrieze.util.db.AbstractElementFactory
 import net.devrieze.util.db.DBHandleMap
 import net.devrieze.util.db.MonadicDBTransaction
 import net.devrieze.util.security.SYSTEMPRINCIPAL
-import net.devrieze.util.toComparableHandle
 import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.client.ServletProcessEngineClient
 import nl.adaptivity.process.engine.processModel.XmlProcessNodeInstance
@@ -210,8 +209,8 @@ class UserTaskMap(connectionProvider: DBTransactionFactory<MonadicDBTransaction<
             columns: List<Column<*, *, *>>,
             values: List<Any?>
         ): DBAction<UserTaskDB, Boolean> {
-            val handleVal = u.taskhandle.value(columns, values)
-            return preRemove(transaction, handleVal.toComparableHandle())
+            val handle = u.taskhandle.value(columns, values)
+            return preRemove(transaction, handle)
         }
 
         companion object {

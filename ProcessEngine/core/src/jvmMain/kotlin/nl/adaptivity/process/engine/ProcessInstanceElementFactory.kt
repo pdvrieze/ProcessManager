@@ -23,18 +23,15 @@ import io.github.pdvrieze.kotlinsql.dml.WhereClause
 import io.github.pdvrieze.kotlinsql.dml.impl._ListSelect
 import io.github.pdvrieze.kotlinsql.dml.impl._UpdateBuilder
 import io.github.pdvrieze.kotlinsql.dml.impl._Where
-import io.github.pdvrieze.kotlinsql.monadic.VALUES
 import io.github.pdvrieze.kotlinsql.monadic.actions.*
 import io.github.pdvrieze.kotlinsql.monadic.impl.SelectResultSetRow
 import net.devrieze.util.Handle
 import net.devrieze.util.MutableHandleMap
 import net.devrieze.util.db.AbstractElementFactory
 import net.devrieze.util.db.DbSet
-import net.devrieze.util.handle
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
-import net.devrieze.util.toComparableHandle
 import nl.adaptivity.process.engine.ProcessInstance.State
 import nl.adaptivity.process.engine.db.ProcessEngineDB
 import nl.adaptivity.xmlutil.util.CompactFragment
@@ -73,13 +70,13 @@ internal class ProcessInstanceElementFactory(private val processEngine: ProcessE
 
         return transaction.value(
             ProcessInstance.BaseBuilder(
-                piHandle.toComparableHandle(),
+                piHandle,
                 owner,
                 processModel,
                 instancename,
                 uuid,
                 state,
-                parentActivity.toComparableHandle()
+                parentActivity
             )
         )
     }
@@ -97,7 +94,7 @@ internal class ProcessInstanceElementFactory(private val processEngine: ProcessE
                 .mapSeq { seq ->
                     seq.filterNotNull()
                         .mapTo(builder.rememberedChildren.apply { clear() }) {
-                            transaction.readableEngineData.nodeInstance(it.toComparableHandle()).withPermission()
+                            transaction.readableEngineData.nodeInstance(it).withPermission()
                         }
                 }.then {
                     val inputs = builder.inputs.apply { clear() }
@@ -134,7 +131,7 @@ internal class ProcessInstanceElementFactory(private val processEngine: ProcessE
         columns: List<Column<*, *, *>>,
         values: List<Any?>
     ): DBAction<ProcessEngineDB, Boolean> {
-        return preRemove(transaction, handle(pi.pihandle.value(columns, values)))
+        return preRemove(transaction, pi.pihandle.value(columns, values))
     }
 
     override fun preRemove(
@@ -147,7 +144,7 @@ internal class ProcessInstanceElementFactory(private val processEngine: ProcessE
                 .then(
                     SELECT(pni.pnihandle)
                         .WHERE { pni.pihandle eq handle }
-                        .mapSeq { it.filterNotNull().map { h -> h.toComparableHandle() } }
+                        .mapSeq { it.filterNotNull() }
                         .flatMap { nodes ->
                             val newActions = mutableListOf<DBAction<ProcessEngineDB, *>>()
                             for (nodeHandle in nodes) {

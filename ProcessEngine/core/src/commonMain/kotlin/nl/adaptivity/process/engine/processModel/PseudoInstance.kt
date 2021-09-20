@@ -16,11 +16,8 @@
 
 package nl.adaptivity.process.engine.processModel
 
-import net.devrieze.util.ComparableHandle
 import net.devrieze.util.Handle
-import net.devrieze.util.handle
 import net.devrieze.util.security.SecureObject
-import net.devrieze.util.toComparableHandle
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.security.Principal
@@ -30,7 +27,7 @@ class PseudoInstance(
     override val handle: Handle<SecureObject<ProcessNodeInstance<*>>>,
     override val node: ExecutableProcessNode,
     override val entryNo: Int,
-    predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>
+    predecessors: Set<Handle<SecureObject<ProcessNodeInstance<*>>>>
 ) : IProcessNodeInstance {
 
     override val predecessors = predecessors.toMutableSet()
@@ -53,19 +50,20 @@ class PseudoInstance(
     class PseudoContext(
         val processInstance: IProcessInstance,
     ) : ProcessInstanceContext {
-        constructor(readAccess: ProcessEngineDataAccess, hProcessInstance: Handle<SecureObject<ProcessInstance>>):
+        constructor(readAccess: ProcessEngineDataAccess, hProcessInstance: Handle<SecureObject<ProcessInstance>>) :
             this(readAccess.instance(hProcessInstance).withPermission())
 
-        private val handleOffset: Int = (processInstance.allChildNodeInstances().maxOf { it.handle.handleValue } + 1).toInt()
+        private val handleOffset: Int =
+            (processInstance.allChildNodeInstances().maxOf { it.handle.handleValue } + 1).toInt()
         private val overlay = arrayOfNulls<IProcessNodeInstance>(handleOffset)
 
         private val pseudoNodes: MutableList<PseudoInstance> = mutableListOf()
 
-        override val handle: ComparableHandle<SecureObject<ProcessInstance>>
-            get() = processInstance.handle.toComparableHandle()
+        override val handle: Handle<SecureObject<ProcessInstance>>
+            get() = processInstance.handle
 
         init {
-            for(child in processInstance.allChildNodeInstances()) {
+            for (child in processInstance.allChildNodeInstances()) {
                 val p = child
                 overlay[p.handle.handleValue.toInt()] = p
             }
@@ -73,7 +71,7 @@ class PseudoInstance(
 
         fun getNodeInstance(handle: Handle<SecureObject<ProcessNodeInstance<*>>>): IProcessNodeInstance? = when {
             handle.handleValue < handleOffset
-                 -> overlay[handle.handleValue.toInt()]
+            -> overlay[handle.handleValue.toInt()]
 
             else -> pseudoNodes[(handle.handleValue - handleOffset).toInt()]
         }
@@ -92,7 +90,13 @@ class PseudoInstance(
             entryNo: Int
         ): PseudoInstance {
 
-            val inst = PseudoInstance(this, handle((handleOffset + pseudoNodes.size).toLong()), node, entryNo, setOf(pred.toComparableHandle()))
+            val inst = PseudoInstance(
+                this,
+                Handle((handleOffset + pseudoNodes.size).toLong()),
+                node,
+                entryNo,
+                setOf(pred)
+            )
             pseudoNodes.add(inst)
             return inst
         }
@@ -103,17 +107,17 @@ class PseudoInstance(
             entryNo: Int
         ): IProcessNodeInstance {
             val instance = getNodeInstance(node, entryNo)
-            if (instance!=null) {
+            if (instance != null) {
                 val predInstance = getNodeInstance(pred)
-                if (predInstance!=null) {
+                if (predInstance != null) {
                     val overlap = predInstance.predecessors.asSequence()
                         .map { getNodeInstance(it)!! }
                         .any { it.node == predInstance.node }
                     if (overlap) {
                         return create(pred, node, entryNo)
                     } else {
-                        (instance as? PseudoInstance)?.predecessors?.add(predInstance.handle.toComparableHandle())
-                        (instance as? ProcessNodeInstance.Builder<*,*>)?.predecessors?.add(predInstance.handle.toComparableHandle())
+                        (instance as? PseudoInstance)?.predecessors?.add(predInstance.handle)
+                        (instance as? ProcessNodeInstance.Builder<*, *>)?.predecessors?.add(predInstance.handle)
                         return instance
                     }
                 }
@@ -124,14 +128,14 @@ class PseudoInstance(
         fun createPredecessorsFor(handle: Handle<SecureObject<ProcessNodeInstance<*>>>) {
             val targetInstance = getNodeInstance(handle) ?: throw IllegalArgumentException("No such node exists")
             val interestedNodes = targetInstance.node.transitivePredecessors()
-            val toProcess= ArrayDeque<IProcessNodeInstance>()
+            val toProcess = ArrayDeque<IProcessNodeInstance>()
             toProcess.addAll(processInstance.allChildNodeInstances().filter { it.node in interestedNodes })
             while (toProcess.isEmpty()) {
                 val child = toProcess.removeFirst()
-                if (child.node in interestedNodes && child.entryNo<=targetInstance.entryNo) {
+                if (child.node in interestedNodes && child.entryNo <= targetInstance.entryNo) {
                     for (successorNodeId in child.node.successors) {
                         val successorNode = interestedNodes.get(successorNodeId)
-                        if (successorNode!=null) {
+                        if (successorNode != null) {
                             toProcess.add(getOrCreate(child.handle, successorNode, child.entryNo))
                         }
                     }

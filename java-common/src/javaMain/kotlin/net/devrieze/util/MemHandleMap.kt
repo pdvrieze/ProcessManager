@@ -56,7 +56,11 @@ actual open class MemHandleMap<V : Any>
                           private var loadFactor: Float = DEFAULT_LOADFACTOR,
                           val handleAssigner: (V, Handle<V>) -> V? = ::HANDLE_AWARE_ASSIGNER) : MutableHandleMap<V>, MutableIterable<V> {
 
-    actual constructor(handleAssigner: (V, Handle<V>) -> V?): this (DEFAULT_CAPACITY, DEFAULT_LOADFACTOR, handleAssigner)
+    actual constructor(handleAssigner: (V, Handle<V>) -> V?) : this(
+        DEFAULT_CAPACITY,
+        DEFAULT_LOADFACTOR,
+        handleAssigner
+    )
 
     private var changeMagic = 0 // Counter that increases every change. This can detect concurrentmodification.
 
@@ -167,14 +171,15 @@ actual open class MemHandleMap<V : Any>
     /* (non-Javadoc)
      * @see net.devrieze.util.HandleMap#put(V)
      */
-    override fun <W : V> put(value: W): ComparableHandle<W> {
+    override fun <W : V> put(value: W): Handle<W> {
         assert(
-            if (value is ReadableHandleAware<*>) !value.handle.isValid else true) { "Storing a value that already has a handle is invalid" }
+            if (value is ReadableHandleAware<*>) !value.handle.isValid else true
+        ) { "Storing a value that already has a handle is invalid" }
 
         var index: Int // The space in the mValues array where to store the value
         var generation: Int // To allow reuse of spaces without reuse of handles
         // every reuse increases it's generation.
-        val handle = lock.write {
+        val handle: Long = lock.write {
             ++changeMagic
             // If we can just add a handle to the ringbuffer.
             if (nextHandle != barrier) {
@@ -197,11 +202,11 @@ actual open class MemHandleMap<V : Any>
                 } else {
                     // Reuse a handle.
                     index = findNextFreeIndex()
-                    generation = Math.max(generations[index], START_GENERATION)
+                    generation = maxOf(generations[index], START_GENERATION)
                 }
             }
             val h = (generation.toLong() shl 32) + handleFromIndex(index)
-            val updatedValue = handleAssigner(value, handle(handle= h)) ?: value
+            val updatedValue = handleAssigner(value, if (h < 0) Handle.invalid() else Handle(h)) ?: value
 
             _values[index] = updatedValue
             generations[index] = generation
@@ -209,7 +214,7 @@ actual open class MemHandleMap<V : Any>
 
             h
         }
-        return handle(handle= handle)
+        return Handle(handle)
     }
 
     /* (non-Javadoc)
@@ -219,19 +224,15 @@ actual open class MemHandleMap<V : Any>
         if (handle == -1L) return null
         // Split the handle up into generation and index.
         val generation = (handle shr 32).toInt()
-        lock.read {
+        return lock.read {
             val index = indexFromHandle(handle.toInt().toLong())
-            if (index < 0) {
-                return null
-            }
+            when {
+                index < 0 ||
+                    // If the generation doesn't map we have a wrong handle.
+                    generations[index] != generation -> null
 
-            // If the generation doesn't map we have a wrong handle.
-            if (generations[index] != generation) {
-                return null
+                else -> _values[index] // Just get the element out of the map.
             }
-
-            // Just get the element out of the map.
-            return _values[index]
         }
     }
 
@@ -247,7 +248,7 @@ actual open class MemHandleMap<V : Any>
     override fun set(handle: Long, value: V): V? {
         // Split the handle up into generation and index.
         val generation = (handle shr 32).toInt()
-        lock.write {
+        return lock.write {
             val index = indexFromHandle(handle.toInt().toLong())
             if (index < 0) {
                 throw ArrayIndexOutOfBoundsException(handle.toInt())
@@ -258,11 +259,11 @@ actual open class MemHandleMap<V : Any>
                 throw ArrayIndexOutOfBoundsException("Generation mismatch ($generation)")
             }
 
-            val updatedValue = handleAssigner(value, handle(handle= handle)) ?: value
+            val updatedValue = handleAssigner(value, if (handle < 0) Handle.invalid() else Handle(handle)) ?: value
 
             // Just get the element out of the map.
             _values[index] = updatedValue
-            return _values[index]
+            updatedValue
         }
     }
 
@@ -291,7 +292,7 @@ actual open class MemHandleMap<V : Any>
      */
     fun remove(handle: Long): Boolean {
         val generation = (handle shr 32).toInt()
-        lock.write {
+        return lock.write {
             val index = indexFromHandle(handle.toInt().toLong())
             if (index < 0) {
                 throw ArrayIndexOutOfBoundsException(handle.toInt())
@@ -306,9 +307,9 @@ actual open class MemHandleMap<V : Any>
                 generations[index]++ // Update the generation for safety checking
                 size--
                 updateBarrier()
-                return true
+                true
             } else {
-                return false
+                false
             }
         }
     }
@@ -519,7 +520,7 @@ actual open class MemHandleMap<V : Any>
                     val value = it.next()
                     "${it.handle}: $value"
                 } else null
-            }.joinToString(prefix="MemHandleMap [", postfix = "]")
+            }.joinToString(prefix = "MemHandleMap [", postfix = "]")
         }
     }
 
@@ -663,7 +664,7 @@ actual open class MemHandleMap<V : Any>
 
         override fun remove() {
             lock.write {
-                if (iteratorMagic!=changeMagic) throw ConcurrentModificationException("The underlying collection changed before remove")
+                if (iteratorMagic != changeMagic) throw ConcurrentModificationException("The underlying collection changed before remove")
 
                 if (_values[oldPos] == null) {
                     throw IllegalStateException("Calling remove twice can not work")

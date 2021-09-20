@@ -41,11 +41,15 @@ open class CachingHandleMap<V : Any, T : Transaction>(
     cacheSize: Int,
     val handleAssigner: (T, V, Handle<V>) -> V?) : AbstractTransactionedHandleMap<V, T>(), Closeable, AutoCloseable {
 
-    constructor(delegate: MutableTransactionedHandleMap<V, T>,
-                cacheSize: Int) : this(delegate, cacheSize, { _, v, h -> HANDLE_AWARE_ASSIGNER(v, h) })
+    constructor(
+        delegate: MutableTransactionedHandleMap<V, T>,
+        cacheSize: Int
+    ) : this(delegate, cacheSize, { _, v, h -> HANDLE_AWARE_ASSIGNER(v, h) })
 
-    private open inner class WrappingIterator(private val transaction: T,
-                                              protected open val iterator: Iterator<V>) : MutableAutoCloseableIterator<V> {
+    private open inner class WrappingIterator(
+        private val transaction: T,
+        protected open val iterator: Iterator<V>
+    ) : MutableAutoCloseableIterator<V> {
         private var last: V? = null
 
         override final fun hasNext(): Boolean {
@@ -80,7 +84,8 @@ open class CachingHandleMap<V : Any, T : Transaction>(
     }
 
     private inner class WrappingMutableIterator(transaction: T, iterator: MutableIterator<V>) : WrappingIterator(
-        transaction, iterator), MutableIterator<V>, AutoCloseableIterator<V> {
+        transaction, iterator
+    ), MutableIterator<V>, AutoCloseableIterator<V> {
         override val iterator: MutableIterator<V> get() = super.iterator as MutableIterator<V>
         private var last: V? = null
 
@@ -123,8 +128,10 @@ open class CachingHandleMap<V : Any, T : Transaction>(
 
     }
 
-    private inner class WrappingIterable(private val transaction: T,
-                                         private val delegateIterable: Iterable<V>) : MutableIterable<V> {
+    private inner class WrappingIterable(
+        private val transaction: T,
+        private val delegateIterable: Iterable<V>
+    ) : MutableIterable<V> {
 
         override fun iterator(): MutableIterator<V> {
             return WrappingIterator(transaction, delegateIterable.iterator())
@@ -143,7 +150,7 @@ open class CachingHandleMap<V : Any, T : Transaction>(
     }
 
     @Throws(SQLException::class)
-    override fun <W : V> put(transaction: T, value: W): ComparableHandle<W> {
+    override fun <W : V> put(transaction: T, value: W): Handle<W> {
         val handle = delegate.put(transaction, value)
 
 
@@ -168,7 +175,8 @@ open class CachingHandleMap<V : Any, T : Transaction>(
                 // Don't cache if the updated value has a handle that does not match
                 if (updatedValue == null ||
                     (updatedValue is ReadableHandleAware<*> &&
-                     updatedValue.handle != handle)) return
+                        updatedValue.handle != handle)
+                ) return
 
                 synchronized(cacheHandles) {
                     transaction.addRollbackHandler(Runnable { invalidateCache(handle) })
@@ -217,7 +225,7 @@ open class CachingHandleMap<V : Any, T : Transaction>(
                 return value
             }
             value = delegate[transaction, handle]
-            return value?.apply { storeInCache(transaction, handle.toComparableHandle(), this) }
+            return value?.apply { storeInCache(transaction, handle, this) }
         }
     }
 
@@ -285,7 +293,7 @@ open class CachingHandleMap<V : Any, T : Transaction>(
 
     @Deprecated("")
     @Throws(SQLException::class)
-    fun getUncached(transaction: T, pHandle: ComparableHandle<V>): V? {
+    fun getUncached(transaction: T, pHandle: Handle<V>): V? {
         return delegate[transaction, pHandle].apply {
             if (this != null)
                 storeInCache(transaction, pHandle, this)

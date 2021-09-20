@@ -143,7 +143,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
         processInstanceBuilder: ProcessInstance.Builder,
         owner: Principal,
         entryNo: Int,
-        handle: Handle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
+        handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
     ) : ProcessNodeInstance.BaseBuilder<ExecutableJoin, JoinInstance>(
         node,
@@ -177,7 +177,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
         hProcessInstance: Handle<SecureObject<ProcessInstance>>,
         owner: Principal,
         entryNo: Int,
-        handle: Handle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
+        handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending,
         results: Iterable<ProcessData> = emptyList()
     ) :
@@ -205,10 +205,10 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
     companion object {
         fun build(
             joinImpl: ExecutableJoin,
-            predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
+            predecessors: Set<Handle<SecureObject<ProcessNodeInstance<*>>>>,
             processInstanceBuilder: ProcessInstance.Builder,
             entryNo: Int,
-            handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
+            handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
             state: NodeInstanceState = NodeInstanceState.Pending,
             body: Builder.() -> Unit
         ): JoinInstance {
@@ -227,10 +227,10 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
         fun build(
             joinImpl: ExecutableJoin,
-            predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>,
+            predecessors: Set<Handle<SecureObject<ProcessNodeInstance<*>>>>,
             processInstance: ProcessInstance,
             entryNo: Int,
-            handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
+            handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
             state: NodeInstanceState = NodeInstanceState.Pending,
             body: Builder.() -> Unit
         ): JoinInstance {
@@ -253,7 +253,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
             val totalPossiblePredecessors = join.predecessors.size
             var realizedPredecessors = 0
 
-            val predecessorsToAdd = mutableListOf<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>()
+            val predecessorsToAdd = mutableListOf<Handle<SecureObject<ProcessNodeInstance<*>>>>()
             val instantiatedPredecessors = mutableListOf<IProcessNodeInstance>()
 
             for (nodeInstance in processInstanceBuilder.allChildNodeInstances { join.identifier in it.node.successors }) {
@@ -261,7 +261,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
                 if (nodeInstance.handle in predecessors) {
                     instantiatedPredecessors.add(nodeInstance)
-                    val hNodeInst = nodeInstance.handle.toComparableHandle()
+                    val hNodeInst = nodeInstance.handle
                     if (hNodeInst !in predecessors) {
                         predecessorsToAdd.add(hNodeInst)
                     }

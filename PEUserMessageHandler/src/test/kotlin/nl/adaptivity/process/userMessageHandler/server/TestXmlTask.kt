@@ -16,9 +16,8 @@
 
 package nl.adaptivity.process.userMessageHandler.server
 
+import net.devrieze.util.Handle
 import net.devrieze.util.ReaderInputStream
-import net.devrieze.util.getInvalidHandle
-import net.devrieze.util.handle
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.NodeInstanceState.Complete
@@ -49,7 +48,7 @@ class TestXmlTask {
         sampleTask = XmlTask()
         sampleTask.state = NodeInstanceState.Failed
         sampleTask.owner = SimplePrincipal("pdvrieze")
-        sampleTask.remoteHandle = handle(handle = -1L)
+        sampleTask.remoteHandle = if (-1L < 0) Handle.invalid() else Handle(-1L)
     }
 
     @Test
@@ -67,8 +66,8 @@ class TestXmlTask {
     @Throws(XmlException::class, IOException::class, SAXException::class)
     fun testSerialization2() {
         val sampleTask2 = XmlTask(sampleTask)
-        sampleTask2.remoteHandle = handle(handle = 1L)
-        sampleTask2.instanceHandle = handle(handle = 2L)
+        sampleTask2.remoteHandle = if (1L < 0) Handle.invalid() else Handle(1L)
+        sampleTask2.instanceHandle = if (2L < 0) Handle.invalid() else Handle(2L)
         sampleTask2.setHandleValue(3L)
         sampleTask2.summary = "testing"
         sampleTask2.state = NodeInstanceState.FailRetry
@@ -88,8 +87,8 @@ class TestXmlTask {
         val result = XmlStreaming.deSerialize(reader, XmlTask::class.java)
         Assertions.assertEquals(Complete, result.state)
         Assertions.assertEquals(-1L, result.handleValue)
-        Assertions.assertEquals(getInvalidHandle<Any>(), result.handle)
-        Assertions.assertEquals(getInvalidHandle<Any>(), result.instanceHandle)
+        Assertions.assertEquals(Handle.invalid<Any>(), result.handle)
+        Assertions.assertEquals(Handle.invalid<Any>(), result.instanceHandle)
         Assertions.assertEquals(0, result.items.size)
         Assertions.assertEquals(null, result.owner)
         Assertions.assertEquals(null, result.summary)
@@ -101,7 +100,7 @@ class TestXmlTask {
             "<task handle='1' instancehandle='3' summary='bar' state=\"Complete\" xmlns=\"http://adaptivity.nl/userMessageHandler\"><item name='one' type='label' value='two'><option>three</option><option>four</option></item></task>"
         val data = XmlTask(1L).apply {
             state = Complete
-            instanceHandle = handle(3)
+            instanceHandle = Handle(3)
             items = listOf(XmlItem().apply {
                 name = "one"
                 type = "label"
@@ -121,8 +120,8 @@ class TestXmlTask {
         val result = XmlStreaming.deSerialize(reader, XmlTask::class.java)
         Assertions.assertEquals(Complete, result.state)
         Assertions.assertEquals(1L, result.handleValue)
-        Assertions.assertEquals(handle<Any>(handle = 1L), result.handle)
-        Assertions.assertEquals(handle<Any>(handle = 3L), result.instanceHandle)
+        Assertions.assertEquals(Handle<Any>(1L), result.handle)
+        Assertions.assertEquals(Handle<Any>(3L), result.instanceHandle)
         Assertions.assertEquals(1, result.items.size)
         Assertions.assertEquals(null, result.owner)
         Assertions.assertEquals("bar", result.summary)
@@ -152,8 +151,8 @@ class TestXmlTask {
         val result = XmlStreaming.deSerialize(DOMSource(root), XmlTask::class.java)
         Assertions.assertEquals(Complete, result.state)
         Assertions.assertEquals(-1L, result.handleValue)
-        Assertions.assertEquals(getInvalidHandle<Any>(), result.handle)
-        Assertions.assertEquals(getInvalidHandle<Any>(), result.instanceHandle)
+        Assertions.assertEquals(Handle.invalid<Any>(), result.handle)
+        Assertions.assertEquals(Handle.invalid<Any>(), result.instanceHandle)
         Assertions.assertEquals(0, result.items.size)
         Assertions.assertEquals(null, result.owner)
         Assertions.assertEquals(null, result.summary)

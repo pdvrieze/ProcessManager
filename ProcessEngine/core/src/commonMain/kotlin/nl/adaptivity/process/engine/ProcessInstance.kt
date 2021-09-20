@@ -21,6 +21,7 @@ import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
+import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.engine.impl.*
 import nl.adaptivity.process.engine.processModel.*
 import nl.adaptivity.process.processModel.EndNode
@@ -133,8 +134,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         fun store(data: MutableProcessEngineDataAccess)
 
         fun getDirectSuccessorsFor(predecessor: Handle<SecureObject<ProcessNodeInstance<*>>>): Sequence<IProcessNodeInstance> {
-            val comparablePred = predecessor.toComparableHandle()
-            return allChildNodeInstances { comparablePred in it.predecessors }
+            return allChildNodeInstances { predecessor in it.predecessors }
         }
 
         fun updateSplits(engineData: MutableProcessEngineDataAccess) {
@@ -175,8 +175,6 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                     .mustExist(successorId)
                     .createOrReuseInstance(engineData, this, predecessor, predecessor.entryNo, false)
 
-                // TODO remove the line below
-//                nonRegisteredNodeInstance.predecessors.add(predecessor.handle.toComparableHandle())
                 val conditionResult = nonRegisteredNodeInstance.condition( this, predecessor)
                 if (conditionResult == ConditionResult.NEVER) {
                     nonRegisteredNodeInstance.state = NodeInstanceState.Skipped
@@ -434,7 +432,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     }
 
     data class BaseBuilder(
-        override var handle: Handle<SecureObject<ProcessInstance>> = getInvalidHandle(),
+        override var handle: Handle<SecureObject<ProcessInstance>> = Handle.invalid(),
         override var owner: Principal = SYSTEMPRINCIPAL,
         override var processModel: ExecutableModelCommon,
         override var instancename: String? = null,
@@ -541,7 +539,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         override var processModel: ExecutableModelCommon by overlay { base.processModel }
         override var instancename: String? by overlay { base.name }
         override var uuid: UUID by overlay({ newVal ->
-                                               generation = 0; handle = getInvalidHandle(); newVal
+                                               generation = 0; handle = Handle.invalid(); newVal
                                            }) { base.uuid }
         override var state: State by overlay(base = { base.state }, update = { newValue ->
             if (base.state.isFinal) {
@@ -566,9 +564,9 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         }
 
         override fun allChildNodeInstances(childFilter: (IProcessNodeInstance) -> Boolean): Sequence<IProcessNodeInstance> {
-            val pendingHandles = mutableSetOf<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>()
+            val pendingHandles = mutableSetOf<Handle<SecureObject<ProcessNodeInstance<*>>>>()
             val pendingChildren =
-                _pendingChildren.map { pendingHandles.add(it.origBuilder.handle.toComparableHandle()); it.origBuilder }
+                _pendingChildren.map { pendingHandles.add(it.origBuilder.handle); it.origBuilder }
                     .filter { childFilter(it) }
             return pendingChildren.asSequence() + base.childNodes.asSequence()
                 .map { it.withPermission() }
@@ -760,12 +758,13 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         open val isFinal: Boolean get() = false
     }
 
-    class ProcessInstanceRef(processInstance: ProcessInstance) : ComparableHandle<SecureObject<ProcessInstance>>,
-                                                                 XmlSerializable {
+    class ProcessInstanceRef(processInstance: ProcessInstance) : XmlSerializable {
 
-        override val handleValue = processInstance.handle.handleValue
+        val handle: Handle<SecureObject<ProcessInstance>> = processInstance.handle
 
-        val processModel = processInstance.processModel.rootModel.handle
+        val handleValue: Long get() = handle.handleValue
+
+        val processModel: Handle<ExecutableProcessModel> = processInstance.processModel.rootModel.handle
 
         val name: String = processInstance.name.let {
             if (it.isNullOrBlank()) {
@@ -785,7 +784,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
         override fun serialize(out: XmlWriter) {
             out.smartStartTag(Constants.PROCESS_ENGINE_NS, "processInstance", Constants.PROCESS_ENGINE_NS_PREFIX) {
-                writeHandleAttr("handle", this@ProcessInstanceRef)
+                writeHandleAttr("handle", handle)
                 writeHandleAttr("processModel", processModel)
                 writeHandleAttr("parentActivity", parentActivity)
                 writeAttribute("name", name)
@@ -876,7 +875,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         uuid = builder.uuid
         processModel = builder.processModel
         state = builder.state
-        handle = builder.handle.toComparableHandle()
+        handle = builder.handle
         parentActivity = builder.parentActivity
 
         val pending = builder.pendingChildren.asSequence().map { it as InstanceFuture<*, *> }
@@ -887,7 +886,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
             if (!future.origBuilder.handle.isValid) {
                 // Set the handle on the builder so that lookups in the future will be more correct.
                 createdNodes += data.putNodeInstance(future).also {
-                    future.origBuilder.handle = it.handle.toComparableHandle()
+                    future.origBuilder.handle = it.handle
                     future.origBuilder.invalidateBuilder(data) // Actually invalidate the original builder/keep it valid
                 }
             } else if((future.origBuilder as? ProcessNodeInstance.ExtBuilder)?.changed != false){
@@ -999,7 +998,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                 throw IllegalArgumentException("Setting the handle to invalid is not allowed")
             }
             if (handle.isValid) throw IllegalStateException("Handles are not allowed to change")
-            handle = handle(handle = handleValue)
+            handle = if (handleValue < 0) Handle.invalid() else Handle(handleValue)
         }
     }
 
@@ -1172,6 +1171,11 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
     }
 
     companion object {
+
+        const val HANDLEELEMENTLOCALNAME = "instanceHandle"
+
+        @JvmStatic
+        val HANDLEELEMENTNAME = QName(ProcessConsts.Engine.NAMESPACE, HANDLEELEMENTLOCALNAME, ProcessConsts.Engine.NSPREFIX)
 
         private val serialVersionUID = 1145452195455018306L
 

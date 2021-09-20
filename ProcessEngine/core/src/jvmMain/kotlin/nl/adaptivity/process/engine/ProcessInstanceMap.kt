@@ -20,7 +20,6 @@ import net.devrieze.util.*
 import net.devrieze.util.db.DBHandleMap
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.db.ProcessEngineDB
-import javax.sql.DataSource
 
 
 internal class ProcessInstanceMap(
@@ -38,7 +37,7 @@ internal class ProcessInstanceMap(
         delegate as MutableTransactionedHandleMap<SecureObject<ProcessInstance>, T>,
         cacheSize
     ) {
-        fun pendingValue(piHandle: ComparableHandle<SecureObject<ProcessInstance>>): ProcessInstance.BaseBuilder? {
+        fun pendingValue(piHandle: Handle<SecureObject<ProcessInstance>>): ProcessInstance.BaseBuilder? {
             return (delegate as ProcessInstanceMap).pendingValue(piHandle)
         }
     }

@@ -21,11 +21,8 @@ import kotlinx.serialization.StringFormat
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import net.devrieze.util.ComparableHandle
 import net.devrieze.util.Handle
-import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.security.SecureObject
-import net.devrieze.util.toComparableHandle
 import nl.adaptivity.process.engine.processModel.CompositeInstance
 import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
@@ -166,15 +163,16 @@ class TestContext(private val config: TraceTest.CompanionBase) {
         model.handle.isValid &&
             model.handle in transaction.readableEngineData.processModels &&
             transaction.readableEngineData.processModels[model.handle]?.withPermission()?.uuid == model.uuid
-             -> model.handle
+        -> model.handle
 
         else -> {
             model.setHandleValue(-1)
-            engineData.engine.addProcessModel(transaction, model.builder(), model.owner)
+            engineData.engine.addProcessModel(transaction, model.builder(), model.owner).handle
         }
     }
 
-    var hInstance: ComparableHandle<SecureObject<ProcessInstance>> = getInvalidHandle()
+    var hInstance: Handle<SecureObject<ProcessInstance>> =
+        Handle.invalid()
         get() {
             if (!field.isValid) {
                 field = startProcess()
@@ -189,10 +187,9 @@ class TestContext(private val config: TraceTest.CompanionBase) {
         return getProcessInstance().toDebugString(transaction)
     }
 
-    fun startProcess(): ComparableHandle<SecureObject<ProcessInstance>> {
+    fun startProcess(): Handle<SecureObject<ProcessInstance>> {
         val name = "${model.name} instance"
         hInstance = engineData.engine.startProcess(transaction, principal, hmodel, name, instanceUuid, null)
-            .toComparableHandle()
         return hInstance
     }
 
@@ -210,7 +207,7 @@ class TestContext(private val config: TraceTest.CompanionBase) {
 
     inline fun updateNodeInstance(
         traceElement: TraceElement,
-        instanceHandle: ComparableHandle<SecureObject<ProcessInstance>> = hInstance,
+        instanceHandle: Handle<SecureObject<ProcessInstance>> = hInstance,
         crossinline action: ProcessNodeInstance.Builder<out ExecutableProcessNode, *>.() -> Unit
     ) {
 
@@ -225,9 +222,9 @@ class TestContext(private val config: TraceTest.CompanionBase) {
     fun runTrace(
         trace: Trace,
         lastElement: Int = -1,
-        instanceHandle: ComparableHandle<SecureObject<ProcessInstance>> = hInstance
+        instanceHandle: Handle<SecureObject<ProcessInstance>> = hInstance
     ): Handle<SecureObject<ProcessNodeInstance<*>>> {
-        var lastInstance: Handle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle()
+        var lastInstance: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid()
         for (idx in 0 until (if (lastElement < 0) trace.size else lastElement)) {
             val traceElement = trace[idx]
             when (model.findNode(traceElement)) {
@@ -276,10 +273,10 @@ class TestContext(private val config: TraceTest.CompanionBase) {
         return asSequence().mapNotNull { traceElement ->
             val node = model.findNode(traceElement)
             when {
-                node == null          -> kfail("No node with name ${traceElement.nodeId} present in the model")
+                node == null -> kfail("No node with name ${traceElement.nodeId} present in the model")
                 type.isInstance(node) -> traceElement.getNodeInstance(transaction, processInstance)
                     ?: kfail("Nodeinstance $traceElement does not exist; ${dbgInstance()}")
-                else                  -> null
+                else -> null
             }
         }
     }

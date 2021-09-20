@@ -143,7 +143,7 @@ class TestProcessEngine : ProcessEngineTestSupport() {
         testRawEngine { processEngine ->
             val transaction = processEngine.startTransaction()
             val engineData = transaction.writableEngineData
-            val modelHandle = processEngine.addProcessModel(transaction, model, modelOwnerPrincipal)
+            val modelHandle = processEngine.addProcessModel(transaction, model, modelOwnerPrincipal).handle
 
             val instanceHandle = processEngine.startProcess(
                 transaction,
@@ -346,7 +346,7 @@ class TestProcessEngine : ProcessEngineTestSupport() {
         testRawEngine { processEngine ->
             val transaction = processEngine.startTransaction()
             val engineData = transaction.writableEngineData
-            val modelHandle = processEngine.addProcessModel(transaction, model, modelOwnerPrincipal)
+            val modelHandle = processEngine.addProcessModel(transaction, model, modelOwnerPrincipal).handle
 
             val instanceHandle = processEngine.startProcess(
                 transaction,

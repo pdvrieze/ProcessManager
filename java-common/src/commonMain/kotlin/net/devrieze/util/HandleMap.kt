@@ -65,6 +65,7 @@ interface HandleMap<V:Any> : Iterable<V> {
 
 interface MutableHandleMap<V:Any>: HandleMap<V>, MutableIterable<V> {
     override operator fun iterator(): MutableIterator<V>
+
     /**
      * Put a new walue into the map. This is thread safe.
 
@@ -72,9 +73,12 @@ interface MutableHandleMap<V:Any>: HandleMap<V>, MutableIterable<V> {
      *
      * @return The handle for the value.
      */
-    fun <W : V> put(value: W): ComparableHandle<W>
+    fun <W : V> put(value: W): Handle<W>
 
-    @Deprecated("Don't use untyped handles", ReplaceWith("set(Handles.handle(handle), value)", "net.devrieze.util.Handles"))
+    @Deprecated(
+        "Don't use untyped handles",
+        ReplaceWith("set(Handles.handle(handle), value)", "net.devrieze.util.Handles")
+    )
     operator fun set(handle: Long, value: V): V? = set(Handle(handle), value)
 
     operator fun set(handle: Handle<V>, value: V): V?

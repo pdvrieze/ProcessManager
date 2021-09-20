@@ -256,7 +256,7 @@ open class DbSet<TMP, T : Any, TR: MonadicDBTransaction<DB>, DB : Database>(
     }
 
     @Throws(SQLException::class)
-    protected fun <W : T> addWithKey(dbReceiver: DBReceiver<DB>, elem: W): DBAction<DB, ComparableHandle<W>?> {
+    protected fun <W : T> addWithKey(dbReceiver: DBReceiver<DB>, elem: W): DBAction<DB, Handle<W>?> {
         dbReceiver.transaction {
             val tr = this
             val stmt = elementFactory.insertStatement(tr, elem)
@@ -268,7 +268,7 @@ open class DbSet<TMP, T : Any, TR: MonadicDBTransaction<DB>, DB : Database>(
                         else -> {
                             val newElem = handleAssigner(elem, handle) ?: elem
                             elementFactory.postStore(tr, handle, null, newElem)
-                                .then(dbReceiver.value(handle.toComparableHandle()))
+                                .then(dbReceiver.value(handle))
                         }
                     }
                 }

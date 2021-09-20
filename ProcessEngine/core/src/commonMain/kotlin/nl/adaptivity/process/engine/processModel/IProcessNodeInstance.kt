@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.engine.processModel
 
-import net.devrieze.util.ComparableHandle
 import net.devrieze.util.Handle
 import net.devrieze.util.ReadableHandleAware
 import net.devrieze.util.security.SecureObject
@@ -35,7 +34,7 @@ import nl.adaptivity.xmlutil.filterSubstream
  */
 interface IProcessNodeInstance: ReadableHandleAware<SecureObject<ProcessNodeInstance<*>>>, ActivityInstanceContext {
     override val node: ExecutableProcessNode
-    val predecessors: Set<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>
+    val predecessors: Set<Handle<SecureObject<ProcessNodeInstance<*>>>>
     override val owner: Principal
 
     override val handle: Handle<SecureObject<ProcessNodeInstance<*>>>

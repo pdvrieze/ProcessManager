@@ -24,21 +24,46 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.nullable
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import nl.adaptivity.util.multiplatform.URI
+import kotlin.jvm.JvmInline
 
+@JvmInline
 @Serializable(HandleSerializer::class)
-interface Handle<out T : Any?> {
+value class Handle<out T : Any?>(val handleValue: Long) : Comparable<Handle<@UnsafeVariance T>> {
 
-    val handleValue: Long
+    constructor(handleString: String) : this(handleString.toLong())
 
-    @Deprecated("Use isValid", ReplaceWith("isValid"))
-    val valid: Boolean get() = isValid
+    constructor(handleUri: URI): this(handleUri.toHandleValue())
 
-    val isValid get() = handleValue >= 0
+    val isValid get() = handleValue >= 0L
+
+    override fun compareTo(other: Handle<@UnsafeVariance T>): Int {
+        return handleValue.compareTo(other.handleValue)
+    }
+
+    override fun toString(): String {
+        return "H:$handleValue"
+    }
+
+    companion object {
+        fun <T> invalid(): Handle<T> = Handle(-1L)
+
+        private fun URI.toHandleValue(): Long {
+            val path: String = getPath()
+            val slashPos = path.lastIndexOf('/')
+            return if (slashPos > 0) {
+                path.substring(slashPos + 1).toLong()
+            } else {
+                path.toLong()
+            }
+
+        }
+    }
 }
 
-
-class HandleSerializer<T>(@Suppress("UNUSED_PARAMETER") elemSerializer: KSerializer<T>): KSerializer<Handle<T>> {
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("net.devrieze.util.Handle", PrimitiveKind.LONG)
+class HandleSerializer<T>(@Suppress("UNUSED_PARAMETER") elemSerializer: KSerializer<T>) : KSerializer<Handle<T>> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor("net.devrieze.util.Handle", PrimitiveKind.LONG)
 
     override fun deserialize(decoder: Decoder): Handle<T> {
         return Handle(decoder.decodeLong())
@@ -49,16 +74,6 @@ class HandleSerializer<T>(@Suppress("UNUSED_PARAMETER") elemSerializer: KSeriali
             value.isValid -> encoder.encodeLong(value.handleValue)
             else -> Unit //encoder.encodeNull()
         }
-    }
-}
-
-
-@Suppress("NOTHING_TO_INLINE")
-inline fun <T:Any?> Handle(handleValue:Long):Handle<T> = handle(handle= handleValue)
-
-interface ComparableHandle<out T: Any?> : Handle<T>, Comparable<ComparableHandle<@kotlin.UnsafeVariance T>> {
-    override fun compareTo(other: ComparableHandle<@kotlin.UnsafeVariance T>):Int {
-        return handleValue.compareTo(other.handleValue)
     }
 }
 

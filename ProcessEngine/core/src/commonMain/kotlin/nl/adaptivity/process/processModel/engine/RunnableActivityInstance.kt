@@ -16,9 +16,8 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import net.devrieze.util.ComparableHandle
+import net.devrieze.util.Handle
 import net.devrieze.util.collection.replaceBy
-import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
@@ -85,15 +84,18 @@ class RunnableActivityInstance<I: Any,O: Any>(builder: Builder<I,O>):
         }
     }
 
-    class BaseBuilder<I: Any, O: Any>(node: RunnableActivity<I,O>,
-                      predecessor: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>?,
-                      processInstanceBuilder: ProcessInstance.Builder,
-                      owner: Principal,
-                      entryNo: Int,
-                      handle: ComparableHandle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
-                      state: NodeInstanceState = NodeInstanceState.Pending) : ProcessNodeInstance.BaseBuilder<RunnableActivity<I,O>, RunnableActivityInstance<I,O>>(
+    class BaseBuilder<I : Any, O : Any>(
+        node: RunnableActivity<I, O>,
+        predecessor: Handle<SecureObject<ProcessNodeInstance<*>>>?,
+        processInstanceBuilder: ProcessInstance.Builder,
+        owner: Principal,
+        entryNo: Int,
+        handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
+        state: NodeInstanceState = NodeInstanceState.Pending
+    ) : ProcessNodeInstance.BaseBuilder<RunnableActivity<I, O>, RunnableActivityInstance<I, O>>(
         node, listOfNotNull(predecessor), processInstanceBuilder, owner,
-        entryNo, handle, state), Builder<I,O> {
+        entryNo, handle, state
+    ), Builder<I, O> {
 
         override fun invalidateBuilder(engineData: ProcessEngineDataAccess) {
             engineData.nodeInstances[handle]?.withPermission()?.let { n ->

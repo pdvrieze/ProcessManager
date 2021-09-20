@@ -521,7 +521,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     ): ExecutableProcessModel = translateExceptions {
         try {
             processEngine.startTransaction().use { transaction ->
-                val handle1 = handle<ExecutableProcessModel>(handle)
+                val handle1 = if (handle < 0) Handle.invalid() else Handle(handle)
                 processEngine.invalidateModelCache(handle1)
                 return transaction.commit<ExecutableProcessModel>(
                     processEngine.getProcessModel(transaction.readableEngineData, handle1, user)
@@ -581,7 +581,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
             try {
                 processEngine.startTransaction().use { transaction ->
                     val updatedRef = processEngine.updateProcessModel(
-                        transaction, handle(handle),
+                        transaction, if (handle < 0) Handle.invalid() else Handle(handle),
                         ExecutableProcessModel(processModelBuilder),
                         user
                     )
@@ -655,7 +655,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
         @RestParam(name = "name", type = RestParamType.QUERY) name: String,
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal
     ) {
-        processEngine.renameProcessModel(user, handle(handle), name)
+        processEngine.renameProcessModel(user, if (handle < 0) Handle.invalid() else Handle(handle), name)
     }
 
     /**
@@ -669,7 +669,11 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal
     ) = translateExceptions {
         processEngine.startTransaction().use { transaction ->
-            if (!processEngine.removeProcessModel(transaction, handle(handle), user)) {
+            if (!processEngine.removeProcessModel(
+                    transaction,
+                    if (handle < 0) Handle.invalid() else Handle(handle),
+                    user
+                )) {
                 throw HttpResponseException(HttpServletResponse.SC_NOT_FOUND, "The given process does not exist")
             }
             transaction.commit()
@@ -697,9 +701,10 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
             val uuid: UUID = uuid?.let { UUID.fromString(it) } ?: UUID.randomUUID()
             return transaction.commitSerializable(
                 processEngine.startProcess(
-                    transaction, owner, handle<ExecutableProcessModel>(handle),
+                    transaction, owner, if (handle < 0) Handle.invalid() else Handle(handle),
                     name ?: "<unnamed>", uuid, null
-                )
+                ),
+                ProcessInstance.HANDLEELEMENTNAME
             )
         }
     }
@@ -738,7 +743,11 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     ): SerializableData<ProcessInstance> = translateExceptions {
         processEngine.startTransaction().use { transaction ->
             return transaction.commitSerializable(
-                processEngine.getProcessInstance(transaction, handle<ProcessInstance>(handle), user!!)
+                processEngine.getProcessInstance(
+                    transaction,
+                    if (handle < 0) Handle.invalid() else Handle(handle),
+                    user!!
+                )
             )
         }
     }
@@ -776,7 +785,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     ): ProcessInstance = translateExceptions {
         processEngine.startTransaction().use { transaction ->
             return transaction.commit(
-                processEngine.cancelInstance(transaction, handle<ProcessInstance>(handle), user)
+                processEngine.cancelInstance(transaction, if (handle < 0) Handle.invalid() else Handle(handle), user)
             )
         }
     }
@@ -814,7 +823,11 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     ): XmlProcessNodeInstance? = translateExceptions {
 
         processEngine.startTransaction().use { transaction ->
-            val nodeInstance = processEngine.getNodeInstance(transaction, handle<ProcessNodeInstance<*>>(handle), user)
+            val nodeInstance = processEngine.getNodeInstance(
+                transaction,
+                if (handle < 0) Handle.invalid() else Handle(handle),
+                user
+            )
                 ?: return null
 
             return transaction.commit(
@@ -857,7 +870,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
             processEngine.startTransaction().use { transaction ->
                 return transaction.commit(
                     processEngine.updateTaskState(
-                        transaction, handle<ProcessNodeInstance<*>>(handle), newState,
+                        transaction, if (handle < 0) Handle.invalid() else Handle(handle), newState,
                         user
                     )
                 )
@@ -896,7 +909,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
         processEngine.startTransaction().use { transaction ->
             return transaction.commit(
                 processEngine.finishTask(
-                    transaction, handle<ProcessNodeInstance<*>>(handle), payloadNode,
+                    transaction, if (handle < 0) Handle.invalid() else Handle(handle), payloadNode,
                     user
                 ).state
             )

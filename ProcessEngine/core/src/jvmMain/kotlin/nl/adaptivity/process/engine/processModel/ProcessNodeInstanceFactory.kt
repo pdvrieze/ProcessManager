@@ -75,9 +75,9 @@ internal class ProcessNodeInstanceFactory(val processEngine: ProcessEngine<Proce
         transaction: ProcessDBTransaction,
         row: SelectResultSetRow<_ListSelect>
     ): DBAction<ProcessEngineDB, ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>>> {
-        val pnihandle = tbl_pni.pnihandle.value(row).toComparableHandle()
+        val pnihandle = tbl_pni.pnihandle.value(row)
         val nodeId = tbl_pni.nodeid.value(row)
-        val pihandle = tbl_pni.pihandle.value(row).toComparableHandle()
+        val pihandle = tbl_pni.pihandle.value(row)
         val state = tbl_pni.state.value(row)
         val entryNo = tbl_pni.entryno.nullableValue(row) ?: 1
 
@@ -91,31 +91,35 @@ internal class ProcessNodeInstanceFactory(val processEngine: ProcessEngine<Proce
 
             val predecessorHandles = SELECT(tbl_pred.predecessor)
                 .WHERE { tbl_pred.pnihandle eq pnihandle }
-                .mapEach { it!!.toComparableHandle() }
+                .mapEach { it!! }
 
             return when (node) {
                 is ExecutableJoin              -> predecessorHandles.map { predecessors ->
                     JoinInstance.BaseBuilder(
                         node, predecessors, processInstanceBuilder, processInstanceBuilder.owner, entryNo,
-                        handle(handle = pnihandle.handleValue), state
+                        if (pnihandle.handleValue < 0) Handle.invalid() else Handle(pnihandle.handleValue), state
                     )
                 }
                 is ExecutableSplit             -> predecessorHandles.map { predecessors ->
                     SplitInstance.BaseBuilder(
-                        node, predecessors.single(), processInstanceBuilder, processInstanceBuilder.owner,
-                        entryNo, handle(handle = pnihandle.handleValue), state
+                        node,
+                        predecessors.single(),
+                        processInstanceBuilder,
+                        processInstanceBuilder.owner,
+                        entryNo,
+                        if (pnihandle.handleValue < 0) Handle.invalid() else Handle(pnihandle.handleValue),
+                        state
                     )
                 }
                 is ExecutableCompositeActivity -> {
-                    predecessorHandles.then<Pair<List<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>, ComparableHandle<SecureObject<ProcessInstance>>>> { predecessors ->
+                    predecessorHandles.then<Pair<List<Handle<SecureObject<ProcessNodeInstance<*>>>>, Handle<SecureObject<ProcessInstance>>>> { predecessors ->
                         SELECT(tbl_pi.pihandle)
                             .WHERE { tbl_pi.parentActivity eq pnihandle }
-                            .mapSeq<ProcessEngineDB, Select1<Handle<SecureObject<ProcessInstance>>, CustomColumnType<Handle<SecureObject<ProcessInstance>>, Long, NumericColumnType.BIGINT_T, NumericColumn<Long, NumericColumnType.BIGINT_T>, NumberColumnConfiguration<Long, NumericColumnType.BIGINT_T>>, CustomColumnType<Handle<SecureObject<ProcessInstance>>, Long, NumericColumnType.BIGINT_T, NumericColumn<Long, NumericColumnType.BIGINT_T>, NumberColumnConfiguration<Long, NumericColumnType.BIGINT_T>>.CustomColumn>, Pair<List<ComparableHandle<SecureObject<ProcessNodeInstance<*>>>>, ComparableHandle<SecureObject<ProcessInstance>>>, Handle<SecureObject<ProcessInstance>>, CustomColumnType<Handle<SecureObject<ProcessInstance>>, Long, NumericColumnType.BIGINT_T, NumericColumn<Long, NumericColumnType.BIGINT_T>, NumberColumnConfiguration<Long, NumericColumnType.BIGINT_T>>, CustomColumnType<Handle<SecureObject<ProcessInstance>>, Long, NumericColumnType.BIGINT_T, NumericColumn<Long, NumericColumnType.BIGINT_T>, NumberColumnConfiguration<Long, NumericColumnType.BIGINT_T>>.CustomColumn> {
+                            .mapSeq<ProcessEngineDB, Select1<Handle<SecureObject<ProcessInstance>>, CustomColumnType<Handle<SecureObject<ProcessInstance>>, Long, NumericColumnType.BIGINT_T, NumericColumn<Long, NumericColumnType.BIGINT_T>, NumberColumnConfiguration<Long, NumericColumnType.BIGINT_T>>, CustomColumnType<Handle<SecureObject<ProcessInstance>>, Long, NumericColumnType.BIGINT_T, NumericColumn<Long, NumericColumnType.BIGINT_T>, NumberColumnConfiguration<Long, NumericColumnType.BIGINT_T>>.CustomColumn>, Pair<List<Handle<SecureObject<ProcessNodeInstance<*>>>>, Handle<SecureObject<ProcessInstance>>>, Handle<SecureObject<ProcessInstance>>, CustomColumnType<Handle<SecureObject<ProcessInstance>>, Long, NumericColumnType.BIGINT_T, NumericColumn<Long, NumericColumnType.BIGINT_T>, NumberColumnConfiguration<Long, NumericColumnType.BIGINT_T>>, CustomColumnType<Handle<SecureObject<ProcessInstance>>, Long, NumericColumnType.BIGINT_T, NumericColumn<Long, NumericColumnType.BIGINT_T>, NumberColumnConfiguration<Long, NumericColumnType.BIGINT_T>>.CustomColumn> {
                                 Pair(
                                     predecessors,
-                                    it.singleOrNull<Handle<SecureObject<ProcessInstance>>?>()
-                                        ?.toComparableHandle<SecureObject<ProcessInstance>>()
-                                        ?: getInvalidHandle<SecureObject<ProcessInstance>>()
+                                    it.singleOrNull()
+                                        ?: Handle.invalid()
                                 )
                             }
                     }.map { (predecessors, childInstance) ->
@@ -126,7 +130,7 @@ internal class ProcessNodeInstanceFactory(val processEngine: ProcessEngine<Proce
                             childInstance,
                             processInstanceBuilder.owner,
                             entryNo,
-                            handle(handle = pnihandle.handleValue),
+                            Handle(pnihandle.handleValue),
                             state
                         )
 
@@ -136,7 +140,7 @@ internal class ProcessNodeInstanceFactory(val processEngine: ProcessEngine<Proce
                     DefaultProcessNodeInstance.BaseBuilder(
                         node, predecessors, processInstanceBuilder,
                         processInstanceBuilder.owner, entryNo,
-                        handle(handle = pnihandle.handleValue), state
+                        if (pnihandle.handleValue < 0) Handle.invalid() else Handle(pnihandle.handleValue), state
                     )
                 }
             }

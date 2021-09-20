@@ -16,14 +16,11 @@
 
 package nl.adaptivity.process.engine
 
-import io.github.pdvrieze.kotlinsql.ddl.Database
 import io.github.pdvrieze.kotlinsql.monadic.DBTransactionContext
-import io.github.pdvrieze.kotlinsql.monadic.MonadicDBConnection
-import net.devrieze.util.ComparableHandle
+import net.devrieze.util.Handle
 import net.devrieze.util.db.MonadicDBTransaction
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.db.ProcessEngineDB
-import javax.sql.DataSource
 
 /**
  * A process transaction that uses the database to store the data.
@@ -33,9 +30,9 @@ class ProcessDBTransaction(
     private val engineData: IProcessEngineData<ProcessDBTransaction>
 ) : MonadicDBTransaction<ProcessEngineDB>(dbTransactionContext), ProcessTransaction {
     private val pendingProcessInstances =
-        mutableMapOf<ComparableHandle<SecureObject<ProcessInstance>>, ProcessInstance.ExtBuilder>()
+        mutableMapOf<Handle<SecureObject<ProcessInstance>>, ProcessInstance.ExtBuilder>()
 
-    fun pendingProcessInstance(pihandle: ComparableHandle<SecureObject<ProcessInstance>>): ProcessInstance.ExtBuilder? {
+    fun pendingProcessInstance(pihandle: Handle<SecureObject<ProcessInstance>>): ProcessInstance.ExtBuilder? {
         return pendingProcessInstances[pihandle]
     }
 

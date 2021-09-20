@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.auth
 
-import net.devrieze.util.getInvalidHandle
+import net.devrieze.util.Handle
 import nl.adaptivity.process.engine.PNIHandle
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanApplication
 
@@ -64,7 +64,7 @@ sealed class LoanPermissions : PermissionScope {
 
         override fun includes(useScope: UseAuthScope): Boolean {
             return when (useScope) {
-                is ExtScope<*> -> getInvalidHandle<Any>() != useScope.extraData
+                is ExtScope<*> -> Handle.invalid<Any>() != useScope.extraData
                 else           -> false
             }
         }

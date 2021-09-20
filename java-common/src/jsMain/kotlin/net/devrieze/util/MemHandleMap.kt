@@ -23,7 +23,7 @@ actual constructor(private val handleAssigner: (V, Handle<V>) -> V?) : MutableHa
 
     override fun containsElement(element: V): Boolean = when (element) {
         is ReadableHandleAware<*> -> backingMap.containsKey(element.handle)
-        else                      -> backingMap.containsValue(element)
+        else -> backingMap.containsValue(element)
     }
 
     override fun contains(handle: Handle<V>): Boolean {
@@ -43,18 +43,19 @@ actual constructor(private val handleAssigner: (V, Handle<V>) -> V?) : MutableHa
         return backingMap.values.iterator()
     }
 
-    override fun <W : V> put(value: W): ComparableHandle<W> {
-        val handle = handle<W>(nextHandle++)
-        val storedValue = handleAssigner(value, handle) ?:
-            throw IllegalArgumentException("Could not set a handle to the value")
+    override fun <W : V> put(value: W): Handle<W> {
+        val handle1 = nextHandle++
+        val handle = if (handle1 < 0) Handle.invalid() else Handle<W>(handle1)
+        val storedValue =
+            handleAssigner(value, handle) ?: throw IllegalArgumentException("Could not set a handle to the value")
         backingMap[handle] = storedValue
         return handle
     }
 
     override fun set(handle: Handle<V>, value: V): V? {
         return backingMap[handle].also {
-            val storedValue = handleAssigner(value, handle) ?:
-                throw IllegalArgumentException("Could not set a handle to the value")
+            val storedValue =
+                handleAssigner(value, handle) ?: throw IllegalArgumentException("Could not set a handle to the value")
             backingMap[handle] = storedValue
         }
     }

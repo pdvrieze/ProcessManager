@@ -16,10 +16,8 @@
 
 package nl.adaptivity.process.engine.processModel
 
-import net.devrieze.util.ComparableHandle
 import net.devrieze.util.Handle
 import net.devrieze.util.collection.replaceByNotNull
-import net.devrieze.util.getInvalidHandle
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
@@ -38,7 +36,7 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
 
     interface Builder : ProcessNodeInstance.Builder<ExecutableSplit, SplitInstance> {
         override fun build(): SplitInstance
-        var predecessor: ComparableHandle<SecureObject<ProcessNodeInstance<*>>>?
+        var predecessor: Handle<SecureObject<ProcessNodeInstance<*>>>?
             get() = predecessors.firstOrNull()
             set(value) = predecessors.replaceByNotNull(value)
 
@@ -80,7 +78,7 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
         processInstanceBuilder: ProcessInstance.Builder,
         owner: Principal,
         entryNo: Int,
-        handle: Handle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
+        handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
     ) : ProcessNodeInstance.BaseBuilder<ExecutableSplit, SplitInstance>(
         node, listOf(predecessor), processInstanceBuilder, owner, entryNo,
@@ -106,22 +104,21 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
         processInstanceBuilder: ProcessInstance.Builder,
         hProcessInstance: Handle<SecureObject<ProcessInstance>>,
         owner: Principal,
-        handle: Handle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
+        handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending,
         results: Iterable<ProcessData> = emptyList(),
         entryNo: Int
-    ) :
-        super(
-            node,
-            listOf(predecessor),
-            processInstanceBuilder,
-            hProcessInstance,
-            owner,
-            entryNo,
-            handle,
-            state,
-            results
-        )
+    ) : super(
+        node,
+        listOf(predecessor),
+        processInstanceBuilder,
+        hProcessInstance,
+        owner,
+        entryNo,
+        handle,
+        state,
+        results
+    )
 
     constructor(builder: Builder) : this(
         builder.node,

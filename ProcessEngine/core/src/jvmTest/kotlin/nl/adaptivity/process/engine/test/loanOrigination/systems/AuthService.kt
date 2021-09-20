@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
-import net.devrieze.util.getInvalidHandle
+import net.devrieze.util.Handle
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.PNIHandle
 import nl.adaptivity.process.engine.test.loanOrigination.Random
@@ -175,7 +175,7 @@ class AuthService(
 
     private fun AuthInfo.getNodeInstanceHandle(): PNIHandle = when (this) {
         is AuthToken -> nodeInstanceHandle
-        else         -> getInvalidHandle()
+        else         -> Handle.invalid()
     }
 
     private fun createAuthorizationCodeImpl(
@@ -286,7 +286,7 @@ class AuthService(
 
         // TODO look up permissions for taskIdentityToken
 
-        val nodeInstanceHandle = (identityToken as? AuthToken)?.nodeInstanceHandle ?: getInvalidHandle()
+        val nodeInstanceHandle = (identityToken as? AuthToken)?.nodeInstanceHandle ?: Handle.invalid()
 
         val existingToken = activeTokens.firstOrNull {
             it.principal == identityToken.principal &&
@@ -331,7 +331,7 @@ class AuthService(
         internalValidateAuthInfo(auth, LoanPermissions.IDENTIFY)
         return AuthToken(
             auth.principal,
-            getInvalidHandle(),
+            Handle.invalid(),
             Random.nextString(),
             authServiceId,
             LoanPermissions.IDENTIFY

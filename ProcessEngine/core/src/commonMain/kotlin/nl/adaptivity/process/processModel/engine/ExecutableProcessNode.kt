@@ -16,14 +16,12 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import net.devrieze.util.toComparableHandle
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.ProcessNode
-import nl.adaptivity.process.processModel.Split
 import nl.adaptivity.process.processModel.XmlResultType
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
@@ -183,7 +181,7 @@ internal fun ExecutableCondition?.evalCondition(
 
     if (isAlternate) { // An alternate is only true if all others are never/finalised
         val successorCount = predecessor.node.successors.size
-        val hPred = predecessor.handle.toComparableHandle()
+        val hPred = predecessor.handle
         var nonTakenSuccessorCount:Int = 0
         for (sibling in nodeInstanceSource.allChildNodeInstances()) {
             if (sibling.handle != nodeInstance.handle && hPred in sibling.predecessors) {

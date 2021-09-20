@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import net.devrieze.util.getInvalidHandle
+import net.devrieze.util.Handle
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.IProcessInstance
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
@@ -84,7 +84,7 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableProcessNode
         return processInstanceBuilder.getChildNodeInstance(this, entryNo) ?: CompositeInstance.BaseBuilder(
             this, predecessor.handle,
             processInstanceBuilder,
-            getInvalidHandle(),
+            Handle.invalid(),
             processInstanceBuilder.owner,
             entryNo
         )

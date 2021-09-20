@@ -28,16 +28,12 @@ import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.processModel.engine.IProcessModelRef
 import nl.adaptivity.process.processModel.engine.ProcessModelRef
 import nl.adaptivity.process.util.Identifiable
-import nl.adaptivity.process.util.IdentifiableSetSerializer
 import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.process.util.MutableIdentifyableSet
-import nl.adaptivity.util.PrincipalSerializer
 import nl.adaptivity.util.UUIDSerializer
 import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xmlutil.QName
-import nl.adaptivity.xmlutil.serialization.XmlDefault
-import nl.adaptivity.xmlutil.serialization.XmlPolyChildren
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 abstract class RootProcessModelBase<NodeT : ProcessNode> :
@@ -138,7 +134,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
      * Get the handle recorded for this model.
      */
     override val handle: Handle<RootProcessModelBase<NodeT>>
-        get() = handle(handle = _handle)
+        get() = if (_handle < 0) Handle.invalid() else Handle(_handle)
 
     /**
      * Set the handle for this model.
@@ -232,7 +228,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
             childModels: List<ChildProcessModelBase.SerialDelegate>,
         ) : super(imports, exports, nodes) {
             this.name = name
-            this.handle = handle.takeIf { it!=-1L }
+            this.handle = handle.takeIf { it != -1L }
             this.owner = owner
             this.uuid = uuid
             this.roles = roles

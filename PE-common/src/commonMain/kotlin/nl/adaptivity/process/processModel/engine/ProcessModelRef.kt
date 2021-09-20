@@ -30,22 +30,16 @@ import kotlin.jvm.JvmStatic
 class ProcessModelRef<NodeT : ProcessNode, out ObjectT : RootProcessModel<NodeT>>
 constructor(
     override var name: String?,
-    var handle: Long,
+    handle: Handle<RootProcessModel<NodeT>>,
     override var uuid: UUID?
 ) : IProcessModelRef<NodeT, ObjectT> {
 
 
-    override val handleValue: Long get() = handle
+    override val handleValue: Long = handle.handleValue
 
-    constructor() : this(null, -1L, null)
+    constructor() : this(null, Handle.invalid(), null)
 
-    constructor(name: String?, handle: Handle<RootProcessModel<NodeT>>, uuid: UUID?) : this(
-        name,
-        handle.handleValue,
-        uuid
-                                                                                           )
-
-    constructor(source: IProcessModelRef<NodeT, ObjectT>) : this(source.name, source.handleValue, source.uuid)
+    constructor(source: IProcessModelRef<NodeT, ObjectT>) : this(source.name, source.handle, source.uuid)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

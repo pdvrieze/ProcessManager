@@ -24,8 +24,11 @@ import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.xmlutil.XmlSerializable
 
 
-interface IProcessModelRef<out NodeT : ProcessNode, out ObjectT : RootProcessModel<NodeT>>
-    : Handle<ObjectT> {
+interface IProcessModelRef<out NodeT : ProcessNode, out ObjectT : RootProcessModel<NodeT>> {
+
+    val handle: Handle<ObjectT> get() = Handle(handleValue)
+
+    val handleValue: Long
 
     val name: String?
 

@@ -44,8 +44,7 @@ internal class ProcessModelMap(
                 .WHERE { processModels.model LIKE "%$uuid%" }
                 .mapSeq {
                     it.filterNotNull()
-                        .firstOrNull { h ->
-                            val handle = h.toComparableHandle()
+                        .firstOrNull { handle ->
                             val candidate: ExecutableProcessModel? = get(transaction, handle)?.withPermission()
                             uuid == candidate?.uuid
                         }

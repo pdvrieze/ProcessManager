@@ -36,7 +36,7 @@ import nl.adaptivity.xmlutil.util.ICompactFragment
 class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstance>(builder) {
 
     interface Builder : ProcessNodeInstance.Builder<ExecutableCompositeActivity, CompositeInstance> {
-        var hChildInstance: ComparableHandle<SecureObject<ProcessInstance>>
+        var hChildInstance: Handle<SecureObject<ProcessInstance>>
 
         override fun doProvideTask(engineData: MutableProcessEngineDataAccess): Boolean {
             val shouldProgress = node.provideTask(engineData, this)
@@ -81,17 +81,15 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
         node: ExecutableCompositeActivity,
         predecessor: Handle<SecureObject<ProcessNodeInstance<*>>>?,
         processInstanceBuilder: ProcessInstance.Builder,
-        childInstance: Handle<SecureObject<ProcessInstance>>,
+        override var hChildInstance: Handle<SecureObject<ProcessInstance>>,
         owner: Principal,
         entryNo: Int,
-        handle: Handle<SecureObject<ProcessNodeInstance<*>>> = getInvalidHandle(),
+        handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
-                     ) : ProcessNodeInstance.BaseBuilder<ExecutableCompositeActivity, CompositeInstance>(
+    ) : ProcessNodeInstance.BaseBuilder<ExecutableCompositeActivity, CompositeInstance>(
         node, listOfNotNull(predecessor), processInstanceBuilder, owner,
         entryNo, handle, state
-                                                                                                        ), Builder {
-
-        override var hChildInstance: ComparableHandle<SecureObject<ProcessInstance>> = childInstance.toComparableHandle()
+    ), Builder {
 
         override fun invalidateBuilder(engineData: ProcessEngineDataAccess) {
             engineData.nodeInstances[handle]?.withPermission()?.let { n ->
@@ -115,14 +113,17 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
 
         override var node: ExecutableCompositeActivity by overlay { base.node }
 
-        override var hChildInstance: ComparableHandle<SecureObject<ProcessInstance>> by overlay(observer()) { base.hChildInstance }
+        override var hChildInstance: Handle<SecureObject<ProcessInstance>> by overlay(
+            observer()
+        ) { base.hChildInstance }
 
         override fun build(): CompositeInstance {
             return if (changed) CompositeInstance(this).also { invalidateBuilder(it) } else base
         }
     }
 
-    val hChildInstance: ComparableHandle<SecureObject<ProcessInstance>> = builder.hChildInstance
+    val hChildInstance: Handle<SecureObject<ProcessInstance>> =
+        builder.hChildInstance
 
     override val node: ExecutableCompositeActivity get() = super.node as ExecutableCompositeActivity
 
@@ -133,7 +134,7 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
         if (defines.isEmpty()) return null
 
         val content = buildString {
-            for(data in defines) {
+            for (data in defines) {
                 append(generateXmlString(true) { writer ->
                     writer.smartStartTag(QName(data.name!!)) {
                         writer.serialize(data.contentStream)
