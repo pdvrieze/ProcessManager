@@ -48,6 +48,27 @@ constructor(protected val delegate: C, observers: Iterable<(S) -> Unit> = emptyL
 
     override fun iterator(): MutableIterator<T> = ObservableIterator(this, delegate.iterator())
 
+    actual fun replaceBy(elements: Iterable<T>): Boolean {
+        var hasChanges = false
+        val oldElements = delegate.toMutableList()
+        delegate.clear()
+        for (element in elements) {
+            if (hasChanges) {
+                delegate.add(element)
+            } else {
+                if (!oldElements.remove(element)) {
+                    hasChanges = true
+                }
+                delegate.add(element)
+            }
+        }
+        if (!hasChanges && oldElements.isNotEmpty()) hasChanges = true
+        if (hasChanges) {
+            triggerObservers()
+        }
+        return hasChanges
+    }
+
     override fun remove(element: T) = delegate.remove(element).apply { if (this) triggerObservers() }
 
     override fun removeAll(elements: Collection<T>) =

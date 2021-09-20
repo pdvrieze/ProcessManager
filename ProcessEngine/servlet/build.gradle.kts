@@ -77,15 +77,15 @@ tasks.named<Test>("test") {
 }
 
 val war = tasks.named<War>("war") {
-    baseName = "${project.parent?.name}-${project.name}"
+    archiveBaseName.set("${project.parent?.name}-${project.name}")
 }
 
 val jar = tasks.named<Jar>("jar"){
-    baseName = "${project.parent?.name}-${project.name}"
+    archiveBaseName.set("${project.parent?.name}-${project.name}")
 }
 
 tasks.create<Jar>("testJar") {
-    baseName = "${project.name}-test"
+    archiveBaseName.set("${project.name}-test")
     from(sourceSets["test"].output)
 }
 
@@ -99,10 +99,19 @@ java {
     targetCompatibility = JavaVersion.VERSION_1_8
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions {
-        jvmTarget = "1.8"
-        freeCompilerArgs=listOf(argJvmDefault)
+kotlin {
+    target {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = "1.8"
+                freeCompilerArgs=listOf(argJvmDefault)
+            }
+        }
+    }
+    sourceSets.all {
+        languageSettings {
+            optIn("kotlin.RequiresOptIn")
+        }
     }
 }
 

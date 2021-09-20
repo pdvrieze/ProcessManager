@@ -16,11 +16,7 @@
 
 package net.devrieze.util
 
-@Suppress("NOTHING_TO_INLINE")
-inline infix fun Byte.hasFlag(flag:Byte):Boolean = (this.toInt() and flag.toInt()) == flag.toInt()
-@Suppress("NOTHING_TO_INLINE")
-inline infix fun Short.hasFlag(flag:Short):Boolean = (this.toInt() and flag.toInt()) == flag.toInt()
-@Suppress("NOTHING_TO_INLINE")
-inline infix fun Int.hasFlag(flag:Int):Boolean = (this and flag) == flag
-@Suppress("NOTHING_TO_INLINE")
-inline infix fun Long.hasFlag(flag:Long):Boolean = (this and flag) == flag
+infix fun Byte.hasFlag(flag:Byte):Boolean = (this.toInt() and flag.toInt()) == flag.toInt()
+infix fun Short.hasFlag(flag:Short):Boolean = (this.toInt() and flag.toInt()) == flag.toInt()
+infix fun Int.hasFlag(flag:Int):Boolean = (this and flag) == flag
+infix fun Long.hasFlag(flag:Long):Boolean = (this and flag) == flag

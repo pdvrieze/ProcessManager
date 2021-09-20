@@ -521,7 +521,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     ): ExecutableProcessModel = translateExceptions {
         try {
             processEngine.startTransaction().use { transaction ->
-                val handle1 = if (handle < 0) Handle.invalid() else Handle(handle)
+                val handle1 = if (handle < 0) Handle.invalid<SecureObject<ExecutableProcessModel>>() else Handle(handle)
                 processEngine.invalidateModelCache(handle1)
                 return transaction.commit<ExecutableProcessModel>(
                     processEngine.getProcessModel(transaction.readableEngineData, handle1, user)
@@ -923,6 +923,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
      * specially.
      * @throws SQLException
      */
+    @OptIn(ProcessInstanceStorage::class)
     @Throws(FileNotFoundException::class)
     fun onMessageCompletion(
         future: Future<out DataSource>,
