@@ -36,7 +36,7 @@ class WCP1: TraceTest(Companion) {
         assertEquals("WCP1", model.name)
     }
 
-    companion object: TraceTest.CompanionBase() {
+    companion object: TraceTest.ConfigBase() {
         override val modelData: ModelData = run {
             val m = object : TestConfigurableModel("WCP1") {
                 val start by startNode

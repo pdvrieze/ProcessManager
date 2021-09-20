@@ -23,7 +23,7 @@ import org.junit.jupiter.api.DisplayName
 
 @DisplayName("WCP10: arbitrary cycles")
 class WCP10: TraceTest(Companion) {
-    companion object: TraceTest.CompanionBase() {
+    companion object: TraceTest.ConfigBase() {
         override val modelData: ModelData = run {
             val model = object : TestConfigurableModel("WCP10") {
                 val start1 by startNode

@@ -23,25 +23,24 @@ import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
-import nl.adaptivity.process.engine.processModel.CompositeInstance
-import nl.adaptivity.process.engine.processModel.JoinInstance
-import nl.adaptivity.process.engine.processModel.NodeInstanceState
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.*
 import nl.adaptivity.process.engine.spek.*
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.assertJsonEquals
 import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.util.CompactFragment
 import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import java.net.URI
 import java.util.*
+import kotlin.random.Random
 import kotlin.reflect.KClass
 
-abstract class TraceTest(val config: CompanionBase) {
+abstract class TraceTest(val config: ConfigBase) {
 
     val model: ExecutableProcessModel get() = config.modelData.model
 
@@ -133,12 +132,19 @@ abstract class TraceTest(val config: CompanionBase) {
     }
 
     @TestFactory
+    @DisplayName("Fuzz tests")
+    fun testFuzzTests(): List<DynamicNode> {
+        val random = Random(4254)
+        return (1..100).map { createFuzzTest(config, random.nextLong()) }
+    }
+
+    @TestFactory
     @DisplayName("Invalid traces")
     fun testInvalidTraces(): List<DynamicNode> {
         return inValidTraces.mapIndexed { idx, trace -> createInvalidTraceTest(config, trace, idx) }
     }
 
-    abstract class CompanionBase {
+    abstract class ConfigBase {
 
         abstract val modelData: ModelData
 
@@ -147,7 +153,7 @@ abstract class TraceTest(val config: CompanionBase) {
     }
 }
 
-class TestContext(private val config: TraceTest.CompanionBase) {
+class TestContext(private val config: TraceTest.ConfigBase) {
 
 //    val model: ExecutableProcessModel get() = modelData.model
 //    fun newEngineData() = modelData.engineData()
@@ -219,6 +225,70 @@ class TestContext(private val config: TraceTest.CompanionBase) {
         }
     }
 
+    fun updateNodeInstance(
+        nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>,
+        action: ProcessNodeInstance.Builder<out ExecutableProcessNode, *>.() -> Unit
+    ) {
+        transaction.writableEngineData.updateNodeInstance(nodeInstanceHandle, action)
+    }
+
+    fun runFuzz(random: Random, maxIters: Int = 1000): List<TraceElement> {
+
+
+        val nodeData = model.modelNodes.associate { it.id to mutableSetOf<TraceElement>() }
+        for (trace in config.modelData.valid) {
+            for (element in trace) {
+                nodeData[element.nodeId]?.add(element)
+            }
+        }
+
+        val trace = mutableListOf<TraceElement>()
+
+        try {
+            for(iter in 1.. maxIters)  {
+                val processInstance = getProcessInstance()
+                for (completed in processInstance.allChildNodeInstances()) {
+                    if (completed.state.isFinal && trace.none { it.id == completed.node.id && (it.instanceNo<0 || it.instanceNo == completed.entryNo) }) {
+                        trace.add(completed.toTraceElement())
+                    }
+                }
+
+                val activeNodes = processInstance.activeNodes.filter { it.node !is Join && it.node !is Split }.toList()
+                if (activeNodes.isEmpty()) break
+
+                var nextNodeInstance = activeNodes.random(random)
+                val nextPayload = nodeData[nextNodeInstance.node.id]!!.random(random).resultPayload
+                val nextTraceElement = nextNodeInstance.toTraceElement(nextPayload)
+
+                trace.add(nextTraceElement)
+
+                when (nextNodeInstance.node) {
+                    is MessageActivity -> {
+                        updateNodeInstance(nextNodeInstance.handle) {
+                            startTask(transaction.writableEngineData)
+                        }
+                        updateNodeInstance(nextNodeInstance.handle) {
+                            finishTask(transaction.writableEngineData, nextTraceElement.resultPayload)
+                        }
+                        nextNodeInstance = getNodeInstance(nextNodeInstance.handle)
+                    }
+                }
+
+                assertEquals(
+                    NodeInstanceState.Complete,
+                    nextNodeInstance.state,
+                    "Expected the state of $nextNodeInstance to be complete, not ${nextNodeInstance.state}\n${dbgInstance()}"
+                )
+
+                engineData.engine.processTickleQueue(transaction)
+            }
+        } catch (e: Exception) {
+            throw FuzzException(e, trace)
+        }
+
+        return trace
+    }
+
     fun runTrace(
         trace: Trace,
         lastElement: Int = -1,
@@ -287,7 +357,7 @@ class TestContext(private val config: TraceTest.CompanionBase) {
 
 }
 
-class ContainerContext(val config: TraceTest.CompanionBase, private val children: MutableCollection<DynamicNode>) {
+class ContainerContext(val config: TraceTest.ConfigBase, private val children: MutableCollection<DynamicNode>) {
 
     val model get() = config.modelData.model
 
@@ -312,7 +382,33 @@ class ContainerContext(val config: TraceTest.CompanionBase, private val children
 
 }
 
-fun createValidTraceTest(config: TraceTest.CompanionBase, trace: Trace, traceNo: Int): DynamicContainer {
+fun createFuzzTest(config: TraceTest.ConfigBase, seed: Long): DynamicContainer {
+    return config.dynamicContainer("Fuzzing with seed $seed") {
+
+        addTest("Fuzzing should not throw an exception") {
+            val trace = runFuzz(Random(seed))
+            System.err.println("Fuzz $seed has trace [${trace.joinToString()}]")
+        }
+
+        addTest("Fuzzed traces should finish the instance") {
+            val trace = try { runFuzz(Random(seed)) } catch (e: FuzzException) { e.trace }
+            val processInstance = getProcessInstance()
+            assertEquals(processInstance.state, ProcessInstance.State.FINISHED)
+            val nonFinishedNodes = processInstance.allChildNodeInstances()
+                .filterNot { it.state == NodeInstanceState.Complete || it.state.isSkipped}
+                .map { "${it.toTraceElement()}-${it.state}" }
+                .sorted()
+                .toList()
+
+            assertEquals(emptyList<String>(), nonFinishedNodes) {
+                "There should not be nodes in the trace that aren't finished."
+            }
+
+        }
+    }
+}
+
+fun createValidTraceTest(config: TraceTest.ConfigBase, trace: Trace, traceNo: Int): DynamicContainer {
     return config.dynamicContainer("For valid trace #$traceNo [${trace.joinToString()}]") {
         addTest("After starting only start nodes should be finished") {
             val processInstance = getProcessInstance()
@@ -563,7 +659,7 @@ private fun <T> Boolean.pick(onTrue: T, onFalse: T): T =
     if (this) onTrue else onFalse
 
 fun createInvalidTraceTest(
-    config: TraceTest.CompanionBase,
+    config: TraceTest.ConfigBase,
     trace: Trace,
     traceIdx: Int,
     failureExpected: Boolean = true,
@@ -607,7 +703,7 @@ fun ProcessNodeInstance<*>.assertFinished() {
     assertTrue(this.node !is EndNode) { "Completed nodes should not be endnodes" }
 }
 
-inline fun TraceTest.CompanionBase.dynamicContainer(
+inline fun TraceTest.ConfigBase.dynamicContainer(
     displayName: String,
     configure: ContainerContext.() -> Unit
 ): DynamicContainer {
@@ -615,3 +711,13 @@ inline fun TraceTest.CompanionBase.dynamicContainer(
     ContainerContext(this, children).apply(configure)
     return dynamicContainer(displayName, children)
 }
+
+fun IProcessNodeInstance.toTraceElement(payload: CompactFragment? = null): TraceElement {
+    val instanceNo = when {
+        node.isMultiInstance -> entryNo
+        else -> SINGLEINSTANCE
+    }
+    return TraceElement(node.id, instanceNo, payload)
+}
+
+class FuzzException(cause: Throwable, val trace: List<TraceElement>): Exception("Error in fuzzing: ${cause.message} - trace: [${trace.joinToString()}]}", cause)

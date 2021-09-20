@@ -41,7 +41,7 @@ class WebProcesses {
 
 }
 
-private object WebProcess1Config : TraceTest.CompanionBase() {
+private object WebProcess1Config : TraceTest.ConfigBase() {
     override val modelData: ModelData = run {
         val m = object : TestConfigurableModel("Signavio-insurance-emergency") {
             val start by startNode { label = "Insurance emergency" }
@@ -137,7 +137,7 @@ private object WebProcess1Config : TraceTest.CompanionBase() {
     }
 }
 
-private object WebProcess1Config2 : TraceTest.CompanionBase() {
+private object WebProcess1Config2 : TraceTest.ConfigBase() {
     override val modelData: ModelData = run {
         val m = object : TestConfigurableModel("Signavio-insurance-emergency") {
             val start by startNode { label = "Insurance emergency" }

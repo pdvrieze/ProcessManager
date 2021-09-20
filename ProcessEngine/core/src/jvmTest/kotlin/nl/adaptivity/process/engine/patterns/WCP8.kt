@@ -82,7 +82,7 @@ class WCP8() : TraceTest(Companion) {
         newValidTraces: List<Trace>,
         newInvalidTraces: List<Trace>,
         update: RootProcessModel.Builder.() -> Unit
-    ) : TraceTest.CompanionBase() {
+    ) : TraceTest.ConfigBase() {
         override val modelData: ModelData = ModelData(
             baseModel.update(update),
             newValidTraces,
@@ -90,7 +90,7 @@ class WCP8() : TraceTest(Companion) {
         )
     }
 
-    companion object : TraceTest.CompanionBase() {
+    companion object : TraceTest.ConfigBase() {
         override val modelData: ModelData = run {
             val model = object : TestConfigurableModel("WCP8") {
                 val start1 by startNode

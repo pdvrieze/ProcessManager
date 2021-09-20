@@ -25,7 +25,7 @@ import org.junit.jupiter.api.DisplayName
 
 @DisplayName("WCP9: Structured Discriminator")
 class WCP9 : TraceTest(Companion) {
-    companion object : CompanionBase() {
+    companion object : ConfigBase() {
         override val modelData: ModelData = run {
             val model = object : TestConfigurableModel("WCP9") {
                 val start1 by startNode

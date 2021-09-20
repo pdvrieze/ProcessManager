@@ -26,7 +26,7 @@ import org.junit.jupiter.api.DisplayName
 @DisplayName("WCP2: Parallel split")
 class WCP2: TraceTest(Companion) {
 
-    companion object: TraceTest.CompanionBase() {
+    companion object: TraceTest.ConfigBase() {
         override val modelData: ModelData = run{
             val model = object : TestConfigurableModel("WCP2") {
                 val start by startNode

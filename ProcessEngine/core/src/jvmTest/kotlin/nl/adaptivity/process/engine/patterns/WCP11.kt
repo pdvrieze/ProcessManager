@@ -24,7 +24,7 @@ import org.junit.jupiter.api.DisplayName
 
 @DisplayName("WCP11: Implicit termination")
 class WCP11: TraceTest(Companion) {
-    companion object : TraceTest.CompanionBase() {
+    companion object : TraceTest.ConfigBase() {
         override val modelData: ModelData = run {
             val model = object : TestConfigurableModel("WCP11") {
                 val start1 by startNode

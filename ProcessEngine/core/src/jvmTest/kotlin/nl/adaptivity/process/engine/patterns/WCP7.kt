@@ -36,7 +36,7 @@ class WCP7 {
     @DisplayName("ac1.condition=true, ac2.condition=true")
     inner class WCP7Ac1Ac2 : TraceTest(Config(true, true))
 
-    class Config(ac1Condition: Boolean, ac2Condition: Boolean) : TraceTest.CompanionBase() {
+    class Config(ac1Condition: Boolean, ac2Condition: Boolean) : TraceTest.ConfigBase() {
         override val modelData: ModelData = getModelData(ac1Condition, ac2Condition)
     }
     companion object {

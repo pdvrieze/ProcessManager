@@ -22,7 +22,7 @@ import org.junit.jupiter.api.DisplayName
 
 @DisplayName("WCP3: Synchronization / And join")
 class WCP3: TraceTest(Companion) {
-    companion object : TraceTest.CompanionBase() {
+    companion object : TraceTest.ConfigBase() {
 
         override val expectedJson: String =
             "{\"name\":\"WCP3\",\"owner\":\"pdvrieze\",\"roles\":[],\"childModel\":[],\"imports\":[],\"exports\":[],\"nodes\":[" +

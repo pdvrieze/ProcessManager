@@ -25,7 +25,7 @@ import org.junit.jupiter.api.DisplayName
 
 @DisplayName("WCP4: XOR split")
 class WCP4: TraceTest(Companion) {
-    companion object: CompanionBase() {
+    companion object: ConfigBase() {
         override val modelData: ModelData = run {
             val model = object: TestConfigurableModel("WCP4") {
                 val start by startNode

@@ -22,7 +22,7 @@ import org.junit.jupiter.api.DisplayName
 
 @DisplayName("WCP5: simple-merge")
 class WCP5: TraceTest(Companion) {
-    companion object: TraceTest.CompanionBase() {
+    companion object: TraceTest.ConfigBase() {
         override val modelData: ModelData = run{
             val model = object: TestConfigurableModel("WCP5") {
                 val start by startNode

@@ -24,7 +24,7 @@ import org.junit.jupiter.api.DisplayName
 
 @DisplayName("WASP4: Vertical modularisation (subprocesses)")
 class WASP4: TraceTest(Companion) {
-    companion object : TraceTest.CompanionBase() {
+    companion object : TraceTest.ConfigBase() {
         override val modelData: ModelData = run {
             val model = object : TestConfigurableModel("WASP4") {
                 val start1 by startNode
