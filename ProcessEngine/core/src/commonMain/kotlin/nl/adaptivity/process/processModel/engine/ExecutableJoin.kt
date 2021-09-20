@@ -76,8 +76,31 @@ class ExecutableJoin(
         predecessor: IProcessNodeInstance,
         nodeInstance: IProcessNodeInstance
     ): ConditionResult {
-        return (conditions[predecessor.node.identifier] as ExecutableCondition?)
+        val predCondResult = (conditions[predecessor.node.identifier] as ExecutableCondition?)
             .evalCondition(nodeInstanceSource, predecessor, nodeInstance)
+
+        var neverCount = 0
+        var alwaysCount = 0
+
+        for (hPred in nodeInstance.predecessors) {
+            val siblingResult = when (hPred) {
+                predecessor.handle -> predCondResult
+                else -> {
+                    val sibling = nodeInstanceSource.getChildNodeInstance(hPred)
+                    (conditions[sibling.node.identifier] as ExecutableCondition?)
+                        .evalCondition(nodeInstanceSource, sibling, nodeInstance)
+                }
+            }
+            @Suppress("NON_EXHAUSTIVE_WHEN")
+            when (siblingResult) {
+                ConditionResult.TRUE -> alwaysCount++
+                ConditionResult.NEVER -> neverCount++
+            }
+        }
+
+        if (alwaysCount>=min) return ConditionResult.TRUE
+        if (neverCount>(predecessors.size-min)) return ConditionResult.NEVER
+        return ConditionResult.MAYBE
     }
 
     override fun createOrReuseInstance(

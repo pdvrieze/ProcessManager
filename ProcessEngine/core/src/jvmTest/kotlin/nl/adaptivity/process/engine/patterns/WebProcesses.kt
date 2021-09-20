@@ -92,7 +92,9 @@ class WebProcess1 : TraceTest(Companion) {
             }
             with(m) {
                 val valid = trace {
-                    (start..ac1..ac2..split1..(
+                    (start..
+                        ((ac1%ac2) or (ac1("<coverage_exists/>") % ac2) or (ac1 % ac2("<accepted/>")) )
+                        ..split1..(
                         ((ac3 .. split2) % (ac5..split3..join2))
                         )..join3..end
                         ) or (

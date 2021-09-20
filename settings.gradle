@@ -145,15 +145,19 @@ include(":accountmgr")
 include(":accountmgr:js")
 
 include(":DarwinServices")
+/*
 
 include(":PE-server")
 
 include(":PE-common:endpointDoclet")
-
-include(":structurizr")
+*/
+// Stale/broken
+//include(":structurizr")
 
 include(":jscommon")
+/*
 include(":webeditor")
+*/
 // Android modules
 if (Boolean.parseBoolean(androidEnabledProp)) {
     if (file("android-auth").exists()) {

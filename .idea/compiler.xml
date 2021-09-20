@@ -1,29 +1,109 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-    <bytecodeTargetLevel>
+    <bytecodeTargetLevel target="1.8">
+      <module name="darwin.jvmMain~1" target="1.8" />
+      <module name="darwin.jvmTest~1" target="1.8" />
       <module name="darwin_jvmMain" target="1.8" />
       <module name="darwin_jvmTest" target="1.8" />
+      <module name="java-common.androidMain~1" target="1.6" />
+      <module name="java-common.androidTest~1" target="1.6" />
+      <module name="java-common.jvmMain~1" target="1.8" />
+      <module name="java-common.jvmTest~1" target="1.8" />
       <module name="java-common_androidMain" target="1.6" />
       <module name="java-common_androidTest" target="1.6" />
       <module name="java-common_jvmMain" target="1.8" />
       <module name="java-common_jvmTest" target="1.8" />
+      <module name="JavaCommonApi.androidMain~1" target="1.6" />
+      <module name="JavaCommonApi.androidTest~1" target="1.6" />
+      <module name="JavaCommonApi.jvmMain~1" target="1.8" />
+      <module name="JavaCommonApi.jvmTest~1" target="1.8" />
       <module name="JavaCommonApi_androidMain" target="1.6" />
       <module name="JavaCommonApi_androidTest" target="1.6" />
       <module name="JavaCommonApi_jvmMain" target="1.8" />
       <module name="JavaCommonApi_jvmTest" target="1.8" />
+      <module name="ktor" target="11" />
+      <module name="ktor.main" target="11" />
+      <module name="ktor.test" target="11" />
+      <module name="multiplatform.androidMain~1" target="1.6" />
+      <module name="multiplatform.androidTest~1" target="1.6" />
+      <module name="multiplatform.jvmMain~1" target="1.8" />
+      <module name="multiplatform.jvmTest~1" target="1.8" />
       <module name="multiplatform_androidMain" target="1.6" />
       <module name="multiplatform_androidTest" target="1.6" />
       <module name="multiplatform_jvmMain" target="1.8" />
       <module name="multiplatform_jvmTest" target="1.8" />
+      <module name="PE-common.androidMain~1" target="1.6" />
+      <module name="PE-common.androidTest~1" target="1.6" />
+      <module name="PE-common.jvmMain~1" target="1.8" />
+      <module name="PE-common.jvmTest~1" target="1.8" />
       <module name="PE-common_androidMain" target="1.6" />
       <module name="PE-common_androidTest" target="1.6" />
       <module name="PE-common_jvmMain" target="1.8" />
       <module name="PE-common_jvmTest" target="1.8" />
+      <module name="PE-diagram.androidMain~1" target="1.6" />
+      <module name="PE-diagram.androidTest~1" target="1.6" />
+      <module name="PE-diagram.jvmMain~1" target="1.8" />
+      <module name="PE-diagram.jvmTest~1" target="1.8" />
       <module name="PE-diagram_androidMain" target="1.6" />
       <module name="PE-diagram_androidTest" target="1.6" />
       <module name="PE-diagram_jvmMain" target="1.8" />
       <module name="PE-diagram_jvmTest" target="1.8" />
+      <module name="ProcessEngine-core.jvmMain~1" target="1.8" />
+      <module name="ProcessEngine-core.jvmTest~1" target="1.8" />
+      <module name="ProcessManager.darwin.servletSupport.commonMain" target="1.8" />
+      <module name="ProcessManager.darwin.servletSupport.commonTest" target="1.8" />
+      <module name="ProcessManager.darwin.servletSupport.jvmMain" target="1.8" />
+      <module name="ProcessManager.darwin.servletSupport.jvmTest" target="1.8" />
+      <module name="ProcessManager.darwinlib" target="11" />
+      <module name="ProcessManager.PE-server" target="11" />
+      <module name="ProcessManager.PE-server.main" target="11" />
+      <module name="ProcessManager.PE-server.test" target="11" />
+      <module name="ProcessManager.webeditor" target="11" />
+      <module name="xmlutil.buildSrc" target="11" />
+      <module name="xmlutil.buildSrc.main" target="11" />
+      <module name="xmlutil.buildSrc.test" target="11" />
+      <module name="xmlutil.core" target="11" />
+      <module name="xmlutil.core.androidMain" target="1.6" />
+      <module name="xmlutil.core.androidTest" target="1.8" />
+      <module name="xmlutil.core.commonMain" target="1.6" />
+      <module name="xmlutil.core.commonTest" target="1.8" />
+      <module name="xmlutil.core.javaShared" target="1.6" />
+      <module name="xmlutil.core.jvmMain" target="1.8" />
+      <module name="xmlutil.core.jvmTest" target="1.8" />
+      <module name="xmlutil.examples" target="11" />
+      <module name="xmlutil.examples.main" target="11" />
+      <module name="xmlutil.examples.test" target="11" />
+      <module name="xmlutil.ktor" target="11" />
+      <module name="xmlutil.ktor.main" target="11" />
+      <module name="xmlutil.ktor.test" target="11" />
+      <module name="xmlutil.serialization" target="11" />
+      <module name="xmlutil.serialization.androidMain" target="1.6" />
+      <module name="xmlutil.serialization.androidTest" target="1.8" />
+      <module name="xmlutil.serialization.commonMain" target="1.6" />
+      <module name="xmlutil.serialization.commonTest" target="1.8" />
+      <module name="xmlutil.serialization.javaShared" target="1.6" />
+      <module name="xmlutil.serialization.javaSharedTest" target="1.8" />
+      <module name="xmlutil.serialization.jvmMain" target="1.8" />
+      <module name="xmlutil.serialization.jvmTest" target="1.8" />
+      <module name="xmlutil.serialization.jvmTestCommon" target="1.8" />
+      <module name="xmlutil.serialization.jvmWoodstoxTest" target="1.8" />
+      <module name="xmlutil.serialutil" target="11" />
+      <module name="xmlutil.serialutil.androidMain" target="1.6" />
+      <module name="xmlutil.serialutil.androidTest" target="1.8" />
+      <module name="xmlutil.serialutil.commonMain" target="1.6" />
+      <module name="xmlutil.serialutil.commonTest" target="1.8" />
+      <module name="xmlutil.serialutil.javaShared" target="1.6" />
+      <module name="xmlutil.serialutil.jvmMain" target="1.8" />
+      <module name="xmlutil.serialutil.jvmTest" target="1.8" />
+      <module name="xmlutil.xmlserializable" target="11" />
+      <module name="xmlutil.xmlserializable.androidMain" target="1.6" />
+      <module name="xmlutil.xmlserializable.androidTest" target="1.8" />
+      <module name="xmlutil.xmlserializable.commonMain" target="1.6" />
+      <module name="xmlutil.xmlserializable.commonTest" target="1.8" />
+      <module name="xmlutil.xmlserializable.javaShared" target="1.6" />
+      <module name="xmlutil.xmlserializable.jvmMain" target="1.8" />
+      <module name="xmlutil.xmlserializable.jvmTest" target="1.8" />
     </bytecodeTargetLevel>
   </component>
 </project>
