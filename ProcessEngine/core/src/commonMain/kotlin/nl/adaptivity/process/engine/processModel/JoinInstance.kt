@@ -253,27 +253,11 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
             val totalPossiblePredecessors = join.predecessors.size
             var realizedPredecessors = 0
 
-            val predecessorsToAdd = mutableListOf<Handle<SecureObject<ProcessNodeInstance<*>>>>()
-            val instantiatedPredecessors = mutableListOf<IProcessNodeInstance>()
-
-            for (nodeInstance in processInstanceBuilder.allChildNodeInstances { join.identifier in it.node.successors }) {
-                if (nodeInstance.state.isFinal) realizedPredecessors++
-
-                if (nodeInstance.handle in predecessors) {
-                    instantiatedPredecessors.add(nodeInstance)
-                    val hNodeInst = nodeInstance.handle
-                    if (hNodeInst !in predecessors) {
-                        predecessorsToAdd.add(hNodeInst)
-                    }
+            val instantiatedPredecessors = predecessors.map {
+                processInstanceBuilder.getChildNodeInstance(it).also {
+                    if(it.state.isFinal) realizedPredecessors++
                 }
             }
-
-            if (predecessorsToAdd.isNotEmpty()) { // make sure to store these existing predecessors
-                predecessors.addAll(predecessorsToAdd)
-                processInstanceBuilder.storeChild(this)
-                processInstanceBuilder.store(engineData)
-            }
-
 
             var mustDecide = false
 
