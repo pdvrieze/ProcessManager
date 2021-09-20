@@ -135,7 +135,7 @@ abstract class TraceTest(val config: CompanionBase) {
     @TestFactory
     @DisplayName("Invalid traces")
     fun testInvalidTraces(): List<DynamicNode> {
-        return inValidTraces.map { createInvalidTraceTest(config, it) }
+        return inValidTraces.mapIndexed { idx, trace -> createInvalidTraceTest(config, trace, idx) }
     }
 
     abstract class CompanionBase {
@@ -388,7 +388,7 @@ fun createValidTraceTest(config: TraceTest.CompanionBase, trace: Trace, traceNo:
                 createTraceElementTest(trace, i)
             }
         }
-        addTest(createInvalidTraceTest(config, trace, false))
+        addTest(createInvalidTraceTest(config, trace, traceNo, false))
     }
 }
 
@@ -562,10 +562,11 @@ private fun <T> Boolean.pick(onTrue: T, onFalse: T): T =
 fun createInvalidTraceTest(
     config: TraceTest.CompanionBase,
     trace: Trace,
+    traceIdx: Int,
     failureExpected: Boolean = true
 ): DynamicContainer {
     val label = when (failureExpected) {
-        true -> "Given invalid trace [${trace.joinToString()}]"
+        true -> "Given invalid trace #$traceIdx [${trace.joinToString()}]"
         else -> "Executing using the invalid trace testing mechanism"
     }
     return config.dynamicContainer(label) {
