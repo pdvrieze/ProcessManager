@@ -178,21 +178,20 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                 val conditionResult = nonRegisteredNodeInstance.condition( this, predecessor)
                 if (conditionResult == ConditionResult.NEVER) {
                     nonRegisteredNodeInstance.state = NodeInstanceState.Skipped
-                    storeChild(nonRegisteredNodeInstance)//.get()
-                    if (nonRegisteredNodeInstance is JoinInstance.Builder) {
-                        nodesToSkipPredecessorsOf.add(nonRegisteredNodeInstance)
+                    if (nonRegisteredNodeInstance is JoinInstance.Builder &&
+                        nonRegisteredNodeInstance.state.isSkipped) { // don't skip join if there are other valid paths
+                            nodesToSkipPredecessorsOf.add(nonRegisteredNodeInstance)
                     }
                     nodesToSkipSuccessorsOf.add(nonRegisteredNodeInstance)
                 } else if (conditionResult == ConditionResult.TRUE) {
-                    storeChild(nonRegisteredNodeInstance)
-
                     if (nonRegisteredNodeInstance is JoinInstance.Builder) {
                         joinsToEvaluate.add(nonRegisteredNodeInstance)
                     } else {
                         startedTasks.add(nonRegisteredNodeInstance)
                     }
-
                 }
+
+                storeChild(nonRegisteredNodeInstance)
 
             }
             store(engineData)
