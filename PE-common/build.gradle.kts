@@ -59,8 +59,19 @@ kotlin {
             }
         }
         js(BOTH) {
-            browser()
-            nodejs()
+            browser {
+                testTask {
+                    if (targetName == "jsLegacy") {
+                        filter.excludeTest("nl.adaptivity.process.processModel.test.TestSerializeXmlResultType", null)
+                    }
+                }
+            }
+            nodejs {
+                testTask {
+                    filter.excludeTest("nl.adaptivity.process.processModel.test.TestSerializeXmlResultType", null)
+                }
+            }
+
             compilations.all {
                 tasks.getByName<KotlinJsCompile>(compileKotlinTaskName).kotlinOptions {
                     sourceMap = true
@@ -97,6 +108,7 @@ kotlin {
         }
         val commonTest by getting {
             dependencies {
+                implementation("io.github.pdvrieze.xmlutil:core:$xmlutilVersion")
                 implementation(kotlin("test"))
                 implementation(kotlin("test-annotations-common"))
             }
@@ -167,6 +179,11 @@ kotlin {
                 implementation("io.github.pdvrieze.xmlutil:serializable-android:$xmlutilVersion")
                 implementation("io.github.pdvrieze.xmlutil:serialization-android:$xmlutilVersion")
 */
+            }
+        }
+        val androidTest by getting {
+            dependencies {
+                runtimeOnly("net.sf.kxml:kxml2:2.3.0")
             }
         }
         val jsMain by getting {

@@ -21,6 +21,7 @@ import nl.adaptivity.process.processModel.IXmlResultType
 import nl.adaptivity.process.processModel.XmlResultType
 import nl.adaptivity.xmlutil.XmlEvent
 import nl.adaptivity.xmlutil.serialization.XML
+import kotlin.test.Ignore
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
@@ -31,7 +32,7 @@ class TestSerializeXmlResultType {
         val data: IXmlResultType = XmlResultType("myName", "/ns1:myPath", originalNSContext = listOf(XmlEvent.NamespaceImpl("ns1", "http://example.org/ns1")))
         val expected = """<result xmlns="http://adaptivity.nl/ProcessEngine/" xmlns:ns1="http://example.org/ns1" name="myName" xpath="/ns1:myPath"/>"""
         val serialized = XML.encodeToString(IXmlResultType.serializer(), data, "")
-        assertEquals(expected, serialized)
+        assertEquals(expected, serialized.replace(" />", "/>"))
     }
 
     @Test
@@ -39,6 +40,6 @@ class TestSerializeXmlResultType {
         val data = XmlResultType("myName", "/ns1:myPath", originalNSContext = listOf(XmlEvent.NamespaceImpl("ns1", "http://example.org/ns1")))
         val expected = """<result xmlns="http://adaptivity.nl/ProcessEngine/" xmlns:ns1="http://example.org/ns1" name="myName" xpath="/ns1:myPath"/>"""
         val serialized = XML.encodeToString(data)
-        assertEquals(expected, serialized)
+        assertEquals(expected, serialized.replace(" />", "/>"))
     }
 }
