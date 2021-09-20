@@ -59,18 +59,8 @@ kotlin {
             }
         }
         js(BOTH) {
-            browser {
-                testTask {
-                    if (targetName == "jsLegacy") {
-                        filter.excludeTest("nl.adaptivity.process.processModel.test.TestSerializeXmlResultType", null)
-                    }
-                }
-            }
-            nodejs {
-                testTask {
-                    filter.excludeTest("nl.adaptivity.process.processModel.test.TestSerializeXmlResultType", null)
-                }
-            }
+            browser()
+            nodejs()
 
             compilations.all {
                 tasks.getByName<KotlinJsCompile>(compileKotlinTaskName).kotlinOptions {

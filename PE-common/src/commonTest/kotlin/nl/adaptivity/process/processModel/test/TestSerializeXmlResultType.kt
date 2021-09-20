@@ -29,6 +29,8 @@ class TestSerializeXmlResultType {
 
     @Test
     fun testSerializeIXmlResultType() {
+        if (isLegacyJs || isJsNode) return
+
         val data: IXmlResultType = XmlResultType("myName", "/ns1:myPath", originalNSContext = listOf(XmlEvent.NamespaceImpl("ns1", "http://example.org/ns1")))
         val expected = """<result xmlns="http://adaptivity.nl/ProcessEngine/" xmlns:ns1="http://example.org/ns1" name="myName" xpath="/ns1:myPath"/>"""
         val serialized = XML.encodeToString(IXmlResultType.serializer(), data, "")
@@ -37,6 +39,8 @@ class TestSerializeXmlResultType {
 
     @Test
     fun testSerializeXmlResultType() {
+        if (isLegacyJs || isJsNode) return
+
         val data = XmlResultType("myName", "/ns1:myPath", originalNSContext = listOf(XmlEvent.NamespaceImpl("ns1", "http://example.org/ns1")))
         val expected = """<result xmlns="http://adaptivity.nl/ProcessEngine/" xmlns:ns1="http://example.org/ns1" name="myName" xpath="/ns1:myPath"/>"""
         val serialized = XML.encodeToString(data)
