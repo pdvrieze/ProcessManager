@@ -351,11 +351,12 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
                     }
 
                     pred is ProcessNodeInstance<*> -> {
-                        toSkipCancel.add(pred)
-
-                        for (hppred in pred.predecessors) {
-                            val ppred = pseudoContext.getNodeInstance(hppred) ?: continue
-                            predQueue.add(ppred)
+                        if (pred.node !is Split) {
+                            toSkipCancel.add(pred)
+                            for (hppred in pred.predecessors) {
+                                val ppred = pseudoContext.getNodeInstance(hppred) ?: continue
+                                predQueue.add(ppred)
+                            }
                         }
                     }
                 }
