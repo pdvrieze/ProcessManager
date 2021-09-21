@@ -256,7 +256,7 @@ class TestContext(private val config: TraceTest.ConfigBase) {
                 processInstance.allDescendentNodeInstances(transaction.readableEngineData)
                     .asSequence()
                     .filter { completed ->
-                        completed.state.isFinal && trace.none {
+                        completed.state.run { isFinal && !isSkipped } && trace.none {
                             it.id == completed.node.id && (it.instanceNo < 0 || it.instanceNo == completed.entryNo)
                         }
                     }
@@ -322,6 +322,12 @@ class TestContext(private val config: TraceTest.ConfigBase) {
             throw fuzzException(e, trace)
         } catch (e: ProcessException) {
             throw fuzzException(e, trace)
+        }
+
+        for (childNode in getProcessInstance().allDescendentNodeInstances(transaction.readableEngineData)) {
+            if (childNode.state.isSkipped) {
+                trace.removeIf { it.nodeId == childNode.node.id && it.instanceNo<0 || it.instanceNo == childNode.entryNo }
+            }
         }
 
         return trace
