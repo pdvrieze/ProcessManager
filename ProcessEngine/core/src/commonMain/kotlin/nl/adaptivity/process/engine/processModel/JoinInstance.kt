@@ -324,6 +324,8 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
         }
 
         private fun Builder.skipPredecessors(engineData: MutableProcessEngineDataAccess) {
+            if (node.isMultiMerge) return // multimerge joins should not have their predecessors skipped
+
             val pseudoContext = PseudoInstance.PseudoContext(processInstanceBuilder)
 
             pseudoContext.populatePredecessorsFor(handle)
