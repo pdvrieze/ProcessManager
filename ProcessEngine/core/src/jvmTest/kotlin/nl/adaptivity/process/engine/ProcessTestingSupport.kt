@@ -107,6 +107,12 @@ fun InstanceSupport.testTraceExceptionThrowing(
                     }
                 }
             }
+            try {
+                transaction.readableEngineData.instance(hProcessInstance).withPermission().assertTracePossible(trace)
+            } catch (e: AssertionError) {
+                throw ProcessTestingException(e)
+            }
+
         }
         try {
             val oldErr = System.err; System.setErr(PrintStream(ByteArrayOutputStream()))

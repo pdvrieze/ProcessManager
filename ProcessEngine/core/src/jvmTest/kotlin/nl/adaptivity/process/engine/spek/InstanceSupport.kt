@@ -151,17 +151,17 @@ fun ProcessInstance.assertTracePossible(transaction: StubProcessTransaction,
         }
         .toMutableSet()
 
-    var seenNonFinal = false
+    var nonFinal: ProcessNodeInstance<*>? = null
     for(traceElementPos in trace.indices) {
         val traceElement = trace[traceElementPos]
         val nodeInstance = traceElement.getNodeInstance(transaction, this)?.takeIf { it.state.isFinal }
         if (nodeInstance != null) {
-            if(seenNonFinal) {
-                kfail("Found gap in the trace ${trace}#$traceElementPos before node: $nodeInstance")
+            if(nonFinal!=null) {
+                kfail("Found gap in the trace [${trace.joinToString()}]#$traceElementPos before node: $nodeInstance - ${toDebugString(transaction)}")
             }
             nonSeenChildNodes.remove(nodeInstance)
         } else {
-            seenNonFinal = true
+            nonFinal = nodeInstance
         }
     }
     if (! state.isFinal) {
