@@ -37,6 +37,7 @@ import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicTest.dynamicTest
 import java.net.URI
 import java.util.*
+import kotlin.collections.ArrayDeque
 import kotlin.random.Random
 import kotlin.reflect.KClass
 
@@ -235,10 +236,12 @@ class TestContext(private val config: TraceTest.ConfigBase) {
     fun runFuzz(random: Random, maxIters: Int = 1000): List<TraceElement> {
 
 
-        val nodeData = model.modelNodes.associate { it.id to mutableSetOf<TraceElement>() }
+        val nodeData = mutableMapOf<String, MutableSet<TraceElement>>()
         for (trace in config.modelData.valid) {
             for (element in trace) {
-                nodeData[element.nodeId]?.add(element)
+                nodeData.getOrElse(element.nodeId) {
+                    mutableSetOf<TraceElement>().also {nodeData[element.nodeId] = it }
+                }.add(element)
             }
         }
 
@@ -247,20 +250,35 @@ class TestContext(private val config: TraceTest.ConfigBase) {
         try {
             for(iter in 1.. maxIters)  {
                 val processInstance = getProcessInstance()
-                for (completed in processInstance.allChildNodeInstances()) {
-                    if (completed.state.isFinal && trace.none { it.id == completed.node.id && (it.instanceNo<0 || it.instanceNo == completed.entryNo) }) {
-                        trace.add(completed.toTraceElement())
+                processInstance.allDescendentNodeInstances(transaction.readableEngineData)
+                    .asSequence()
+                    .filter { completed ->
+                        completed.state.isFinal && trace.none {
+                            it.id == completed.node.id && (it.instanceNo < 0 || it.instanceNo == completed.entryNo)
+                        }
                     }
-                }
+                    .shuffled(random)
+                    .mapTo(trace) { it.toTraceElement() }
 
-                val activeNodes = processInstance.activeNodes.filter { it.node !is Join && it.node !is Split }.toList()
+                val activeNodes = processInstance.allDescendentNodeInstances(transaction.readableEngineData)
+                    .filter {
+                        it.state.isActive && when (it.node) {
+                            is Join,
+                            is Split,
+                            is CompositeActivity -> false
+                            else -> true
+                        }
+                    }
+                    .toList()
                 if (activeNodes.isEmpty()) break
 
                 var nextNodeInstance = activeNodes.random(random)
-                val nextPayload = nodeData[nextNodeInstance.node.id]!!.random(random).resultPayload
+                val nextPayload = nodeData[nextNodeInstance.node.id]?.random(random)?.resultPayload
                 val nextTraceElement = nextNodeInstance.toTraceElement(nextPayload)
 
                 trace.add(nextTraceElement)
+
+                var shouldBeComplete = true
 
                 when (nextNodeInstance.node) {
                     is MessageActivity -> {
@@ -272,13 +290,28 @@ class TestContext(private val config: TraceTest.ConfigBase) {
                         }
                         nextNodeInstance = getNodeInstance(nextNodeInstance.handle)
                     }
+                    is CompositeActivity -> {
+                        if (nextNodeInstance.state == NodeInstanceState.Started) {
+                            val childInstanceHandle = when (nextNodeInstance) {
+                                is CompositeInstance -> nextNodeInstance.hChildInstance
+                                is CompositeInstance.Builder -> nextNodeInstance.hChildInstance
+                                else -> throw UnsupportedOperationException("Composite activity with unexpected instance type")
+                            }
+                            assertTrue(childInstanceHandle.isValid, "When fuzzing sees a composite activity, the child should be started")
+
+                            updateNodeInstance(nextNodeInstance.handle) {
+                                startTask(transaction.writableEngineData)
+                            }
+                            shouldBeComplete = false
+                        }
+                    }
                 }
 
-                assertEquals(
-                    NodeInstanceState.Complete,
-                    nextNodeInstance.state,
-                    "Expected the state of $nextNodeInstance to be complete, not ${nextNodeInstance.state}\n${dbgInstance()}"
-                )
+                if (shouldBeComplete) {
+                    assertEquals(NodeInstanceState.Complete, nextNodeInstance.state) {
+                        "Expected the state of $nextNodeInstance to be complete, not ${nextNodeInstance.state}\n${dbgInstance()}"
+                    }
+                }
 
                 engineData.engine.processTickleQueue(transaction)
             }
@@ -386,14 +419,23 @@ fun createFuzzTest(config: TraceTest.ConfigBase, seed: Long): DynamicContainer {
     return config.dynamicContainer("Fuzzing with seed $seed") {
 
         addTest("Fuzzing should not throw an exception") {
-            val trace = runFuzz(Random(seed))
-            System.err.println("Fuzz $seed has trace [${trace.joinToString()}]")
+            val trace = runFuzz(Random(seed)).toTypedArray()
+            System.out.println("Fuzz $seed has trace [${trace.joinToString()}]")
+
+            if (config.modelData.valid.none { validTrace -> validTrace.contentEquals(trace) }) {
+                System.err.println("""|
+                    |    Found unknown valid trace:
+                    |        ${trace.joinToString()}
+                    |""".trimMargin())
+            }
         }
 
         addTest("Fuzzed traces should finish the instance") {
             val trace = try { runFuzz(Random(seed)) } catch (e: FuzzException) { e.trace }
             val processInstance = getProcessInstance()
-            assertEquals(processInstance.state, ProcessInstance.State.FINISHED)
+            assertEquals(ProcessInstance.State.FINISHED, processInstance.state) {
+                "The process instance should be finished ${dbgInstance()}"
+            }
             val nonFinishedNodes = processInstance.allChildNodeInstances()
                 .filterNot { it.state == NodeInstanceState.Complete || it.state.isSkipped}
                 .map { "${it.toTraceElement()}-${it.state}" }
@@ -721,3 +763,20 @@ fun IProcessNodeInstance.toTraceElement(payload: CompactFragment? = null): Trace
 }
 
 class FuzzException(cause: Throwable, val trace: List<TraceElement>): Exception("Error in fuzzing: ${cause.message} - trace: [${trace.joinToString()}]}", cause)
+
+fun IProcessInstance.allDescendentNodeInstances(engineData: ProcessEngineDataAccess): List<IProcessNodeInstance> {
+    val result = mutableListOf<IProcessNodeInstance>()
+    val procQueue = ArrayDeque<IProcessInstance>().also { it.add(this) }
+    while (procQueue.isNotEmpty()) {
+        val inst = procQueue.removeFirst()
+        for (nodeInst in inst.allChildNodeInstances()) {
+            result.add(nodeInst)
+            when (nodeInst) {
+                is CompositeInstance -> procQueue.add(engineData.instance(nodeInst.hChildInstance).withPermission())
+                is CompositeInstance.Builder -> procQueue.add(engineData.instance(nodeInst.hChildInstance).withPermission())
+            }
+        }
+    }
+
+    return result
+}

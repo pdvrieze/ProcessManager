@@ -32,6 +32,7 @@ import nl.adaptivity.xmlutil.XmlStreaming
 import nl.adaptivity.xmlutil.serialization.XML
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
+import java.lang.StringBuilder
 
 /**
  * Created by pdvrieze on 15/01/17.
@@ -147,6 +148,31 @@ fun ProcessInstance.transitiveChildren(transaction: StubProcessTransaction): Seq
 fun ProcessInstance.toDebugString(transaction: Getter<StubProcessTransaction>) = toDebugString(transaction())
 
 fun ProcessInstance.toDebugString(transaction: StubProcessTransaction): String {
+    fun StringBuilder.appendChildNodeState(processInstance: ProcessInstance) {
+        processInstance.childNodes.asSequence()
+            .map { it.withPermission() }
+            .sortedBy { it.handle }
+            .joinTo(this) {
+                when (val inst = it.withPermission()) {
+                    is CompositeInstance -> when {
+                        !inst.hChildInstance.isValid ->
+                            "${inst.node.id}[${inst.entryNo}]:(<Not started>) = ${inst.state}"
+
+                        else -> {
+                            val childStatus = buildString {
+                                appendChildNodeState(
+                                    transaction.readableEngineData.instance(inst.hChildInstance).withPermission()
+                                )
+                            }
+
+                            "${inst.node.id}[${inst.entryNo}]:($childStatus) = ${inst.state}"
+                        }
+                    }
+                    else -> "${inst.node.id}[${inst.entryNo}]:${inst.state}"
+                }
+            }
+    }
+
     return buildString {
         append("process(")
         append(processModel.rootModel.name)
@@ -156,10 +182,8 @@ fun ProcessInstance.toDebugString(transaction: StubProcessTransaction): String {
         }
         append('[').append(handle).append(']')
         append(", allnodes: [")
-        this@toDebugString.transitiveChildren(transaction).joinTo(this) {
-            val inst = it.withPermission()
-            "${inst.node.id}[${inst.entryNo}]:${inst.state}"
-        }
+        appendChildNodeState(this@toDebugString)
+
         appendLine("])\n\nModel:")
         XmlStreaming.newWriter(this.writer()).use { XML.encodeToWriter(it, processModel.rootModel) }
         appendLine("\n")

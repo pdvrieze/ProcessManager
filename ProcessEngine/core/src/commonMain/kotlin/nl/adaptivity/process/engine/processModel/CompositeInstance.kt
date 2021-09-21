@@ -123,7 +123,10 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
     }
 
     val hChildInstance: Handle<SecureObject<ProcessInstance>> =
-        builder.hChildInstance
+        builder.hChildInstance.apply {
+            if (! (builder.state==NodeInstanceState.Pending || isValid))
+                throw ProcessException("Child process instance handles must be valid if the state isn't pending")
+        }
 
     override val node: ExecutableCompositeActivity get() = super.node as ExecutableCompositeActivity
 
