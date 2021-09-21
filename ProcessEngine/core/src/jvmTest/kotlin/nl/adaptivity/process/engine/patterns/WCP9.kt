@@ -38,7 +38,7 @@ class WCP9 : TraceTest(Companion) {
             }
             val validTraces = with(model) {
                 trace {
-                    (start1 % start2)..(ac1 or ac2)..join..ac3..end
+                    ((start1 .. ac1) or (start2 .. ac2)) .. join .. ac3 ..end
                 }
             }
             val invalidTraces = with(model) {
