@@ -21,19 +21,15 @@ import net.devrieze.util.security.SecureObject
 import net.devrieze.util.writer
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.processModel.CompositeInstance
-import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.EndNode
 import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.util.Gettable
-import nl.adaptivity.util.Getter
 import nl.adaptivity.xmlutil.XmlStreaming
 import nl.adaptivity.xmlutil.serialization.XML
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue
-import java.lang.StringBuilder
 
 /**
  * Created by pdvrieze on 15/01/17.
@@ -46,12 +42,6 @@ interface InstanceSupport {
         return transitiveChildren(this@InstanceSupport.transaction)
     }
 
-    val ProcessInstance.nodeInstances: Gettable<Identified, ProcessNodeInstanceDelegate> get() = object: Gettable<Identified,ProcessNodeInstanceDelegate> {
-        operator override fun get(key: Identified): ProcessNodeInstanceDelegate {
-            return ProcessNodeInstanceDelegate(this@InstanceSupport, this@nodeInstances.handle, key)
-        }
-    }
-
 
     fun ProcessInstance.trace(filter: (ProcessNodeInstance<*>)->Boolean) = trace(transaction, filter)
 
@@ -61,66 +51,11 @@ interface InstanceSupport {
         return toDebugString(this@InstanceSupport.transaction)
     }
 
-    fun ProcessInstance.tracePossible(trace:Trace): Boolean {
-        val currentTrace = this.trace { it.state.isFinal }.toSet()
-        val seen = Array<Boolean>(trace.size) { idx -> trace[idx] in currentTrace }
-        val lastPos = seen.lastIndexOf(true)
-        return seen.slice(0 .. lastPos).all { it }
-    }
-
 
     fun ProcessInstance.assertTracePossible(trace: Trace) {
         assertTracePossible(transaction, trace)
     }
 
-
-    fun ProcessInstance.assertFinished(vararg nodeInstances: DefaultProcessNodeInstance) {
-        val transaction = transaction
-        assertFinished(transaction, *Array(nodeInstances.size, { nodeInstances[it].node.id }))
-    }
-
-    fun  ProcessInstance.assertFinished(vararg nodeIds: String) = assertFinished(transaction, *nodeIds)
-
-    fun ProcessInstance.assertComplete() {
-        Assertions.assertTrue(this.completedEndnodes.isEmpty(), { "The list of completed nodes is not empty (Expected: [], found: [${finished.joinToString()}])" })
-    }
-
-    fun ProcessInstance.assertComplete(vararg nodeInstances: DefaultProcessNodeInstance) {
-        assertComplete(*Array(nodeInstances.size, { nodeInstances[it].node.id }))
-    }
-
-    fun  ProcessInstance.assertComplete(vararg nodeIds: String) {
-        val complete = allChildren()
-            .filter { it.state.isFinal && it.node is EndNode }
-            .mapNotNull { nodeInstance ->
-                Assertions.assertTrue(nodeInstance.state.isFinal,
-                                      { "The node instance state should be final (but is ${nodeInstance.state})" })
-                Assertions.assertTrue(nodeInstance.node is EndNode, "Completion nodes should be EndNodes")
-                if (nodeInstance.state.isSkipped) null else nodeInstance.node.id
-            }.sorted().toList()
-        Assertions.assertEquals(nodeIds.sorted(), complete, { "The list of completed nodes does not match (Expected: [${nodeIds.joinToString()}], found: [${complete.joinToString()}], ${this.toDebugString()})" })
-    }
-
-    fun ProcessInstance.assertActive() {
-        Assertions.assertTrue(this.active.isEmpty(), { "The list of active nodes is not empty (Expected: [], found: [${finished.joinToString {transaction.readableEngineData.nodeInstance(it).withPermission().toString()}}])" })
-    }
-
-    fun ProcessInstance.assertActive(vararg nodeInstances: DefaultProcessNodeInstance) {
-        assertActive(*Array(nodeInstances.size, { nodeInstances[it].node.id }))
-    }
-
-    fun  ProcessInstance.assertActive(vararg nodeIds: String) {
-        val active = allChildren()
-            .filter { !it.state.isFinal }
-            .mapNotNull { nodeInstance ->
-                Assertions.assertTrue(nodeInstance.state.isActive,
-                                      { "The node instance state should be active (but is ${nodeInstance.state})" })
-                Assertions.assertFalse(nodeInstance.state.isFinal,
-                                       { "The node instance state should not be final (but is ${nodeInstance.state})" })
-                nodeInstance.node.id
-            }.sorted().toList()
-        Assertions.assertEquals(nodeIds.sorted(), active, { "The list of active nodes does not match (Expected: [${nodeIds.joinToString()}], found: [${active.joinToString()}])" })
-    }
 
     fun TraceElement.getNodeInstance(hInstance: Handle<SecureObject<ProcessInstance>>): ProcessNodeInstance<*>? {
         val instance = transaction.readableEngineData.instance(hInstance).withPermission()
@@ -131,22 +66,20 @@ interface InstanceSupport {
 
 fun ProcessInstance.transitiveChildren(transaction: StubProcessTransaction): Sequence<ProcessNodeInstance<*>> {
     return childNodes.asSequence().flatMap {
-        val child = it.withPermission()
-        when (child) {
-            is CompositeInstance -> if(child.hChildInstance.isValid) {
-                sequenceOf(child) +
-                    transaction.readableEngineData
-                        .instance(child.hChildInstance)
-                        .withPermission().transitiveChildren(transaction)
-            } else {
-                sequenceOf(child)
-            }
-            else                 -> sequenceOf(child)
+        when (val child = it.withPermission()) {
+            is CompositeInstance ->
+                if (child.hChildInstance.isValid) {
+                    sequenceOf(child) +
+                        transaction.readableEngineData
+                            .instance(child.hChildInstance)
+                            .withPermission().transitiveChildren(transaction)
+                } else {
+                    sequenceOf(child)
+                }
+            else -> sequenceOf(child)
         }
     }.filter { it.state != NodeInstanceState.SkippedInvalidated }
 }
-
-fun ProcessInstance.toDebugString(transaction: Getter<StubProcessTransaction>) = toDebugString(transaction())
 
 fun ProcessInstance.toDebugString(transaction: StubProcessTransaction): String {
     fun StringBuilder.appendChildNodeState(processInstance: ProcessInstance) {
@@ -206,7 +139,7 @@ fun ProcessInstance.trace(transaction: StubProcessTransaction,
 fun ProcessInstance.trace(transaction: StubProcessTransaction): Array<TraceElement> {
     return trace(transaction) { true }
         .toList()
-        .toTypedArray<TraceElement>()
+        .toTypedArray()
 }
 
 fun ProcessInstance.assertTracePossible(transaction: StubProcessTransaction,
@@ -215,7 +148,6 @@ fun ProcessInstance.assertTracePossible(transaction: StubProcessTransaction,
         .map(SecureObject<ProcessNodeInstance<*>>::withPermission)
         .filter { it.state.isFinal &&
             ! (it.state.isSkipped || it.state == NodeInstanceState.AutoCancelled)
-            && (it.node !is StartNode || state.isFinal)
         }
         .toMutableSet()
 
@@ -232,70 +164,36 @@ fun ProcessInstance.assertTracePossible(transaction: StubProcessTransaction,
             seenNonFinal = true
         }
     }
+    if (! state.isFinal) {
+        for (otherChild in nonSeenChildNodes.toList()) {
+            if (otherChild.node is StartNode) {
+                val successors = getDirectSuccessors(transaction.readableEngineData, otherChild)
+                    .map { getChildNodeInstance(it) }
+
+                if (successors.all { it.state.isActive && it.state!=NodeInstanceState.Started }) {
+                    nonSeenChildNodes.remove(otherChild)
+                }
+            }
+        }
+    }
+
     if (nonSeenChildNodes.isNotEmpty()) {
         kfail("All actual child nodes should be in the full trace or skipped. Nodes that were not seen: [${nonSeenChildNodes.joinToString()}]" )
     }
-}
-
-fun ProcessInstance.assertFinished() {
-    Assertions.assertTrue(this.finished.isEmpty(), { "The list of finished nodes is not empty (Expected: [], found: [${finished.joinToString()}])" })
-}
-
-fun ProcessInstance.assertFinished(transaction: StubProcessTransaction, vararg nodeInstances: DefaultProcessNodeInstance) {
-    assertFinished(transaction, *Array(nodeInstances.size, { nodeInstances[it].node.id }))
-}
-
-fun ProcessInstance.assertFinished(transaction: StubProcessTransaction, vararg nodeIds: String) {
-    val finished = transitiveChildren(transaction)
-        .filter { it.state.isFinal && it.node !is EndNode }
-        .mapNotNull { nodeInstance ->
-            assertTrue(nodeInstance.state.isFinal,
-                       { "The node instance state should be final (but is ${nodeInstance.state})" })
-            assertTrue(nodeInstance.node !is EndNode, { "Completed nodes should not be endnodes" })
-            if (nodeInstance.state.isSkipped) null else nodeInstance.node.id
-        }.sorted().toList()
-    Assertions.assertEquals(nodeIds.sorted(), finished,
-                            { "The list of finished nodes does not match (Expected: [${nodeIds.joinToString()}], found: [${finished.joinToString()}])" })
-}
-
-
-fun ProcessInstance.assertComplete() {
-    Assertions.assertTrue(this.completedEndnodes.isEmpty(), { "The list of completed nodes is not empty (Expected: [], found: [${finished.joinToString()}])" })
-}
-
-fun ProcessInstance.assertComplete(transaction: StubProcessTransaction, vararg nodeInstances: DefaultProcessNodeInstance) {
-    assertComplete(transaction, *Array(nodeInstances.size, { nodeInstances[it].node.id }))
 }
 
 fun  ProcessInstance.assertComplete(transaction: StubProcessTransaction, vararg nodeIds: String) {
     val complete = transitiveChildren(transaction)
         .filter { it.state.isFinal && it.node is EndNode }
         .mapNotNull { nodeInstance ->
-            Assertions.assertTrue(nodeInstance.state.isFinal,
-                                  { "The node instance state should be final (but is ${nodeInstance.state})" })
-            Assertions.assertTrue(nodeInstance.node is EndNode, "Completion nodes should be EndNodes")
+            assertTrue(nodeInstance.state.isFinal) {
+                "The node instance state should be final (but is ${nodeInstance.state})"
+            }
+            assertTrue(nodeInstance.node is EndNode, "Completion nodes should be EndNodes")
             if (nodeInstance.state.isSkipped) null else nodeInstance.node.id
         }.sorted().toList()
-    Assertions.assertEquals(nodeIds.sorted(), complete, { "The list of completed nodes does not match (Expected: [${nodeIds.joinToString()}], found: [${complete.joinToString()}], ${this.toDebugString(transaction)})" })
-}
-
-fun ProcessInstance.assertActive(transaction: StubProcessTransaction) {
-    Assertions.assertTrue(this.active.isEmpty(), { "The list of active nodes is not empty (Expected: [], found: [${active.joinToString {transaction.readableEngineData.nodeInstance(it).withPermission().toString()}}])" })
-}
-
-fun ProcessInstance.assertActive(transaction: StubProcessTransaction, vararg nodeInstances: DefaultProcessNodeInstance) {
-    assertActive(transaction, *Array(nodeInstances.size, { nodeInstances[it].node.id }))
-}
-
-fun  ProcessInstance.assertActive(transaction: StubProcessTransaction, vararg nodeIds: String) {
-    val active = transitiveChildren(transaction)
-        .filter { !it.state.isFinal }
-        .mapNotNull { nodeInstance ->
-            Assertions.assertTrue(nodeInstance.state.isActive,
-                                  { "The node instance state should be active (but is ${nodeInstance.state})" })
-            Assertions.assertFalse(nodeInstance.state.isFinal,
-                                   { "The node instance state should not be final (but is ${nodeInstance.state})" })
-            nodeInstance.node.id
-        }.sorted().toList()
-    Assertions.assertEquals(nodeIds.sorted(), active, { "The list of active nodes does not match (Expected: [${nodeIds.joinToString()}], found: [${active.joinToString()}])" })
+    Assertions.assertEquals(nodeIds.sorted(), complete) {
+        "The list of completed nodes does not match (Expected: [${nodeIds.joinToString()}], " +
+            "found: [${complete.joinToString()}], ${this.toDebugString(transaction)})"
+    }
 }

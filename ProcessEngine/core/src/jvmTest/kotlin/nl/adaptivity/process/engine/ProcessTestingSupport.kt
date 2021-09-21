@@ -96,7 +96,7 @@ fun InstanceSupport.testTraceExceptionThrowing(
                                     e.message!!.endsWith(" cannot be finished as it is already in a final state.")
                             )
                         }
-                        throw ProcessTestingException("The node is final but not complete (failed, skipped)")
+                        throw ProcessTestingException("The node is final but not complete (failed, skipped): ${nodeInstance}")
                     }
                     try {
                         transaction.writableEngineData.updateNodeInstance(nodeInstance.handle) {
