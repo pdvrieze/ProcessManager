@@ -63,7 +63,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
         override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {
             if (node.startTask(this)) {
-                return updateTaskState(engineData, NodeInstanceState.Cancelled)
+                return updateTaskState(engineData, cancelState = NodeInstanceState.Cancelled)
             } else {
                 return false
             }
