@@ -25,6 +25,7 @@ import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.EndNode
+import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.Gettable
 import nl.adaptivity.util.Getter
@@ -212,7 +213,10 @@ fun ProcessInstance.assertTracePossible(transaction: StubProcessTransaction,
                                         trace: Trace) {
     val nonSeenChildNodes = this.childNodes.asSequence()
         .map(SecureObject<ProcessNodeInstance<*>>::withPermission)
-        .filter { it.state.isFinal && ! it.state.isSkipped }
+        .filter { it.state.isFinal &&
+            ! (it.state.isSkipped || it.state == NodeInstanceState.AutoCancelled)
+            && (it.node !is StartNode || state.isFinal)
+        }
         .toMutableSet()
 
     var seenNonFinal = false
