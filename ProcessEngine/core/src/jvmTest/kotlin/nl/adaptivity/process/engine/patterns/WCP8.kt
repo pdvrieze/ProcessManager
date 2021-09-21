@@ -51,12 +51,17 @@ class WCP8() : TraceTest(Companion) {
     @Nested
     @DisplayName("When join is not multiInstance, valid traces are invalid")
     inner class TestJoinNotMultiInstance : TraceTest(ModifyToInvalid(
-        newValidTraces = with(WCP8Model) { trace {
-            (start1 or start2) *
-                ((ac1..ac2..join[1]..ac5[1]..end[1]) or
-                            (ac3..ac4..join[1]..ac5[1]..end[1]))
+        newValidTraces = with(WCP8Model) {
+            trace {
+                ((start1..ac1..ac2..join[1]..ac5[1]..end[1]) or
+                    (start2..ac3..ac4..join[1]..ac5[1]..end[1]))
             }
-        }
+        },
+        newInvalidTraces = with(WCP8Model) {
+            trace {
+                start1 .. ac1 .. start2 .. ac2
+            }
+        } + config.modelData.valid
     ) { join("join")!! { isMultiMerge = false } }) {
         @DisplayName("it should not have a multiInstance join")
         @Test
@@ -65,13 +70,6 @@ class WCP8() : TraceTest(Companion) {
             val join = node as? Join ?: fail("Node \"join\" is not a Join")
 
             assertFalse(join.isMultiMerge)
-        }
-
-        @DisplayName("Fuzzing should trigger exceptions")
-        @TestFactory
-        override fun testFuzzTests(): List<DynamicNode> {
-            val random = Random(config.hashCode())
-            return (1..100).map { createFuzzTest(config, random.nextLong(), expectSuccess = false) }
         }
 
     }
