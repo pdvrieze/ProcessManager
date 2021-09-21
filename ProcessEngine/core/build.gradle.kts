@@ -42,6 +42,7 @@ kotlin {
                 }
                 tasks.withType<Test> {
                     useJUnitPlatform()
+                    systemProperty("junit.jupiter.execution.parallel.enabled", true)
                 }
             }
             attributes.attribute(androidAttribute, false)

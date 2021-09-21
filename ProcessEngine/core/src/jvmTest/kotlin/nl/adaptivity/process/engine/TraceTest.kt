@@ -35,12 +35,15 @@ import org.junit.jupiter.api.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.DynamicContainer.dynamicContainer
 import org.junit.jupiter.api.DynamicTest.dynamicTest
+import org.junit.jupiter.api.parallel.Execution
+import org.junit.jupiter.api.parallel.ExecutionMode
 import java.net.URI
 import java.util.*
 import kotlin.collections.ArrayDeque
 import kotlin.random.Random
 import kotlin.reflect.KClass
 
+@Execution(ExecutionMode.CONCURRENT)
 abstract class TraceTest(val config: ConfigBase) {
 
     val model: ExecutableProcessModel get() = config.modelData.model
