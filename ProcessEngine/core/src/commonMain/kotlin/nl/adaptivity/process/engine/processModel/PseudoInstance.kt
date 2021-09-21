@@ -19,7 +19,9 @@ package nl.adaptivity.process.engine.processModel
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
+import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
+import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.util.security.Principal
 
 class PseudoInstance(
@@ -45,6 +47,10 @@ class PseudoInstance(
 
     override fun builder(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance.Builder<*, *> {
         throw UnsupportedOperationException("Pseudo instances should not be made into builders")
+    }
+
+    override fun toString(): String {
+        return "pseudo instance ($handle, ${node.id}[$entryNo] - $state)"
     }
 
     class PseudoContext(
@@ -76,12 +82,14 @@ class PseudoInstance(
             else -> pseudoNodes[(handle.handleValue - handleOffset).toInt()]
         }
 
-        fun getNodeInstance(node: ExecutableProcessNode, entryNo: Int): IProcessNodeInstance? {
-            overlay.asSequence()
-                .firstOrNull { it?.node == node && it.entryNo == entryNo }
-                ?.let { return it }
+        private fun getNodeInstance(node: ExecutableProcessNode, hPred: Handle<SecureObject<ProcessNodeInstance<*>>>): IProcessNodeInstance? {
+            return (overlay.asSequence() + pseudoNodes.asSequence())
+                .firstOrNull { it?.node == node && hPred in it.predecessors }
+        }
 
-            return pseudoNodes.firstOrNull { it.node == node && it.entryNo == entryNo }
+        private fun getNodeInstance(node: ExecutableProcessNode, entryNo: Int): IProcessNodeInstance? {
+            return (overlay.asSequence() + pseudoNodes.asSequence())
+                .firstOrNull { it?.node == node && (!it.node.isMultiInstance || it.entryNo == entryNo) }
         }
 
         fun create(
@@ -101,42 +109,80 @@ class PseudoInstance(
             return inst
         }
 
-        fun getOrCreate(
+        fun create(
             pred: Handle<SecureObject<ProcessNodeInstance<*>>>,
+            base: IProcessNodeInstance
+        ): PseudoInstance {
+
+            val inst = PseudoInstance(
+                this,
+                base.handle.takeIf { it.isValid } ?: Handle((handleOffset + pseudoNodes.size).toLong()),
+                base.node,
+                base.entryNo,
+                base.predecessors + pred
+            ).apply { state = base.state }
+            if (inst.handle.handleValue<handleOffset) {
+                overlay[inst.handle.handleValue.toInt()] = inst
+            } else {
+                pseudoNodes.add(inst)
+            }
+            return inst
+        }
+
+        fun getOrCreate(
+            hPred: Handle<SecureObject<ProcessNodeInstance<*>>>,
             node: ExecutableProcessNode,
             entryNo: Int
         ): IProcessNodeInstance {
-            val instance = getNodeInstance(node, entryNo)
+            getNodeInstance(node, hPred)?.let { return it } // the predecessor is already known
+
+            val instance = getNodeInstance(node, entryNo) // predecessor not linked yet
             if (instance != null) {
-                val predInstance = getNodeInstance(pred)
-                if (predInstance != null) {
-                    val overlap = predInstance.predecessors.asSequence()
-                        .map { getNodeInstance(it)!! }
-                        .any { it.node == predInstance.node }
-                    if (overlap) {
-                        return create(pred, node, entryNo)
-                    } else {
-                        (instance as? PseudoInstance)?.predecessors?.add(predInstance.handle)
-                        (instance as? ProcessNodeInstance.Builder<*, *>)?.predecessors?.add(predInstance.handle)
-                        return instance
+                if (! instance.handle.isValid) {
+                    return create(hPred, instance )
+                } else {
+                    when (instance) {
+                        is PseudoInstance -> instance.predecessors.add(hPred)
+                        is ProcessNodeInstance.Builder<*, *> -> instance.predecessors.add(hPred)
+                        else -> return create(hPred, instance)
                     }
+                    return instance
                 }
             }
-            return instance ?: create(pred, node, entryNo)
+            return create(hPred, node, entryNo)
         }
 
-        fun createPredecessorsFor(handle: Handle<SecureObject<ProcessNodeInstance<*>>>) {
-            val targetInstance = getNodeInstance(handle) ?: throw IllegalArgumentException("No such node exists")
-            val interestedNodes = targetInstance.node.transitivePredecessors()
+        fun populatePredecessorsFor(handle: Handle<SecureObject<ProcessNodeInstance<*>>>) {
+            val interestedNodes: IdentifyableSet<ExecutableProcessNode>
+            val targetEntryNo: Int
+            run {
+                val targetInstance = getNodeInstance(handle) ?: throw IllegalArgumentException("No such node exists")
+
+                interestedNodes = targetInstance.node.transitivePredecessors()
+                targetEntryNo = targetInstance.entryNo
+            }
             val toProcess = ArrayDeque<IProcessNodeInstance>()
-            toProcess.addAll(processInstance.allChildNodeInstances().filter { it.node in interestedNodes })
-            while (toProcess.isEmpty()) {
+            processInstance.allChildNodeInstances().filterTo(toProcess) {
+                it.node is StartNode && it.node in interestedNodes
+            }
+            while (toProcess.isNotEmpty()) {
                 val child = toProcess.removeFirst()
-                if (child.node in interestedNodes && child.entryNo <= targetInstance.entryNo) {
+                if (! child.node.isMultiInstance || child.entryNo <= targetEntryNo) {
                     for (successorNodeId in child.node.successors) {
-                        val successorNode = interestedNodes.get(successorNodeId)
-                        if (successorNode != null) {
-                            toProcess.add(getOrCreate(child.handle, successorNode, child.entryNo))
+                        val updatedTarget = getNodeInstance(handle)!!
+                        if (successorNodeId == updatedTarget.node.identifier) {
+                            if (child.handle !in updatedTarget.predecessors) {
+                                // Create a new overlay node to record the new predecessor
+                                when (updatedTarget) {
+                                    is PseudoInstance -> updatedTarget.predecessors.add(child.handle)
+                                    else -> create(child.handle, updatedTarget)
+                                }
+                            }
+                        } else {
+                            val successorNode = interestedNodes.get(successorNodeId)
+                            if (successorNode != null) {
+                                toProcess.add(getOrCreate(child.handle, successorNode, child.entryNo))
+                            }
                         }
                     }
                 }

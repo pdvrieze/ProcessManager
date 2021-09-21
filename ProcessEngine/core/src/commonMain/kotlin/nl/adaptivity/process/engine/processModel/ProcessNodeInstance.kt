@@ -26,6 +26,7 @@ import nl.adaptivity.process.engine.impl.*
 import nl.adaptivity.process.engine.processModel.NodeInstanceState.*
 import nl.adaptivity.process.processModel.IPlatformXmlResultType
 import nl.adaptivity.process.processModel.MessageActivity
+import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.multiplatform.addSuppressedCompat
@@ -278,6 +279,9 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
                     if (!state.isSkipped) { // allow skipping if that is more appropriate
                         state = AutoCancelled
                     }
+                }
+                Complete -> if(node is StartNode) { // just special case start nodes
+                    state = AutoCancelled
                 }
             }
         }

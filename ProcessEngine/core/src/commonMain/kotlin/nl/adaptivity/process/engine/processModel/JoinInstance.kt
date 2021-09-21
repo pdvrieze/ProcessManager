@@ -16,10 +16,12 @@
 
 package nl.adaptivity.process.engine.processModel
 
-import net.devrieze.util.*
+import net.devrieze.util.Handle
+import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.Split
+import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.processModel.engine.ConditionResult
 import nl.adaptivity.process.processModel.engine.ExecutableCondition
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
@@ -92,17 +94,10 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
             super.doFinishTask(engineData, resultPayload)
 
+            // Store before cancelling predecessors, the cancelling will likely hit this child
             processInstanceBuilder.storeChild(this)
             processInstanceBuilder.store(engineData)
 
-            // Store before cancelling predecessors, the cancelling will likely hit this child
-//            val cancelablePredecessors = mutableListOf<Handle<SecureObject<ProcessNodeInstance<*>>>>()
-//            if (!node.isMultiMerge) {
-//                val predecessorNodes = node.transitivePredecessors(excludeSplit = true)
-//                processInstanceBuilder
-//                    .allChildNodeInstances { !it.state.isFinal && it.entryNo == entryNo && it.node in predecessorNodes }
-//                    .mapTo(cancelablePredecessors) { it.handle }
-//            }
             skipPredecessors(engineData)
 
             if (committedPredecessorCount < node.min) {
@@ -331,21 +326,34 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
         private fun Builder.skipPredecessors(engineData: MutableProcessEngineDataAccess) {
             val pseudoContext = PseudoInstance.PseudoContext(processInstanceBuilder)
 
-            pseudoContext.createPredecessorsFor(handle)
+            pseudoContext.populatePredecessorsFor(handle)
 
             val toSkipCancel = mutableListOf<ProcessNodeInstance<*>>()
-            val predQueue = ArrayDeque<IProcessNodeInstance>().apply { add(pseudoContext.getNodeInstance(handle)!!) }
+            val predQueue = ArrayDeque<IProcessNodeInstance>()//.apply { add(pseudoContext.getNodeInstance(handle)!!) }
+
+            for (hpred in pseudoContext.getNodeInstance(handle)!!.predecessors) {
+                val pred = pseudoContext.getNodeInstance(hpred)
+                if (pred?.state?.isFinal == false) predQueue.add(pred)
+            }
+
             while (predQueue.isNotEmpty()) {
-                when (val pred = predQueue.removeFirst()) {
-                    is PseudoInstance -> if (pred.node !is Split) {
+                val pred = predQueue.removeFirst()
+                when {
+                    pred.state.isFinal && pred.node !is StartNode -> Unit
+
+                    pred is PseudoInstance -> if (pred.node !is Split) {
                         pred.state = NodeInstanceState.AutoCancelled
                         for (hppred in pred.predecessors) {
                             pseudoContext.getNodeInstance(hppred)?.let { predQueue.add(it) }
                         }
                     }
-                    is ProcessNodeInstance<*> -> {
-                        if (!pred.state.isFinal && pred.node !is Split) {
-                            toSkipCancel.add(pred)
+
+                    pred is ProcessNodeInstance<*> -> {
+                        toSkipCancel.add(pred)
+
+                        for (hppred in pred.predecessors) {
+                            val ppred = pseudoContext.getNodeInstance(hppred) ?: continue
+                            predQueue.add(ppred)
                         }
                     }
                 }

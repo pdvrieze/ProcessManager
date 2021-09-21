@@ -181,7 +181,7 @@ fun ProcessInstance.toDebugString(transaction: StubProcessTransaction): String {
             append(", instance: ")
             append(it)
         }
-        append('[').append(handle).append(']')
+        append('[').append(handle).append("] - ").append(state)
         append(", allnodes: [")
         appendChildNodeState(this@toDebugString)
 

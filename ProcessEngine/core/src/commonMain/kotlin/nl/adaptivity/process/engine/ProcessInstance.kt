@@ -328,7 +328,17 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                         }
                     }
                 } else {
-                    startSuccessors(engineData, nodeInstance)
+                    val state = nodeInstance.state
+                    when {
+                        state == NodeInstanceState.Complete ->
+                            startSuccessors(engineData, nodeInstance)
+
+                        state.isSkipped || state == NodeInstanceState.AutoCancelled ->
+                            skipSuccessors(engineData, nodeInstance, NodeInstanceState.Skipped)
+
+                        state == NodeInstanceState.Cancelled ->
+                            skipSuccessors(engineData, nodeInstance, NodeInstanceState.SkippedCancel)
+                    }
                 }
             } catch (e: RuntimeException) {
                 engineData.rollback()

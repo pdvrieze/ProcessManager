@@ -31,11 +31,13 @@ typealias Trace = Array<out TraceElement>
 const val ANYINSTANCE = -1
 const val SINGLEINSTANCE = -2
 const val LASTINSTANCE = -3
+const val TRACEORDER = -4
 
 private fun String.toTraceNo(): Int {
     return when (this) {
         "*" -> ANYINSTANCE
         "#" -> LASTINSTANCE
+        "?" -> TRACEORDER
         else -> this.toInt()
     }
 }
@@ -46,7 +48,15 @@ annotation class TraceDsl
 class TraceElement(val nodeId: String, val instanceNo: Int, val resultPayload: CompactFragment? = null) : Identified {
     private constructor(stringdescrs: Iterator<String>) : this(
         stringdescrs.next(),
-        if (stringdescrs.hasNext()) stringdescrs.next().toInt() else SINGLEINSTANCE
+        when {
+            stringdescrs.hasNext() -> when(val d=stringdescrs.next()) {
+                "*" -> ANYINSTANCE
+                "#" -> LASTINSTANCE
+                "?" -> TRACEORDER
+                else -> d.toInt()
+            }
+            else -> SINGLEINSTANCE
+        }
     )
 
     constructor(stringdescr: String) : this(stringdescr.splitToSequence(':').iterator())
@@ -128,6 +138,21 @@ class BTrace(val elems: Array<TraceElement>) : Iterable<TraceElement> {
 
     fun slice(indices: IntRange) = BTrace(elems.sliceArray(indices))
     fun slice(startIdx: Int) = BTrace(elems.sliceArray(startIdx until elems.size))
+
+    fun normalizedElems(): Array<TraceElement> {
+        val result = elems.copyOf()
+        for(i in result.indices) {
+            val r = result[i]
+            if(r.instanceNo == TRACEORDER) {
+                val newInstanceNo = (0 until i)
+                    .lastOrNull { r.id==result[it].id }
+                    ?.let { result[it].instanceNo+1 }
+                    ?: 1
+                result[i] = r.copy(instanceNo = newInstanceNo)
+            }
+        }
+        return result
+    }
 }
 
 //private typealias BTrace = MutableList<TraceElement>
@@ -147,12 +172,16 @@ private operator fun <T> T.plus(array: Array<T>): Array<T> {
 @TraceDsl
 class TraceBuilder {
     internal inline operator fun Identified.get(instanceNo: Int) = TraceElement(id, instanceNo)
+
+    internal inline val Identified.traceOrder get() = TraceElement(id, TRACEORDER)
+
+    internal inline val TraceElement.traceOrder get() = TraceElement(id, TRACEORDER, resultPayload)
+
     internal inline operator fun Identified.invoke(
         data: String,
         name: String = "result",
         instanceNo: Int = SINGLEINSTANCE
-    ) =
-        TraceElement(id, SINGLEINSTANCE, CompactFragment(data))
+    ) = TraceElement(id, SINGLEINSTANCE, CompactFragment(data))
 
     internal inline operator fun TraceElement.get(instanceNo: Int) = TraceElement(id, instanceNo, resultPayload)
 
@@ -491,11 +520,33 @@ class TraceBuilder {
 
 }
 
+object TraceComparator: Comparator<Array<TraceElement>> {
+    override fun compare(o1: Array<TraceElement>, o2: Array<TraceElement>): Int {
+        for (i in 0 until minOf(o1.size, o2.size)) {
+            val c = o1[i].compareTo(o2[i])
+            if (c!=0) return c
+        }
+        // If the same except for size, the shortest is less
+        return o1.size - o2.size
+    }
+}
+
 /**
  * Build a trace
  */
 inline fun trace(builder: TraceBuilder.() -> List<BTrace>): List<Trace> {
-    return TraceBuilder().run(builder).map { it.elems }
+    val sortedTraces = TraceBuilder().run(builder)
+        .asSequence()
+        .map { it.normalizedElems() }
+        .sortedWith(TraceComparator)
+        .toList()
+
+    val uniqueTraces = sortedTraces.filterIndexed { idx, trace ->
+        idx==0 || ! trace.contentEquals(sortedTraces[idx-1])
+    }
+
+    return uniqueTraces
+
 }
 
 fun List<Trace>.removeInvalid(): List<Trace> {

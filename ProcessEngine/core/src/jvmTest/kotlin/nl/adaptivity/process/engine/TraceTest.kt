@@ -131,20 +131,20 @@ abstract class TraceTest(val config: ConfigBase) {
 
     @TestFactory
     @DisplayName("Valid traces")
-    fun testValidTraces(): List<DynamicNode> {
+    open fun testValidTraces(): List<DynamicNode> {
         return validTraces.mapIndexed { idx, trace -> createValidTraceTest(config, trace, idx) }
     }
 
     @TestFactory
     @DisplayName("Fuzz tests")
-    fun testFuzzTests(): List<DynamicNode> {
-        val random = Random(4254)
+    open fun testFuzzTests(): List<DynamicNode> {
+        val random = Random(config.hashCode())
         return (1..100).map { createFuzzTest(config, random.nextLong()) }
     }
 
     @TestFactory
     @DisplayName("Invalid traces")
-    fun testInvalidTraces(): List<DynamicNode> {
+    open fun testInvalidTraces(): List<DynamicNode> {
         return inValidTraces.mapIndexed { idx, trace -> createInvalidTraceTest(config, trace, idx) }
     }
 
@@ -318,11 +318,22 @@ class TestContext(private val config: TraceTest.ConfigBase) {
 
                 engineData.engine.processTickleQueue(transaction)
             }
-        } catch (e: Exception) {
-            throw FuzzException(e, trace)
+        } catch (e: ProcessTestingException) {
+            throw fuzzException(e, trace)
+        } catch (e: ProcessException) {
+            throw fuzzException(e, trace)
         }
 
         return trace
+    }
+
+    fun fuzzException(cause: Throwable?, trace: List<TraceElement>): FuzzException {
+        val message = "Error in fuzzing${cause?.message?.let { ": $it - " ?:", "}} - trace: [${trace.joinToString()}]}\n    -${dbgInstance()}"
+        return FuzzException(message, cause, trace)
+    }
+
+    fun fuzzException(trace: List<TraceElement>): FuzzException {
+        return fuzzException(null, trace)
     }
 
     fun runTrace(
@@ -345,11 +356,9 @@ class TestContext(private val config: TraceTest.ConfigBase) {
                 }
             }
             val ni = traceElement.getNodeInstance(transaction, getProcessInstance(instanceHandle))!!
-            assertEquals(
-                NodeInstanceState.Complete,
-                ni.state,
+            assertEquals(NodeInstanceState.Complete, ni.state) {
                 "Expected the state of $ni to be complete, not ${ni.state}\n${dbgInstance()}"
-            )
+            }
             lastInstance = ni.handle
 
             engineData.engine.processTickleQueue(transaction)
@@ -418,35 +427,68 @@ class ContainerContext(val config: TraceTest.ConfigBase, private val children: M
 
 }
 
-fun createFuzzTest(config: TraceTest.ConfigBase, seed: Long): DynamicContainer {
+fun createFuzzTest(config: TraceTest.ConfigBase, seed: Long, expectSuccess: Boolean = true): DynamicContainer {
     return config.dynamicContainer("Fuzzing with seed $seed") {
 
-        addTest("Fuzzing should not throw an exception") {
-            val trace = runFuzz(Random(seed)).toTypedArray()
-            System.out.println("Fuzz $seed has trace [${trace.joinToString()}]")
+        if (expectSuccess) {
+            addTest("Fuzzing should not throw an exception") {
+                val trace = runFuzz(Random(seed)).toTypedArray()
+                System.out.println("Fuzz $seed has trace [${trace.joinToString()}]")
 
-            if (config.modelData.valid.none { validTrace -> validTrace.contentEquals(trace) }) {
-                System.err.println("""|
+                if (config.modelData.valid.none { validTrace -> validTrace.contentEquals(trace) }) {
+                    System.err.println(
+                        """|
                     |    Found unknown valid trace:
                     |        ${trace.joinToString()}
-                    |""".trimMargin())
+                    |""".trimMargin()
+                    )
+                }
             }
-        }
 
-        addTest("Fuzzed traces should finish the instance") {
-            val trace = try { runFuzz(Random(seed)) } catch (e: FuzzException) { e.trace }
-            val processInstance = getProcessInstance()
-            assertEquals(ProcessInstance.State.FINISHED, processInstance.state) {
-                "The process instance should be finished ${dbgInstance()}"
+            addTest("Fuzzed traces should finish the instance") {
+                val trace = try {
+                    runFuzz(Random(seed))
+                } catch (e: FuzzException) {
+                    e.trace
+                }
+                val processInstance = getProcessInstance()
+                assertEquals(ProcessInstance.State.FINISHED, processInstance.state) {
+                    "The process instance should be finished ${dbgInstance()}"
+                }
+                val nonFinishedNodes = processInstance.allChildNodeInstances()
+                    .filterNot { it.state == NodeInstanceState.Complete || it.state.isSkipped }
+                    .map { "${it.toTraceElement()}-${it.state}" }
+                    .sorted()
+                    .toList()
+
+                assertEquals(emptyList<String>(), nonFinishedNodes) {
+                    "There should not be nodes in the trace that aren't finished."
+                }
+
             }
-            val nonFinishedNodes = processInstance.allChildNodeInstances()
-                .filterNot { it.state == NodeInstanceState.Complete || it.state.isSkipped}
-                .map { "${it.toTraceElement()}-${it.state}" }
-                .sorted()
-                .toList()
+        } else {
+            addTest("Fuzzing should throw an exception") {
+                var trace: List<TraceElement> = emptyList()
+                assertThrows<FuzzException>({ "Expected exception, trace: [${trace.joinToString()}], ${dbgInstance()}" }) {
+                    trace = runFuzz(Random(seed))
+                    val pi = getProcessInstance()
+                    if (pi.state!= ProcessInstance.State.FINISHED) {
+                        throw FuzzException("The process shouldn't have finished: ${dbgInstance()}", trace)
+                    }
+                    System.out.println("Fuzz $seed has trace [${trace.joinToString()}]")
+                }.trace.also { trace = it }
 
-            assertEquals(emptyList<String>(), nonFinishedNodes) {
-                "There should not be nodes in the trace that aren't finished."
+                if (config.modelData.invalid.none { invalidTrace ->
+                    val comparator = trace.subList(0, minOf(trace.size, invalidTrace.size)).toTypedArray()
+                    invalidTrace.contentEquals(comparator)
+                }) {
+                    System.err.println(
+                        """|
+                    |    Found unknown invalid trace:
+                    |        ${trace.joinToString()}
+                    |""".trimMargin()
+                    )
+                }
             }
 
         }
@@ -760,12 +802,26 @@ inline fun TraceTest.ConfigBase.dynamicContainer(
 fun IProcessNodeInstance.toTraceElement(payload: CompactFragment? = null): TraceElement {
     val instanceNo = when {
         node.isMultiInstance -> entryNo
+        (node as? Join)?.isMultiMerge == true -> entryNo
         else -> SINGLEINSTANCE
     }
     return TraceElement(node.id, instanceNo, payload)
 }
 
-class FuzzException(cause: Throwable, val trace: List<TraceElement>): Exception("Error in fuzzing: ${cause.message} - trace: [${trace.joinToString()}]}", cause)
+class FuzzException(override val message: String?, cause: Throwable?, val trace: List<TraceElement>):
+    Exception("Error in fuzzing${cause?.message?.let { ": $it - " } ?:", "}trace: [${trace.joinToString()}]}\n    -$", cause) {
+        constructor(cause: Throwable, trace: List<TraceElement>) : this(
+            "Error in fuzzing: ${cause.message} - trace: [${trace.joinToString()}]}",
+            cause,
+            trace
+        )
+
+        constructor(message: String, trace: List<TraceElement>) : this(
+            "Error in fuzzing: trace: [${trace.joinToString()}]}",
+            null,
+            trace
+        )
+    }
 
 fun IProcessInstance.allDescendentNodeInstances(engineData: ProcessEngineDataAccess): List<IProcessNodeInstance> {
     val result = mutableListOf<IProcessNodeInstance>()

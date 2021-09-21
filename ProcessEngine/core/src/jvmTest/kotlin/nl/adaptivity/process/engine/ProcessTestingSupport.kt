@@ -29,6 +29,8 @@ import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.util.Identified
 import org.junit.jupiter.api.Assertions.*
+import java.io.ByteArrayOutputStream
+import java.io.PrintStream
 
 @Retention(AnnotationRetention.SOURCE)
 @DslMarker
@@ -107,7 +109,9 @@ fun InstanceSupport.testTraceExceptionThrowing(
             }
         }
         try {
+            val oldErr = System.err; System.setErr(PrintStream(ByteArrayOutputStream()))
             engine.processTickleQueue(transaction)
+            System.setErr(oldErr)
         } catch (e: ProcessException) {
             throw ProcessTestingException(e)
         }

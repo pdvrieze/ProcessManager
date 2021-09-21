@@ -47,7 +47,7 @@ class ExecutableJoin(
         entryNo: Int,
         allowFinalInstance: Boolean
     ): Pair<JoinInstance.Builder?, Int> {
-        var candidateNo = entryNo
+        var candidateNo = if (isMultiInstance || isMultiMerge) entryNo else 1
         for (candidate in processInstanceBuilder.getChildren(this).sortedBy { it.entryNo }) {
             if (predecessor.handle in candidate.predecessors) {
                 return (candidate as JoinInstance.Builder) to candidateNo
