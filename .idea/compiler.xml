@@ -56,6 +56,9 @@
       <module name="ProcessManager.darwin.servletSupport.jvmMain" target="1.8" />
       <module name="ProcessManager.darwin.servletSupport.jvmTest" target="1.8" />
       <module name="ProcessManager.darwinlib" target="11" />
+      <module name="ProcessManager.formats.xmlschema.androidMain" target="1.8" />
+      <module name="ProcessManager.formats.xmlschema.androidTest" target="1.8" />
+      <module name="ProcessManager.formats.xmlschema.javaMain" target="1.8" />
       <module name="ProcessManager.PE-server" target="11" />
       <module name="ProcessManager.PE-server.main" target="11" />
       <module name="ProcessManager.PE-server.test" target="11" />

@@ -133,6 +133,7 @@ include(":DarwinClients:WorkQueue")
 // include(":PE-dataservices")
 
 include(":PE-diagram")
+include(":formats:xmlschema")
 
 include(":accountcommon")
 include(":DarwinRealm")
