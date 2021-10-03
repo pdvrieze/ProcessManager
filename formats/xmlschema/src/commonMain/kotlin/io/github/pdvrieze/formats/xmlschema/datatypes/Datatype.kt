@@ -17,12 +17,13 @@
 package io.github.pdvrieze.formats.xmlschema.datatypes
 
 import io.github.pdvrieze.formats.xmlschema.XmlSchemaConstants
+import kotlinx.serialization.SerialName
 
 sealed class Datatype(
     val name: String,
     val targetNamespace: String,
 ) {
-    abstract val baseType: Datatype?
+    abstract val baseType: Datatype
 
     val dtFunctions: List<DataFunction> get() = emptyList()
     val identityFunction: DataFunction get() = TODO()
@@ -30,18 +31,48 @@ sealed class Datatype(
     val orderFunction: DataFunction? get() = null
 }
 
-enum class SimpleDerivation {
-    ALL,
+
+enum class XSSimpleDerivationSet {
+    @SerialName("restriction")
     RESTRICTION,
+    @SerialName("extension")
     EXTENSION,
+    @SerialName("list")
     LIST,
+    @SerialName("union")
     UNION
+}
+
+enum class XSReducedDerivationSet {
+    @SerialName("restriction")
+    RESTRICTION,
+    @SerialName("extension")
+    EXTENSION,
 }
 
 
 class ValueSpace()
 class LexicalSpace()
 class DataFunction()
+
+sealed class ComplexDatatype(name: String, targetNamespace: String) : Datatype(name, targetNamespace)
+
+class ExtensionComplexDatatype(name: String, targetNamespace: String, override val baseType: Datatype) :
+    ComplexDatatype(name, targetNamespace) {
+    init {
+        when (baseType) {
+            is ErrorType -> throw IllegalArgumentException("The error type can not be a base type")
+/*
+            is ListDatatype -> throw IllegalArgumentException("The list type can not be a base type")
+            is UnionDatatype -> throw IllegalArgumentException("The union type can not be a base type")
+*/
+            else -> {} // no errors needed
+        }
+    }
+}
+
+class RestrictionComplexDatatype(name: String, targetNamespace: String, override val baseType: ComplexDatatype) :
+    ComplexDatatype(name, targetNamespace)
 
 sealed class AtomicDatatype(name: String, targetNamespace: String) : Datatype(name, targetNamespace)
 
@@ -90,7 +121,7 @@ open class ConstructedListDatatype : ListDatatype {
         name: String,
         targetNamespace: String, itemType: UnionDatatype
     ) : super(name, targetNamespace, itemType) {
-        if (itemType.members.any { it !is AtomicDatatype}) {
+        if (itemType.members.any { it !is AtomicDatatype }) {
             throw IllegalArgumentException("Union item types of a list must only have atomic members")
         }
     }
@@ -109,7 +140,7 @@ class RestrictedListDatatype(
     val enumeration: List<String>? = null,
     val pattern: String? = null,
     val assertions: List<XPathExpression> = emptyList()
-): ListDatatype(name, targetNamespace, baseType.itemType) {
+) : ListDatatype(name, targetNamespace, baseType.itemType) {
 
 }
 
@@ -142,8 +173,12 @@ class RestrictedUnionDatatype(name: String, targetNamespace: String, override va
 
 interface SpecialDatatype
 
+object ErrorType : Datatype("error", XmlSchemaConstants.XS_NAMESPACE) {
+    override val baseType: Datatype get() = ErrorType
+}
+
 object AnyType : Datatype("anyType", XmlSchemaConstants.XS_NAMESPACE) {
-    override val baseType: Nothing? get() = null // No actual base type
+    override val baseType: AnyType get() = AnyType // No actual base type
 }
 
 object AnySimpleType : Datatype("anySimpleType", XmlSchemaConstants.XS_NAMESPACE) {
