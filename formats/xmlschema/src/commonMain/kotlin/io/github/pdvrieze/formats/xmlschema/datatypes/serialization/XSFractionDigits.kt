@@ -23,7 +23,7 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable
 @XmlSerialName("fractionDigits", XmlSchemaConstants.XS_NAMESPACE, XmlSchemaConstants.XS_PREFIX)
-class XSFractionDigits : XSNumFacet {
+class XSFractionDigits : T_NumFacet {
     constructor(
         value: ULong,
         fixed: Boolean = false,

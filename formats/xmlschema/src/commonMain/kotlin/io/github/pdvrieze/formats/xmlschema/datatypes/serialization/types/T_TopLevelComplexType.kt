@@ -17,7 +17,6 @@
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
 
 import io.github.pdvrieze.formats.xmlschema.datatypes.NCName
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.XSDerivationSet
 
 interface T_TopLevelComplexType_Base: T_ComplexType_Base {
     val name: NCName
@@ -25,8 +24,8 @@ interface T_TopLevelComplexType_Base: T_ComplexType_Base {
      * Default: false
      */
     val abstract: Boolean
-    val final: Set<XSDerivationSet>
-    val block: Set<XSDerivationSet>
+    val final: T_DerivationSet
+    val block: T_DerivationSet
 
 }
 

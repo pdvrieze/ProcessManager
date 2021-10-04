@@ -24,7 +24,7 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable
 @XmlSerialName("whiteSpace", XmlSchemaConstants.XS_NAMESPACE, XmlSchemaConstants.XS_PREFIX)
-class XSWhiteSpace : XSFacet {
+class XSWhiteSpace : T_Facet {
     constructor(
         value: Values,
         fixed: Boolean = false,

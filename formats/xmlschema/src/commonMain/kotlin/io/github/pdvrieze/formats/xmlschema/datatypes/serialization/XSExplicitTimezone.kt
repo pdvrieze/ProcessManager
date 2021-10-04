@@ -24,7 +24,7 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable
 @XmlSerialName("explicitTimezone", XmlSchemaConstants.XS_NAMESPACE, XmlSchemaConstants.XS_PREFIX)
-class XSExplicitTimezone : XSFacet {
+class XSExplicitTimezone : T_Facet {
     constructor(
         value: Value,
         fixed: Boolean = false,

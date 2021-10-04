@@ -34,8 +34,8 @@ class XSRedefine(
     val groups: List<XSGroup> = emptyList(),
     val attributeGroups: List<XSAttributeGroup> = emptyList(),
     val schemaLocation: AnyURI,
-    val id: ID? = null,
+    override val id: ID? = null,
     override val annotations: List<XSAnnotation> = emptyList(),
     override val otherAttrs: Map<@Serializable(with = QNameSerializer::class) QName, String> = emptyMap()
-) : XSComposition, T_Annotated, G_Composition.Redefine {
+) : T_Annotated, G_Composition.Redefine {
 }

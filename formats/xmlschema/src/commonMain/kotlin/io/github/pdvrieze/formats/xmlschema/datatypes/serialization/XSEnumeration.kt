@@ -23,7 +23,7 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable
 @XmlSerialName("enumeration", XmlSchemaConstants.XS_NAMESPACE, XmlSchemaConstants.XS_PREFIX)
-class XSEnumeration : XSFacet {
+class XSEnumeration : T_Facet {
     constructor(
         value: String,
         annotations: List<XSAnnotation> = emptyList(),

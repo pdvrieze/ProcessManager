@@ -23,7 +23,7 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable
 @XmlSerialName("minExclusive", XmlSchemaConstants.XS_NAMESPACE, XmlSchemaConstants.XS_PREFIX)
-class XSMinExclusive : XSFacet {
+class XSMinExclusive : T_Facet {
     constructor(
         value: String,
         fixed: Boolean,

@@ -23,7 +23,7 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable
 @XmlSerialName("maxLength", XmlSchemaConstants.XS_NAMESPACE, XmlSchemaConstants.XS_PREFIX)
-class XSMaxLength : XSNumFacet {
+class XSMaxLength : T_NumFacet {
     constructor(
         value: ULong,
         fixed: Boolean = false,

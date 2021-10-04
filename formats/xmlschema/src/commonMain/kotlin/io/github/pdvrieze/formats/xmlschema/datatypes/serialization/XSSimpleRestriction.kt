@@ -33,7 +33,7 @@ internal class XSSimpleRestriction(
     @Serializable(QNameSerializer::class)
     val base: QName? = null,
     override val simpleTypes: List<XSLocalSimpleType> = emptyList(),
-    override val facets: List<XSFacet> = emptyList(),
+    override val facets: List<T_Facet> = emptyList(),
     @XmlValue(true)
     val otherRestrictions: List<@Serializable(CompactFragmentSerializer::class) CompactFragment>,
     @XmlElement(false)

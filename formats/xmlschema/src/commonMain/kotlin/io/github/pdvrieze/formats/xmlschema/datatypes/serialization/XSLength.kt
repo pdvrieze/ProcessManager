@@ -23,7 +23,7 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable
 @XmlSerialName("length", XmlSchemaConstants.XS_NAMESPACE, XmlSchemaConstants.XS_PREFIX)
-class XSLength : XSNumFacet {
+class XSLength : T_NumFacet {
     constructor(
         value: ULong,
         fixed: Boolean = false,

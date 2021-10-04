@@ -23,7 +23,7 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable
 @XmlSerialName("maxInclusive", XmlSchemaConstants.XS_NAMESPACE, XmlSchemaConstants.XS_PREFIX)
-class XSMaxInclusive : XSFacet {
+class XSMaxInclusive : T_Facet {
     constructor(
         value: String,
         fixed: Boolean,

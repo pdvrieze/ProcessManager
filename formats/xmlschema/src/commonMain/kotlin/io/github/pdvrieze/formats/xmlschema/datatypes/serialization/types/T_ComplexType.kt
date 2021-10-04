@@ -16,8 +16,6 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
 
-import io.github.pdvrieze.formats.xmlschema.datatypes.NCName
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.XSDerivationSet
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.G_ComplexTypeModel
 
 sealed interface T_ComplexType_Base: T_Annotated, G_ComplexTypeModel {

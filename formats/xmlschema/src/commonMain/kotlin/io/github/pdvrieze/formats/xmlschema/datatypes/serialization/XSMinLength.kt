@@ -23,7 +23,7 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable
 @XmlSerialName("minLength", XmlSchemaConstants.XS_NAMESPACE, XmlSchemaConstants.XS_PREFIX)
-class XSMinLength : XSNumFacet {
+class XSMinLength : T_NumFacet {
     constructor(
         value: ULong,
         fixed: Boolean = false,

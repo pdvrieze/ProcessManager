@@ -18,6 +18,8 @@ package io.github.pdvrieze.formats.xmlschema.datatypes.serialization
 
 import io.github.pdvrieze.formats.xmlschema.XmlSchemaConstants
 import io.github.pdvrieze.formats.xmlschema.datatypes.XPathExpression
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_Assertion
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_NoFixedFacet
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_XPathDefaultNamespace
 import kotlinx.serialization.Serializable
 import nl.adaptivity.xmlutil.QName
@@ -25,7 +27,7 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable
 @XmlSerialName("assertion", XmlSchemaConstants.XS_NAMESPACE, XmlSchemaConstants.XS_PREFIX)
-class XSAssertionFacet : XSNoFixedFacet, XSAssertion {
+class XSAssertionFacet : T_NoFixedFacet, T_Assertion {
     constructor(
         test: XPathExpression,
         xpathDefaultNamespace: T_XPathDefaultNamespace? = null,

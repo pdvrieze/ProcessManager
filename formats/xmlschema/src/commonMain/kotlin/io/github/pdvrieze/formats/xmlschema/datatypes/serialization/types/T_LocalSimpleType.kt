@@ -16,5 +16,17 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
 
-interface T_LocalSimpleType {
+import io.github.pdvrieze.formats.xmlschema.datatypes.NCName
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.G_SimpleDerivation
+
+interface T_LocalSimpleType: T_SimpleTypeBase {
+}
+
+interface T_TopLevelSimpleType: T_SimpleTypeBase {
+    val final: Set<T_SimpleDerivationSetElem>
+    val name: NCName
+}
+
+interface T_SimpleTypeBase: T_Annotated, G_SimpleDerivation {
+
 }

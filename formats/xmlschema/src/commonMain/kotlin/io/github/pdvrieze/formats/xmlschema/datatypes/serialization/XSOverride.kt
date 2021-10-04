@@ -19,6 +19,7 @@ package io.github.pdvrieze.formats.xmlschema.datatypes.serialization
 import io.github.pdvrieze.formats.xmlschema.XmlSchemaConstants
 import io.github.pdvrieze.formats.xmlschema.datatypes.AnyURI
 import io.github.pdvrieze.formats.xmlschema.datatypes.ID
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.GX_SchemaTop
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.G_Composition
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_Annotated
 import kotlinx.serialization.Serializable
@@ -40,4 +41,4 @@ class XSOverride(
     override val attributes: List<XSAttribute> = emptyList(),
     override val notations: List<XSNotation> = emptyList(),
     override val otherAttrs: Map<@Serializable(QNameSerializer::class) QName, String> = emptyMap(),
-): XSComposition, T_Annotated, XSUseSchemaTop, G_Composition.Override
+): T_Annotated, GX_SchemaTop, G_Composition.Override

@@ -32,4 +32,4 @@ class XSImport(
     val schemaLocation: AnyURI,
     override val annotations: List<XSAnnotation> = emptyList(),
     override val otherAttrs: Map<@Serializable(QNameSerializer::class) QName, String> = emptyMap(),
-): XSComposition, T_Annotated, G_Composition.Import
+): T_Annotated, G_Composition.Import

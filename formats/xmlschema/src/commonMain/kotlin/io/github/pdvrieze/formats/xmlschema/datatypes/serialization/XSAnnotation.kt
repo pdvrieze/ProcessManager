@@ -37,4 +37,4 @@ class XSAnnotation(
     val id: ID? = null,
     @XmlOtherAttributes
     override val otherAttrs: Map<QName, String> = emptyMap()
-) : XSComposition, T_OpenAttrs, G_Composition.Annotation
+) : T_OpenAttrs, G_Composition.Annotation

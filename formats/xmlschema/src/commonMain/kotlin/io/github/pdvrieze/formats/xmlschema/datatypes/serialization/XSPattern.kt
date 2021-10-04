@@ -23,7 +23,7 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable
 @XmlSerialName("pattern", XmlSchemaConstants.XS_NAMESPACE, XmlSchemaConstants.XS_PREFIX)
-class XSPattern : XSNoFixedFacet {
+class XSPattern : T_NoFixedFacet {
     constructor(
         value: String,
         annotations: List<XSAnnotation> = emptyList(),

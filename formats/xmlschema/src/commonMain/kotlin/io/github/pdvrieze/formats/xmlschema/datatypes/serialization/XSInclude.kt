@@ -38,4 +38,4 @@ class XSInclude(
     override val annotations: List<XSAnnotation> = emptyList(),
     @XmlOtherAttributes
     override val otherAttrs: Map<QName, String> = emptyMap()
-): XSComposition, T_Annotated, G_Composition.Include
+): T_Annotated, G_Composition.Include

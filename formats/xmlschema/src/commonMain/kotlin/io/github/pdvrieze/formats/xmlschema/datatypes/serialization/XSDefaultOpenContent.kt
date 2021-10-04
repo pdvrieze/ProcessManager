@@ -18,6 +18,7 @@ package io.github.pdvrieze.formats.xmlschema.datatypes.serialization
 
 import io.github.pdvrieze.formats.xmlschema.datatypes.ID
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_Annotated
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_ContentMode
 import kotlinx.serialization.Serializable
 import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.QNameSerializer
@@ -29,7 +30,7 @@ import nl.adaptivity.xmlutil.util.CompactFragment
 @Serializable
 class XSDefaultOpenContent(
     val appliesToEmpty: Boolean = false,
-    val mode: XSContentMode = XSContentMode.INTERLEAVE,
+    val mode: T_ContentMode = T_ContentMode.INTERLEAVE,
     @XmlValue(true)
     val content: List<@Serializable(CompactFragmentSerializer::class) CompactFragment> = emptyList(),
     override val annotations: List<XSAnnotation> = emptyList(),

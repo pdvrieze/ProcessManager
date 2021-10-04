@@ -16,9 +16,4 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization
 
-import io.github.pdvrieze.formats.xmlschema.datatypes.ID
-
-interface HasId {
-    /** Optional, default null */
-    val id: ID?
-}
+class XSSelector
