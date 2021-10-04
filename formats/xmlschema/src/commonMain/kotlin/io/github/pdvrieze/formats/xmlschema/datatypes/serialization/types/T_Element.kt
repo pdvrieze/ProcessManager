@@ -16,4 +16,25 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
 
-typealias T_RealGroup = T_Group
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.GX_IdentityConstraints
+import nl.adaptivity.xmlutil.QName
+import nl.adaptivity.xmlutil.serialization.XmlElement
+
+interface T_Element: GX_IdentityConstraints, T_Annotated {
+    val simpleTypes: List<T_LocalSimpleType>
+
+    val complexTypes: List<T_ComplexType_Base>
+
+    val alternatives: List<T_AltType>
+
+    val type: QName
+
+    val default: String?
+
+    @XmlElement(false)
+    val fixed: String?
+
+    val nillable: Boolean?
+
+    val block: Set<T_BlockSet>
+}

@@ -16,4 +16,12 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
 
-typealias T_RealGroup = T_Group
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.G_AllModel
+
+/**
+ * minOccurs is 0 or 1
+ * maxOccurs is 0 or 1
+ */
+interface T_All: T_ExplicitGroup, G_AllModel {
+
+}

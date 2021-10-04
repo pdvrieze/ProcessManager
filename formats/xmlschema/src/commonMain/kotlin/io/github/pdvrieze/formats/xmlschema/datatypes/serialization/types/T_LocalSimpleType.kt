@@ -16,4 +16,5 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
 
-typealias T_RealGroup = T_Group
+interface T_LocalSimpleType {
+}

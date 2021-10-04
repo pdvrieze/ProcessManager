@@ -14,6 +14,10 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
+package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups
 
-typealias T_RealGroup = T_Group
+interface GX_IdentityConstraints {
+    val uniques: List<G_IdentityConstraint.Unique>
+    val keys: List<G_IdentityConstraint.Key>
+    val keyref: List<G_IdentityConstraint.Keyref>
+}

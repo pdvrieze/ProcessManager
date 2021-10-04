@@ -16,4 +16,12 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
 
-typealias T_RealGroup = T_Group
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.T_ProcessContents
+
+interface T_AnyAttribute: T_Annotated {
+    val namespace: T_NamespaceList
+    val notNamespace: T_NotNamespaceList
+    val notQName: T_QNameListA
+    val processContents: T_ProcessContents
+
+}

@@ -25,6 +25,7 @@ import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.G_Sim
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_Annotated
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.UseSerializers
 import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.QNameSerializer
@@ -133,9 +134,34 @@ sealed class XSIntFacet : XSFacet {
 
 }
 
-enum class ProcessContents {
+enum class T_ProcessContents {
     @SerialName("skip") SKIP,
     @SerialName("lax") LAX,
     @SerialName("strict") STRICT,
 }
 
+internal fun parseQName(d: XML.XmlInput?, str: String): QName {
+    val cIdx = str.lastIndexOf(':')
+    if (d==null) {
+        if (cIdx<0) return QName(str)
+        val localName = if(cIdx<0) str else str.substring(cIdx+1)
+        if (str[0]!='{') throw SerializationException("Missing { before namespace")
+        val clIdx = str.indexOf('}', 1)
+        if (clIdx<1) throw SerializationException("Missing } after namespace")
+        val namespace = str.substring(1, clIdx)
+        val prefix = str.substring(clIdx+1, cIdx)
+        return QName(namespace, localName, prefix)
+    } else {
+        val localName: String
+        val prefix: String
+        if(cIdx<0) {
+            localName = str
+            prefix = ""
+        } else {
+            localName = str.substring(cIdx+1)
+            prefix = str.substring(0, cIdx)
+        }
+        val namespace = d.getNamespaceURI(prefix) ?: ""
+        return QName(namespace, localName, prefix)
+    }
+}

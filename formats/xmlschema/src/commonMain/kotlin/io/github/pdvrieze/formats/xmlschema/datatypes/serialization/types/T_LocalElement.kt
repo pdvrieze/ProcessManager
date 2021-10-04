@@ -16,4 +16,12 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
 
-interface T_LocalElement
+import io.github.pdvrieze.formats.xmlschema.datatypes.AnyURI
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.attrGroups.AG_Occurs
+import nl.adaptivity.xmlutil.QName
+
+interface T_LocalElement: T_Element, AG_Occurs {
+    val ref: QName?
+    val form: Set<T_FormChoice>
+    val targetNamespace: AnyURI
+}

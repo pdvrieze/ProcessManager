@@ -16,4 +16,13 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
 
-typealias T_RealGroup = T_Group
+import kotlinx.serialization.SerialName
+
+enum class T_BlockSet {
+    @SerialName("extension")
+    EXTENSION,
+    @SerialName("restriction")
+    RESTRICTION,
+    @SerialName("substitution")
+    SUBSTITUTION
+}

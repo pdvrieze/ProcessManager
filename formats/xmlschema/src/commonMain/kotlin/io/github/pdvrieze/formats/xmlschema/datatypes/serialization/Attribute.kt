@@ -25,15 +25,6 @@ import kotlinx.serialization.UseSerializers
 import nl.adaptivity.xmlutil.QNameSerializer
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
-enum class XSBlockSet {
-    @SerialName("extension")
-    EXTENSION,
-    @SerialName("restriction")
-    RESTRICTION,
-    @SerialName("substitution")
-    SUBSTITUTION
-}
-
 enum class XSAttrUse {
     @SerialName("optional")
     OPTIONAL,

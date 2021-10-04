@@ -16,4 +16,9 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
 
-typealias T_RealGroup = T_Group
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.attrGroups.AG_Occurs
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.GX_NestedParticles
+
+interface T_ExplicitGroup: T_GroupBase, GX_NestedParticles, AG_Occurs {
+
+}

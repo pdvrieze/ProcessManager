@@ -16,5 +16,8 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
 
-interface T_AttributeGroupRef {
+import nl.adaptivity.xmlutil.QName
+
+interface T_AttributeGroupRef: T_AttributeGroupBase {
+    val ref: QName
 }

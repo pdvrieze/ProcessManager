@@ -14,6 +14,15 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
+package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups
 
-typealias T_RealGroup = T_Group
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.*
+
+interface GX_Particles {
+    val elements: List<XSLocalElement>
+    val groups: List<XSGroupRef>
+    val alls: List<XSAll>
+    val choices: List<XSChoice>
+    val sequences: List<XSSequence>
+    val anys: List<XSAny>
+}

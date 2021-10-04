@@ -16,9 +16,10 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
 
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.attrGroups.AG_Occurs
 import nl.adaptivity.xmlutil.QName
 
-interface T_GroupRef: T_RealGroup {
+interface T_GroupRef: T_GroupBase, AG_Occurs {
     val ref: QName // required
-    val name: Nothing?
+
 }

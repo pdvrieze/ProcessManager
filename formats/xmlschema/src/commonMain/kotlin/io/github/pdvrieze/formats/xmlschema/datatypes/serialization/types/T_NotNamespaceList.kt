@@ -25,14 +25,8 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 
-@Serializable(T_NamespaceList.Serializer::class)
-sealed class T_NamespaceList {
-    object ANY : T_NamespaceList()
-    object OTHER : T_NamespaceList()
-    class Values(val values: List<Elem>) : T_NamespaceList(), List<Elem> by values {
-        constructor(values: List<String>) : this(values.map { Elem.fromString(it) })
-        constructor(values: List<AnyURI>) : this(values.map { Uri(it) })
-    }
+@Serializable(T_NotNamespaceList.Serializer::class)
+class T_NotNamespaceList(private val values: List<T_NotNamespaceList.Elem>) : List<T_NotNamespaceList.Elem> by values {
 
     sealed class Elem {
         companion object {
@@ -48,36 +42,31 @@ sealed class T_NamespaceList {
     object LOCAL : Elem()
     class Uri(val value: AnyURI) : Elem()
 
-    object Serializer : KSerializer<T_NamespaceList> {
+    object Serializer : KSerializer<T_NotNamespaceList> {
         override val descriptor: SerialDescriptor =
             PrimitiveSerialDescriptor("namespaceList", PrimitiveKind.STRING)
 
-        override fun serialize(encoder: Encoder, value: T_NamespaceList) {
-            val str = when (value) {
-                ANY -> "##any"
-                OTHER -> "##other"
-                is Values -> value.values.joinToString(" ") { v ->
-                    when (v) {
-                        TARGETNAMESPACE -> "##targetNamespace"
-                        LOCAL -> "##local"
-                        is Uri -> v.value.value
-                    }
+        override fun serialize(encoder: Encoder, value: T_NotNamespaceList) {
+            val str = value.values.joinToString(" ") { v ->
+                when (v) {
+                    TARGETNAMESPACE -> "##targetNamespace"
+                    LOCAL -> "##local"
+                    is Uri -> v.value.value
                 }
             }
+
             encoder.encodeString(str)
         }
 
-        override fun deserialize(decoder: Decoder): T_NamespaceList {
-            return when (val str = decoder.decodeString().trim()) {
-                "##any" -> ANY
-                "##other" -> OTHER
-                else -> {
-                    Values(str.splitToSequence(' ')
-                               .filter { it.isNotEmpty() }
-                               .map { Elem.fromString(it) }
-                               .toList())
-                }
-            }
+        override fun deserialize(decoder: Decoder): T_NotNamespaceList {
+            val values = decoder.decodeString()
+                .trim()
+                .splitToSequence(' ')
+                .filter { it.isNotEmpty() }
+                .map { Elem.fromString(it) }
+                .toList()
+
+            return T_NotNamespaceList(values)
         }
     }
 

@@ -16,9 +16,16 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
 
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.attrGroups.AG_DefRef
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.attrGroups.AG_Occurs
+import io.github.pdvrieze.formats.xmlschema.datatypes.NCName
 
-interface T_Group: T_Annotated, AG_DefRef, AG_Occurs {
-    val particles: List<XSParticle>
+/** Base for XS_Group */
+interface T_Group: T_GroupBase {
+    val name: NCName
+
+    val particle: Particle
+
+    sealed interface Particle
+    interface All: Particle
+    interface Choice: Particle
+    interface Sequence: Particle
 }

@@ -16,4 +16,17 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
 
-typealias T_RealGroup = T_Group
+import io.github.pdvrieze.formats.xmlschema.datatypes.NCName
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.attrGroups.AG_DefRef
+import nl.adaptivity.xmlutil.QName
+
+interface T_TopLevelElement: T_Element {
+    val name: NCName
+
+    val substitutionGroup: List<QName>
+
+    val final: T_DerivationSet
+
+    /** Default: false */
+    val abstract: Boolean?
+}

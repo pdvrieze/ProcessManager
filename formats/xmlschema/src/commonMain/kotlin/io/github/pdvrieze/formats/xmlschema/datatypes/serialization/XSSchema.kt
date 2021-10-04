@@ -18,6 +18,7 @@ package io.github.pdvrieze.formats.xmlschema.datatypes.serialization
 
 import io.github.pdvrieze.formats.xmlschema.XmlSchemaConstants
 import io.github.pdvrieze.formats.xmlschema.datatypes.*
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_BlockSet
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_FormChoice
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_OpenAttrs
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_TypeDerivationControl
@@ -36,7 +37,7 @@ class XSSchema(
     val version: Token? = null,
     val attributeFormDefault: T_FormChoice = T_FormChoice.UNQUALIFIED,
     @Serializable(SchemaEnumSetSerializer::class)
-    val blockDefault: Set<XSBlockSet>,
+    val blockDefault: Set<T_BlockSet>,
     @Serializable(QNameSerializer::class)
     val defaultAttributes: QName? = null,
     val xpathDefaultNamespace: String? = null,

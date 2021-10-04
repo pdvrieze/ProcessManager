@@ -30,3 +30,4 @@ interface G_IdentityConstraint {
     interface Key: Types
     interface Keyref: Types
 }
+

@@ -16,7 +16,7 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.attrGroups
 
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.ProcessContents
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.T_ProcessContents
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_BasicNamespaceList
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_NamespaceList
 
@@ -28,6 +28,6 @@ interface AG_AnyAttrGroup {
     val notNamespaceList: T_BasicNamespaceList
 
     /** Optional, default strict */
-    val processContents: ProcessContents
-        get() = ProcessContents.STRICT
+    val processContents: T_ProcessContents
+        get() = T_ProcessContents.STRICT
 }

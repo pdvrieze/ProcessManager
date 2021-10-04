@@ -16,4 +16,16 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
 
-typealias T_RealGroup = T_Group
+import nl.adaptivity.xmlutil.QName
+
+interface T_AltType: T_Annotated {
+    val simpleTypes: List<T_LocalSimpleType>
+
+    val complexTypes: List<T_ComplexType_Base>
+
+    val test: String?
+
+    val type: QName?
+
+    val xPathDefaultNamespace: T_XPathDefaultNamespace
+}

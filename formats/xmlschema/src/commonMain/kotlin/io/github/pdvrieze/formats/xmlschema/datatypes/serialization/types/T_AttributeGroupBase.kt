@@ -16,4 +16,7 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
 
-typealias T_RealGroup = T_Group
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.G_AttrDecls
+
+interface T_AttributeGroupBase: T_Annotated, G_AttrDecls {
+}
