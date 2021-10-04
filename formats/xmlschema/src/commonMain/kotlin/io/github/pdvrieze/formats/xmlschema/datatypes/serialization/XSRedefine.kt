@@ -20,6 +20,7 @@ import io.github.pdvrieze.formats.xmlschema.XmlSchemaConstants
 import io.github.pdvrieze.formats.xmlschema.datatypes.AnyURI
 import io.github.pdvrieze.formats.xmlschema.datatypes.ID
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.G_Composition
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_Annotated
 import kotlinx.serialization.Serializable
 import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.QNameSerializer
@@ -29,7 +30,7 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 @XmlSerialName("redefine", XmlSchemaConstants.XS_NAMESPACE, XmlSchemaConstants.XS_PREFIX)
 class XSRedefine(
     val simpleTypes: List<XSToplevelSimpleType> = emptyList(),
-    val complexTypes: List<XSToplevelComplexType> = emptyList(),
+    val complexTypes: List<XSTopLevelComplexType> = emptyList(),
     val groups: List<XSGroup> = emptyList(),
     val attributeGroups: List<XSAttributeGroup> = emptyList(),
     val schemaLocation: AnyURI,

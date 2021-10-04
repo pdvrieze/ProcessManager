@@ -16,7 +16,7 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.attrGroups
 
-import io.github.pdvrieze.formats.xmlschema.datatypes.AllNNI
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_AllNNI
 
 /** for all particles */
 interface AG_Occurs {
@@ -25,6 +25,6 @@ interface AG_Occurs {
         get() = 1.toULong()
 
     /** Optional, default 1 */
-    val maxOccurs: AllNNI
-        get() = AllNNI(1)
+    val maxOccurs: T_AllNNI
+        get() = T_AllNNI(1)
 }

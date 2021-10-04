@@ -16,9 +16,5 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
 
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.attrGroups.AG_DefRef
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.attrGroups.AG_Occurs
-
-interface T_Group: T_Annotated, AG_DefRef, AG_Occurs {
-    val particles: List<XSParticle>
+interface T_SimpleExtensionType: T_ExtensionType {
 }

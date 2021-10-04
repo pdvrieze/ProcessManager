@@ -20,6 +20,7 @@ package io.github.pdvrieze.formats.xmlschema.datatypes.serialization
 
 import io.github.pdvrieze.formats.xmlschema.XmlSchemaConstants
 import io.github.pdvrieze.formats.xmlschema.datatypes.AnyURI
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_OpenAttrs
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import nl.adaptivity.xmlutil.QName
@@ -39,4 +40,4 @@ class XSAppInfo(
     val content: CompactFragment,
     @XmlOtherAttributes
     override val otherAttrs: Map<QName, String> = emptyMap(),
-) : XSOpenAttrs
+) : T_OpenAttrs

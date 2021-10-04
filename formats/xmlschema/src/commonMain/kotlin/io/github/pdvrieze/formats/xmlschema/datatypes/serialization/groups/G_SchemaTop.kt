@@ -16,6 +16,8 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups
 
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_Attribute
+
 /**
  * This group is for the elements which occur freely at the top level of schemas. All of their types
  * are based on the "annotated" type by extension.
@@ -29,7 +31,7 @@ interface G_SchemaTop {
     sealed interface Base
 
     interface Element: Base
-    interface Attribute: Base
+    interface Attribute: Base, T_Attribute
     interface Notation: Base
 }
 

@@ -34,14 +34,6 @@ enum class XSBlockSet {
     SUBSTITUTION
 }
 
-enum class XSFormChoice {
-    @SerialName("qualified")
-    QUALIFIED,
-
-    @SerialName("unqualified")
-    UNQUALIFIED
-}
-
 enum class XSAttrUse {
     @SerialName("optional")
     OPTIONAL,

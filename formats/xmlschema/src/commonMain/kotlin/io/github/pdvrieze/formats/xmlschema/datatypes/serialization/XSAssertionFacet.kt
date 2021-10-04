@@ -18,7 +18,7 @@ package io.github.pdvrieze.formats.xmlschema.datatypes.serialization
 
 import io.github.pdvrieze.formats.xmlschema.XmlSchemaConstants
 import io.github.pdvrieze.formats.xmlschema.datatypes.XPathExpression
-import kotlinx.serialization.SerialName
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_XPathDefaultNamespace
 import kotlinx.serialization.Serializable
 import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
@@ -28,7 +28,7 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 class XSAssertionFacet : XSNoFixedFacet, XSAssertion {
     constructor(
         test: XPathExpression,
-        xpathDefaultNamespace: XPathDefaultNamespace? = null,
+        xpathDefaultNamespace: T_XPathDefaultNamespace? = null,
         annotations: List<XSAnnotation> = emptyList(),
         otherAttrs: Map<QName, String> = emptyMap()
     ) : super(annotations, otherAttrs) {
@@ -36,7 +36,7 @@ class XSAssertionFacet : XSNoFixedFacet, XSAssertion {
         this.xpathDefaultNamespace = xpathDefaultNamespace
     }
 
-    override val xpathDefaultNamespace: XPathDefaultNamespace?
+    override val xpathDefaultNamespace: T_XPathDefaultNamespace?
 
     override val value: XPathExpression
         get() = test

@@ -17,6 +17,7 @@
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization
 
 import io.github.pdvrieze.formats.xmlschema.datatypes.ID
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_Annotated
 import kotlinx.serialization.Serializable
 import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.QNameSerializer

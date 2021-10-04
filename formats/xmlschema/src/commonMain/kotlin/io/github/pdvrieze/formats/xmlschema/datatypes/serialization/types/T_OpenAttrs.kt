@@ -16,9 +16,14 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
 
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.attrGroups.AG_DefRef
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.attrGroups.AG_Occurs
+import nl.adaptivity.xmlutil.QName
+import nl.adaptivity.xmlutil.serialization.XmlOtherAttributes
 
-interface T_Group: T_Annotated, AG_DefRef, AG_Occurs {
-    val particles: List<XSParticle>
+/**
+ * This type is extended by almost all schema types to allow attributes from other namespaces to be
+ * added to user schemas.
+ */
+interface T_OpenAttrs {
+    @XmlOtherAttributes
+    val otherAttrs: Map<QName, String>
 }

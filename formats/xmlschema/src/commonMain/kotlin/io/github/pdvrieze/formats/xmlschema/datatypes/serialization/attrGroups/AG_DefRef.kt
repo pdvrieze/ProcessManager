@@ -24,5 +24,5 @@ import nl.adaptivity.xmlutil.QName
  */
 interface AG_DefRef {
     val name: NCName
-    val ref: QName
+    val ref: QName?
 }

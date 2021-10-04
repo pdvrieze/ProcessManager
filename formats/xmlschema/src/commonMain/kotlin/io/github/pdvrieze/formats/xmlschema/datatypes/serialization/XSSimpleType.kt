@@ -18,13 +18,14 @@ package io.github.pdvrieze.formats.xmlschema.datatypes.serialization
 
 import io.github.pdvrieze.formats.xmlschema.datatypes.ID
 import io.github.pdvrieze.formats.xmlschema.datatypes.NCName
-import io.github.pdvrieze.formats.xmlschema.datatypes.XSSimpleDerivationSet
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_TypeDerivationControl
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_Annotated
 import nl.adaptivity.xmlutil.serialization.XmlElement
 
 internal interface XSSimpleType : T_Annotated {
     val name: NCName?
 
-    val final: Set<XSSimpleDerivationSet>
+    val final: Set<T_TypeDerivationControl>
 
     val derivation: XSSimpleDerivation
 

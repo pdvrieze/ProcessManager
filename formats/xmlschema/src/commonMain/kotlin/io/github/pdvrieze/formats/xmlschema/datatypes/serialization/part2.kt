@@ -19,19 +19,13 @@
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization
 
 import io.github.pdvrieze.formats.xmlschema.XmlSchemaConstants
-import io.github.pdvrieze.formats.xmlschema.datatypes.AnyURI
 import io.github.pdvrieze.formats.xmlschema.datatypes.ID
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.G_IdentityConstraint
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.G_SimpleDerivation
-import kotlinx.serialization.KSerializer
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_Annotated
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.QNameSerializer
 import nl.adaptivity.xmlutil.serialization.*
@@ -143,33 +137,5 @@ enum class ProcessContents {
     @SerialName("skip") SKIP,
     @SerialName("lax") LAX,
     @SerialName("strict") STRICT,
-}
-
-@Serializable(XPathDefaultNamespace.Serializer::class)
-sealed class XPathDefaultNamespace {
-
-    object DEFAULTNAMESPACE: XPathDefaultNamespace()
-    object TARGETNAMESPACE: XPathDefaultNamespace()
-    object LOCAL: XPathDefaultNamespace()
-    class Uri(val value: AnyURI): XPathDefaultNamespace()
-
-    companion object Serializer: KSerializer<XPathDefaultNamespace> {
-        override val descriptor: SerialDescriptor =
-            PrimitiveSerialDescriptor("xpathDefaultNamespace", PrimitiveKind.STRING)
-
-        override fun serialize(encoder: Encoder, value: XPathDefaultNamespace) = encoder.encodeString(when (value) {
-            DEFAULTNAMESPACE -> "##defaultNamespace"
-            TARGETNAMESPACE -> "##targetNamespace"
-            LOCAL -> "##local"
-            is Uri -> value.value.value
-        })
-
-        override fun deserialize(decoder: Decoder): XPathDefaultNamespace = when (val str = decoder.decodeString()){
-            "##defaultNamespace" -> DEFAULTNAMESPACE
-            "##targetNamespace" -> TARGETNAMESPACE
-            "##local" -> LOCAL
-            else -> Uri(AnyURI(str))
-        }
-    }
 }
 

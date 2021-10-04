@@ -21,6 +21,7 @@ package io.github.pdvrieze.formats.xmlschema.datatypes.serialization
 import io.github.pdvrieze.formats.xmlschema.XmlSchemaConstants
 import io.github.pdvrieze.formats.xmlschema.datatypes.ID
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.G_Composition
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_OpenAttrs
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import nl.adaptivity.xmlutil.QName
@@ -36,4 +37,4 @@ class XSAnnotation(
     val id: ID? = null,
     @XmlOtherAttributes
     override val otherAttrs: Map<QName, String> = emptyMap()
-) : XSComposition, XSOpenAttrs, G_Composition.Annotation
+) : XSComposition, T_OpenAttrs, G_Composition.Annotation

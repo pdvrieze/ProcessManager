@@ -16,7 +16,7 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups
 
-import io.github.pdvrieze.formats.xmlschema.datatypes.AllNNI
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_AllNNI
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.XSAnnotation
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.XSAny
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.XSLocalElement
@@ -31,6 +31,6 @@ interface G_AllModel {
     interface E_Group: T_GroupRef {
         override val annotations: List<XSAnnotation>
         override val minOccurs: ULong get() = 1.toULong()
-        override val maxOccurs: AllNNI.Value get() = AllNNI(1)
+        override val maxOccurs: T_AllNNI.Value get() = T_AllNNI(1)
     }
 }

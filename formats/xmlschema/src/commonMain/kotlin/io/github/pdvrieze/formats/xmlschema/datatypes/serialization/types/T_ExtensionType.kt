@@ -14,18 +14,15 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups
+package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
 
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.XSFacet
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.XSFacetBase
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.XSLocalSimpleType
-import nl.adaptivity.xmlutil.serialization.XmlValue
-import nl.adaptivity.xmlutil.util.CompactFragment
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.XSOpenContent
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.GX_TypeDefParticles
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.G_Assertions
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.G_AttrDecls
+import nl.adaptivity.xmlutil.QName
 
-interface G_SimpleRestrictionModel {
-    val simpleTypes: List<XSLocalSimpleType>
-    val facets: List<XSFacetBase>
-
-    @XmlValue
-    val otherContents: List<CompactFragment>
+interface T_ExtensionType: T_Annotated, GX_TypeDefParticles, G_AttrDecls, G_Assertions {
+    val openContents: List<XSOpenContent>
+    val base: QName
 }

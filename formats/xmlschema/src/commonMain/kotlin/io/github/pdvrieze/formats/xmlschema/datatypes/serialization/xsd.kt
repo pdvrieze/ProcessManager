@@ -20,13 +20,9 @@ package io.github.pdvrieze.formats.xmlschema.datatypes.serialization
 
 import io.github.pdvrieze.formats.xmlschema.XmlSchemaConstants
 import io.github.pdvrieze.formats.xmlschema.datatypes.ID
-import io.github.pdvrieze.formats.xmlschema.datatypes.NCName
 import io.github.pdvrieze.formats.xmlschema.datatypes.XPathExpression
-import io.github.pdvrieze.formats.xmlschema.datatypes.XSSimpleDerivationSet
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.*
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_ComplexType
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_GroupRef
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_LocalElement
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.*
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
@@ -34,15 +30,6 @@ import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.QNameSerializer
 import nl.adaptivity.xmlutil.serialization.XmlOtherAttributes
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
-
-interface XSOpenAttrs {
-    @XmlOtherAttributes
-    val otherAttrs: Map<QName, String>
-}
-
-interface T_Annotated: XSOpenAttrs {
-    val annotations: List<XSAnnotation>
-}
 
 enum class  XSContentMode {
     @SerialName("interleave")
@@ -66,7 +53,7 @@ interface XSUseComposition {
 
 interface XSUseSchemaTop {
     val simpleTypes: List<XSToplevelSimpleType>
-    val complexTypes: List<XSToplevelComplexType>
+    val complexTypes: List<XSTopLevelComplexType>
     val groups: List<XSGroup>
     val attributeGroups: List<XSAttributeGroup>
     val elements: List<XSElement>
@@ -82,7 +69,7 @@ class XSElement: G_SchemaTop.Element
 @XmlSerialName("notation", XmlSchemaConstants.XS_NAMESPACE, XmlSchemaConstants.XS_PREFIX)
 class XSNotation: G_SchemaTop.Notation
 
-typealias XSDerivationSet=XSSimpleDerivationSet
+typealias XSDerivationSet= T_TypeDerivationControl
 
 interface XSUseSimpleContent
 
@@ -155,12 +142,20 @@ interface XSUseTypeDefParticles {
 
 }
 
+@Serializable
+@XmlSerialName("all", XmlSchemaConstants.XS_NAMESPACE, XmlSchemaConstants.XS_PREFIX)
 class XSAll: G_TypeDefParticle.All, G_Particle.All
 
+@Serializable
+@XmlSerialName("choice", XmlSchemaConstants.XS_NAMESPACE, XmlSchemaConstants.XS_PREFIX)
 class XSChoice: G_TypeDefParticle.Choice, G_NestedParticle.Choice, G_Particle.All
 
+@Serializable
+@XmlSerialName("sequence", XmlSchemaConstants.XS_NAMESPACE, XmlSchemaConstants.XS_PREFIX)
 class XSSequence: G_TypeDefParticle.Sequence, G_NestedParticle.Sequence, G_Particle.Sequence
 
+@Serializable
+@XmlSerialName("any", XmlSchemaConstants.XS_NAMESPACE, XmlSchemaConstants.XS_PREFIX)
 class XSAny: G_NestedParticle.Any, G_Particle.Any
 
 class XSLocalElement: G_NestedParticle.Element, G_Particle.Element
@@ -183,7 +178,7 @@ interface XSUseAssertions {
 
 interface XSAssertion: T_Annotated {
     val test: XPathExpression
-    val xpathDefaultNamespace: XPathDefaultNamespace?
+    val xpathDefaultNamespace: T_XPathDefaultNamespace?
     override val annotations: List<XSAnnotation>
     override val otherAttrs: Map<QName, String>
 }
@@ -191,47 +186,15 @@ interface XSAssertion: T_Annotated {
 @Serializable
 @XmlSerialName("assert", XmlSchemaConstants.XS_NAMESPACE, XmlSchemaConstants.XS_PREFIX)
 class XSAssert(
-    val test: XPathExpression,
-    val xpathDefaultNamespace: XPathDefaultNamespace? = null,
+    override val test: XPathExpression,
+    override val xPathDefaultNamespace: T_XPathDefaultNamespace? = null,
+    override val id: ID?,
     override val annotations: List<XSAnnotation> = emptyList(),
     override val otherAttrs: Map<QName, String> = emptyMap()
-) : T_Annotated
+) : T_Assertion
 
-interface XSUseComplexTypeModel: XSUseSimpleContent, XSUseComplexContent, XSOpenAttrs, XSUseTypeDefParticles, XSUseAttrDecls, XSUseAssertions {
-    val openContent: List<XSOpenContent>
-}
-
+@Serializable
 class XSOpenContent
-
-@Serializable
-@XmlSerialName("complexType", XmlSchemaConstants.XS_NAMESPACE, XmlSchemaConstants.XS_PREFIX)
-class XSToplevelComplexType(
-    override val name: NCName,
-    override val mixed: Boolean,
-    override val abstract: Boolean,
-    override val final: Set<XSDerivationSet>,
-    override val block: Set<XSDerivationSet>,
-    override val defaultAttributesApply: Boolean,
-    override val annotations: List<XSAnnotation>,
-    override val otherAttrs: Map<@Serializable(QNameSerializer::class) QName, String>
-) : T_ComplexType, XSUseComplexTypeModel, G_Redefinable.ComplexType {
-
-}
-
-@Serializable
-@XmlSerialName("complexType", XmlSchemaConstants.XS_NAMESPACE, XmlSchemaConstants.XS_PREFIX)
-class XSLocalComplexType(
-    override val mixed: Boolean,
-    override val defaultAttributesApply: Boolean,
-    override val annotations: List<XSAnnotation>,
-    override val otherAttrs: Map<@Serializable(QNameSerializer::class) QName, String>
-) : T_ComplexType, XSUseComplexTypeModel {
-    override val name: Nothing? get() = null
-    override val abstract: Boolean get() = false
-    override val final: Set<XSDerivationSet> get() = emptySet()
-    override val block: Set<XSDerivationSet> get() = emptySet()
-
-}
 
 
 

@@ -20,6 +20,7 @@ import io.github.pdvrieze.formats.xmlschema.XmlSchemaConstants
 import io.github.pdvrieze.formats.xmlschema.datatypes.AnyURI
 import io.github.pdvrieze.formats.xmlschema.datatypes.ID
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.G_Composition
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_Annotated
 import kotlinx.serialization.Serializable
 import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.QNameSerializer
@@ -32,7 +33,7 @@ class XSOverride(
     val id: ID? = null,
     override val annotations: List<XSAnnotation> = emptyList(),
     override val simpleTypes: List<XSToplevelSimpleType> = emptyList(),
-    override val complexTypes: List<XSToplevelComplexType> = emptyList(),
+    override val complexTypes: List<XSTopLevelComplexType> = emptyList(),
     override val groups: List<XSGroup> = emptyList(),
     override val attributeGroups: List<XSAttributeGroup> = emptyList(),
     override val elements: List<XSElement> = emptyList(),

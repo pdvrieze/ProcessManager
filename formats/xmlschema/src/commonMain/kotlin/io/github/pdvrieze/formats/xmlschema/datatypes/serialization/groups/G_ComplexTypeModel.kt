@@ -23,7 +23,7 @@ import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.XSOpenConten
  */
 interface G_ComplexTypeModel {
 
-    val complexTypeModel: Base
+    val content: Base
 
     sealed interface Base
 

@@ -16,14 +16,7 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes
 
-import kotlinx.serialization.KSerializer
-import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.PrimitiveKind
-import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
 import kotlin.jvm.JvmInline
 
 @JvmInline
@@ -46,34 +39,3 @@ value class AnyURI(val value: String)
 @Serializable
 value class XPathExpression(val test: String)
 
-@Serializable(AllNNI.Serializer::class)
-sealed class AllNNI {
-    object UNBOUNDED: AllNNI() {
-        override fun toString(): String = "unbounded"
-    }
-    class Value(val value: ULong): AllNNI() {
-        override fun toString(): String = value.toString()
-    }
-
-    companion object Serializer: KSerializer<AllNNI> {
-
-        operator fun invoke(v: Int): Value = Value(v.toULong())
-
-        operator fun invoke(v: UInt): Value = Value(v.toULong())
-
-        operator fun invoke(v: Long): Value = Value(v.toULong())
-
-        operator fun invoke(v: ULong): Value = Value(v)
-
-        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("AllNNI" , PrimitiveKind.STRING)
-
-        override fun deserialize(decoder: Decoder): AllNNI = when (val v= decoder.decodeString()) {
-            "unbounded" -> UNBOUNDED
-            else -> Value(v.toULong())
-        }
-
-        override fun serialize(encoder: Encoder, value: AllNNI) {
-            encoder.encodeString(value.toString())
-        }
-    }
-}

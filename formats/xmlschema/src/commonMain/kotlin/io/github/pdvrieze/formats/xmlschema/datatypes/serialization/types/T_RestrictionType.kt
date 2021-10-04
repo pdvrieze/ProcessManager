@@ -16,9 +16,16 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
 
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.attrGroups.AG_DefRef
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.attrGroups.AG_Occurs
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.XSOpenContent
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.GX_TypeDefParticles
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.G_Assertions
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.G_AttrDecls
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.G_SimpleRestrictionModels
+import nl.adaptivity.xmlutil.QName
 
-interface T_Group: T_Annotated, AG_DefRef, AG_Occurs {
-    val particles: List<XSParticle>
+interface T_RestrictionType :
+    T_Annotated, GX_TypeDefParticles, G_SimpleRestrictionModels, G_AttrDecls, G_Assertions {
+
+    val base: QName
+    val openContents: List<XSOpenContent>
 }

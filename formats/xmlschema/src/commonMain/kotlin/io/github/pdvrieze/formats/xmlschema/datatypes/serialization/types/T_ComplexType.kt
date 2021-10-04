@@ -17,14 +17,30 @@
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
 
 import io.github.pdvrieze.formats.xmlschema.datatypes.NCName
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.T_Annotated
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.XSDerivationSet
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.G_ComplexTypeModel
 
-interface T_ComplexType: T_Annotated {
-    val name: NCName?
-    val mixed: Boolean // May not have simpleContent child
-    val abstract: Boolean // default false
-    val final: Set<XSDerivationSet>
-    val block: Set<XSDerivationSet>
+sealed interface T_ComplexType_Base: T_Annotated, G_ComplexTypeModel {
+    /**
+     * May not have simpleContent child
+     */
+    val mixed: Boolean
+
+    /** Default: false */
     val defaultAttributesApply: Boolean // default true
+
+    /** Either this or shorthand content */
+    override val content: G_ComplexTypeModel.Base
+}
+
+interface T_ComplexType_Simple: T_ComplexType_Base {
+    override val content: G_ComplexTypeModel.SimpleContent
+}
+
+interface T_ComplexType_Complex: T_ComplexType_Base {
+    override val content: G_ComplexTypeModel.ComplexContent
+}
+
+interface T_ComplexType_Shorthand: T_ComplexType_Base, G_ComplexTypeModel.Shorthand {
+    override val content: G_ComplexTypeModel.Shorthand get() = this
 }

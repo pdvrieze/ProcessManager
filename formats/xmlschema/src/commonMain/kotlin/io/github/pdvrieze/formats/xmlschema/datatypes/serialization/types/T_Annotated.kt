@@ -16,9 +16,13 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
 
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.attrGroups.AG_DefRef
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.attrGroups.AG_Occurs
+import io.github.pdvrieze.formats.xmlschema.datatypes.ID
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.XSAnnotation
 
-interface T_Group: T_Annotated, AG_DefRef, AG_Occurs {
-    val particles: List<XSParticle>
+/**
+ * This type is extended by all types which allow annotation other than &lt;schema> itself
+ */
+interface T_Annotated: T_OpenAttrs {
+    val annotations: List<XSAnnotation>
+    val id: ID?
 }

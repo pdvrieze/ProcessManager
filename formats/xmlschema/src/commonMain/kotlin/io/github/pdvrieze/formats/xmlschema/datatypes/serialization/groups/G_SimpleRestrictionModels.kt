@@ -14,11 +14,18 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
+package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups
 
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.attrGroups.AG_DefRef
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.attrGroups.AG_Occurs
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.XSFacet
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.XSFacetBase
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.XSLocalSimpleType
+import nl.adaptivity.xmlutil.serialization.XmlValue
+import nl.adaptivity.xmlutil.util.CompactFragment
 
-interface T_Group: T_Annotated, AG_DefRef, AG_Occurs {
-    val particles: List<XSParticle>
+interface G_SimpleRestrictionModels {
+    val simpleTypes: List<XSLocalSimpleType>
+    val facets: List<XSFacetBase>
+
+    @XmlValue
+    val otherContents: List<CompactFragment>
 }

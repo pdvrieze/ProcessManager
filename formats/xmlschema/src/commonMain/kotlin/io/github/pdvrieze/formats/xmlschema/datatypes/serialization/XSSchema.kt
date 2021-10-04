@@ -18,6 +18,9 @@ package io.github.pdvrieze.formats.xmlschema.datatypes.serialization
 
 import io.github.pdvrieze.formats.xmlschema.XmlSchemaConstants
 import io.github.pdvrieze.formats.xmlschema.datatypes.*
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_FormChoice
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_OpenAttrs
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_TypeDerivationControl
 import kotlinx.serialization.Serializable
 import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.QNameSerializer
@@ -31,15 +34,15 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 class XSSchema(
     val targetNamespace: AnyURI,
     val version: Token? = null,
-    val attributeFormDefault: XSFormChoice = XSFormChoice.UNQUALIFIED,
+    val attributeFormDefault: T_FormChoice = T_FormChoice.UNQUALIFIED,
     @Serializable(SchemaEnumSetSerializer::class)
     val blockDefault: Set<XSBlockSet>,
     @Serializable(QNameSerializer::class)
     val defaultAttributes: QName? = null,
     val xpathDefaultNamespace: String? = null,
-    val elementFormDefault: XSFormChoice = XSFormChoice.UNQUALIFIED,
+    val elementFormDefault: T_FormChoice = T_FormChoice.UNQUALIFIED,
     @Serializable(SchemaEnumSetSerializer::class)
-    val finalDefault: Set<XSSimpleDerivationSet> = emptySet(),
+    val finalDefault: Set<T_TypeDerivationControl> = emptySet(),
     val id: ID? = null,
 
     override val annotations: List<XSAnnotation> = emptyList(),
@@ -53,7 +56,7 @@ class XSSchema(
     val defaultOpenContent: List<XSDefaultOpenContent> = emptyList(),
 
     override val simpleTypes: List<XSToplevelSimpleType> = emptyList(),
-    override val complexTypes: List<XSToplevelComplexType> = emptyList(),
+    override val complexTypes: List<XSTopLevelComplexType> = emptyList(),
     override val groups: List<XSGroup> = emptyList(),
     override val attributeGroups: List<XSAttributeGroup> = emptyList(),
     override val elements: List<XSElement> = emptyList(),
@@ -61,4 +64,4 @@ class XSSchema(
     override val notations: List<XSNotation> = emptyList(),
     @XmlOtherAttributes
     override val otherAttrs: Map<@Serializable(QNameSerializer::class) QName, String> = emptyMap()
-) : XSOpenAttrs, XSUseComposition, XSUseSchemaTop
+) : T_OpenAttrs, XSUseComposition, XSUseSchemaTop

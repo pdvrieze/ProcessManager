@@ -16,9 +16,14 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
 
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.attrGroups.AG_DefRef
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.attrGroups.AG_Occurs
+import io.github.pdvrieze.formats.xmlschema.datatypes.NCName
 
-interface T_Group: T_Annotated, AG_DefRef, AG_Occurs {
-    val particles: List<XSParticle>
+interface T_LocalComplexType_Base: T_ComplexType_Base {
+
 }
+
+interface T_LocalComplexType_Simple: T_LocalComplexType_Base, T_ComplexType_Simple
+
+interface T_LocalComplexType_Complex: T_LocalComplexType_Base, T_ComplexType_Complex
+
+interface T_LocalComplexType_Shorthand: T_LocalComplexType_Base, T_ComplexType_Shorthand

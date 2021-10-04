@@ -23,6 +23,7 @@ import io.github.pdvrieze.formats.xmlschema.datatypes.AnyURI
 import io.github.pdvrieze.formats.xmlschema.datatypes.ID
 import io.github.pdvrieze.formats.xmlschema.datatypes.NCName
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.G_SchemaTop
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_FormChoice
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.UseSerializers
 import nl.adaptivity.xmlutil.QName
@@ -32,16 +33,17 @@ import nl.adaptivity.xmlutil.serialization.XmlSerialName
 @Serializable
 @XmlSerialName("attribute", XmlSchemaConstants.XS_NAMESPACE, XmlSchemaConstants.XS_PREFIX)
 class XSAttribute(
-    val default: String? = null,
-    val fixed: String? = null,
-    val form: XSFormChoice? = null,
-    val id: ID? = null,
-    val name: NCName,
-    val ref: QName? = null,
-    val targetNamespace: AnyURI? = null,
-    val type: QName? = null,
-    val use: XSAttrUse? = null,
-    val inheritable: Boolean,
-    val annotations: List<XSAnnotation> = emptyList(),
-    val simpleType: XSLocalSimpleType? = null,
+    override val default: String? = null,
+    override val fixed: String? = null,
+    override val form: T_FormChoice? = null,
+    override val id: ID? = null,
+    override val name: NCName,
+    override val ref: QName? = null,
+    override val targetNamespace: AnyURI? = null,
+    override val type: QName? = null,
+    override val use: XSAttrUse? = null,
+    override val inheritable: Boolean,
+    override val simpleTypes: List<XSLocalSimpleType> = emptyList(),
+    override val annotations: List<XSAnnotation> = emptyList(),
+    override val otherAttrs: Map<QName, String> = emptyMap(),
 ) : G_SchemaTop.Attribute

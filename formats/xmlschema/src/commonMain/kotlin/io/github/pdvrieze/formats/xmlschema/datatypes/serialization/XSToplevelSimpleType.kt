@@ -19,7 +19,7 @@ package io.github.pdvrieze.formats.xmlschema.datatypes.serialization
 import io.github.pdvrieze.formats.xmlschema.XmlSchemaConstants
 import io.github.pdvrieze.formats.xmlschema.datatypes.ID
 import io.github.pdvrieze.formats.xmlschema.datatypes.NCName
-import io.github.pdvrieze.formats.xmlschema.datatypes.XSSimpleDerivationSet
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_TypeDerivationControl
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.G_Redefinable
 import kotlinx.serialization.Serializable
 import nl.adaptivity.xmlutil.QName
@@ -38,7 +38,7 @@ class XSToplevelSimpleType(
     override val derivation: XSSimpleDerivation,
     @XmlElement(false)
     @Serializable(SchemaEnumSetSerializer::class)
-    override val final: Set<XSSimpleDerivationSet> = emptySet(),
+    override val final: Set<T_TypeDerivationControl> = emptySet(),
     override val id: ID? = null,
     override val annotations: List<XSAnnotation> = emptyList(),
     @XmlOtherAttributes

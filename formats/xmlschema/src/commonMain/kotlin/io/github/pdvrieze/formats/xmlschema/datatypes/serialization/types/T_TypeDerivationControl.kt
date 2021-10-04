@@ -16,9 +16,15 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
 
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.attrGroups.AG_DefRef
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.attrGroups.AG_Occurs
+import kotlinx.serialization.SerialName
 
-interface T_Group: T_Annotated, AG_DefRef, AG_Occurs {
-    val particles: List<XSParticle>
+enum class T_TypeDerivationControl {
+    @SerialName("restriction")
+    RESTRICTION,
+    @SerialName("extension")
+    EXTENSION,
+    @SerialName("list")
+    LIST,
+    @SerialName("union")
+    UNION
 }

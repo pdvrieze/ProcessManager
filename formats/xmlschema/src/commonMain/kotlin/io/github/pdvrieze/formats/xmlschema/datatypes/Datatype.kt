@@ -17,7 +17,6 @@
 package io.github.pdvrieze.formats.xmlschema.datatypes
 
 import io.github.pdvrieze.formats.xmlschema.XmlSchemaConstants
-import kotlinx.serialization.SerialName
 
 sealed class Datatype(
     val name: String,
@@ -29,25 +28,6 @@ sealed class Datatype(
     val identityFunction: DataFunction get() = TODO()
     val equalityFunction: DataFunction get() = TODO()
     val orderFunction: DataFunction? get() = null
-}
-
-
-enum class XSSimpleDerivationSet {
-    @SerialName("restriction")
-    RESTRICTION,
-    @SerialName("extension")
-    EXTENSION,
-    @SerialName("list")
-    LIST,
-    @SerialName("union")
-    UNION
-}
-
-enum class XSReducedDerivationSet {
-    @SerialName("restriction")
-    RESTRICTION,
-    @SerialName("extension")
-    EXTENSION,
 }
 
 

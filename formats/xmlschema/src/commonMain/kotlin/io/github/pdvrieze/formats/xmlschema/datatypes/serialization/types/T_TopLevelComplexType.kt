@@ -16,9 +16,22 @@
 
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types
 
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.attrGroups.AG_DefRef
-import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.attrGroups.AG_Occurs
+import io.github.pdvrieze.formats.xmlschema.datatypes.NCName
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.XSDerivationSet
 
-interface T_Group: T_Annotated, AG_DefRef, AG_Occurs {
-    val particles: List<XSParticle>
+interface T_TopLevelComplexType_Base: T_ComplexType_Base {
+    val name: NCName
+    /**
+     * Default: false
+     */
+    val abstract: Boolean
+    val final: Set<XSDerivationSet>
+    val block: Set<XSDerivationSet>
+
 }
+
+interface T_TopLevelComplexType_Simple: T_TopLevelComplexType_Base, T_ComplexType_Simple
+
+interface T_TopLevelComplexType_Complex: T_TopLevelComplexType_Base, T_ComplexType_Complex
+
+interface T_TopLevelComplexType_Shorthand: T_TopLevelComplexType_Base, T_ComplexType_Shorthand
