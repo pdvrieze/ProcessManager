@@ -27,7 +27,7 @@ interface T_Element: GX_IdentityConstraints, T_Annotated {
 
     val alternatives: List<T_AltType>
 
-    val type: QName
+    val type: QName?
 
     val default: String?
 

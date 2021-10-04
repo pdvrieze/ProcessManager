@@ -17,15 +17,24 @@
 package io.github.pdvrieze.formats.xmlschema.datatypes.serialization
 
 import io.github.pdvrieze.formats.xmlschema.XmlSchemaConstants
+import io.github.pdvrieze.formats.xmlschema.datatypes.ID
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.G_NestedParticle
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.G_Particle
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.groups.G_TypeDefParticle
+import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_AllNNI
 import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_GroupRef
 import kotlinx.serialization.Serializable
+import nl.adaptivity.xmlutil.QName
+import nl.adaptivity.xmlutil.QNameSerializer
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 @Serializable
 @XmlSerialName("group", XmlSchemaConstants.XS_NAMESPACE, XmlSchemaConstants.XS_PREFIX)
-class XSGroupRef: T_GroupRef, G_TypeDefParticle.Group, G_NestedParticle.Group, G_Particle.Group {
-
-}
+class XSGroupRef(
+    override val id: ID?,
+    override val maxOccurs: T_AllNNI,
+    override val minOccurs: ULong,
+    override val ref: @Serializable(QNameSerializer::class) QName,
+    override val annotations: List<XSAnnotation>,
+    override val otherAttrs: Map<@Serializable(QNameSerializer::class) QName, String>
+): T_GroupRef, G_TypeDefParticle.Group, G_NestedParticle.Group, G_Particle.Group

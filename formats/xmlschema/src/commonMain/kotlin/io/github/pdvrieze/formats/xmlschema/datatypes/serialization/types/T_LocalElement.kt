@@ -22,6 +22,6 @@ import nl.adaptivity.xmlutil.QName
 
 interface T_LocalElement: T_Element, AG_Occurs {
     val ref: QName?
-    val form: Set<T_FormChoice>
-    val targetNamespace: AnyURI
+    val form: T_FormChoice
+    val targetNamespace: AnyURI?
 }

@@ -22,9 +22,9 @@ import io.github.pdvrieze.formats.xmlschema.datatypes.serialization.types.T_AllN
 interface AG_Occurs {
     /** Optional, default 1 */
     val minOccurs: ULong
-        get() = 1.toULong()
+//        get() = 1.toULong()
 
     /** Optional, default 1 */
     val maxOccurs: T_AllNNI
-        get() = T_AllNNI(1)
+//        get() = T_AllNNI(1)
 }
