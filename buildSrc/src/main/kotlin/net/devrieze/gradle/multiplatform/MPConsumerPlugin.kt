@@ -89,6 +89,7 @@ class MPConsumerPlugin: Plugin<Project> {
 
 class KotlinJsDisambiguationRule : AttributeDisambiguationRule<KotlinJsCompilerAttribute> {
     override fun execute(details: MultipleCandidatesDetails<KotlinJsCompilerAttribute?>) = with(details) {
+        @Suppress("DEPRECATION")
         if (consumerValue == null || consumerValue == KotlinJsCompilerAttribute.both) {
             if (candidateValues == setOf(KotlinJsCompilerAttribute.legacy, KotlinJsCompilerAttribute.ir))
                 closestMatch(KotlinJsCompilerAttribute.legacy)

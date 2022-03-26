@@ -37,7 +37,6 @@ kotlin {
                     kotlinOptions {
                         jvmTarget = "1.8"
                         freeCompilerArgs = listOf(argJvmDefault)
-//                    freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental", "-Xjvm-default=enable")
                     }
                 }
                 tasks.withType<Test> {
@@ -73,6 +72,7 @@ kotlin {
             all {
                 languageSettings {
                     optIn("kotlin.RequiresOptIn")
+                    optIn("nl.adaptivity.process.engine.ProcessInstanceStorage")
                 }
             }
             val commonMain by getting {

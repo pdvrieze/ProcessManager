@@ -20,8 +20,10 @@ plugins {
     id("idea")
     id("project-report")
     id("mpconsumer")
+    kotlin("android") apply false
+//    alias(libs.plugins.kotlin.android) apply false
     id("com.android.application") apply false
-    id("kotlin-android") apply false
+//    id("kotlin-android") apply false
 }
 
 //plugins {

@@ -27,20 +27,27 @@ pluginManagement {
             switch (requested.id.id) {
                 case "com.android.library":
                 case "com.android.application":
-                    def ver = requested.version != null ? requested.version : androidPluginVersion
-                    useModule("com.android.tools.build:gradle:${ver}");
+                    if (requested.version == null) {
+
+                        useVersion(androidPluginVersion)
+                    }
+//                    def ver = requested.version != null ? requested.version : androidPluginVersion
+//                    useModule("com.android.tools.build:gradle:${ver}");
                     break
                 case "kotlin-android":
                 case "org.jetbrains.kotlin.android":
                 case "org.jetbrains.kotlin.jvm":
                 case "kotlin-android-extensions":
-                    def ver = requested.version != null ? requested.version : kotlin_version
-                    useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:${ver}");
-                    break
                 case "org.jetbrains.kotlin.multiplatform":
-                    def ver = requested.version != null ? requested.version : kotlin_version
-                    useModule("org.jetbrains.kotlin:org.jetbrains.kotlin.multiplatform:${ver}");
+                    if (requested.version == null) {
+                        useVersion(kotlin_version)
+                    }
+//                    def ver = requested.version != null ? requested.version : kotlin_version
+//                    useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:${ver}");
                     break
+//                    def ver = requested.version != null ? requested.version : kotlin_version
+//                    useModule("org.jetbrains.kotlin:org.jetbrains.kotlin.multiplatform:${ver}");
+//                    break
                 case "org.jetbrains.dokka-android":
                     def ver = requested.version != null ? requested.version : dokkaVersion
                     useModule("org.jetbrains.dokka:dokka-android-gradle-plugin:${ver}")
@@ -86,6 +93,8 @@ pluginManagement {
         }
     }
 }
+
+enableFeaturePreview("VERSION_CATALOGS")
 
 rootProject.name = "ProcessManager"
 

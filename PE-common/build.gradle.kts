@@ -24,7 +24,6 @@ import versions.*
 
 plugins {
     kotlin("multiplatform")
-    id("idea")
     id("net.devrieze.gradlecodegen")
     id("kotlinx-serialization")
     mpconsumer

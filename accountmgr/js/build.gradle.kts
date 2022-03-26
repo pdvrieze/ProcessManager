@@ -15,7 +15,6 @@
  */
 
 import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
-import org.jetbrains.kotlin.gradle.targets.js.KotlinJsCompilerAttribute
 
 plugins {
     kotlin("js")
@@ -25,8 +24,6 @@ plugins {
 
 description = "Javascript library supporting the accountmanager funcationality."
 
-val kotlin_version: String by project
-val kotlinx_html_version: String by project
 val myJavaVersion: JavaVersion by project
 
 kotlin {
@@ -48,8 +45,7 @@ kotlin {
 
 dependencies {
 //    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation(kotlin("stdlib"))
-    implementation("org.jetbrains.kotlinx:kotlinx-html:$kotlinx_html_version")
+    implementation(libs.kotlinx.html)
     implementation(project(":darwin"))
 }
 

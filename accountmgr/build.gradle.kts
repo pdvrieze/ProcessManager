@@ -1,9 +1,3 @@
-import multiplatform.androidAttribute
-import multiplatform.registerAndroidAttributeForDeps
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import versions.*
-
 /*
  * Copyright (c) 2017.
  *
@@ -19,6 +13,10 @@ import versions.*
  * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
+import multiplatform.registerAndroidAttributeForDeps
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import versions.myJavaVersion
 
 plugins {
     kotlin("jvm")
@@ -46,22 +44,22 @@ java {
 registerAndroidAttributeForDeps()
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
-    implementation("org.jetbrains.kotlinx:kotlinx-html-jvm:$kotlinx_html_version")
+    implementation(libs.kotlin.stdlib.jdk8)
+    implementation(libs.kotlinx.html)
     implementation("com.sun.mail:javax.mail:1.5.5")
-    implementation("io.github.pdvrieze.kotlinsql:kotlinsql-monadic:$kotlinsqlVersion")
-    implementation("io.github.pdvrieze.xmlutil:core:$xmlutilVersion")
+    implementation(libs.kotlinsql.monadic)
+    implementation(libs.xmlutil.core)
     implementation(project(":accountcommon"))
     implementation(project(":darwin:servletSupport"))
     implementation(project(":darwin-sql"))
 
-    compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
+    compileOnly(libs.servletApi)
     compileOnly(project(":JavaCommonApi"))
     compileOnly(project(":DarwinJavaApi"))
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
-    testRuntimeOnly("org.mariadb.jdbc:mariadb-java-client:$mariaDbConnectorVersion")
+    testImplementation(libs.junit5.api)
+    testRuntimeOnly(libs.junit5.engine)
+    testRuntimeOnly(libs.mariadbConnector)
 
     "javascript"(project(":accountmgr:js"))
 }

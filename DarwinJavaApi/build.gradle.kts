@@ -14,9 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import multiplatform.registerAndroidAttributeForDeps
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import versions.*
+import versions.myJavaVersion
 
 plugins {
     id("java-library")
@@ -29,28 +27,18 @@ java {
     targetCompatibility = myJavaVersion
 }
 
-kotlin {
-    target {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = "1.8"
-            }
-        }
-    }
+kotlin.target.compilations.all {
+    kotlinOptions.jvmTarget = "1.8"
 }
 
 version = "1.1.0"
 description = "The api library for the Darwin system - Preferably this is loaded into the container classpath"
 
-//group = ['server', 'serverclasspath']
-registerAndroidAttributeForDeps()
-
 dependencies {
     compileOnly(project(":JavaCommonApi"))
-    compileOnly("org.jetbrains:annotations:13.0")
-    compileOnly("jakarta.jws:jakarta.jws-api:$jwsApiVersion")
+    compileOnly(libs.jwsApi)
 
     compileOnly(project(":multiplatform"))
-    implementation("javax.activation:javax.activation-api:$activationVersion")
+    implementation(libs.activationApi)
     implementation(kotlin("stdlib-jdk8"))
 }

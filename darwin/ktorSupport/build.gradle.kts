@@ -1,8 +1,3 @@
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
-import versions.kotlinx_html_version
-import versions.requirejs_version
-import versions.xmlutilVersion
-
 /*
  * Copyright (c) 2021.
  *
@@ -19,6 +14,9 @@ import versions.xmlutilVersion
  * see <http://www.gnu.org/licenses/>.
  */
 
+import versions.kotlinx_html_version
+import versions.xmlutilVersion
+
 
 plugins {
     kotlin("jvm")
@@ -29,8 +27,7 @@ base {
     archivesName.set("darwinktorsupport")
 }
 
-val serializationVersion: String by project
-val ktorVersion: String by project
+val ktorVersion = libs.versions.ktor.get()
 
 
 kotlin {

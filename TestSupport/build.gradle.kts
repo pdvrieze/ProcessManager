@@ -40,7 +40,7 @@ configurations {
 
 val testJar by tasks.creating(Jar::class) {
     from(sourceSets["test"].output)
-    classifier = "test"
+    archiveClassifier.set("test")
 }
 
 artifacts {
@@ -52,6 +52,7 @@ registerAndroidAttributeForDeps()
 dependencies {
     api(project(":java-common"))
     implementation(project(":ProcessEngine:core"))
+    implementation(project(":PE-common"))
     implementation(project(":DarwinJavaApi"))
     implementation(kotlin("stdlib-jdk8"))
 }

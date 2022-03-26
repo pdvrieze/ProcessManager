@@ -1,8 +1,3 @@
-import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
-import versions.kotlinx_html_version
-import versions.requirejs_version
-import versions.xmlutilVersion
-
 /*
  * Copyright (c) 2021.
  *
@@ -19,6 +14,7 @@ import versions.xmlutilVersion
  * see <http://www.gnu.org/licenses/>.
  */
 
+import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 
 plugins {
     kotlin("multiplatform")
@@ -32,12 +28,7 @@ base {
     archivesName.set("darwinktor")
 }
 
-val serializationVersion: String by project
-val ktorVersion: String by project
-val logbackVersion: String by project
-val kmongoVersion: String by project
-val reactWrappersVersion: String by project
-
+val ktorVersion = libs.versions.ktor.get()
 
 kotlin {
     jvm {}
@@ -60,8 +51,8 @@ kotlin {
     sourceSets {
         val commonMain by getting {
             dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
-                implementation("io.ktor:ktor-client-core:$ktorVersion")
+                implementation(libs.kotlinx.serialization.json)
+                implementation(libs.ktor.client.core)
             }
         }
 
@@ -74,15 +65,15 @@ kotlin {
 
         val jvmMain by getting {
             dependencies {
-                implementation("io.ktor:ktor-serialization:$ktorVersion")
-                implementation("io.ktor:ktor-server-core:$ktorVersion")
-                implementation("io.ktor:ktor-auth:$ktorVersion")
-                implementation("io.ktor:ktor-server-netty:$ktorVersion")
-                implementation("io.github.pdvrieze.xmlutil:ktor:$xmlutilVersion")
-                implementation("ch.qos.logback:logback-classic:$logbackVersion")
-                implementation("org.jetbrains.kotlinx:kotlinx-html:$kotlinx_html_version")
+                implementation(libs.ktor.serialization)
+                implementation(libs.ktor.server.core)
+                implementation(libs.ktor.auth)
+                implementation(libs.ktor.server.netty)
+                implementation(libs.xmlutil.ktor)
+                implementation(libs.logback)
+                implementation(libs.kotlinx.html)
                 implementation(project(":darwin:ktorSupport"))
-                runtimeOnly("org.webjars:requirejs:$requirejs_version")
+                runtimeOnly(libs.requirejs)
 
                 val webpackTask = tasks.getByName<KotlinWebpack>("jsBrowserDevelopmentWebpack")
                 runtimeOnly(files(webpackTask.destinationDirectory))
@@ -93,10 +84,10 @@ kotlin {
 
         val jsMain by getting {
             dependencies {
-                implementation("io.ktor:ktor-client-js:$ktorVersion")
-                implementation("io.ktor:ktor-client-json:$ktorVersion")
-                implementation("io.ktor:ktor-client-serialization:$ktorVersion")
-                implementation("org.webjars:requirejs:$requirejs_version")
+                implementation(libs.ktor.client.js)
+                implementation(libs.ktor.client.json)
+                implementation(libs.ktor.client.serialization)
+                implementation(libs.requirejs)
                 api(project(":darwin"/*, configuration = "jsDefault"*/))
             }
         }
@@ -113,7 +104,7 @@ val webPacks: Configuration by configurations.creating {
 }
 
 dependencies {
-    "webPacks"("org.webjars:requirejs:$requirejs_version")
+    "webPacks"(libs.requirejs)
 }
 
 tasks.named<Jar>("jvmJar") {
@@ -145,19 +136,6 @@ tasks.named<Jar>("jvmJar") {
 
     duplicatesStrategy = DuplicatesStrategy.WARN
 }
-
-/*
-distributions {
-    main {
-        contents {
-            from("$buildDir/libs") {
-                rename("${rootProject.name}-jvm", rootProject.name)
-                into("lib")
-            }
-        }
-    }
-}
-*/
 
 tasks.named<JavaExec>("run") {
     classpath(configurations["jvmRuntimeClasspath"])

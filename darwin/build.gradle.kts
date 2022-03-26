@@ -14,13 +14,6 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import multiplatform.androidAttribute
-import multiplatform.registerAndroidAttributeForDeps
-import org.gradle.kotlin.dsl.kotlin
-import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import versions.*
-
 plugins {
     kotlin("multiplatform")
     mpconsumer
@@ -60,27 +53,22 @@ kotlin {
 
         all {
             languageSettings {
-                useExperimentalAnnotation("kotlin.RequiresOptIn")
+                optIn("kotlin.RequiresOptIn")
             }
         }
         val commonMain by getting {
             dependencies {
                 implementation(project(":multiplatform"))
-                implementation("org.jetbrains.kotlinx:kotlinx-html:$kotlinx_html_version")
+                implementation(libs.kotlinx.html)
             }
         }
         val jvmMain by getting {
             dependencies {
-                compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
+                compileOnly(libs.servletApi)
                 compileOnly(project(":JavaCommonApi"))
                 compileOnly(project(":DarwinJavaApi"))
 
                 implementation(kotlin("stdlib-jdk8"))
-            }
-        }
-        val jsMain by getting {
-            dependencies {
-                implementation("org.jetbrains.kotlinx:kotlinx-html-js:$kotlinx_html_version")
             }
         }
     }

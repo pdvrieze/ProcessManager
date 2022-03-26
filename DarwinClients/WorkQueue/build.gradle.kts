@@ -14,12 +14,8 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import multiplatform.androidAttribute
-import multiplatform.registerAndroidAttributeForDeps
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
-import versions.jaxbVersion
 import versions.myJavaVersion
-import versions.tomcatVersion
 
 plugins {
     kotlin("jvm")
@@ -44,14 +40,12 @@ val genClasses = listOf("nl.adaptivity.process.userMessageHandler.server.Interna
 configurations {
     create("codegen") {
         attributes {
-            attribute(androidAttribute, false)
             attribute(KotlinPlatformType.attribute, KotlinPlatformType.jvm)
             attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class, Usage.JAVA_RUNTIME))
         }
     }
     create("codegenClasspath") {
         attributes {
-            attribute(androidAttribute, false)
             attribute(KotlinPlatformType.attribute, KotlinPlatformType.jvm)
 //            attribute(Usage.USAGE_ATTRIBUTE, project.objects.named(Usage::class, Usage.JAVA_RUNTIME))
         }
@@ -60,12 +54,8 @@ configurations {
 
 KotlinPlatformType.setupAttributesMatchingStrategy(project.dependencies.attributesSchema)
 
-sourceSets {
-    named<SourceSet>("main") {
-        java{
-            srcDir(genDir)
-        }
-    }
+kotlin.sourceSets.named("main") {
+    kotlin.srcDir(genDir)
 }
 
 tasks {
@@ -106,24 +96,19 @@ tasks {
     }
 }
 
-registerAndroidAttributeForDeps()
-
 dependencies {
     "codegen"(project(":DarwinGenerators"))
     "codegenClasspath"(project(path=":PEUserMessageHandler", configuration="apiElements"))
-//    "codegenClasspath"(project(":PE-common"))
-//    "codegen"(project(path= ":ProcessEngine:servlet", configuration= "codeGen"))
-//    compile 'generate'
+
     "api"(project(":JavaCommonApi"))
     "api"(project(":java-common"))
     "api"(project(":PE-common"))
 
     implementation(kotlin("stdlib-jdk8"))
-    implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
+    implementation(libs.jaxb)
     compileOnly(project(":DarwinJavaApi"))
 
-    compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
-//    compileOnly(project(path= ":PE-common", configuration="compileOnly"))
+    compileOnly(libs.servletApi)
 }
 
 

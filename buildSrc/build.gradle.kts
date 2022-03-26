@@ -31,18 +31,14 @@ run {
     }
 }
 
-val kotlin_version: String by project
-val androidPluginVersion: String by project
-
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-gradle-plugin:1.5.30")
+    val kotlin_version: String = project.libs.versions.kotlin.compiler.get()
+    val androidPluginVersion: String = project.libs.versions.androidPlugin.get()
+
+    compileOnly("org.jetbrains.kotlin:kotlin-gradle-plugin:$embeddedKotlinVersion")
+    runtimeOnly("org.jetbrains.kotlin:kotlin-gradle-plugin:${kotlin_version}")
     runtimeOnly("com.android.tools.build:gradle:$androidPluginVersion")
 }
-
-//dependencies {
-//    "implementationOnly"("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
-//    runtimeOnly("com.android.tools.build:gradle:$androidPluginVersion")
-//}
 
 repositories {
     mavenLocal()

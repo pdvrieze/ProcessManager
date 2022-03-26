@@ -14,7 +14,9 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import versions.*
+import versions.jupiterVersion
+import versions.kotlinsqlVersion
+import versions.mysqlConnectorVersion
 
 plugins {
     id("java-library")
@@ -27,11 +29,11 @@ base {
 }
 
 dependencies {
-    api("io.github.pdvrieze.kotlinsql:kotlinsql-core:$kotlinsqlVersion")
+    api(libs.kotlinsql.core)
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
-    testRuntimeOnly("mysql:mysql-connector-java:$mysqlConnectorVersion")
+    testImplementation(libs.junit5.api)
+    testRuntimeOnly(libs.junit5.engine)
+    testRuntimeOnly(libs.mariadbConnector)
 }
 
 kotlin {

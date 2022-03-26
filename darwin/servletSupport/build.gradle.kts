@@ -14,13 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import multiplatform.registerAndroidAttributeForDeps
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
-import org.jetbrains.kotlin.gradle.targets.js.KotlinJsCompilerAttribute
-import versions.kotlinx_html_version
 import versions.myJavaVersion
-import versions.requirejs_version
-import versions.tomcatVersion
 
 
 plugins {
@@ -37,16 +31,12 @@ java {
     targetCompatibility = myJavaVersion
 }
 
-registerAndroidAttributeForDeps()
-
 kotlin {
     explicitApi()
 }
 
 dependencies {
-    implementation("org.jetbrains.kotlinx:kotlinx-html:$kotlinx_html_version")
+    implementation(libs.kotlinx.html)
     api(project(":darwin"))
-    implementation("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
-//    compileOnly(project(":JavaCommonApi"))
-//    compileOnly(project(":DarwinJavaApi"))
+    implementation(libs.servletApi)
 }

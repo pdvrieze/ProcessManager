@@ -16,11 +16,7 @@
 
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsCompilerAttribute
-import versions.kotlinx_html_version
 import versions.myJavaVersion
-import versions.requirejs_version
-import versions.tomcatVersion
-
 
 plugins {
     kotlin("multiplatform")
@@ -68,16 +64,17 @@ kotlin {
         val jvmMain by getting {
             dependencies {
                 implementation(kotlin("stdlib-jdk8"))
-                implementation("org.jetbrains.kotlinx:kotlinx-html:$kotlinx_html_version")
+                implementation(libs.kotlinx.html)
+                implementation(libs.servletApi)
                 implementation(project(":darwin:servletSupport"))
-                implementation("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
+
                 compileOnly(project(":JavaCommonApi"))
                 compileOnly(project(":DarwinJavaApi"))
             }
         }
         val jsMain by getting {
             dependencies {
-                runtimeOnly("org.webjars:requirejs:$requirejs_version")
+                runtimeOnly(libs.requirejs)
                 api(project(":darwin"/*, configuration = "jsDefault"*/))
             }
         }

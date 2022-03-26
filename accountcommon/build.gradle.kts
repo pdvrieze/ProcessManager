@@ -14,7 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import versions.*
+import versions.myJavaVersion
 
 plugins {
     kotlin("jvm")
@@ -25,16 +25,15 @@ plugins {
 description = "A library that abstracts away the access to the account database through a nicer api"
 
 dependencies {
-    api("io.github.pdvrieze.kotlinsql:kotlinsql-monadic:$kotlinsqlVersion")
+    api(libs.kotlinsql.monadic)
 
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
     implementation(project(":darwin-sql"))
-    implementation("io.github.pdvrieze.xmlutil:core:$xmlutilVersion")
+    implementation(libs.xmlutil.core)
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
+    testImplementation(libs.junit5.api)
 
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
-    testRuntimeOnly("org.mariadb.jdbc:mariadb-java-client:$mariaDbConnectorVersion")
+    testRuntimeOnly(libs.junit5.engine)
+    testRuntimeOnly(libs.mariadbConnector)
 }
 
 java {
@@ -53,9 +52,9 @@ kotlin {
     }
     sourceSets.all {
         languageSettings.apply {
-            languageVersion = "1.5"
-            apiVersion = "1.5"
-            useExperimentalAnnotation("kotlin.RequiresOptIn")
+            languageVersion = libs.versions.kotlin.languageVersion.get()
+            apiVersion = libs.versions.kotlin.apiVersion.get()
+            optIn("kotlin.RequiresOptIn")
         }
     }
 }
