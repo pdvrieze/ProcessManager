@@ -25,6 +25,10 @@ plugins {
     mpconsumer
 }
 
+base {
+    archivesName.set("${project.parent?.name}-${project.name}")
+}
+
 version = "1.0.0"
 description = "The service that provides the process coordination system"
 //group = ['server', 'service' ]
@@ -44,8 +48,6 @@ configurations {
 
 val argJvmDefault: String by project
 
-registerAndroidAttributeForDeps()
-
 dependencies {
     compileOnly(project(":JavaCommonApi"))
     compileOnly(project(":DarwinJavaApi"))
@@ -58,7 +60,7 @@ dependencies {
     implementation(project(":multiplatform"))
 
     implementation(kotlin("stdlib-jdk8"))
-    implementation("org.jetbrains:annotations:13.0")
+//    implementation("org.jetbrains:annotations:13.0")
 
     implementation(project(":java-common"))
     implementation(project(":PE-common"))
@@ -67,18 +69,21 @@ dependencies {
     testImplementation(project(":JavaCommonApi"))
     testImplementation(project(":DarwinJavaApi"))
     testImplementation(project(":TestSupport"))
-    testImplementation("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
+    testImplementation(libs.servletApi)
 //    testImplementation(project(path= ":PE-common", configuration="testRuntime"))
 
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
+    testImplementation(libs.junit5.api)
     testImplementation("org.xmlunit:xmlunit-core:2.6.0")
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
+    testRuntimeOnly(libs.junit5.engine)
 }
 
+/*
 tasks.named<Test>("test") {
     useJUnitPlatform()
 }
+*/
 
+/*
 val war = tasks.named<War>("war") {
     archiveBaseName.set("${project.parent?.name}-${project.name}")
 }
@@ -86,15 +91,18 @@ val war = tasks.named<War>("war") {
 val jar = tasks.named<Jar>("jar"){
     archiveBaseName.set("${project.parent?.name}-${project.name}")
 }
+*/
 
+/*
 tasks.create<Jar>("testJar") {
     archiveBaseName.set("${project.name}-test")
     from(sourceSets["test"].output)
 }
+*/
 
 artifacts {
-    add("archives", war)
-    add("codeGen", jar)
+    add("archives", tasks.named("war"))
+    add("codeGen", tasks.named("jar"))
 }
 
 java {

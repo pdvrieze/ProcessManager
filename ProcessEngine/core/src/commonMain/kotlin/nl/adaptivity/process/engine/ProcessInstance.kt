@@ -667,7 +667,6 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
                 } ?: throw ProcessException("Attempting to update a nonexisting child")
         }
 
-        @ProcessInstanceStorage
         override fun store(data: MutableProcessEngineDataAccess) {
             // TODO: monitor for changes
             val newInstance = build(data)

@@ -19,15 +19,16 @@ import versions.*
 
 plugins {
     kotlin("multiplatform")
-    id("java-library")
     id("kotlinx-serialization")
     id("idea")
-    mpconsumer
+}
+
+base {
+    archivesName.set("${project.parent?.name}-${project.name}")
 }
 
 version = "1.0.0"
 description = "The core process engine, independent of deployment location."
-//group = ['server', 'service' ]
 
 kotlin {
     targets {
@@ -44,7 +45,7 @@ kotlin {
                     systemProperty("junit.jupiter.execution.parallel.enabled", true)
                 }
             }
-            attributes.attribute(androidAttribute, false)
+//            attributes.attribute(androidAttribute, false)
 
 /*
             testRuns.create("WCP1") {
@@ -129,10 +130,6 @@ kotlin {
             }
         }
     }
-}
-
-tasks.withType<Jar> {
-    archiveBaseName.set("${project.parent?.name}-${project.name}")
 }
 
 java {

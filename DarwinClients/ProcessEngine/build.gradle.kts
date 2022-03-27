@@ -19,8 +19,8 @@ import versions.myJavaVersion
 
 plugins {
     kotlin("jvm")
-    id("java-library")
-    id("idea")
+    `java-library`
+    idea
     mpconsumer
 }
 

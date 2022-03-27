@@ -994,8 +994,7 @@ class ProcessEngine<TR : ProcessTransaction, PIC : ActivityInstanceContext> {
 
         @JvmStatic
         @JvmName("newTestInstance")
-        @PublishedApi
-        internal fun <T : ProcessTransaction> newTestInstance(
+        fun <T : ProcessTransaction> newTestInstance(
             messageService: IMessageService<*>,
             transactionFactory: ProcessTransactionFactory<T>,
             processModels: IMutableProcessModelMap<T>,

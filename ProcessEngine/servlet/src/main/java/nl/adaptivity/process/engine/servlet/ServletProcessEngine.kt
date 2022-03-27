@@ -175,6 +175,9 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
 
         private var data: Writable? = null
 
+        init {
+            requireNotNull(message.endpointDescriptor)
+        }
 
         internal val owner: Principal
             get() = activityInstanceContext?.owner
@@ -184,7 +187,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
             get() = message.messageBody.getXmlReader()
 
         override val destination: EndpointDescriptor
-            get() = message.endpointDescriptor
+            get() = message.endpointDescriptor!!
 
         override val method: String?
             get() = message.method

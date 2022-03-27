@@ -19,8 +19,8 @@ import versions.kotlinsqlVersion
 import versions.mysqlConnectorVersion
 
 plugins {
-    id("java-library")
-    id("kotlin")
+    kotlin("jvm")
+    `java-library`
     id("mpconsumer")
 }
 

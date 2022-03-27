@@ -21,8 +21,8 @@ import versions.xmlutilVersion
 
 plugins {
     `java-library`
-    java
-    id("kotlin-platform-jvm")
+    kotlin("jvm")
+    mpconsumer
 }
 
 base {
