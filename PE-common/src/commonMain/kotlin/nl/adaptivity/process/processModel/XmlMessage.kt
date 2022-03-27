@@ -79,7 +79,7 @@ class XmlMessage : XMLContainer, IXmlMessage {
     override var method: String?
     private var type: String? = contentType
 
-    override val endpointDescriptor: EndpointDescriptor?
+    override val endpointDescriptor: EndpointDescriptor
         get() = EndpointDescriptorImpl(service, endpoint, this.url?.toUri())
 
     override val contentType: String

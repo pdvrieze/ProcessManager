@@ -79,7 +79,7 @@ class InternalEndpointImpl @JvmOverloads constructor(private val service: UserMe
             throw RuntimeException(e) // Should never happen
         }
 
-        MessagingRegistry.getMessenger().registerEndpoint(this)
+        MessagingRegistry.messenger.registerEndpoint(this)
     }
 
     @WebMethod
@@ -105,6 +105,6 @@ class InternalEndpointImpl @JvmOverloads constructor(private val service: UserMe
 
     override fun destroy() {
         service.destroy()
-        MessagingRegistry.getMessenger().unregisterEndpoint(this)
+        MessagingRegistry.messenger.unregisterEndpoint(this)
     }
 }

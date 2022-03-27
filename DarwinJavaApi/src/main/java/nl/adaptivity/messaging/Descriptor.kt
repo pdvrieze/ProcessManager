@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2018.
+ * Copyright (c) 2016.
  *
  * This file is part of ProcessManager.
  *
@@ -13,31 +13,13 @@
  * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
+package nl.adaptivity.messaging
 
-package nl.adaptivity.rest.annotations
-
+import kotlin.reflect.KClass
 
 /**
- *
- * @property post Expressions that put conditions on post parameters
- * @property get Expressions that put conditions on get parameters
- * @property query Expressions that put conditions on any request parameters (post or get)
+ * Annotation that allows an [EndpointDescriptor] to be linked to the type.
  */
 @Retention(AnnotationRetention.RUNTIME)
-@Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER)
-annotation class RestMethod(
-    val method: HttpMethod,
-    val path: String,
-    val post: Array<String> = arrayOf(),
-    val get: Array<String> = arrayOf(),
-    val query: Array<String> = arrayOf(),
-    val contentType: String = ""
-                           )
-
-enum class HttpMethod {
-    GET,
-    POST,
-    PUT,
-    DELETE,
-    HEAD
-}
+@Target(AnnotationTarget.ANNOTATION_CLASS, AnnotationTarget.CLASS)
+annotation class Descriptor(val value: KClass<out EndpointDescriptor>)

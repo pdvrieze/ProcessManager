@@ -13,29 +13,29 @@
  * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
-
-package nl.adaptivity.messaging;
-
+package nl.adaptivity.messaging
 
 /**
- * General exception signifying that something went wrong while processing/sending messages.
+ * A messaging exception that responds to an http status code.
  *
  * @author Paul de Vrieze
  */
-public class MessagingException extends RuntimeException {
+class HttpResponseException : MessagingException {
+    val responseCode: Int
 
-  private static final long serialVersionUID = -5272386729911111109L;
+    constructor(code: Int, message: String?) : super(message) {
+        responseCode = code
+    }
 
-  public MessagingException(final String message, final Throwable cause) {
-    super(message, cause);
-  }
+    constructor(code: Int, cause: Throwable?) : super(cause) {
+        responseCode = code
+    }
 
-  public MessagingException(final String message) {
-    super(message);
-  }
+    constructor(code: Int, message: String?, cause: Throwable?) : super(message, cause) {
+        responseCode = code
+    }
 
-  public MessagingException(final Throwable cause) {
-    super(cause);
-  }
-
+    companion object {
+        private const val serialVersionUID = -1958369502963081324L
+    }
 }

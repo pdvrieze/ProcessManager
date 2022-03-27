@@ -87,7 +87,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
             throw RuntimeException(e) // Should never happen
         }
 
-        MessagingRegistry.getMessenger().registerEndpoint(this)
+        MessagingRegistry.messenger.registerEndpoint(this)
     }
 
     /**
@@ -253,7 +253,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
 
     override fun destroy() {
         mService.destroy()
-        MessagingRegistry.getMessenger().registerEndpoint(this)
+        MessagingRegistry.messenger.registerEndpoint(this)
     }
 
     companion object {

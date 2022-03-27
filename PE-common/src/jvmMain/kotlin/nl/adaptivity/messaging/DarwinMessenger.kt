@@ -165,7 +165,7 @@ private constructor() : IMessenger {
         private var started = false
 
         /** The return type of the future.  */
-        private val returnType: Class<T>?
+        private val returnType: Class<out T>?
 
         /**
          * Create a new task.
@@ -177,9 +177,9 @@ private constructor() : IMessenger {
         constructor(
             destURL: URI,
             message: ISendableMessage,
-            completionListener: CompletionListener<T>,
-            returnType: Class<T>
-                   ) {
+            completionListener: CompletionListener<T>?,
+            returnType: Class<out T>
+        ) {
             this.destURL = destURL
             this.message = message
             this.completionListener = completionListener
@@ -289,7 +289,7 @@ private constructor() : IMessenger {
                         connection.setRequestProperty("content-type", message.contentType + "; charset=UTF-8")
                         connection.outputStream.use { out ->
                             val writer = OutputStreamWriter(out, "UTF-8")
-                            message.bodySource.writeTo(writer)
+                            message.bodySource!!.writeTo(writer)
                             writer.close()
                         }
                     }
@@ -304,9 +304,11 @@ private constructor() : IMessenger {
                         val baos = ByteArrayOutputStream()
                         InputStreamOutputStream.writeToOutputStream(connection.errorStream, baos)
                         val errorMessage =
-                            ("Error in sending message with $method to ($destination) [$responseCode]:\n${String(
-                                baos.toByteArray()
-                                                                                                                )}")
+                            ("Error in sending message with $method to ($destination) [$responseCode]:\n${
+                                String(
+                                    baos.toByteArray()
+                                )
+                            }")
                         Logger.getLogger(DarwinMessenger::class.java.name).info(errorMessage)
                         throw HttpResponseException(connection.responseCode, errorMessage)
                     }
@@ -317,9 +319,9 @@ private constructor() : IMessenger {
                             SourceDataSource(
                                 connection.contentType, StreamSource(
                                     ByteArrayInputStream(baos.toByteArray())
-                                                                    )
-                                            )
-                                              )
+                                )
+                            )
+                        )
                     } else {
                         return JAXB.unmarshal(connection.inputStream, returnType)
                     }
@@ -437,7 +439,7 @@ private constructor() : IMessenger {
         executor = ThreadPoolExecutor(
             INITIAL_WORK_THREADS, MAXIMUM_WORK_THREADS, WORKER_KEEPALIVE_MS.toLong(),
             TimeUnit.MILLISECONDS, ArrayBlockingQueue(CONCURRENTCAPACITY, true)
-                                     )
+        )
         notifier = MessageCompletionNotifier<Any?>()
         services = ConcurrentHashMap()
         notifier.start()
@@ -454,7 +456,7 @@ private constructor() : IMessenger {
                     + "  other components of the system. The public base url can be set as:\n"
                     + "  nl.adaptivity.messaging.baseurl, this should be accessible by\n" + "  all clients of the system.\n"
                     + "================================================"
-                      )
+            )
             Logger.getAnonymousLogger().warning(msg.toString())
         } else {
             try {
@@ -490,17 +492,10 @@ private constructor() : IMessenger {
         service[endpoint.endpointName] = endpoint
     }
 
-    override fun getRegisteredEndpoints(): List<EndpointDescriptor> {
-        val result = ArrayList<EndpointDescriptor>()
-        synchronized(services) {
-            for (service in services.values) {
-                for (endpoint in service.values) {
-                    result.add(endpoint)
-                }
-            }
+    override val registeredEndpoints: List<EndpointDescriptor>
+        get() = synchronized(services) {
+            services.values.flatMap { service -> service.values }
         }
-        return result
-    }
 
     override fun unregisterEndpoint(endpoint: EndpointDescriptor): Boolean {
         synchronized(services) {
@@ -531,14 +526,14 @@ private constructor() : IMessenger {
      */
     override fun <T> sendMessage(
         message: ISendableMessage,
-        completionListener: CompletionListener<T>,
-        returnType: Class<T>,
-        returnContext: Array<Class<*>>
-                                ): Future<T>? {
+        completionListener: CompletionListener<T>?,
+        returnType: Class<out T?>,
+        returnTypeContext: Array<out Class<*>>
+    ): Future<T> {
         var registeredEndpoint = getEndpoint(message.destination)
 
         if (registeredEndpoint is DirectEndpoint) {
-            return registeredEndpoint.deliverMessage(message, completionListener, returnType)
+            return registeredEndpoint.deliverMessage<T>(message, completionListener, returnType)
         }
 
         if (registeredEndpoint is Endpoint) { // Direct delivery when we don't just have a descriptor.
@@ -552,9 +547,9 @@ private constructor() : IMessenger {
                     if (returnType.isAssignableFrom(SourceDataSource::class.java)) {
                         resultfuture = MessageTask(
                             returnType.cast(SourceDataSource("application/soap+xml", resultSource))
-                                                  )
+                        )
                     } else {
-                        val resultval = SoapHelper.processResponse(returnType, returnContext, null!!, resultSource)
+                        val resultval = SoapHelper.processResponse(returnType, returnTypeContext, emptyArray(), resultSource)
                         resultfuture = MessageTask(resultval)
                     }
 
@@ -578,7 +573,7 @@ private constructor() : IMessenger {
         } else {
             val endpointLocation = registeredEndpoint!!.endpointLocation ?: return MessageTask(
                 NullPointerException("No endpoint location specified, and the service could not be found")
-                                                                                              )
+            )
             destURL = mLocalUrl!!.resolve(endpointLocation)
         }
 

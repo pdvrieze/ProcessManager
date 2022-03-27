@@ -28,42 +28,29 @@ import javax.xml.transform.Source
 
 
 class SendableSoapSource @JvmOverloads constructor(
-    private val destination: EndpointDescriptor,
+    override val destination: EndpointDescriptor,
     private val message: Source,
-    private val attachments: Map<String, DataSource> = emptyMap()
+    override val attachments: Map<String, DataSource> = emptyMap()
                                                   ) : ISendableMessage, Writable {
 
-    override fun getDestination(): EndpointDescriptor {
-        return destination
-    }
+    override val method: String?
+        get() = null
 
-    override fun getMethod(): String? {
-        return null
-    }
+    override val headers: Collection<ISendableMessage.IHeader>
+        get() = emptyList()
 
-    override fun getHeaders(): Collection<ISendableMessage.IHeader> {
-        return emptyList()
-    }
+    override val bodySource: Writable
+        get() = this
 
-    override fun getBodySource(): Writable {
-        return this
-    }
+    override val bodyReader: Reader
+        get() = message.toReader()
 
-    override fun getBodyReader(): Reader {
-        return message.toReader()
-    }
-
-    override fun getContentType(): String {
-        return Envelope.MIMETYPE
-    }
+    override val contentType: String
+        get() = Envelope.MIMETYPE
 
     @Throws(IOException::class)
     override fun writeTo(destination: Writer) {
         message.writeToWriter(destination)
-    }
-
-    override fun getAttachments(): Map<String, DataSource> {
-        return attachments
     }
 
 }

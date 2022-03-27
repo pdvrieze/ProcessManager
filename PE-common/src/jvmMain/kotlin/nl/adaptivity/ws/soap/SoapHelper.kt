@@ -16,7 +16,6 @@
 
 package nl.adaptivity.ws.soap
 
-import net.devrieze.util.*
 import net.devrieze.util.Tripple
 import net.devrieze.util.Types
 import net.devrieze.util.security.SYSTEMPRINCIPAL
@@ -114,8 +113,8 @@ object SoapHelper {
     }
 
     @Throws(JAXBException::class, XmlException::class)
-    fun createMessage(pOperationName: QName, pParams: List<Tripple<String, out Class<*>, *>>): Source {
-        return createMessage(pOperationName, null, pParams)
+    fun createMessage(operationName: QName, params: List<Tripple<String, out Class<*>, *>>): Source {
+        return createMessage(operationName, null, params)
     }
 
     /**
@@ -130,7 +129,11 @@ object SoapHelper {
      * @throws JAXBException
      */
     @Throws(JAXBException::class, XmlException::class)
-    fun createMessage(operationName: QName, headers: List<*>?, params: List<Tripple<String, out Class<*>, *>>): Source {
+    fun createMessage(
+        operationName: QName,
+        headers: List<*>?,
+        params: List<Tripple<String, out Class<*>, *>>
+    ): Source {
         val db: DocumentBuilder
         run {
             val dbf = DocumentBuilderFactory.newInstance()
@@ -158,21 +161,21 @@ object SoapHelper {
     /**
      * Create a SOAP envelope in the document and return the body element.
      *
-     * @param pDoc The document that needs to contain the envelope.
+     * @param doc The document that needs to contain the envelope.
      * @return The body element.
      */
-    private fun createSoapEnvelope(pDoc: Document): Element {
-        val envelope = pDoc.createElementNS(SOAP_ENVELOPE_NS, "soap:Envelope")
+    private fun createSoapEnvelope(doc: Document): Element {
+        val envelope = doc.createElementNS(SOAP_ENVELOPE_NS, "soap:Envelope")
         envelope.setAttribute("encodingStyle", SoapMethodWrapper.SOAP_ENCODING.toString())
-        pDoc.appendChild(envelope)
+        doc.appendChild(envelope)
         return envelope
     }
 
-    private fun createSoapHeader(pEnvelope: Element, pHeaders: List<*>): Element {
-        val ownerDoc = pEnvelope.ownerDocument
+    private fun createSoapHeader(envelope: Element, headers: List<*>): Element {
+        val ownerDoc = envelope.ownerDocument
         val header = ownerDoc.createElementNS(SOAP_ENVELOPE_NS, "soap:Header")
-        pEnvelope.appendChild(header)
-        for (headerElem in pHeaders) {
+        envelope.appendChild(header)
+        for (headerElem in headers) {
             if (headerElem is Node) {
                 val node = ownerDoc.importNode(headerElem, true)
                 header.appendChild(node)
@@ -211,25 +214,25 @@ object SoapHelper {
         return header
     }
 
-    private fun createSoapBody(pEnvelope: Element): Element {
-        val body = pEnvelope.ownerDocument.createElementNS(SOAP_ENVELOPE_NS, "soap:Body")
-        pEnvelope.appendChild(body)
+    private fun createSoapBody(envelope: Element): Element {
+        val body = envelope.ownerDocument.createElementNS(SOAP_ENVELOPE_NS, "soap:Body")
+        envelope.appendChild(body)
         return body
     }
 
     /**
      * Create the actual body of the SOAP message.
      *
-     * @param pBody The body element in which the body needs to be embedded.
-     * @param pOperationName The name of the wrapping name (the operation name).
+     * @param body The body element in which the body needs to be embedded.
+     * @param operationName The name of the wrapping name (the operation name).
      * @return
      */
-    private fun createBodyMessage(pBody: Element, pOperationName: QName): Element {
-        val pResultDoc = pBody.ownerDocument
+    private fun createBodyMessage(body: Element, operationName: QName): Element {
+        val resultDoc = body.ownerDocument
 
-        val message = pResultDoc.createElementNS(pOperationName.namespaceURI, pOperationName.toCName())
+        val message = resultDoc.createElementNS(operationName.namespaceURI, operationName.toCName())
 
-        pBody.appendChild(message)
+        body.appendChild(message)
         return message
     }
 
@@ -315,7 +318,7 @@ object SoapHelper {
     @Throws(XmlException::class)
     fun <T> processResponse(
         resultType: Class<T>,
-        context: Array<Class<*>>,
+        context: Array<out Class<*>>,
         useSiteAnnotations: Array<Annotation>,
         source: Source
     ): T? {
@@ -326,7 +329,7 @@ object SoapHelper {
 
     private fun <T> processResponse(
         resultType: Class<T>,
-        context: Array<Class<*>>,
+        context: Array<out Class<*>>,
         useSiteAnnotations: Array<Annotation>,
         env: Envelope<out ICompactFragment>
     ): T? {
@@ -335,17 +338,17 @@ object SoapHelper {
             val reader = bodyContent.getXmlReader()
             while (reader.hasNext()) {
                 when (reader.next()) {
-                    EventType.TEXT                 -> if (!isXmlWhitespace(reader.text)) {
+                    EventType.TEXT -> if (!isXmlWhitespace(reader.text)) {
                         throw XmlException("Unexpected text content")
                     }
                     EventType.IGNORABLE_WHITESPACE -> {
                     }
-                    EventType.START_ELEMENT        -> {
+                    EventType.START_ELEMENT -> {
                         val params = unmarshalWrapper(reader)
                         // This is the parameter wrapper
                         return unMarshalNode(null, resultType, context, useSiteAnnotations, params[RESULT])
                     }
-                    else                           -> throw XmlException("Unexpected content in soap response")
+                    else -> throw XmlException("Unexpected content in soap response")
                 }// whitespace is ignored
             }
             return null // no nodes
@@ -360,9 +363,9 @@ object SoapHelper {
         resultType: Class<T>,
         context: Array<Class<*>>,
         useSiteAnnotations: Array<Annotation>,
-        pContent: Writable
+        content: Writable
     ): T? {
-        val env = Envelope.deserialize(XmlStreaming.newReader(WritableReader(pContent)))
+        val env = Envelope.deserialize(XmlStreaming.newReader(WritableReader(content)))
         return processResponse(resultType, context, useSiteAnnotations, env)
     }
 
@@ -376,12 +379,12 @@ object SoapHelper {
         var returnName: QName? = null
         outer@ while (reader.hasNext()) {
             when (reader.next()) {
-                EventType.TEXT                 -> if (!isXmlWhitespace(reader.text)) {
+                EventType.TEXT -> if (!isXmlWhitespace(reader.text)) {
                     throw XmlException("Unexpected text content")
                 }
                 EventType.IGNORABLE_WHITESPACE -> {
                 }
-                EventType.START_ELEMENT        -> {
+                EventType.START_ELEMENT -> {
                     if (reader.isElement("http://www.w3.org/2003/05/soap-rpc", "result")) {
                         val s = reader.readSimpleElement().toString()
                         val i = s.indexOf(':')
@@ -407,8 +410,8 @@ object SoapHelper {
                         reader.require(EventType.END_ELEMENT, null, null)
                     }
                 }
-                EventType.END_ELEMENT          -> break@outer
-                else                           -> throw XmlException("Unexpected content in SOAP invocation")
+                EventType.END_ELEMENT -> break@outer
+                else -> throw XmlException("Unexpected content in SOAP invocation")
             }// whitespace is ignored
             // This is the parameter wrapper
         }
@@ -451,12 +454,12 @@ object SoapHelper {
         return params
     }
 
-    fun getHeaderMap(pHeader: Header?): MutableMap<String, Node> {
-        if (pHeader == null) {
+    fun getHeaderMap(header: Header?): MutableMap<String, Node> {
+        if (header == null) {
             return mutableMapOf()
         }
         val result = LinkedHashMap<String, Node>()
-        for (frag in pHeader.blocks) {
+        for (frag in header.blocks) {
 
             val node = DomUtil.childToNode(frag.toCompactFragment().getXmlReader())
             result[node.localName] = node
@@ -465,24 +468,24 @@ object SoapHelper {
     }
 
     internal fun <T> unMarshalNode(
-        pMethod: Method?,
-        pClass: Class<T>,
+        method: Method?,
+        clazz: Class<T>,
         jaxbContext: Array<out Class<*>>?,
         useSiteAnnotations: Array<out Annotation>,
-        pAttrWrapper: Node?
+        attrWrapper: Node?
     ): T? {
-        var value: Node? = pAttrWrapper?.firstChild
+        var value: Node? = attrWrapper?.firstChild
         while (value != null && value is Text && isXmlWhitespace(value.data)) {
             value = value.nextSibling
         }
         var result: Any?
-        if (value != null && !pClass.isInstance(value)) {
-            if (Types.isPrimitive(pClass) || Types.isPrimitiveWrapper(pClass)) {
-                result = Types.parsePrimitive(pClass, value.textContent)
-            } else if (Enum::class.java.isAssignableFrom(pClass)) {
+        if (value != null && !clazz.isInstance(value)) {
+            if (Types.isPrimitive(clazz) || Types.isPrimitiveWrapper(clazz)) {
+                result = Types.parsePrimitive(clazz, value.textContent)
+            } else if (Enum::class.java.isAssignableFrom(clazz)) {
                 val value = value.textContent
-                result = (pClass as Class<Enum<*>>).enumConstants.first { it.name == value }
-            } else if (pClass.isAssignableFrom(Principal::class.java)
+                result = (clazz as Class<Enum<*>>).enumConstants.first { it.name == value }
+            } else if (clazz.isAssignableFrom(Principal::class.java)
                 && value is Element
                 && SYSTEMPRINCIPAL.NS.equals(value.namespaceURI)
                 && SYSTEMPRINCIPAL.TAG.equals(value.localName)
@@ -493,12 +496,12 @@ object SoapHelper {
                 } else {
                     throw IllegalArgumentException("Invalid system principal key!! $key")
                 }
-            } else if (pClass.isAssignableFrom(Principal::class.java) && value is Text) {
+            } else if (clazz.isAssignableFrom(Principal::class.java) && value is Text) {
                 result = SimplePrincipal(value.data)
-            } else if (CharSequence::class.java.isAssignableFrom(pClass) && value is Text) {
-                if (pClass.isAssignableFrom(String::class.java)) {
+            } else if (CharSequence::class.java.isAssignableFrom(clazz) && value is Text) {
+                if (clazz.isAssignableFrom(String::class.java)) {
                     result = value.data
-                } else if (pClass.isAssignableFrom(StringBuilder::class.java)) {
+                } else if (clazz.isAssignableFrom(StringBuilder::class.java)) {
                     val `val` = value.data
                     result = StringBuilder(`val`.length)
                     result.append(`val`)
@@ -511,13 +514,13 @@ object SoapHelper {
                 var helper: Class<*>? = null
                 var deserializabletargetType: Class<*>? = null
                 try {
-                    helper = Class.forName(XmlDeserializationHelper::class.java.name, true, pClass.classLoader)
+                    helper = Class.forName(XmlDeserializationHelper::class.java.name, true, clazz.classLoader)
                     val deserializationTarget = helper!!.getMethod(
                         "deserializationTarget", Class::class.java,
                         arrayOfNulls<Annotation>(0).javaClass
                     )
                     deserializabletargetType = deserializationTarget.invoke(
-                        null, pClass,
+                        null, clazz,
                         useSiteAnnotations
                     ) as Class<*>
                 } catch (e: ClassNotFoundException) {
@@ -536,7 +539,7 @@ object SoapHelper {
                             "deserialize", Class::class.java, Class::class.java,
                             Node::class.java
                         ).invoke(
-                            null, pClass, deserializabletargetType,
+                            null, clazz, deserializabletargetType,
                             value
                         )
                     } catch (e: IllegalAccessException) {
@@ -558,7 +561,7 @@ object SoapHelper {
 
                     if (value.nextSibling != null && value.nextSibling is Element) {
                         throw UnsupportedOperationException(
-                            "Collection parameters not yet supported: " + pMethod!!.toGenericString() + " found: '" + DomUtil.toString(
+                            "Collection parameters not yet supported: " + method!!.toGenericString() + " found: '" + DomUtil.toString(
                                 value.nextSibling
                             ) + "' in " + DomUtil.toString(
                                 value.parentNode
@@ -568,18 +571,18 @@ object SoapHelper {
                     try {
                         val context: JAXBContext
 
-                        if (pClass.isInterface) {
-                            context = newJAXBContext(pMethod, Arrays.asList(*jaxbContext!!))
+                        if (clazz.isInterface) {
+                            context = newJAXBContext(method, Arrays.asList(*jaxbContext!!))
                         } else {
                             val list = ArrayList<Class<*>>(1 + (jaxbContext?.size ?: 0))
-                            list.add(pClass)
+                            list.add(clazz)
                             if (jaxbContext != null) {
                                 list.addAll(Arrays.asList(*jaxbContext))
                             }
-                            context = newJAXBContext(pMethod, list)
+                            context = newJAXBContext(method, list)
                         }
                         val um = context.createUnmarshaller()
-                        if (pClass.isInterface) {
+                        if (clazz.isInterface) {
                             if (value is Text) {
                                 result = value.data
                             } else {
@@ -591,12 +594,12 @@ object SoapHelper {
                             }
                         } else {
                             val umresult: JAXBElement<*>
-                            umresult = um.unmarshal(value, pClass)
+                            umresult = um.unmarshal(value, clazz)
                             result = umresult.value
                         }
 
                     } catch (e: JAXBException) {
-                        throw MessagingException("Error unmarshalling node " + pAttrWrapper!!, e)
+                        throw MessagingException("Error unmarshalling node " + attrWrapper!!, e)
                     }
 
                 }
@@ -604,29 +607,29 @@ object SoapHelper {
         } else {
             result = value
         }
-        if (Types.isPrimitive(pClass)) {
+        if (Types.isPrimitive(clazz)) {
             return result as T?
         }
 
-        return if (result == null) null else pClass.cast(result)
+        return if (result == null) null else clazz.cast(result)
     }
 
     @Throws(JAXBException::class)
-    private fun newJAXBContext(pMethod: Method?, pClasses: List<Class<*>>): JAXBContext {
+    private fun newJAXBContext(method: Method?, classes: List<Class<*>>): JAXBContext {
         val classList: Array<Class<*>>
         val seeAlso: XmlSeeAlso?
-        if (pMethod != null) {
-            val clazz = pMethod.declaringClass
+        if (method != null) {
+            val clazz = method.declaringClass
             seeAlso = clazz.getAnnotation(XmlSeeAlso::class.java)
         } else {
             seeAlso = null
         }
         if (seeAlso != null && seeAlso.value.isNotEmpty()) {
 
-            classList = (seeAlso.value.map<KClass<*>, Class<*>> { javaClass } + pClasses).toTypedArray()
+            classList = (seeAlso.value.map<KClass<*>, Class<*>> { javaClass } + classes).toTypedArray()
 
         } else {
-            classList = pClasses.toTypedArray()
+            classList = classes.toTypedArray()
         }
         return JAXBContext.newInstance(*classList)
     }

@@ -17,14 +17,10 @@
 package nl.adaptivity.messaging
 
 
-class Header(private val name: String, private val value: String) : nl.adaptivity.messaging.ISendableMessage.IHeader {
+class Header(
+    override val name: String,
+    override val value: String
+) : ISendableMessage.IHeader
 
-    override fun getName(): String {
-        return name
-    }
-
-    override fun getValue(): String {
-        return value
-    }
-
-}
+fun Header.getName() = name
+fun Header.getValue() = value

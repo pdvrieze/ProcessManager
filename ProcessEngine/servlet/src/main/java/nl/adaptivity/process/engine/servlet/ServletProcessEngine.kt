@@ -183,33 +183,31 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
         private val source: XmlReader
             get() = message.messageBody.getXmlReader()
 
-        override fun getDestination(): EndpointDescriptor? {
-            return message.endpointDescriptor
-        }
+        override val destination: EndpointDescriptor
+            get() = message.endpointDescriptor
 
-        override fun getMethod(): String? {
-            return message.method
-        }
+        override val method: String?
+            get() = message.method
 
-        override fun getHeaders(): Collection<ISendableMessage.IHeader> {
-            val contentType = message.contentType
-            return if (contentType.isEmpty()) {
-                emptyList()
-            } else {
-                listOf(Header("Content-type", contentType))
+        override val headers: Collection<ISendableMessage.IHeader>
+            get() {
+                val contentType = message.contentType
+                return when {
+                    contentType.isEmpty() -> emptyList()
+                    else -> listOf(Header("Content-type", contentType))
+                }
             }
-        }
 
-        override fun getBodySource(): Writable? = data
+        override val bodySource: Writable?
+            get() = data
 
-        override fun getBodyReader(): Reader {
-            val d = data
-            return if (d == null) StringReader("") else WritableReader(d) // XXX see if there's a better way
-        }
+        override val bodyReader: Reader
+            get() {
+                return data?.let(::WritableReader) ?: StringReader("")
+            }
 
-        override fun getContentType(): String {
-            return message.contentType
-        }
+        override val contentType: String
+            get() = message.contentType
 
         @Throws(IOException::class)
         override fun writeTo(destination: Writer) {
@@ -234,9 +232,8 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
 
         }
 
-        override fun getAttachments(): Map<String, DataSource> {
-            return emptyMap()
-        }
+        override val attachments: Map<String, DataSource>
+            get() = emptyMap()
 
         companion object {
 
@@ -452,7 +449,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     }
 
     override fun destroy() {
-        MessagingRegistry.getMessenger().unregisterEndpoint(this)
+        MessagingRegistry.messenger.unregisterEndpoint(this)
     }
 
     override fun getServletInfo(): String {
@@ -480,7 +477,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
 
         processEngine = ProcessEngine.newInstance(messageService, logger) as ProcessEngine<TR, *>
 
-        MessagingRegistry.getMessenger().registerEndpoint(this)
+        MessagingRegistry.messenger.registerEndpoint(this)
     }
 
     /**

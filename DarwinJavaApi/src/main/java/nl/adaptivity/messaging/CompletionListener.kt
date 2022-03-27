@@ -13,37 +13,24 @@
  * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
+package nl.adaptivity.messaging
 
-package nl.adaptivity.messaging;
+import java.util.concurrent.Future
 
 /**
- * A messaging exception that responds to an http status code.
+ * Interface for classes that can receive completion messages from the
+ * [IMessenger]. This happens in a separate thread.
  *
  * @author Paul de Vrieze
  */
-public class HttpResponseException extends MessagingException {
-
-  private static final long serialVersionUID = -1958369502963081324L;
-
-  private final int mCode;
-
-  public HttpResponseException(final int code, final String message) {
-    super(message);
-    mCode = code;
-  }
-
-  public HttpResponseException(final int code, final Throwable cause) {
-    super(cause);
-    mCode = code;
-  }
-
-  public HttpResponseException(final int code, final String message, final Throwable cause) {
-    super(message, cause);
-    mCode = code;
-  }
-
-  public int getResponseCode() {
-    return mCode;
-  }
-
+fun interface CompletionListener<T> {
+    /**
+     * Signify the completion of the task corresponding to the given future. Note
+     * that implementations sending completion messages should ensure that the
+     * future is complete when this method is called. There should not be a wait
+     * when invoking [Future.get] on the future.
+     *
+     * @param future The future that is complete.
+     */
+    fun onMessageCompletion(future: Future<out T>)
 }

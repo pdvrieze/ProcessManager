@@ -13,19 +13,16 @@
  * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
+package nl.adaptivity.io
 
-package nl.adaptivity.messaging;
-
-import java.lang.annotation.ElementType;
-import java.lang.annotation.Retention;
-import java.lang.annotation.RetentionPolicy;
-import java.lang.annotation.Target;
+import java.io.IOException
+import java.io.Writer
 
 /**
- * Annotation that allows an {@link EndpointDescriptor} to be linked to the type.
+ * A visitor interface for things that can write themselves to a writer.
+ * Created by pdvrieze on 19/11/15.
  */
-@Retention(RetentionPolicy.RUNTIME)
-@Target({ ElementType.TYPE })
-public @interface Descriptor {
-  Class<? extends EndpointDescriptor> value();
+interface Writable {
+    @Throws(IOException::class)
+    fun writeTo(destination: Writer)
 }

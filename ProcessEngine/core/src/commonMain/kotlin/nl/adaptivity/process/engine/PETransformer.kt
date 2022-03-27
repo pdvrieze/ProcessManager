@@ -47,6 +47,7 @@ class PETransformer private constructor(
             return results
         }
 
+        @OptIn(XmlUtilInternal::class)
         private fun doPeek(results: MutableList<XmlEvent>) {
             val events = super.doPeek()
 
@@ -143,6 +144,7 @@ class PETransformer private constructor(
             }
         }
 
+        @OptIn(XmlUtilInternal::class)
         private fun readEndTag(name: StartElementEvent) {
             while (true) {
                 val elems = super.doPeek()
