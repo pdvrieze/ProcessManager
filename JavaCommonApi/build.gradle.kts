@@ -14,20 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import multiplatform.androidAttribute
 import multiplatform.jvmAndroid
-import org.gradle.kotlin.dsl.dependencies
-import org.gradle.kotlin.dsl.kotlin
-import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
-import org.jetbrains.kotlin.gradle.plugin.KotlinSourceSet
-import org.jetbrains.kotlin.gradle.plugin.KotlinTarget
-import org.jetbrains.kotlin.gradle.plugin.KotlinTargetPreset
-import org.jetbrains.kotlin.gradle.plugin.sources.DefaultKotlinSourceSet
-import org.jetbrains.kotlin.gradle.tasks.Kotlin2JsCompile
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import versions.kotlin_version
-import java.util.Date
 
 plugins {
     kotlin("multiplatform")
@@ -54,7 +41,7 @@ kotlin {
             browser()
             nodejs()
             compilations.all {
-                tasks.getByName<KotlinJsCompile>(compileKotlinTaskName).kotlinOptions {
+                kotlinOptions {
                     sourceMap = true
                     suppressWarnings = false
                     verbose = true
@@ -69,7 +56,7 @@ kotlin {
     sourceSets {
         all {
             languageSettings {
-                useExperimentalAnnotation("kotlin.RequiresOptIn")
+                optIn("kotlin.RequiresOptIn")
             }
         }
         val commonMain by getting {

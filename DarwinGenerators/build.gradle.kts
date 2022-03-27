@@ -15,8 +15,7 @@
  */
 
 import multiplatform.registerAndroidAttributeForDeps
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import versions.*
+import versions.myJavaVersion
 
 plugins{
     kotlin("jvm")
@@ -51,10 +50,10 @@ dependencies {
     implementation(project(":DarwinJavaApi"))
     implementation(project(":java-common"))
     implementation(project(":PE-common"))
-    implementation("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
+    implementation(libs.servletApi)
     implementation(kotlin("stdlib-jdk8"))
-    implementation("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
-    implementation("jakarta.jws:jakarta.jws-api:$jwsApiVersion")
+    implementation(kotlin("reflect"))
+    implementation(libs.jwsApi)
 
 }
 repositories {

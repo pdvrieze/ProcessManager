@@ -14,9 +14,10 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import multiplatform.registerAndroidAttributeForDeps
 import org.gradle.internal.jvm.Jvm
 import versions.*
+import versions.testngVersion
+import versions.myJavaVersion
 
 plugins {
     kotlin("jvm")
@@ -29,12 +30,10 @@ java {
     targetCompatibility = myJavaVersion
 }
 
-registerAndroidAttributeForDeps()
-
 dependencies {
     implementation(kotlin("stdlib-jdk8"))
-    implementation("org.jetbrains:annotations:13.0")
-    implementation("jakarta.jws:jakarta.jws-api:$jwsApiVersion")
+//    implementation("org.jetbrains:annotations:13.0")
+    implementation(libs.jwsApi)
     if(! Jvm.current().javaVersion!!.isJava9Compatible) {
         // Add the tools jar only if we are on jdk8 or lower. tools.jar was removed in jdk 9. 
         implementation(files(org.gradle.internal.jvm.Jvm.current().toolsJar))

@@ -16,11 +16,11 @@
 
 import multiplatform.registerAndroidAttributeForDeps
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import versions.*
+import versions.myJavaVersion
 
 plugins{
     kotlin("jvm")
-    id("idea")
+    idea
     mpconsumer
 }
 
@@ -34,10 +34,8 @@ java {
 version = "1.1.0"
 description = "A tomcat realm to work with the darwin authentication system"
 
-registerAndroidAttributeForDeps()
-
 dependencies {
-    compileOnly("org.apache.tomcat:tomcat-catalina:$tomcatVersion")
+    compileOnly(libs.tomcat)
     runtimeOnly(dbcpSpec)
 
     implementation(project(":DarwinJavaApi"))

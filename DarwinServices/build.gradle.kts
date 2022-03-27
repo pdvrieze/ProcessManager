@@ -15,7 +15,7 @@
  */
 
 import multiplatform.registerAndroidAttributeForDeps
-import versions.*
+import versions.myJavaVersion
 
 plugins {
     java
@@ -33,20 +33,16 @@ java {
 version = "1.0.0"
 description = "A container for general support services for the darwin system, including messaging"
 
-//group = [ 'server', 'service' ]
-
 tasks.register("tomcatRun") {
     dependsOn(tasks.named("classes"))
     group= "web application"
     description = "Do everything needed to be able to run as embedded tomcat"
 }
 
-registerAndroidAttributeForDeps()
-
 dependencies {
     implementation(project(":PE-common"))
-    implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
-    compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
+    implementation(libs.jaxb)
+    compileOnly(libs.servletApi)
     compileOnly(project(":JavaCommonApi"))
     compileOnly(project(":DarwinJavaApi"))
 }

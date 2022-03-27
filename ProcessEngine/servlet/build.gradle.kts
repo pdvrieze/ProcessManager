@@ -14,14 +14,10 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import multiplatform.registerAndroidAttributeForDeps
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import versions.*
-
 plugins {
     kotlin("jvm")
     id("war")
-    id("idea")
+    idea
     mpconsumer
 }
 
@@ -73,7 +69,7 @@ dependencies {
 //    testImplementation(project(path= ":PE-common", configuration="testRuntime"))
 
     testImplementation(libs.junit5.api)
-    testImplementation("org.xmlunit:xmlunit-core:2.6.0")
+    testImplementation(libs.xmlunit)
     testRuntimeOnly(libs.junit5.engine)
 }
 

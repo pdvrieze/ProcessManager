@@ -13,14 +13,12 @@
  * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
-import multiplatform.androidAttribute
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import versions.*
+import versions.argJvmDefault
 
 plugins {
     kotlin("multiplatform")
     id("kotlinx-serialization")
-    id("idea")
+    idea
 }
 
 base {
@@ -34,11 +32,9 @@ kotlin {
     targets {
         jvm {
             compilations.all {
-                tasks.withType<KotlinCompile>/*(compileKotlinTaskName).*/  {
-                    kotlinOptions {
-                        jvmTarget = "1.8"
-                        freeCompilerArgs = listOf(argJvmDefault)
-                    }
+                kotlinOptions {
+                    jvmTarget = "1.8"
+                    freeCompilerArgs = listOf(argJvmDefault)
                 }
                 tasks.withType<Test> {
                     useJUnitPlatform()
@@ -91,41 +87,41 @@ kotlin {
                 dependencies {
                     api(project(":java-common"))
                     api(project(":PE-common"))
-                    api("jakarta.jws:jakarta.jws-api:$jwsApiVersion")
-                    api("javax.activation:javax.activation-api:$activationVersion")
-                    implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
+                    api(libs.jwsApi)
+                    api(libs.activationApi)
+                    implementation(libs.kotlinx.serialization.core)
 
-                    runtimeOnly("com.fasterxml.woodstox:woodstox-core:6.2.6")
+                    runtimeOnly(libs.woodstox)
 
-                    compileOnly("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
+                    compileOnly(libs.jaxb)
                 }
 
             }
             val commonTest by getting {
                 dependencies {
-                    implementation("io.github.pdvrieze.xmlutil:core:$xmlutilVersion")
-                    implementation("io.github.pdvrieze.xmlutil:serialization:$xmlutilVersion")
+                    implementation(libs.xmlutil.core)
+                    implementation(libs.xmlutil.serialization)
                 }
             }
             val jvmTest by getting {
                 dependencies {
                     implementation(project(":PE-common"))
                     implementation(kotlin("stdlib-jdk8"))
-                    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:$serializationVersion")
+                    implementation(libs.kotlinx.serialization.json)
 
-                    implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
+                    implementation(libs.jaxb)
 
-                    implementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
+                    implementation(libs.junit5.api)
 
-                    implementation("org.xmlunit:xmlunit-core:2.6.0")
-//    implementation "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+                    implementation(libs.xmlunit)
+//    implementation libs.servletApi
 
                     implementation(project(":DarwinJavaApi"))
                     implementation(project(":TestSupport"))
-                    implementation("io.github.pdvrieze.xmlutil:serialization-jvm:$xmlutilVersion")
+                    implementation(libs.xmlutil.serialization)
 
-                    runtimeOnly("org.jetbrains.kotlin:kotlin-reflect:$kotlin_version")
-                    runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
+                    runtimeOnly(kotlin("reflect"))
+                    runtimeOnly(libs.junit5.engine)
                 }
             }
         }

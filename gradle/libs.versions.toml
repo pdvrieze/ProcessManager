@@ -27,7 +27,7 @@ reactWrappers = "17.0.2-pre.214-kotlin-1.5.20"
 requirejs = "2.3.5"
 spek2="2.0.17"
 testng="7.4.0"
-tomcat="7.0.68"
+tomcat="7.0.68" #10.0.18
 tomcatPlugin="2.2.4"
 xmlutil="0.84.1"
 
@@ -60,17 +60,30 @@ ktor-server-netty = { module = "io.ktor:ktor-server-netty", version.ref = "ktor"
 ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
 ktor-auth = { module = "io.ktor:ktor-auth", version.ref = "ktor"}
 
+kxml2 = "net.sf.kxml:kxml2:2.3.0"
+
 logback = { module = "ch.qos.logback:logback-classic", version.ref="logback" }
 
 mariadbConnector = { module= "org.mariadb.jdbc:mariadb-java-client", version.ref="mariaDbConnector"}
+
+mockito-core = { module = "org.mockito:mockito-core", version = "2.25.0" }
+mockito-kotlin = { module = "com.nhaarman.mockitokotlin2:mockito-kotlin", version = "2.1.0" }
 
 requirejs = { module = "org.webjars:requirejs", version.ref="requirejs"}
 
 servletApi = { module = "org.apache.tomcat:tomcat-servlet-api", version.ref = "tomcat" }
 
+tomcat = { module = "org.apache.tomcat:tomcat-catalina", version.ref = "tomcat"}
+
+woodstox = { module = "com.fasterxml.woodstox:woodstox-core", version = "5.1.0"}
+
+xmlunit = { module = "org.xmlunit:xmlunit-core", version = "2.6.0"}
+
 xmlutil-core = { module = "io.github.pdvrieze.xmlutil:core", version.ref = "xmlutil"}
 xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version.ref = "xmlutil"}
+xmlutil-serialutil = { module = "io.github.pdvrieze.xmlutil:serialutil", version.ref = "xmlutil"}
 xmlutil-ktor = { module = "io.github.pdvrieze.xmlutil:ktor", version.ref = "xmlutil"}
+xmlutil-xmlserializable = { module = "io.github.pdvrieze.xmlutil:xmlserializable", version.ref = "xmlutil"}
 
 
 [plugins]

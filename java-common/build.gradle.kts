@@ -15,11 +15,6 @@
  */
 
 import multiplatform.jvmAndroid
-import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
-import versions.jaxbVersion
-import versions.jupiterVersion
-import versions.kotlinsqlVersion
-import versions.serializationVersion
 
 plugins {
     kotlin("multiplatform")
@@ -50,7 +45,7 @@ kotlin {
             browser()
             nodejs()
             compilations.all {
-                tasks.getByName<KotlinJsCompile>(compileKotlinTaskName).kotlinOptions {
+                kotlinOptions {
                     sourceMap = true
                     suppressWarnings = false
                     verbose = true
@@ -71,7 +66,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":multiplatform"))
-                implementation("org.jetbrains.kotlinx:kotlinx-serialization-core:$serializationVersion")
+                implementation(libs.kotlinx.serialization.core)
 
                 compileOnly(project(":JavaCommonApi"))
 
@@ -85,14 +80,14 @@ kotlin {
         val jvmMain by getting {
             dependsOn(javaMain)
             dependencies {
-                implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
-                api("io.github.pdvrieze.kotlinsql:kotlinsql-monadic:$kotlinsqlVersion")
+                implementation(libs.jaxb)
+                api(libs.kotlinsql.monadic)
             }
         }
         val jvmTest by getting {
             dependencies {
-                implementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
-                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
+                implementation(libs.junit5.api)
+                runtimeOnly(libs.junit5.engine)
             }
         }
         val androidMain by getting {

@@ -15,21 +15,17 @@
  */
 
 import multiplatform.registerAndroidAttributeForDeps
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import versions.*
+import versions.myJavaVersion
 
 plugins {
     kotlin("jvm")
     war
-    id("idea")
+    idea
     id("kotlinx-serialization")
 }
 
-base {
-    version = "1.0.0"
-    description = "The service that handles tasks for users (and functions as web interface entry point"
-//group = ['service', 'server']
-}
+version = "1.0.0"
+description = "The service that handles tasks for users (and functions as web interface entry point"
 
 val argJvmDefault: String by project
 val wsDestDir = file("${buildDir}/docs/wsDoc")
@@ -67,7 +63,7 @@ kotlin {
     }
     sourceSets.all {
         languageSettings {
-            useExperimentalAnnotation("kotlin.RequiresOptIn")
+            optIn("kotlin.RequiresOptIn")
         }
     }
 }
@@ -122,37 +118,37 @@ tomcat {
 registerAndroidAttributeForDeps()
 
 dependencies {
-    //    apiCompileOnly "org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}"
+    //    apiCompileOnly libs.servletApi
     "apiCompileOnly"(project(":JavaCommonApi"))
     "apiCompileOnly"(project(":DarwinJavaApi"))
     "apiImplementation"(project(":PE-common"))
-    "apiImplementation"("jakarta.jws:jakarta.jws-api:$jwsApiVersion")
+    "apiImplementation"(libs.jwsApi)
 //    "apiElements"(apiJar)
 
-    compileOnly("org.apache.tomcat:tomcat-servlet-api:${tomcatVersion}")
+    compileOnly(libs.servletApi)
     compileOnly(project(":JavaCommonApi"))
     compileOnly(sourceSets["api"].output)
 
 
-    runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.1.0")
-    implementation(("io.github.pdvrieze.xmlutil:serialization:$xmlutilVersion"))
+    runtimeOnly(libs.woodstox)
+    implementation((libs.xmlutil.serialization))
     implementation(project(":PE-common"))
-    implementation("jakarta.xml.bind:jakarta.xml.bind-api:$jaxbVersion")
+    implementation(libs.jaxb)
 
     implementation(project(":DarwinClients:ProcessEngine"))
     implementation(project(":darwin-sql"))
-    implementation("io.github.pdvrieze.kotlinsql:kotlinsql-monadic:$kotlinsqlVersion")
+    implementation(libs.kotlinsql.monadic)
     compileOnly(project(":DarwinJavaApi"))
 
 
     testRuntimeOnly(project(":DarwinJavaApi"))
-    testImplementation("org.junit.jupiter:junit-jupiter-api:$jupiterVersion")
-    testImplementation("org.xmlunit:xmlunit-core:2.6.0")
+    testImplementation(libs.junit5.api)
+    testImplementation(libs.xmlunit)
     testImplementation(project(":PE-common"))
 
-    testRuntimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
-    testRuntimeOnly("com.fasterxml.woodstox:woodstox-core:5.1.0")
-    testRuntimeOnly("mysql:mysql-connector-java:5.1.36")
+    testRuntimeOnly(libs.junit5.engine)
+    testRuntimeOnly(libs.woodstox)
+    testRuntimeOnly(libs.mariadbConnector)
 
 /*
     wsDoc project(":PE-common:endpointDoclet")

@@ -1,8 +1,3 @@
-import multiplatform.androidAttribute
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import versions.*
-
 /*
  * Copyright (c) 2018.
  *
@@ -18,6 +13,12 @@ import versions.*
  * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
+
+import multiplatform.androidAttribute
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
+import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
+import versions.*
+
 plugins {
     id("com.android.application")
     kotlin("android")
@@ -86,8 +87,8 @@ dependencies {
 
     implementation(project(":JavaCommonApi"))
 
-    implementation("io.github.pdvrieze.xmlutil:core:$xmlutilVersion")
-    implementation("io.github.pdvrieze.xmlutil:serialization:$xmlutilVersion")
+    implementation(libs.xmlutil.core)
+    implementation(libs.xmlutil.serialization)
     implementation(project(":java-common"))
 //    implementation("net.devrieze:android-coroutines-appcompat:0.7.990")
 

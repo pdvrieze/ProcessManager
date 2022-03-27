@@ -14,26 +14,20 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import multiplatform.androidAttribute
-import multiplatform.registerAndroidAttributeForDeps
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import org.gradle.kotlin.dsl.kotlin
-import org.jetbrains.kotlin.gradle.dsl.KotlinJsCompile
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
-import versions.*
+import multiplatform.jvmAndroid
 
 plugins {
     kotlin("multiplatform")
-    id("idea")
+    idea
     id("kotlinx-serialization")
-    mpconsumer
 }
 
 base {
     archivesName.set("PE-common")
-    version = "1.0.0"
-    description = "A library with process engine support classes"
 }
+
+version = "1.0.0"
+description = "A library with process engine support classes"
 
 kotlin {
     targets {
@@ -46,16 +40,10 @@ kotlin {
                     useJUnitPlatform()
                 }
             }
-            attributes.attribute(androidAttribute, false)
         }
-        jvm("android") {
-            attributes.attribute(androidAttribute, true)
-            attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.androidJvm)
+        jvmAndroid {
             compilations.all {
-                tasks.getByName<KotlinCompile>(compileKotlinTaskName).kotlinOptions {
-                    jvmTarget = "1.6"
-                    freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental")
-                }
+                kotlinOptions.jvmTarget = "1.6"
             }
         }
 /*
@@ -78,7 +66,7 @@ kotlin {
     sourceSets {
         all {
             languageSettings {
-                useExperimentalAnnotation("kotlin.RequiresOptIn")
+                optIn("kotlin.RequiresOptIn")
             }
         }
         val commonMain by getting {
@@ -88,8 +76,8 @@ kotlin {
                 implementation(kotlin("stdlib"))
                 implementation(project(":java-common"))
                 implementation(project(":PE-common"))
-                implementation("io.github.pdvrieze.xmlutil:core:$xmlutilVersion")
-                implementation("io.github.pdvrieze.xmlutil:xmlserializable:$xmlutilVersion")
+                implementation(libs.xmlutil.core)
+                implementation(libs.xmlutil.xmlserializable)
                 compileOnly(project(":JavaCommonApi"))
 
             }
@@ -97,7 +85,6 @@ kotlin {
         val commonTest by getting {
             dependencies {
                 implementation(kotlin("test"))
-//                implementation(kotlin("test-annotations"))
             }
         }
         val javaMain by creating {
@@ -115,14 +102,14 @@ kotlin {
         val jvmTest by getting {
             dependencies {
                 implementation(kotlin("test-junit5"))
-                runtimeOnly("com.fasterxml.woodstox:woodstox-core:5.1.0")
-                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
+                runtimeOnly(libs.woodstox)
+                runtimeOnly(libs.junit5.engine)
             }
         }
         val androidTest by getting {
             dependencies {
                 implementation(kotlin("test-junit5"))
-                runtimeOnly("org.junit.jupiter:junit-jupiter-engine:$jupiterVersion")
+                runtimeOnly(libs.junit5.engine)
             }
         }
         val androidMain by getting {
@@ -132,8 +119,8 @@ kotlin {
         val jsMain by getting {
             dependsOn(commonMain)
             dependencies {
-                api("io.github.pdvrieze.xmlutil:core:$xmlutilVersion")
-                api("io.github.pdvrieze.xmlutil:serialization:$xmlutilVersion")
+                api(libs.xmlutil.core)
+                api(libs.xmlutil.serialization)
                 api("org.jetbrains.kotlinx:kotlinx-serialization-runtime-core-js:$serializationVersion")
                 implementation("org.jetbrains.kotlin:kotlin-stdlib-js:$kotlin_version")
             }
@@ -144,7 +131,7 @@ kotlin {
 }
 
 
-tasks.create<Task>("test") {
+tasks.register<Task>("test") {
     dependsOn(tasks.named("jvmTest"))
     group="verification"
 }

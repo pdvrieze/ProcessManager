@@ -14,13 +14,11 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import multiplatform.registerAndroidAttributeForDeps
-import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 import versions.myJavaVersion
 
 plugins {
     kotlin("jvm")
-    id("idea")
+    idea
 }
 
 version = "1.0.0"
@@ -29,6 +27,11 @@ description = "A library with process engine support classes"
 java {
     sourceCompatibility = myJavaVersion
     targetCompatibility = myJavaVersion
+}
+
+kotlin {
+    target.compilations.all { kotlinOptions.jvmTarget = "1.8" }
+
 }
 
 configurations {
@@ -47,8 +50,6 @@ artifacts {
     add("testRuntimeClasspath", testJar)
 }
 
-registerAndroidAttributeForDeps()
-
 dependencies {
     api(project(":java-common"))
     implementation(project(":ProcessEngine:core"))
@@ -59,12 +60,4 @@ dependencies {
 repositories {
     mavenLocal()
     mavenCentral()
-}
-val compileKotlin: KotlinCompile by tasks
-compileKotlin.kotlinOptions {
-    jvmTarget = "1.8"
-}
-val compileTestKotlin: KotlinCompile by tasks
-compileTestKotlin.kotlinOptions {
-    jvmTarget = "1.8"
 }
