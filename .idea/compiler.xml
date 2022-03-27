@@ -62,7 +62,6 @@
       <module name="ProcessManager.PE-server" target="11" />
       <module name="ProcessManager.PE-server.main" target="11" />
       <module name="ProcessManager.PE-server.test" target="11" />
-      <module name="ProcessManager.webeditor" target="11" />
       <module name="xmlutil.buildSrc" target="11" />
       <module name="xmlutil.buildSrc.main" target="11" />
       <module name="xmlutil.buildSrc.test" target="11" />
