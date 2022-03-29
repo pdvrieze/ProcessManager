@@ -36,7 +36,7 @@ import java.util.logging.Logger
 import javax.jws.WebMethod
 import javax.jws.WebParam
 import javax.jws.WebParam.Mode
-import javax.servlet.ServletConfig
+import jakarta.servlet.ServletConfig
 
 
 class InternalEndpointImpl @JvmOverloads constructor(private val service: UserMessageService<out Transaction> = UserMessageService.instance) :

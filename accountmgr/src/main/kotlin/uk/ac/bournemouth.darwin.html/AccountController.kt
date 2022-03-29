@@ -44,13 +44,13 @@ import javax.mail.Session
 import javax.mail.Transport
 import javax.mail.internet.InternetAddress
 import javax.mail.internet.MimeMessage
-import javax.servlet.ServletConfig
-import javax.servlet.ServletException
-import javax.servlet.annotation.MultipartConfig
-import javax.servlet.http.Cookie
-import javax.servlet.http.HttpServlet
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.ServletConfig
+import jakarta.servlet.ServletException
+import jakarta.servlet.annotation.MultipartConfig
+import jakarta.servlet.http.Cookie
+import jakarta.servlet.http.HttpServlet
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 
 //internal const val MAXTOKENLIFETIME = 864000 /* Ten days */

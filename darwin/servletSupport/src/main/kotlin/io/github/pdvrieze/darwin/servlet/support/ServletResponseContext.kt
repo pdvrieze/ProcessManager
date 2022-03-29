@@ -18,7 +18,7 @@ package io.github.pdvrieze.darwin.servlet.support
 
 import uk.ac.bournemouth.darwin.html.ResponseContext
 import java.io.Writer
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletResponse
 
 public class ServletResponseContext(public val servletResponse: HttpServletResponse): ResponseContext {
     override fun contentType(type: String) {

@@ -16,11 +16,10 @@
 
 package nl.adaptivity.process.engine.servlet
 
+import jakarta.servlet.ServletContextEvent
+import jakarta.servlet.ServletContextListener
 import nl.adaptivity.messaging.DarwinMessenger
 import nl.adaptivity.messaging.MessagingRegistry
-
-import javax.servlet.ServletContextEvent
-import javax.servlet.ServletContextListener
 
 
 class PEContextListener : ServletContextListener {

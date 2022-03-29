@@ -1,50 +1,49 @@
 <component name="ProjectRunConfigurationManager">
-  <configuration default="false" name="Process Engine" type="#com.intellij.j2ee.web.tomcat.TomcatRunConfigurationFactory" factoryName="Local" APPLICATION_SERVER_NAME="Tomcat 7.0.68 Process Engine" ALTERNATIVE_JRE_ENABLED="false">
+  <configuration default="false" name="Process Engine" type="#com.intellij.j2ee.web.tomcat.TomcatRunConfigurationFactory" factoryName="Local" APPLICATION_SERVER_NAME="Tomcat 10.0.18 Process Engine" ALTERNATIVE_JRE_ENABLED="true" ALTERNATIVE_JRE_PATH="11">
     <option name="OPEN_IN_BROWSER" value="false" />
     <option name="COMMON_VM_ARGUMENTS" value="-Dorg.apache.catalina.level=ALL" />
     <option name="UPDATING_POLICY" value="redeploy-artifacts" />
     <deployment>
-      <file path="$PROJECT_DIR$/PEUserMessageHandler/build/libs/PEUserMessageHandler-1.0.0.war">
+      <artifact name="Gradle : ProcessManager : PEUserMessageHandler-1.0.0.war">
         <settings>
           <option name="CONTEXT_PATH" value="/PEUserMessageHandler" />
         </settings>
-      </file>
-      <file path="$PROJECT_DIR$/DarwinServices/build/libs/DarwinServices-1.0.0.war">
+      </artifact>
+      <artifact name="Gradle : ProcessManager : DarwinServices-1.0.0.war">
         <settings>
           <option name="CONTEXT_PATH" value="/messaging" />
         </settings>
-      </file>
-      <file path="$PROJECT_DIR$/darwin/jvm/build/libs/darwinjvm.war">
+      </artifact>
+      <artifact name="Gradle : ProcessManager.darwin : darwinjvm.war">
         <settings>
           <option name="CONTEXT_PATH" value="/" />
         </settings>
-      </file>
-      <file path="$PROJECT_DIR$/accountmgr/build/libs/accountmgr.war">
+      </artifact>
+      <artifact name="Gradle : ProcessManager : accountmgr.war">
         <settings>
           <option name="CONTEXT_PATH" value="/accountmgr" />
         </settings>
-      </file>
-      <file path="$PROJECT_DIR$/ProcessEngine/servlet/build/libs/ProcessEngine-servlet-1.0.0.war">
+      </artifact>
+      <artifact name="Gradle : ProcessManager.ProcessEngine : ProcessEngine-servlet-1.0.0.war">
         <settings>
           <option name="CONTEXT_PATH" value="/ProcessEngine" />
         </settings>
-      </file>
-      <file path="$PROJECT_DIR$/webeditor/build/libs/webeditor.war">
+      </artifact>
+      <artifact name="Gradle : ProcessManager : webeditor-0.1.0.war">
         <settings>
           <option name="CONTEXT_PATH" value="/webeditor" />
         </settings>
-      </file>
+      </artifact>
     </deployment>
     <server-settings>
-      <option name="AJP_PORT" value="8009" />
       <option name="BASE_DIRECTORY_NAME" value="Unnamed_ProcessManager" />
       <option name="DEPLOY_TOMCAT_APPS" value="true" />
     </server-settings>
-    <predefined_log_file id="Tomcat" enabled="true" />
-    <predefined_log_file id="Tomcat Catalina" enabled="true" />
-    <predefined_log_file id="Tomcat Manager" enabled="false" />
-    <predefined_log_file id="Tomcat Host Manager" enabled="false" />
-    <predefined_log_file id="Tomcat Localhost Access" enabled="false" />
+    <predefined_log_file enabled="true" id="Tomcat" />
+    <predefined_log_file enabled="true" id="Tomcat Catalina" />
+    <predefined_log_file id="Tomcat Manager" />
+    <predefined_log_file id="Tomcat Host Manager" />
+    <predefined_log_file id="Tomcat Localhost Access" />
     <extension name="coverage" enabled="false" merge="false" sample_coverage="true" runner="idea" />
     <extension name="org.jetbrains.fluid.java.FluidRunConfigurationExtension" fluid.enabledBundledTracers="false" fluid.enabledBundledTracers.list="" />
     <RunnerSettings RunnerId="Debug">
@@ -52,7 +51,6 @@
     </RunnerSettings>
     <RunnerSettings RunnerId="Debug with VisualVM">
       <option name="DEBUG_PORT" value="33957" />
-      <option name="visualVMId" value="26375652171310" />
     </RunnerSettings>
     <ConfigurationWrapper VM_VAR="JAVA_OPTS" RunnerId="Cover">
       <option name="USE_ENV_VARIABLES" value="true" />
@@ -99,6 +97,21 @@
         <option name="PROGRAM_PARAMETERS" value="" />
       </SHUTDOWN>
     </ConfigurationWrapper>
+    <ConfigurationWrapper VM_VAR="JAVA_OPTS" RunnerId="Profile">
+      <option name="USE_ENV_VARIABLES" value="true" />
+      <STARTUP>
+        <option name="USE_DEFAULT" value="true" />
+        <option name="SCRIPT" value="" />
+        <option name="VM_PARAMETERS" value="" />
+        <option name="PROGRAM_PARAMETERS" value="" />
+      </STARTUP>
+      <SHUTDOWN>
+        <option name="USE_DEFAULT" value="true" />
+        <option name="SCRIPT" value="" />
+        <option name="VM_PARAMETERS" value="" />
+        <option name="PROGRAM_PARAMETERS" value="" />
+      </SHUTDOWN>
+    </ConfigurationWrapper>
     <ConfigurationWrapper VM_VAR="JAVA_OPTS" RunnerId="Run">
       <option name="USE_ENV_VARIABLES" value="true" />
       <STARTUP>
@@ -129,9 +142,16 @@
         <option name="PROGRAM_PARAMETERS" value="" />
       </SHUTDOWN>
     </ConfigurationWrapper>
-    <method>
-      <option name="Make" enabled="false" />
-      <option name="Gradle.BeforeRunTask" enabled="true" tasks=":copyTomcatWars :copyTomcatClasspath :PE-server:assembleExtraBootCp" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
+    <method v="2">
+      <option name="Gradle.BeforeRunTask" enabled="false" tasks=":copyTomcatWars :copyTomcatClasspath :PE-server:assembleExtraBootCp" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
+      <option name="BuildArtifacts" enabled="true">
+        <artifact name="Gradle : ProcessManager : webeditor-0.1.0.war" />
+        <artifact name="Gradle : ProcessManager.darwin : darwinjvm.war" />
+        <artifact name="Gradle : ProcessManager.ProcessEngine : ProcessEngine-servlet-1.0.0.war" />
+        <artifact name="Gradle : ProcessManager : DarwinServices-1.0.0.war" />
+        <artifact name="Gradle : ProcessManager : PEUserMessageHandler-1.0.0.war" />
+        <artifact name="Gradle : ProcessManager : accountmgr.war" />
+      </option>
     </method>
   </configuration>
 </component>

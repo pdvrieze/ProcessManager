@@ -8,6 +8,7 @@ codegen="0.5.8"
 databinding="3.1.4"
 dokka = "1.6.10"
 easywsdl = "2.6.0"
+hikaricp = "5.0.1"
 jaxb="2.3.2"
 junit5 = "1.8.0"
 jupiter = "5.8.0"
@@ -27,8 +28,8 @@ reactWrappers = "17.0.2-pre.214-kotlin-1.5.20"
 requirejs = "2.3.5"
 spek2="2.0.17"
 testng="7.4.0"
-tomcat="7.0.68" #10.0.18
-tomcatPlugin="2.2.4"
+tomcat="10.0.18" #7.0.68
+tomcatPlugin="2.7.0"
 xmlutil="0.84.1"
 
 [libraries]

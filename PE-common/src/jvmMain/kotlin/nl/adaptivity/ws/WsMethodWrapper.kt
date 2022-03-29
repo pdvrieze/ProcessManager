@@ -21,7 +21,7 @@ import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.engine.MessagingFormatException
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletResponse
 
 /**
  * Created by pdvrieze on 28/11/15.

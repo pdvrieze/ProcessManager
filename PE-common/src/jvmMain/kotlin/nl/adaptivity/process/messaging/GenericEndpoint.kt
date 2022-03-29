@@ -21,8 +21,8 @@ import nl.adaptivity.rest.annotations.RestMethod
 import nl.adaptivity.xml.QName
 
 import javax.jws.WebMethod
-import javax.servlet.Servlet
-import javax.servlet.ServletConfig
+import jakarta.servlet.Servlet
+import jakarta.servlet.ServletConfig
 
 
 /**

@@ -22,7 +22,6 @@ import org.apache.catalina.Context
 import org.apache.catalina.Lifecycle
 import org.apache.catalina.connector.Request
 import org.apache.catalina.connector.Response
-import org.apache.catalina.deploy.LoginConfig
 import org.apache.catalina.valves.ValveBase
 import org.apache.naming.ContextBindings
 import uk.ac.bournemouth.darwin.accounts.DARWINCOOKIENAME
@@ -39,9 +38,9 @@ import java.security.Principal
 import java.util.logging.Level
 import java.util.logging.Logger
 import javax.naming.NamingException
-import javax.servlet.ServletException
-import javax.servlet.http.Cookie
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.ServletException
+import jakarta.servlet.http.Cookie
+import jakarta.servlet.http.HttpServletResponse
 import javax.sql.DataSource
 import javax.naming.Context as NamingContext
 
@@ -173,7 +172,9 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
                     AuthResult.AUTHENTICATED -> if (container is Context && realm.hasResourcePermission(request, response, constraints, container)) {
                             invokeNext(request, response)
                         } else {
-                            response.sendError(HttpServletResponse.SC_FORBIDDEN, "User " + request.userPrincipal + " does not have permission for " + realm.info + " class:" + realm.javaClass.name)
+                            response.sendError(HttpServletResponse.SC_FORBIDDEN,
+                                               "User ${request.userPrincipal} does not have permission for $realm class:${realm.javaClass.name}"
+                            )
                         }
                     AuthResult.LOGIN_NEEDED, AuthResult.EXPIRED -> requestLogin(request, response)
                     else -> {
@@ -251,12 +252,6 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
                 return false
             } // We have sent the correct message
         }
-    }
-
-    @Suppress("OverridingDeprecatedMember")
-    @Throws(IOException::class)
-    override fun authenticate(request: Request, response: HttpServletResponse, config: LoginConfig): Boolean {
-        return authenticate(request, response)
     }
 
     companion object {

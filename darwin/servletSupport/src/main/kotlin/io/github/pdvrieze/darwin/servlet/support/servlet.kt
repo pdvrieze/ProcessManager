@@ -23,8 +23,8 @@ import uk.ac.bournemouth.darwin.html.darwinError
 import uk.ac.bournemouth.darwin.html.darwinResponse
 import uk.ac.bournemouth.darwin.sharedhtml.ContextTagConsumer
 import uk.ac.bournemouth.darwin.sharedhtml.ServiceContext
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 public fun HttpServletResponse.darwinResponse(
     request: HttpServletRequest,

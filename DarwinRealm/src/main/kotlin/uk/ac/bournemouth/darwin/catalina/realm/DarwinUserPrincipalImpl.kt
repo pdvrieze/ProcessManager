@@ -29,6 +29,8 @@ class DarwinUserPrincipalImpl(private val dataSource: DataSource, name: String, 
 
     constructor(dataSource: DataSource, name: String) : this(dataSource, name, Collections.emptyList<String>())
 
+    private var darwinRoles: Array<String> = emptyArray()
+
     /**
      * Get a set of all the roles in the principal. Note that this will create a
      * copy to allow concurrency and refreshes.
@@ -36,22 +38,21 @@ class DarwinUserPrincipalImpl(private val dataSource: DataSource, name: String, 
     @Synchronized override fun getRolesSet(): Set<String> {
         synchronized(this) {
             refreshIfNeeded()
-            return roles.toSet()
+            return darwinRoles.toSet()
         }
     }
 
     override fun getRoles(): Array<String> {
         synchronized (this) {
             refreshIfNeeded()
-            return roles
+            return darwinRoles
         }
     }
 
     @Synchronized private fun refreshIfNeeded() {
         if (needsRefresh()) {
-            val newRoles = linkedSetOf<String>()
             accountDb(dataSource) {
-                roles = getUserRoles(getName()).toTypedArray().apply { sort() }
+                darwinRoles = getUserRoles(getName()).toTypedArray().apply { sort() }
             }
             notifyRefresh()
         }
@@ -70,7 +71,7 @@ class DarwinUserPrincipalImpl(private val dataSource: DataSource, name: String, 
         result.append("DarwinUserPrincipal[").append(getName()).append('(')
         synchronized(this) {
             refreshIfNeeded()
-            roles.joinTo(result)
+            darwinRoles.joinTo(result)
         }
         result.append(")])")
         return result.toString()
@@ -81,10 +82,8 @@ class DarwinUserPrincipalImpl(private val dataSource: DataSource, name: String, 
     override fun isAdmin()= hasRole("admin")
 
     @Synchronized override fun cacheStrings(stringCache: StringCache): Principal {
-        name = stringCache.lookup(this.name)
-
         val tmpRoles = roles
-        roles = Array<String>(tmpRoles.size) {i -> stringCache.lookup(tmpRoles[i]) }
+        darwinRoles = Array<String>(tmpRoles.size) {i -> stringCache.lookup(tmpRoles[i]) }
         return this
     }
 

@@ -77,11 +77,11 @@ class DarwinRealm : RealmBase(), Lifecycle {
         throw UnsupportedOperationException("This implementation does not allow retrieving passwords.")
     }
 
-    override fun getName(): String {
+    fun getName(): String {
         return NAME
     }
 
-    override fun getInfo(): String {
+    fun getInfo(): String {
         return INFO
     }
 

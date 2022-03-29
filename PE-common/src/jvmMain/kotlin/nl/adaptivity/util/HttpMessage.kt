@@ -34,7 +34,7 @@ import java.security.Principal
 import java.util.*
 import javax.activation.DataHandler
 import javax.activation.DataSource
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 import javax.xml.bind.annotation.XmlAttribute
 import kotlin.collections.ArrayList
 import kotlin.collections.HashMap

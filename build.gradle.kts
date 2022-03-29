@@ -30,9 +30,11 @@ plugins {
 
 description = "The overall project that manages all artefacts of the processmanager"
 
+val collectDir = "$buildDir/artifacts"
+
 ext {
-    set("androidCompatVersion", "28.0.0-rc02")
-    set("dbcpSpec", "com.zaxxer:HikariCP:2.4.5")
+    set("androidCompatVersion", libs.versions.androidCompat.get())
+    set("dbcpSpec", "com.zaxxer:HikariCP:${libs.versions.hikaricp.get()}")
     set("collectDir", "${buildDir}/artifacts")
 
     set("myJavaVersion", JavaVersion.VERSION_1_8)
@@ -42,41 +44,33 @@ val androidEnabled get() = (project.ext["androidEnabledProp"] as String).toBoole
 
 //def artifactType = Attribute.of("artifactType", String)
 
+val tomcatWars by configurations.creating
+val tomcatClasspath by configurations.creating {
+    attributes {
+        attribute(KotlinPlatformType.attribute, KotlinPlatformType.jvm)
+    }
+}
+
+val androidApps = if(!androidEnabled) null else configurations.register("androidApps")
+
 configurations {
-    register("tomcatWars")
-    register("tomcatClasspath") {
-        attributes {
-            attribute(KotlinPlatformType.attribute, KotlinPlatformType.jvm)
-        }
-    }
-    if (androidEnabled) {
-        register("androidApps") {
-            attributes {
-//                attribute(artifactType, "apk")
-            }
-        }
-    }
     register("wsDoc")
 }
 
 
 dependencies {
-/*
-    tomcatWars project(path: ":ProcessEngine:servlet", configuration: "archives")
-    tomcatWars project(path: ":PEUserMessageHandler", configuration: "archives")
-    tomcatWars project(path: ":accountmgr", configuration: "archives")
-    tomcatWars project(path: ":darwin:war", configuration: "warConfig")
-    tomcatWars project(path: ":webeditor", configuration: "archives")
-    tomcatWars project(path: ":DarwinServices", configuration: "archives")
-*/
+    tomcatWars(project(path= ":ProcessEngine:servlet", configuration= "archives"))
+    tomcatWars(project(path= ":PEUserMessageHandler", configuration= "archives"))
+    tomcatWars(project(path= ":accountmgr", configuration= "archives"))
+    tomcatWars(project(path= ":darwin:war", configuration= "warConfig"))
+    tomcatWars(project(path= ":webeditor", configuration= "archives"))
+    tomcatWars(project(path= ":DarwinServices", configuration= "archives"))
 
 
-/*
-    tomcatClasspath "org.mariadb.jdbc:mariadb-java-client:$mariaDbConnectorVersion"
-    tomcatClasspath project(":DarwinJavaApi")
-    tomcatClasspath project(":JavaCommonApi")
-    tomcatClasspath project(":DarwinRealm")
-*/
+    tomcatClasspath(libs.mariadbConnector)
+    tomcatClasspath(project(":DarwinJavaApi"))
+    tomcatClasspath(project(":JavaCommonApi"))
+    tomcatClasspath(project(":DarwinRealm"))
 
 /*
     if (Boolean.valueOf(androidEnabledProp)) {
@@ -130,44 +124,33 @@ dependencies {
 //    }
 //}
 
-
-/*
-tasks.wrapper {
-    gradleVersion = "5.4.1"
+val copyTomcatWars by tasks.creating(Copy::class) {
+    group = "dist"
+    dependsOn(tomcatWars)
+    from(files( { dependsOn.filterIsInstance<Configuration>() } ))
+    into("${collectDir}/webapps/")
 }
 
-task copyTomcatWars(type: Copy) {
+val copyTomcatClasspath by tasks.creating(Copy::class) {
     group = "dist"
-    dependsOn configurations.tomcatWars
-    from files { dependsOn.findAll { dep -> dep instanceof Configuration } }
-    into "${collectDir}/webapps/"
-}
-
-task copyTomcatClasspath(type: Copy) {
-    group = "dist"
-    dependsOn configurations.tomcatClasspath
-    from files { dependsOn.findAll { dep -> dep instanceof Configuration } }
-    into "${collectDir}/tomcatlibs/"
+    dependsOn(tomcatClasspath)
+    from(files( { dependsOn.filterIsInstance<Configuration>() } ))
+    into("${collectDir}/tomcatlibs/")
     exclude { file -> file.name.contains("tomcat-servlet-api") }
 }
 
-if (Boolean.valueOf(androidEnabledProp)) {
-    task copyAndroid(type: Copy) {
-        group = "dist"
-        dependsOn configurations.androidApps
-        from files { dependsOn.findAll { dep -> dep instanceof Configuration } }
-        into "${collectDir}/androidApps/"
-    }
+val copyAndroid = if (!androidEnabled) null else tasks.registering(Copy::class) {
+    group = "dist"
+    dependsOn(androidApps)
+    from(files( { dependsOn.filterIsInstance<Configuration>() } ))
+    into("${collectDir}/androidApps/")
 }
 
-task dist {
+val dist by tasks.creating {
     group = "dist"
-    dependsOn copyTomcatWars, copyTomcatClasspath
-    if (Boolean.valueOf(androidEnabledProp)) {
-        dependsOn copyAndroid
-    }
+    dependsOn(copyTomcatWars, copyTomcatClasspath)
+    if (androidEnabled) dependsOn(copyAndroid)
 }
-*/
 
 /*
 task run(dependsOn: [":PE-server:tomcatRun"], type: DefaultTask) {

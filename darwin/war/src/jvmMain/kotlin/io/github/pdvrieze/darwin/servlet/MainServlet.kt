@@ -27,10 +27,10 @@ import kotlinx.html.img
 import kotlinx.html.stream.appendHTML
 import uk.ac.bournemouth.darwin.html.darwinDialog
 import uk.ac.bournemouth.darwin.html.darwinMenu
-import javax.servlet.Servlet
-import javax.servlet.http.HttpServlet
-import javax.servlet.http.HttpServletRequest
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.Servlet
+import jakarta.servlet.http.HttpServlet
+import jakarta.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletResponse
 
 class MainServlet: HttpServlet(), Servlet {
   override fun doGet(req: HttpServletRequest, resp: HttpServletResponse) {

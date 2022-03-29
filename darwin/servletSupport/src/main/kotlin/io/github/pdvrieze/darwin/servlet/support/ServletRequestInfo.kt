@@ -18,7 +18,7 @@ package io.github.pdvrieze.darwin.servlet.support
 
 import uk.ac.bournemouth.darwin.html.RequestInfo
 import java.security.Principal
-import javax.servlet.http.HttpServletRequest
+import jakarta.servlet.http.HttpServletRequest
 
 public class ServletRequestInfo(public val request: HttpServletRequest) : RequestInfo {
     override fun getHeader(name: String): String? = request.getHeader(name)

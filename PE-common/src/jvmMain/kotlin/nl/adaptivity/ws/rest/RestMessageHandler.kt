@@ -22,7 +22,7 @@ import nl.adaptivity.rest.annotations.RestMethod
 import nl.adaptivity.util.HttpMessage
 import nl.adaptivity.xmlutil.XmlException
 
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletResponse
 import javax.xml.transform.TransformerException
 
 import java.io.IOException

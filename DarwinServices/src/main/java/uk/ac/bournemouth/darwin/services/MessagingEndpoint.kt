@@ -18,7 +18,7 @@ package uk.ac.bournemouth.darwin.services
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.messaging.MessagingRegistry.messenger
 import nl.adaptivity.process.messaging.GenericEndpoint
-import javax.servlet.ServletConfig
+import jakarta.servlet.ServletConfig
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.rest.annotations.HttpMethod
 import nl.adaptivity.rest.annotations.RestMethod

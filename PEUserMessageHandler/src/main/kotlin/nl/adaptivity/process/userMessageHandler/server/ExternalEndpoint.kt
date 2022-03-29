@@ -36,8 +36,8 @@ import java.security.Principal
 import java.sql.SQLException
 import java.util.logging.Level
 import java.util.logging.Logger
-import javax.servlet.ServletConfig
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.ServletConfig
+import jakarta.servlet.http.HttpServletResponse
 import javax.xml.bind.annotation.XmlElementWrapper
 import javax.xml.bind.annotation.XmlSeeAlso
 import javax.xml.namespace.QName

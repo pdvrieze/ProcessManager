@@ -15,7 +15,7 @@
   -->
 
 <root>
-  <item name='org.apache.catalina.connector.Request javax.servlet.http.Cookie[] getCookies()'>
+  <item name='org.apache.catalina.connector.Request jakarta.servlet.http.Cookie[] getCookies()'>
     <annotation name='org.jetbrains.annotations.Nullable' />
   </item>
 </root>

@@ -44,7 +44,7 @@ import javax.activation.DataSource
 import javax.jws.WebMethod
 import javax.jws.WebParam
 import javax.jws.WebService
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.http.HttpServletResponse
 import javax.xml.bind.JAXB
 import javax.xml.bind.JAXBException
 import javax.xml.namespace.QName

@@ -54,9 +54,9 @@ import javax.activation.DataSource
 import javax.jws.WebMethod
 import javax.jws.WebParam
 import javax.jws.WebParam.Mode
-import javax.servlet.ServletConfig
-import javax.servlet.ServletException
-import javax.servlet.http.HttpServletResponse
+import jakarta.servlet.ServletConfig
+import jakarta.servlet.ServletException
+import jakarta.servlet.http.HttpServletResponse
 import javax.xml.bind.annotation.XmlElementWrapper
 import javax.xml.namespace.QName
 import javax.xml.stream.*
