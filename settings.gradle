@@ -27,68 +27,26 @@ pluginManagement {
             switch (requested.id.id) {
                 case "com.android.library":
                 case "com.android.application":
-                    if (requested.version == null) {
-
-                        useVersion(androidPluginVersion)
-                    }
-//                    def ver = requested.version != null ? requested.version : androidPluginVersion
-//                    useModule("com.android.tools.build:gradle:${ver}");
+                    if (requested.version == null) useVersion(androidPluginVersion)
                     break
                 case "kotlin-android":
                 case "org.jetbrains.kotlin.android":
                 case "org.jetbrains.kotlin.jvm":
                 case "kotlin-android-extensions":
                 case "org.jetbrains.kotlin.multiplatform":
-                    if (requested.version == null) {
-                        useVersion(kotlin_version)
-                    }
-//                    def ver = requested.version != null ? requested.version : kotlin_version
-//                    useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:${ver}");
+                case "org.jetbrains.kotlin.plugin.serialization":
+                    if (requested.version == null) useVersion(kotlin_version)
                     break
-//                    def ver = requested.version != null ? requested.version : kotlin_version
-//                    useModule("org.jetbrains.kotlin:org.jetbrains.kotlin.multiplatform:${ver}");
-//                    break
+                case "com.bmuschko.tomcat":
+                    useModule("com.bmuschko:gradle-tomcat-plugin:2.7.0")
+                    break
                 case "org.jetbrains.dokka-android":
                     def ver = requested.version != null ? requested.version : dokkaVersion
                     useModule("org.jetbrains.dokka:dokka-android-gradle-plugin:${ver}")
                     break
-                case "org.jetbrains.kotlin.plugin.serialization":
-                    def version = (requested.version == null || requested.version.length() == 0) ? kotlin_version : requested.version
-                    useVersion(version)
-                    break
-                case "kotlinx-serialization":
-                    def version = (requested.version == null || requested.version.length() == 0) ? kotlin_version : requested.version
-                    useModule("org.jetbrains.kotlin:kotlin-serialization:$version")
-                    break
                 case "net.devrieze.gradlecodegen":
-                    useModule("net.devrieze:gradle-codegen:0.5.6")
+                    useModule("net.devrieze:gradle-codegen:0.5.8")
                     break
-            }
-
-
-            if (requested.id.id == "kotlinx-serialization") {
-                def version = (requested.version == null || requested.version.length() == 0) ? kotlin_version : requested.version
-/*
-                // The kotlin version. Unfortunately intellij doesn't support the settings delegate (even though gradle does)
-                val version = when {
-                    !requested.version.isNullOrEmpty()
-                         -> requested.version
-
-                    else -> gradle.rootProject.extra["serializationVersion"]
-                }
-*/
-                useModule("org.jetbrains.kotlin:kotlin-serialization:$version")
-
-            } else if (requested.id.id == "net.devrieze.gradlecodegen") {
-                useModule("net.devrieze:gradle-codegen:0.5.6")
-            } else if (requested.id.id == "org.jetbrains.kotlin.jvm") {
-                def version = (requested.version == null || requested.version.length() == 0) ? kotlin_version : requested.version
-                useModule("org.jetbrains.kotlin:kotlin-gradle-plugin:$version")
-//                classpath "com.android.tools.build:gradle:$androidPluginVersion" //1.5.0
-//                classpath "com.bmuschko:gradle-tomcat-plugin:$tomcatPluginVersion"
-//
-//                classpath "org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version"
-
             }
         }
     }
@@ -154,10 +112,10 @@ include(":accountmgr")
 include(":accountmgr:js")
 
 include(":DarwinServices")
-/*
 
 include(":PE-server")
 
+/*
 include(":PE-common:endpointDoclet")
 */
 // Stale/broken

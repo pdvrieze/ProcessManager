@@ -21,7 +21,7 @@ plugins {
     kotlin("jvm")
     war
     idea
-    id("kotlinx-serialization")
+    kotlin("plugin.serialization")
 }
 
 version = "1.0.0"

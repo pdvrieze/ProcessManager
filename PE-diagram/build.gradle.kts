@@ -19,7 +19,7 @@ import multiplatform.jvmAndroid
 plugins {
     kotlin("multiplatform")
     idea
-    id("kotlinx-serialization")
+    kotlin("plugin.serialization")
 }
 
 base {

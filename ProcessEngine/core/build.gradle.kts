@@ -17,7 +17,7 @@ import versions.argJvmDefault
 
 plugins {
     kotlin("multiplatform")
-    id("kotlinx-serialization")
+    kotlin("plugin.serialization")
     idea
 }
 

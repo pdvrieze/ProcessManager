@@ -59,9 +59,6 @@
       <module name="ProcessManager.formats.xmlschema.androidMain" target="1.8" />
       <module name="ProcessManager.formats.xmlschema.androidTest" target="1.8" />
       <module name="ProcessManager.formats.xmlschema.javaMain" target="1.8" />
-      <module name="ProcessManager.PE-server" target="11" />
-      <module name="ProcessManager.PE-server.main" target="11" />
-      <module name="ProcessManager.PE-server.test" target="11" />
       <module name="xmlutil.buildSrc" target="11" />
       <module name="xmlutil.buildSrc.main" target="11" />
       <module name="xmlutil.buildSrc.test" target="11" />

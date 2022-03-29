@@ -19,7 +19,7 @@ import multiplatform.jvmAndroid
 plugins {
     kotlin("multiplatform")
     id("net.devrieze.gradlecodegen")
-    id("kotlinx-serialization")
+    kotlin("plugin.serialization")
     mpconsumer
 }
 
