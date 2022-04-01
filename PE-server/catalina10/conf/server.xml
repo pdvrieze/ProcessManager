@@ -43,6 +43,18 @@
               description="User database that can be updated and saved"
               factory="org.apache.catalina.users.MemoryUserDatabaseFactory"
               pathname="conf/tomcat-users.xml" />
+
+    <Resource name="jdbc/webauth"
+              auth="Container"
+              driverClassName="org.mariadb.jdbc.Driver"
+              factory="org.apache.naming.factory.BeanFactory"
+              password="QfWEsNjJeM"
+              leakDetectionThreshold="5000"
+              autoCommit="false"
+              type="com.zaxxer.hikari.HikariDataSource"
+              jdbcUrl="jdbc:mariadb://localhost/webauth"
+              username="webauthadm"/>
+
   </GlobalNamingResources>
 
   <!-- A "Service" is a collection of one or more "Connectors" that share
@@ -126,8 +138,14 @@
              resources under the key "UserDatabase".  Any edits
              that are performed against this UserDatabase are immediately
              available for use by the Realm.  -->
-        <Realm className="org.apache.catalina.realm.UserDatabaseRealm"
-               resourceName="UserDatabase"/>
+          <!-- This Realm uses the Darwin authentication system  -->
+          <Realm className="uk.ac.bournemouth.darwin.catalina.realm.DarwinRealm"
+                 resourceName="jdbc/webauth"/>
+
+<!--
+          <Realm className="org.apache.catalina.realm.UserDatabaseRealm"
+                 resourceName="UserDatabase"/>
+-->
       </Realm>
 
       <Host name="localhost"  appBase="webapps"

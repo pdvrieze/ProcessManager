@@ -1,12 +1,3 @@
-import com.bmuschko.gradle.tomcat.embedded.TomcatUser
-import com.bmuschko.gradle.tomcat.tasks.TomcatRun
-import com.bmuschko.gradle.tomcat.tasks.TomcatRunWar
-import multiplatform.androidAttribute
-import multiplatform.registerAndroidAttributeForDeps
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
-import versions.mysqlConnectorVersion
-import versions.tomcatVersion
-
 /*
  * Copyright (c) 2018.
  *
@@ -22,6 +13,15 @@ import versions.tomcatVersion
  * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
+import com.bmuschko.gradle.tomcat.embedded.TomcatUser
+import com.bmuschko.gradle.tomcat.tasks.TomcatRun
+import com.bmuschko.gradle.tomcat.tasks.TomcatRunWar
+import multiplatform.androidAttribute
+import multiplatform.registerAndroidAttributeForDeps
+import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
+import versions.mysqlConnectorVersion
+import versions.tomcatVersion
+
 
 plugins {
     java
@@ -80,6 +80,7 @@ dependencies {
 //    tomcat dbcpSpec
 
     "extraBootCp"("mysql:mysql-connector-java:$mysqlConnectorVersion")
+    "extraBootCp"(libs.mariadbConnector)
     "extraBootCp"(project(":DarwinJavaApi"))
     "extraBootCp"(project(":JavaCommonApi"))
     "extraBootCp"(project(":DarwinRealm"))

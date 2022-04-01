@@ -41,11 +41,11 @@
     <!-- description="The authentication database"-->
     <Resource name="jdbc/webauth"
               auth="Container"
-              driverClassName="com.mysql.jdbc.Driver"
+              driverClassName="org.mariadb.jdbc.Driver"
               factory="org.apache.naming.factory.BeanFactory"
               password="5glul9f3i4"
               type="com.zaxxer.hikari.HikariDataSource"
-              jdbcUrl="jdbc:mysql://localhost/webauth"
+              jdbcUrl="jdbc:mariadb://localhost/webauth"
               connectionTimeout="10000"
               idleTimeout="180000"
               maxLifetime="180000"
