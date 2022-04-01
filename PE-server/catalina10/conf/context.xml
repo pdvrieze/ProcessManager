@@ -28,4 +28,8 @@
     <!--
     <Manager pathname="SESSIONS.ser" />
     -->
+
+    <Valve className="uk.ac.bournemouth.darwin.catalina.authenticator.DarwinAuthenticator" loginPage="/accountmgr/login" resourceName="jdbc/webauth"/>
+    <ResourceLink name="jdbc/webauth" global="jdbc/webauth" type="javax.sql.DataSource" />
+
 </Context>
