@@ -35,6 +35,7 @@ kotlin {
             }
         }
         js(BOTH) {
+            moduleName = "darwin"
             browser()
             compilations.all {
                 kotlinOptions {
@@ -43,7 +44,6 @@ kotlin {
                     verbose = true
                     metaInfo = true
                     moduleKind = "umd"
-                    main = "call"
                 }
             }
         }

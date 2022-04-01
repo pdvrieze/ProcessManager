@@ -15,5 +15,6 @@
  */
 
 fun main() {
-    println("Foo")
+    // Call the main function of the darwin module.
+    nl.adaptivity.darwin.main()
 }

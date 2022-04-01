@@ -31,7 +31,7 @@ import uk.ac.bournemouth.darwin.util.foreach
 import kotlinx.browser.document
 
 fun updateLinks() {
-  (document.getElementById("accountmgr.setAlias") as HTMLElement).onclick = ::displaySetAliasFormClicked
+  (document.getElementById("accountmgr.setAlias") as HTMLElement?)?.run { onclick = ::displaySetAliasFormClicked }
   document.getElementsByClassName("forget_key_class").foreach { e ->
     (e as HTMLElement).onclick = ::forgetClicked
   }

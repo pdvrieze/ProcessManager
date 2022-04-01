@@ -28,7 +28,17 @@ val myJavaVersion: JavaVersion by project
 
 kotlin {
     js(KotlinJsCompilerType.LEGACY) {
-        browser()
+        moduleName = "accountmgr"
+        browser{
+        }
+        binaries.executable()
+        compilations.all {
+            kotlinOptions {
+                sourceMap = true
+                verbose = true
+                moduleKind = "umd"
+            }
+        }
     }
 /*
     kotlinOptions {

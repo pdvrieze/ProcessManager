@@ -16,6 +16,7 @@
 
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsCompilerAttribute
+import org.jetbrains.kotlin.serialization.js.ModuleKind
 import versions.myJavaVersion
 
 plugins {
@@ -37,6 +38,7 @@ java {
 kotlin {
     targets {
         jvm {
+            withJava()
             compilations.all {
                 kotlinOptions {
                     jvmTarget = "1.8"
@@ -44,7 +46,7 @@ kotlin {
             }
         }
         js(LEGACY) {
-            moduleName = "darwin"
+            moduleName = "darwinwar"
             browser {
                 dceTask {
                     keep("darwin.html.onLinkClick")
@@ -52,11 +54,16 @@ kotlin {
                 }
 
                 webpackTask {
-
-                    outputFileName = "darwin.js"
+                    outputFileName = "darwinwar.js"
                 }
             }
             binaries.executable()
+            compilations.all {
+                kotlinOptions {
+                    sourceMap=true
+                    moduleKind = "umd"
+                }
+            }
         }
     }
 
@@ -89,6 +96,10 @@ configurations {
         }
     }
     create("warConfig")
+}
+
+war {
+    webAppDirName="src/jvmMain/webapp"
 }
 
 val jsBrowserDistribution by tasks.getting
