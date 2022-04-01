@@ -449,7 +449,7 @@ public open class AccountDb(private val dataSource: DataSource) {
     }
 
     public fun ensureTables() {
-        WebAuthDB(dataSource) { ensureTables() }
+        WebAuthDB(dataSource) { ensureTables().commit() }
     }
 
     private companion object {

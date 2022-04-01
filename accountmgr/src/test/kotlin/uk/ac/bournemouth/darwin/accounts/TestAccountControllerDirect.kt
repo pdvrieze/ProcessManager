@@ -61,28 +61,6 @@ class TestAccountControllerDirect {
         accountDb {
             ensureTables()
         }
-
-/*
-        try {
-            WebAuthDB.connect2(MyDataSource()) {
-                val conn = this
-                val tablesCreated = mutableSetOf<Table>()
-                var t: DBTransactionBase<WebAuthDB, *> = conn as DBConnection2<WebAuthDB>
-
-                WebAuthDB._tables.forEach { table ->
-                    with (table) {
-                        if (table !in tablesCreated) {
-                            t = t.flatmap { db.createTransitive(true, tablesCreated) }
-                        }
-                    }
-                }
-                (t as DBTransaction).commit()
-            }
-        } catch (e: SQLException) {
-            e.printStackTrace()
-            throw e
-        }
-*/
     }
 
     @AfterEach
@@ -97,13 +75,12 @@ class TestAccountControllerDirect {
                 WebAuthDB.roles,
                 WebAuthDB.users,
             )
-            transaction {
-                tables.forEach { table ->
-                    DELETE_FROM(table).evaluateNow()
-//                table.dropTransitive(this, true)
+
+            value(tables).flatMap { tables ->
+                tables.map { t ->
+                    t.dropTransitive(ifExists = true)
                 }
-                commit()
-            }
+            }.commit()
         }
     }
 
@@ -128,7 +105,7 @@ class TestAccountControllerDirect {
         accountDb {
             doCreateUser()
             assertTrue(verifyCredentials(testUser, testPassword1), "The password should be valid")
-            assertFalse(verifyCredentials(testUser.toUpperCase(), testPassword1),
+            assertFalse(verifyCredentials(testUser.uppercase(), testPassword1),
                         "The username should be case sensitive")
         }
     }
