@@ -20,23 +20,21 @@ import nl.adaptivity.xmlutil.XmlWriter
 import javax.xml.namespace.NamespaceContext
 import javax.xml.stream.XMLStreamWriter
 
-internal fun XmlWriter.asXmlStreamWriter(): XMLStreamWriter = XmlStreamWiterAdapter(this)
+internal fun XmlWriter.asXmlStreamWriter(): XMLStreamWriter = SubXmlStreamWriterAdapter(this)
 
-private class XmlStreamWiterAdapter(private val delegate: XmlWriter): XMLStreamWriter {
+/**
+ * This class forwards to an XmlWriter, but ignores start document/end document events as it is
+ * intended to be used outside of document context.
+ */
+private class SubXmlStreamWriterAdapter(private val delegate: XmlWriter): XMLStreamWriter {
 
     private val tagStack: MutableList<Triple<String?, String, String?>> = ArrayDeque()
 
-    override fun writeStartDocument() {
-        delegate.startDocument()
-    }
+    override fun writeStartDocument() {}
 
-    override fun writeStartDocument(version: String?) {
-        delegate.startDocument(version)
-    }
+    override fun writeStartDocument(version: String?) {}
 
-    override fun writeStartDocument(encoding: String?, version: String?) {
-        delegate.startDocument(encoding = encoding, version = version)
-    }
+    override fun writeStartDocument(encoding: String?, version: String?) {}
 
     override fun getProperty(name: String): Nothing {
         throw IllegalArgumentException("Properties not supported")
@@ -155,7 +153,5 @@ private class XmlStreamWiterAdapter(private val delegate: XmlWriter): XMLStreamW
         delegate.endTag(ns, localname, prefix)
     }
 
-    override fun writeEndDocument() {
-        delegate.endDocument()
-    }
+    override fun writeEndDocument() {}
 }
