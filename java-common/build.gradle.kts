@@ -70,7 +70,7 @@ kotlin {
 
                 compileOnly(project(":JavaCommonApi"))
 
-                api(project(":JavaCommonApi"))
+//                api(project(":JavaCommonApi"))
                 api(project(":multiplatform"))
             }
         }
@@ -80,7 +80,7 @@ kotlin {
         val jvmMain by getting {
             dependsOn(javaMain)
             dependencies {
-                implementation(libs.jaxb)
+                implementation(libs.jaxb.api)
                 api(libs.kotlinsql.monadic)
             }
         }

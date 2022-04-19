@@ -133,7 +133,9 @@ dependencies {
     runtimeOnly(libs.woodstox)
     implementation((libs.xmlutil.serialization))
     implementation(project(":PE-common"))
-    implementation(libs.jaxb)
+    implementation(libs.jaxb.api)
+    runtimeOnly(libs.jaxb.impl)
+
 
     implementation(project(":DarwinClients:ProcessEngine"))
     implementation(project(":darwin-sql"))

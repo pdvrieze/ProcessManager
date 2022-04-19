@@ -17,7 +17,6 @@
 package nl.adaptivity.ws.rest
 
 import kotlinx.serialization.ExperimentalSerializationApi
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializerOrNull
 import net.devrieze.util.Annotations
 import net.devrieze.util.JAXBCollectionWrapper
@@ -58,7 +57,6 @@ import javax.xml.bind.util.JAXBSource
 import javax.xml.namespace.QName
 import javax.xml.stream.FactoryConfigurationError
 import javax.xml.stream.XMLOutputFactory
-import javax.xml.stream.XMLStreamWriter
 import javax.xml.transform.Source
 import javax.xml.transform.TransformerException
 import javax.xml.transform.dom.DOMSource
@@ -196,7 +194,7 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
 
     @Throws(XmlException::class)
     fun unmarshalParams(httpMessage: HttpMessage) {
-        if (params != null) {
+        if (paramsInitialised) {
             throw IllegalStateException("Parameters have already been unmarshalled")
         }
         val parameterTypes = parameterTypes
@@ -449,25 +447,27 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
             XmlStreaming.newWriter(outputStream, "UTF-8").use { xmlWriter ->
 
                 var marshaller: Marshaller? = null
-                xmlWriter.smartStartTag(outerTagName)
-                for (item in collection) {
-                    when (item) {
-                        is XmlSerializable -> item.serialize(xmlWriter)
-                        is Node            -> xmlWriter.serialize(item)
-                        null               -> Unit
-                        else               -> {
-                            val m = marshaller ?: run {
-                                val jaxbcontext: JAXBContext = when (elementType) {
-                                    null -> newJAXBContext(JAXBCollectionWrapper::class.java)
-                                    else -> newJAXBContext(JAXBCollectionWrapper::class.java, elementType)
+                xmlWriter.smartStartTag(outerTagName) {
+//                    xmlWriter.flush() // Ensure no pending writes
+                    for (item in collection) {
+                        when (item) {
+                            is XmlSerializable -> item.serialize(xmlWriter)
+                            is Node            -> xmlWriter.serialize(item)
+                            null               -> Unit
+                            else               -> {
+                                val m = marshaller ?: run {
+                                    val jaxbcontext: JAXBContext = when (elementType) {
+                                        null -> newJAXBContext(JAXBCollectionWrapper::class.java)
+                                        else -> newJAXBContext(JAXBCollectionWrapper::class.java, elementType)
+                                    }
+                                    jaxbcontext.createMarshaller().also { marshaller = it }
                                 }
-                                jaxbcontext.createMarshaller().also { marshaller = it }
+                                m.marshal(item, xmlWriter.asXmlStreamWriter())
                             }
-                            m.marshal(item, delegateMethod.invoke(xmlWriter) as XMLStreamWriter)
                         }
                     }
+
                 }
-                xmlWriter.endTag(outerTagName)
             }
         } catch (e: Throwable) {
             throw MessagingException(e)
@@ -489,9 +489,6 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
     }
 
     companion object {
-
-        @Volatile
-        private var _getDelegate: Method? = null
 
         operator fun get(pOwner: Any, pMethod: Method): RestMethodWrapper {
             // Make it work with private methods and
@@ -600,14 +597,6 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
             return result.item(0)
         }
 
-        private val delegateMethod: Method
-            get() {
-                return this._getDelegate ?: kotlin.run {
-                    Class.forName("nl.adaptivity.xml.StAXWriter").getMethod("getDelegate", XMLStreamWriter::class.java)
-                        .also { this._getDelegate = it }
-                }
-            }
-
         private fun getQName(pAnnotation: XmlElementWrapper): QName {
             var nameSpace = pAnnotation.namespace
             if ("##default" == nameSpace) {
@@ -622,3 +611,4 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
 private fun Class<Enum<*>>.valueOf(name: String): Enum<*> {
     return this.enumConstants.first { it.name == name }
 }
+

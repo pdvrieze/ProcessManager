@@ -109,7 +109,7 @@ kotlin {
                 compileOnly(libs.servletApi)
                 implementation(libs.jwsApi)
                 implementation(libs.activationApi)
-                implementation(libs.jaxb)
+                implementation(libs.jaxb.api)
             }
         }
         val jvmTest by getting {

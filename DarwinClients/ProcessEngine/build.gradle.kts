@@ -108,7 +108,10 @@ dependencies {
     "api"(project(":ProcessEngine:core"))
 
     implementation(kotlin("stdlib-jdk8"))
-    implementation(libs.jaxb)
+    implementation(libs.jaxb.api)
+
+    runtimeOnly(libs.jaxb.impl)
+
     compileOnly(project(":DarwinJavaApi"))
 
     compileOnly(libs.servletApi)

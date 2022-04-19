@@ -93,7 +93,8 @@ kotlin {
 
                     runtimeOnly(libs.woodstox)
 
-                    compileOnly(libs.jaxb)
+                    compileOnly(libs.jaxb.api)
+                    runtimeOnly(libs.jaxb.impl)
                 }
 
             }
@@ -109,7 +110,8 @@ kotlin {
                     implementation(kotlin("stdlib-jdk8"))
                     implementation(libs.kotlinx.serialization.json)
 
-                    implementation(libs.jaxb)
+                    implementation(libs.jaxb.api)
+                    runtimeOnly(libs.jaxb.impl)
 
                     implementation(libs.junit5.api)
 

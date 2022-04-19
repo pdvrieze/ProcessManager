@@ -41,7 +41,9 @@ tasks.register("tomcatRun") {
 
 dependencies {
     implementation(project(":PE-common"))
-    implementation(libs.jaxb)
+    implementation(libs.jaxb.api)
+    runtimeOnly(libs.jaxb.impl)
+
     compileOnly(libs.servletApi)
     compileOnly(project(":JavaCommonApi"))
     compileOnly(project(":DarwinJavaApi"))

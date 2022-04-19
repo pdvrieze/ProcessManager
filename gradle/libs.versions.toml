@@ -9,7 +9,7 @@ databinding="3.1.4"
 dokka = "1.6.10"
 easywsdl = "2.6.0"
 hikaricp = "5.0.1"
-jaxb="2.3.2"
+jaxb="2.3.3"
 junit5 = "1.8.0"
 jupiter = "5.8.0"
 jwsApi="1.1.1"
@@ -35,7 +35,8 @@ xmlutil="0.84.1"
 [libraries]
 activationApi = { module = "javax.activation:javax.activation-api", version.ref = "activation"}
 javax-mail = "com.sun.mail:javax.mail:1.5.5"
-jaxb = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version.ref = "jaxb"}
+jaxb-api = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version.ref = "jaxb"}
+jaxb-impl = { module = "com.sun.xml.bind:jaxb-impl", version.ref = "jaxb"}
 jwsApi = { module = "jakarta.jws:jakarta.jws-api", version.ref = "jwsApi"}
 
 junit5-api = { module = "org.junit.jupiter:junit-jupiter-api", version.ref = "jupiter" }

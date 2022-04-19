@@ -50,7 +50,8 @@ dependencies {
     compileOnly(libs.servletApi)
     implementation(libs.jwsApi)
     implementation(libs.activationApi)
-    implementation(libs.jaxb)
+    implementation(libs.jaxb.api)
+    runtimeOnly(libs.jaxb.impl)
 
     api(project(":ProcessEngine:core"))
     implementation(project(":multiplatform"))
