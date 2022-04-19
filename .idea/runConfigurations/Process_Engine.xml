@@ -39,6 +39,7 @@
       <option name="BASE_DIRECTORY_NAME" value="Unnamed_ProcessManager" />
       <option name="DEPLOY_TOMCAT_APPS" value="true" />
     </server-settings>
+    <log_file alias="all logs" path="$PROJECT_DIR$/PE-server/catalina10/logs/*" show_all="true" />
     <predefined_log_file enabled="true" id="Tomcat" />
     <predefined_log_file enabled="true" id="Tomcat Catalina" />
     <predefined_log_file id="Tomcat Manager" />

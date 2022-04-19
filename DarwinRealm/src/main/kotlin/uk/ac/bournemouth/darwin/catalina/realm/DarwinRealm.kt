@@ -61,7 +61,9 @@ class DarwinRealm : RealmBase(), Lifecycle {
 
     override fun initInternal() {
         super.initInternal()
-        log.info("Initialising Darwin Realm")
+        log.info("Initialising Darwin Realm. Ensuring database tables")
+        accountDb(dataSource) { ensureTables() }
+        log.info("Account tables ensured")
     }
 
     override fun authenticate(username: String, digest: String, nonce: String, nc: String, cnonce: String, qop: String, realm: String, md5a2: String): Principal? {
