@@ -16,5 +16,5 @@
 
 package nl.adaptivity.process.processModel.serialization
 
-@Experimental
+@RequiresOptIn
 annotation class PublicForSerialization

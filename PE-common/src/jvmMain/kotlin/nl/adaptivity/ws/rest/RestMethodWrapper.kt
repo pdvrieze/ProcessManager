@@ -45,6 +45,7 @@ import java.nio.charset.Charset
 import javax.activation.DataHandler
 import javax.activation.DataSource
 import jakarta.servlet.http.HttpServletResponse
+import nl.adaptivity.util.SerializableData
 import javax.xml.XMLConstants
 import javax.xml.bind.JAXB
 import javax.xml.bind.JAXBContext
@@ -67,7 +68,7 @@ import kotlin.jvm.Volatile
 
 abstract class RestMethodWrapper protected constructor(owner: Any, method: Method) : nl.adaptivity.ws.WsMethodWrapper(
     owner, method
-                                                                                                                     ) {
+) {
 
 
     private class Java6RestMethodWrapper(pOwner: Any, pMethod: Method) : RestMethodWrapper(pOwner, pMethod) {
@@ -238,7 +239,7 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
                         params[i] = getParam(parameterTypes[i], name, type, xpath, httpMessage)
                     }
                 }
-                else                     -> params[i] = getParam(parameterTypes[i], name, type, xpath, httpMessage)
+                else -> params[i] = getParam(parameterTypes[i], name, type, xpath, httpMessage)
             }
 
 
@@ -255,20 +256,20 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
         restParamType: RestParamType,
         xpath: String?,
         httpMessage: HttpMessage
-                        ): Any? {
+    ): Any? {
         var result = when (restParamType) {
-            RestParamType.GET        -> getParamGet(paramName, httpMessage)
-            RestParamType.POST       -> getParamPost(paramName, httpMessage)
-            RestParamType.QUERY      -> getParamGet(paramName, httpMessage) ?: getParamPost(paramName, httpMessage)
-            RestParamType.VAR        -> pathParams[paramName]
-            RestParamType.XPATH      -> getParamXPath(
+            RestParamType.GET -> getParamGet(paramName, httpMessage)
+            RestParamType.POST -> getParamPost(paramName, httpMessage)
+            RestParamType.QUERY -> getParamGet(paramName, httpMessage) ?: getParamPost(paramName, httpMessage)
+            RestParamType.VAR -> pathParams[paramName]
+            RestParamType.XPATH -> getParamXPath(
                 parameterJavaClass,
                 xpath ?: ".",
                 httpMessage.body ?: CompactFragment("")
-                                                     )
-            RestParamType.BODY       -> getBody(parameterJavaClass, httpMessage)
+            )
+            RestParamType.BODY -> getBody(parameterJavaClass, httpMessage)
             RestParamType.ATTACHMENT -> getAttachment(parameterJavaClass, paramName, httpMessage)
-            RestParamType.PRINCIPAL  -> if (parameterJavaClass.isAssignableFrom(String::class.java)) {
+            RestParamType.PRINCIPAL -> if (parameterJavaClass.isAssignableFrom(String::class.java)) {
                 httpMessage.userPrincipal?.name
             } else {
                 httpMessage.userPrincipal
@@ -321,12 +322,12 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
     @Throws(TransformerException::class, IOException::class, FactoryConfigurationError::class)
     private fun serializeValue(pResponse: HttpServletResponse, value: Any?) {
         when (value) {
-            null               -> throw HttpResponseException(HttpServletResponse.SC_NOT_FOUND, "no value")
-            is Source          -> {
+            null -> throw HttpResponseException(HttpServletResponse.SC_NOT_FOUND, "no value")
+            is Source -> {
                 setContentType(pResponse, "application/binary")// Unknown content type
                 Sources.writeToStream(value, pResponse.outputStream)
             }
-            is Node            -> {
+            is Node -> {
                 pResponse.contentType = "text/xml"
                 DOMSource(value as Node?).writeToStream(pResponse.outputStream)
             }
@@ -341,7 +342,7 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
                     }
                 }
             }
-            is Collection<*>   -> {
+            is Collection<*> -> {
                 elementWrapper?.let { annotation ->
                     setContentType(pResponse, "text/xml")
                     pResponse.outputStream.use { outStream ->
@@ -349,11 +350,11 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
                     }
                 }
             }
-            is CharSequence    -> {
+            is CharSequence -> {
                 setContentType(pResponse, "text/plain")
                 pResponse.writer.append(value as CharSequence?)
             }
-            else               -> {
+            else -> {
                 setContentType(pResponse, "text/xml")
 
                 val jaxbSource = JAXBSource(JAXBContext.newInstance(returnType), value)
@@ -366,7 +367,7 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
     @Deprecated(
         "use {@link #marshalResult(HttpServletResponse)}, the pRequest parameter is ignored",
         ReplaceWith("marshalResult(response)")
-               )
+    )
     @Throws(TransformerException::class, IOException::class, XmlException::class)
     fun marshalResult(request: HttpMessage, response: HttpServletResponse) = marshalResult(response)
 
@@ -383,6 +384,14 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
             }
             return
         }
+        if (result is SerializableData<*>) {
+            setContentType(pResponse, "text/xml")
+            XmlStreaming.newWriter(pResponse.writer).use { writer ->
+                result.encodeToWriter(writer, xmlFormat)
+            }
+            return
+        }
+
         result?.javaClass?.getAnnotation(XmlRootElement::class.java)?.let { xmlRootElement ->
             val jaxbContext = JAXBContext.newInstance(returnType)
             val jaxbSource = JAXBSource(jaxbContext, result)
@@ -409,11 +418,11 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
         collectionType: Type,
         collection: Collection<*>,
         outerTagName: QName
-                               ) {
+    ) {
         val rawType: Class<*> = when (collectionType) {
             is ParameterizedType -> collectionType.rawType as Class<*>
-            is Class<*>          -> collectionType
-            is WildcardType      -> {
+            is Class<*> -> collectionType
+            is WildcardType -> {
                 val UpperBounds = collectionType.upperBounds
                 if (UpperBounds.isNotEmpty()) {
                     UpperBounds[0] as Class<*>
@@ -421,7 +430,7 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
                     Any::class.java
                 }
             }
-            is TypeVariable<*>   -> {
+            is TypeVariable<*> -> {
                 val bounds = collectionType.bounds
                 if (bounds.isNotEmpty()) {
                     bounds[0] as Class<*>
@@ -429,7 +438,7 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
                     Any::class.java
                 }
             }
-            else                 -> throw IllegalArgumentException("Unsupported type variable")
+            else -> throw IllegalArgumentException("Unsupported type variable")
         }
 
         var elementType: Class<*>?
@@ -452,9 +461,9 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
                     for (item in collection) {
                         when (item) {
                             is XmlSerializable -> item.serialize(xmlWriter)
-                            is Node            -> xmlWriter.serialize(item)
-                            null               -> Unit
-                            else               -> {
+                            is Node -> xmlWriter.serialize(item)
+                            null -> Unit
+                            else -> {
                                 val m = marshaller ?: run {
                                     val jaxbcontext: JAXBContext = when (elementType) {
                                         null -> newJAXBContext(JAXBCollectionWrapper::class.java)
@@ -483,12 +492,14 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
                 val seeAlsoClasses: Array<Class<*>> = seeAlso.value.let { t -> Array<Class<*>>(t.size) { t[it].java } }
                 seeAlsoClasses + classes
             }
-            else                                          -> classes
+            else -> classes
         }
         return JAXBContext.newInstance(*classList)
     }
 
     companion object {
+
+        private val xmlFormat = XML { autoPolymorphic = true }
 
         operator fun get(pOwner: Any, pMethod: Method): RestMethodWrapper {
             // Make it work with private methods and
@@ -533,13 +544,13 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
             return source?.let {
                 when {
                     DataHandler::class.java.isAssignableFrom(target) -> DataHandler(it)
-                    DataSource::class.java.isAssignableFrom(target)  -> it
+                    DataSource::class.java.isAssignableFrom(target) -> it
                     InputStream::class.java.isAssignableFrom(target) -> try {
                         it.inputStream
                     } catch (e: IOException) {
                         throw MessagingException(e)
                     }
-                    else                                             -> try {
+                    else -> try {
                         // This will try to do magic to handle the data
                         DataHandler(it).content
                     } catch (e: IOException) {
@@ -566,7 +577,10 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
                         @OptIn(ExperimentalSerializationApi::class)
                         val deserializer = serializerOrNull(paramType)
                         if (deserializer != null) {
-                            return XML.Companion.decodeFromReader(deserializer, XmlStreaming.newReader(DOMSource(n))) as T
+                            return XML.Companion.decodeFromReader(
+                                deserializer,
+                                XmlStreaming.newReader(DOMSource(n))
+                            ) as T
                         } else {
                             return JAXB.unmarshal(DOMSource(match), paramType)
                         }

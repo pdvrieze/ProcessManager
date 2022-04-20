@@ -491,10 +491,9 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
      */
     @RestMethod(method = HttpMethod.GET, path = "/processModels")
     fun getProcesModelRefs(
-        @RestParam(
-            type = RestParamType.PRINCIPAL
-        ) user: Principal
-    ): SerializableData<List<IProcessModelRef<*, *>>> = translateExceptions {
+        @RestParam(type = RestParamType.PRINCIPAL)
+        user: Principal
+    ): SerializableData<List<IProcessModelRef<ExecutableProcessNode, ExecutableProcessModel>>> = translateExceptions {
         processEngine.startTransaction().use { transaction ->
             val processModels = processEngine.getProcessModels(transaction.readableEngineData, user)
 
@@ -523,7 +522,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
             processEngine.startTransaction().use { transaction ->
                 val handle1 = if (handle < 0) Handle.invalid<SecureObject<ExecutableProcessModel>>() else Handle(handle)
                 processEngine.invalidateModelCache(handle1)
-                return transaction.commit<ExecutableProcessModel>(
+                return transaction.commit(
                     processEngine.getProcessModel(transaction.readableEngineData, handle1, user)
                         ?: throw FileNotFoundException()
                 )
@@ -570,8 +569,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
         @WebParam(name = "principal", mode = Mode.IN, header = true) @RestParam(
             type = RestParamType.PRINCIPAL
         ) user: Principal?
-    )
-        : ProcessModelRef<*, *> = translateExceptions {
+    ): ProcessModelRef<*, *> = translateExceptions {
 
         if (user == null) throw AuthenticationNeededException("There is no user associated with this request")
 

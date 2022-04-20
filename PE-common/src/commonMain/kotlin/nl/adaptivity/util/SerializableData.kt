@@ -20,8 +20,17 @@ import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
 import net.devrieze.util.Transaction
 import nl.adaptivity.xmlutil.QName
+import nl.adaptivity.xmlutil.XmlWriter
+import nl.adaptivity.xmlutil.serialization.XML
 
-class SerializableData<T>(val serializer: KSerializer<T>, val data: T, val tagName: QName? = null)
+class SerializableData<T>(val serializer: KSerializer<T>, val data: T, val tagName: QName? = null) {
+    fun encodeToWriter(writer: XmlWriter, format: XML = XML { autoPolymorphic = true }) {
+        when (tagName) {
+            null -> format.encodeToWriter(writer, serializer, data)
+            else -> format.encodeToWriter(writer, serializer, data, tagName)
+        }
+    }
+}
 
 fun <T> Transaction.commitSerializable(serializer: KSerializer<T>, data: T, tagName: QName? = null): SerializableData<T> {
     return commit(SerializableData(serializer, data, tagName))
