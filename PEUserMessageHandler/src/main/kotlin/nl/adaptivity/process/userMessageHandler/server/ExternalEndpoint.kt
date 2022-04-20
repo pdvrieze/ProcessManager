@@ -56,8 +56,9 @@ import kotlin.contracts.contract
  * downgraded.
  */
 @XmlSeeAlso(XmlTask::class)
-class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessageService<out Transaction> = UserMessageService.instance) :
-    GenericEndpoint {
+class ExternalEndpoint @JvmOverloads constructor(
+    private val service: UserMessageService<out Transaction> = UserMessageService.instance
+) : GenericEndpoint {
 
     private var endpointUri: URI? = null
 
@@ -100,7 +101,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
     @XmlElementWrapper(name = "tasks", namespace = Constants.USER_MESSAGE_HANDLER_NS)
     @RestMethod(method = HttpMethod.GET, path = "/allPendingTasks")
     @Deprecated("The version that takes the user should be used.", ReplaceWith("getPendingTasks(user)"))
-    fun getPendingTasks() = getPendingTasks(mService, SYSTEMPRINCIPAL)
+    fun getPendingTasks() = getPendingTasks(service, SYSTEMPRINCIPAL)
 
     /**
      * Get a list of pending tasks.
@@ -114,7 +115,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
     @RestMethod(method = HttpMethod.GET, path = "/pendingTasks")
     @Throws(SQLException::class)
     fun getPendingTasks(@RestParam(type = RestParamType.PRINCIPAL) user: Principal): Collection<XmlTask> {
-        return getPendingTasks(mService, user)
+        return getPendingTasks(service, user)
     }
 
     /**
@@ -142,7 +143,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
         @RestParam(type = RestParamType.BODY) partialNewTask: XmlTask,
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal
     ): XmlTask = translateExceptions {
-        return updateTask(mService, handle, partialNewTask, user)
+        return updateTask(service, handle, partialNewTask, user)
     }
 
     /**
@@ -159,7 +160,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
         @RestParam(name = "handle", type = RestParamType.VAR) handle: String,
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal
     ): XmlTask = translateExceptions {
-        mService.inTransaction {
+        service.inTransaction {
             return commit {
                 val handle1 = java.lang.Long.parseLong(handle)
                 getPendingTask(
@@ -184,7 +185,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
         @RestParam(name = "handle", type = RestParamType.VAR) handle: String,
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal
     ): NodeInstanceState = translateExceptions {
-        mService.inTransaction {
+        service.inTransaction {
             return startTask(Handle(handleString = handle), user)
         }
     }
@@ -203,7 +204,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
         @RestParam(name = "handle", type = RestParamType.VAR) handle: String,
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal
     ): NodeInstanceState = translateExceptions {
-        mService.inTransaction {
+        service.inTransaction {
             return commit { takeTask(Handle(handleString = handle), user) }
         }
     }
@@ -224,7 +225,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
         @RestParam(name = "handle", type = RestParamType.VAR) handle: String,
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal
     ): NodeInstanceState = translateExceptions {
-        mService.inTransaction {
+        service.inTransaction {
             return commit {
                 val handle1 = java.lang.Long.parseLong(handle)
                 finishTask(
@@ -240,7 +241,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
         @RestParam(name = "handle", type = RestParamType.VAR) handle: String,
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal
     ): NodeInstanceState = translateExceptions {
-        mService.inTransaction {
+        service.inTransaction {
             return commit {
                 val handle1 = java.lang.Long.parseLong(handle)
                 cancelTask(
@@ -252,7 +253,7 @@ class ExternalEndpoint @JvmOverloads constructor(private val mService: UserMessa
     }
 
     override fun destroy() {
-        mService.destroy()
+        service.destroy()
         MessagingRegistry.messenger.registerEndpoint(this)
     }
 

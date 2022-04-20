@@ -23,8 +23,6 @@ import net.devrieze.util.db.DbSet
 import net.devrieze.util.db.MonadicDBTransaction
 import net.devrieze.util.security.AuthenticationNeededException
 import nl.adaptivity.messaging.CompletionListener
-import nl.adaptivity.process.engine.ProcessDBTransaction
-import nl.adaptivity.process.engine.db.ProcessEngineDB
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import uk.ac.bournemouth.ac.db.darwin.usertasks.UserTaskDB
 import java.security.Principal
@@ -57,13 +55,14 @@ class UserMessageService<T : Transaction> private constructor(
 
     private class MyDBTransactionFactory internal constructor(private val context: Context) :
         DBTransactionFactory<MonadicDBTransaction<UserTaskDB>, UserTaskDB> {
-        private var mDBResource: javax.sql.DataSource? = null
+        private val dbResource: javax.sql.DataSource by lazy {
 
-        private val dbResource: javax.sql.DataSource
-            get() {
-                return mDBResource ?: return DbSet.resourceNameToDataSource(context, DB_RESOURCE)
-                    .apply { mDBResource = this }
+            DbSet.resourceNameToDataSource(context, DB_RESOURCE).also { resource ->
+                UserTaskDB(resource) {
+                    ensureTables().commit()
+                }
             }
+        }
 
         @OptIn(UnmanagedSql::class)
         override fun asTransaction(dbReceiver: DBReceiver<UserTaskDB>): MonadicDBTransaction<UserTaskDB> = when (dbReceiver){

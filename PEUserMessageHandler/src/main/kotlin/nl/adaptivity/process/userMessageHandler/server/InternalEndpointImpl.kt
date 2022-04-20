@@ -39,8 +39,9 @@ import javax.jws.WebParam.Mode
 import jakarta.servlet.ServletConfig
 
 
-class InternalEndpointImpl @JvmOverloads constructor(private val service: UserMessageService<out Transaction> = UserMessageService.instance) :
-    UserTaskServiceDescriptor(), InternalEndpoint {
+class InternalEndpointImpl @JvmOverloads constructor(
+    private val service: UserMessageService<out Transaction> = UserMessageService.instance
+) : UserTaskServiceDescriptor(), InternalEndpoint {
 
     inner class TaskUpdateCompletionListener(internal var task: XmlTask) : CompletionListener<NodeInstanceState> {
 
