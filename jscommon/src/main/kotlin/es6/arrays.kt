@@ -197,3 +197,17 @@ inline fun <T> Array<T>.indexOf(searchElement: T) = jsext.indexOf(searchElement)
 inline fun <T> Array<T>.indexOf(searchElement: T, fromIndex: Int) = jsext.indexOf(searchElement, fromIndex)
 inline fun <T> Array<T>.lastIndexOf(searchElement: T) = jsext.lastIndexOf(searchElement)
 inline fun <T> Array<T>.lastIndexOf(searchElement: T, fromIndex: Int) = jsext.lastIndexOf(searchElement, fromIndex)
+
+operator fun <T> JsArray<T>.iterator(): Iterator<T> {
+    return JsArrayIterator(this)
+}
+
+inline fun <T> JsArray<T>.asSequence() = iterator().asSequence()
+
+private class JsArrayIterator<T>(private val array: JsArray<T>): Iterator<T> {
+    private var nextPos = 0
+
+    override fun hasNext(): Boolean = nextPos <array.length
+
+    override fun next(): T = array[nextPos++]
+}
