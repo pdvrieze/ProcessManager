@@ -146,7 +146,6 @@
     <method v="2">
       <option name="Gradle.BeforeRunTask" enabled="false" tasks=":copyTomcatWars :copyTomcatClasspath :PE-server:assembleExtraBootCp" externalProjectPath="$PROJECT_DIR$" vmOptions="" scriptParameters="" />
       <option name="BuildArtifacts" enabled="true">
-        <artifact name="Gradle : ProcessManager : webeditor-0.1.0.war" />
         <artifact name="Gradle : ProcessManager.darwin : darwinjvm.war" />
         <artifact name="Gradle : ProcessManager.ProcessEngine : ProcessEngine-servlet-1.0.0.war" />
         <artifact name="Gradle : ProcessManager : DarwinServices-1.0.0.war" />
