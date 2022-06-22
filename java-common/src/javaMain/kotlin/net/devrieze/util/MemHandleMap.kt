@@ -275,6 +275,7 @@ actual open class MemHandleMap<V : Any>
     /* (non-Javadoc)
      * @see net.devrieze.util.HandleMap#size()
      */
+    @Deprecated("Don't use, this may be expensive", level = DeprecationLevel.ERROR)
     @Suppress("OverridingDeprecatedMember")
     override fun getSize() = lock.read { size }
 
@@ -421,6 +422,7 @@ actual open class MemHandleMap<V : Any>
         barrier = 0
     }
 
+    @Deprecated("Don't use, this may be expensive", level = DeprecationLevel.ERROR)
     @Suppress("OverridingDeprecatedMember")
     override fun isEmpty(): Boolean = lock.read { size == 0 }
 

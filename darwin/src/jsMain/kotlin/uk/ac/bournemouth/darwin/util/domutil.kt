@@ -24,7 +24,6 @@ package uk.ac.bournemouth.darwin.util
 import kotlinx.dom.clear
 import kotlinx.html.TagConsumer
 import org.w3c.dom.*
-import kotlin.dom.clear
 import kotlinx.html.dom.append as kotlinxAppend
 
 const val BUTTON_DEFAULT: Short = 0

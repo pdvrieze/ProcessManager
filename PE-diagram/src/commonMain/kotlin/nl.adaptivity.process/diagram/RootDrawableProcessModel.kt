@@ -115,6 +115,10 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
             handleValue
         )
 
+    @Deprecated(
+        "Use the version taking an identifier",
+        replaceWith = ReplaceWith("getNode(Identifier(nodeId))", "nl.adaptivity.process.util.Identifier")
+    )
     override fun getNode(nodeId: String): DrawableProcessNode? = super<RootClientProcessModel>.getNode(
         Identifier(nodeId)
     )

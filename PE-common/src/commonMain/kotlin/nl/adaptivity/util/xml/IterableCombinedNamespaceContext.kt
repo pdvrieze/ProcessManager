@@ -72,6 +72,10 @@ class IterableCombinedNamespaceContext(
         return (p + s).iterator()
     }
 
+    @Deprecated(
+        "Don't use as unsafe",
+        replaceWith = ReplaceWith("prefixesFor(namespaceURI)", "nl.adaptivity.xmlutil.prefixesFor")
+    )
     @Suppress("OverridingDeprecatedMember")
     override fun getPrefixesCompat(namespaceURI: String): Iterator<String> {
         val prefixes1 = primary.prefixesFor(namespaceURI)

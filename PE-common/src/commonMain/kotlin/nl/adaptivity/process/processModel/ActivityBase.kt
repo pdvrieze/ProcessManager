@@ -38,6 +38,7 @@ abstract class ActivityBase(
     otherNodes: Iterable<ProcessNode.Builder>
 ) : ProcessNodeBase(builder, newOwner, otherNodes), Activity {
 
+    @Deprecated("Not needed, use id.", replaceWith = ReplaceWith("id"))
     @Suppress("OverridingDeprecatedMember", "DEPRECATION")
     override var name: String? = builder.name
 
@@ -69,6 +70,7 @@ abstract class ActivityBase(
     @Suppress("RemoveRedundantQualifierName")
     abstract class BaseBuilder : ProcessNodeBase.Builder, Activity.Builder {
 
+        @Deprecated("Not needed, use id.", replaceWith = ReplaceWith("id"))
         @Suppress("OverridingDeprecatedMember")
         final override var name: String? = null
 
@@ -306,6 +308,7 @@ abstract class ActivityBase(
 
     open class CompositeActivityBuilder : ChildProcessModelBase.ModelBuilder,
                                           CompositeActivity.ModelBuilder {
+        @Deprecated("Not needed, use id.", replaceWith = ReplaceWith("id"))
         @Suppress("OverridingDeprecatedMember")
         final override var name: String? = null
         final override var id: String?

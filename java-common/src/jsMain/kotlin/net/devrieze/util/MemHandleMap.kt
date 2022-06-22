@@ -34,6 +34,7 @@ actual constructor(private val handleAssigner: (V, Handle<V>) -> V?) : MutableHa
         return backingMap[handle]
     }
 
+    @Deprecated("Don't use, this may be expensive", level = DeprecationLevel.ERROR)
     @Suppress("OverridingDeprecatedMember")
     override fun getSize(): Int {
         return backingMap.size

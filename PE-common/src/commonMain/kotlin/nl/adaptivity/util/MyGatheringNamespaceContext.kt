@@ -49,6 +49,10 @@ internal class MyGatheringNamespaceContext(
             }
     }
 
+    @Deprecated(
+        "Don't use as unsafe",
+        replaceWith = ReplaceWith("prefixesFor(namespaceURI)", "nl.adaptivity.xmlutil.prefixesFor")
+    )
     @Suppress(
         "UNCHECKED_CAST",
         "DEPRECATION",

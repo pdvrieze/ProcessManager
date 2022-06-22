@@ -28,6 +28,7 @@ open class HandleMapForwarder<V : Any, T : Transaction>(
 
     override fun get(handle: Handle<V>) = delegate.get(transaction, handle)
 
+    @Deprecated("Don't use, this may be expensive", level = DeprecationLevel.ERROR)
     @Suppress("OverridingDeprecatedMember")
     override fun getSize(): Int {
         throw UnsupportedOperationException("Not available")
