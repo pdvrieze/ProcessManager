@@ -57,7 +57,7 @@ kotlin {
     target {
         compilations.all {
             kotlinOptions {
-                jvmTarget = "1.8"
+                jvmTarget = libs.versions.kotlin.classTarget.get()
             }
         }
     }

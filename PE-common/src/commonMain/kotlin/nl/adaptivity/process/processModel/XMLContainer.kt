@@ -132,7 +132,8 @@ private constructor(
                 EventType.TEXT          -> {
                     visitNamesInTextContent(parent, xsr.text)
                 }
-            }//ignore
+                else -> { /* ignore */ }
+            }
         }
     }
 

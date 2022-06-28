@@ -170,7 +170,6 @@ abstract class XmlContainerSerializer<T : XMLContainer>: KSerializer<T> {
         }
 
         private fun EventType.handle() {
-            @Suppress("NON_EXHAUSTIVE_WHEN")
             when (this) {
                 EventType.START_ELEMENT -> {
                     localPrefixes.add(delegate.namespaceDecls.map { it.prefix })
@@ -188,6 +187,7 @@ abstract class XmlContainerSerializer<T : XMLContainer>: KSerializer<T> {
                     textContent = null
                     localPrefixes.removeAt(localPrefixes.lastIndex)
                 }
+                else -> { /* ignore */ }
             }
 
         }

@@ -44,5 +44,5 @@ dependencies {
 }
 
 tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+    kotlinOptions.jvmTarget = libs.versions.kotlin.classTarget.get()
 }

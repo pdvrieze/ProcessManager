@@ -574,6 +574,7 @@ object MessagingSoapClientGenerator {
         when (projection.variance) {
             KVariance.IN  -> out.write("in ")
             KVariance.OUT -> out.write("out ")
+            else -> { /* don't write anything */ }
         }
         writeType(out, projection.type!!, allowPrimitive, varargs, imports)
     }
@@ -591,6 +592,7 @@ object MessagingSoapClientGenerator {
                 when (classifier.variance) {
                     KVariance.IN -> out.write("in ")
                     KVariance.OUT -> out.write("out ")
+                    else -> { /* ignore */ }
                 }
                 out.write(classifier.name)
                 classifier.upperBounds.singleOrNull()?.run { out.write(": "); writeType(out, this, false, false, imports)}

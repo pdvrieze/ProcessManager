@@ -34,7 +34,7 @@ kotlin {
         jvm {
             compilations.all {
                 kotlinOptions {
-                    jvmTarget = "1.8"
+                    jvmTarget = libs.versions.kotlin.classTarget.get()
                 }
                 tasks.withType<Test> {
                     useJUnitPlatform()
@@ -44,7 +44,7 @@ kotlin {
         jvmAndroid {
             compilations.all {
                 kotlinOptions {
-                    jvmTarget = "1.8"
+                    jvmTarget = libs.versions.kotlin.androidClassTarget.get()
                 }
             }
         }

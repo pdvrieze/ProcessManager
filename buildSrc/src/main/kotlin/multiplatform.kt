@@ -18,8 +18,10 @@ package multiplatform
 
 import org.gradle.api.Project
 import org.gradle.api.artifacts.ExternalModuleDependency
+import org.gradle.api.artifacts.VersionCatalogsExtension
 import org.gradle.api.attributes.*
 import org.gradle.kotlin.dsl.dependencies
+import org.gradle.kotlin.dsl.getByType
 import org.jetbrains.kotlin.gradle.targets.js.*
 import org.jetbrains.kotlin.gradle.dsl.KotlinTargetContainerWithPresetFunctions
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
@@ -71,7 +73,9 @@ fun KotlinTargetContainerWithPresetFunctions.jvmAndroid(configure: KotlinJvmTarg
         attributes.attribute(KotlinPlatformType.attribute, KotlinPlatformType.androidJvm)
         compilations.all {
             kotlinOptions {
-                jvmTarget = "1.8"
+                val catalog = project.extensions.getByType<VersionCatalogsExtension>().named("libs")
+                project.logger.warn("Catalog: $catalog")
+                jvmTarget = catalog.findVersion("kotlin.androidClassTarget").get().requiredVersion
             }
         }
         configure()

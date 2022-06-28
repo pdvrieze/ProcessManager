@@ -16,6 +16,7 @@
 
 import versions.jupiterVersion
 import versions.kotlinsqlVersion
+import versions.myJavaVersion
 import versions.mysqlConnectorVersion
 
 plugins {
@@ -26,6 +27,10 @@ plugins {
 
 base {
     description = "The DDL files for the darwin databases"
+}
+
+java {
+    targetCompatibility = myJavaVersion
 }
 
 dependencies {
@@ -40,7 +45,9 @@ kotlin {
     target {
         compilations.all {
             kotlinOptions {
-                jvmTarget = "1.8"
+                val catalog = project.extensions.getByName("libs")
+
+                jvmTarget = libs.versions.kotlin.classTarget.get()
             }
         }
     }

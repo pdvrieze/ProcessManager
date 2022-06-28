@@ -95,10 +95,11 @@ class ExecutableJoin(
                         .evalCondition(nodeInstanceSource, sibling, nodeInstance)
                 }
             }
-            @Suppress("NON_EXHAUSTIVE_WHEN")
+
             when (siblingResult) {
                 ConditionResult.TRUE -> alwaysCount++
                 ConditionResult.NEVER -> neverCount++
+                else -> { /* Ignore, can't be determined yet */ }
             }
         }
 

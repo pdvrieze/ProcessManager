@@ -283,6 +283,9 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
                 Complete -> if(node is StartNode) { // just special case start nodes
                     state = AutoCancelled
                 }
+                else -> {
+                    throw IllegalStateException("The current state ($state) doesn't support cancellation")
+                }
             }
         }
 
@@ -302,6 +305,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             when (state) {
                 FailRetry,
                 Pending -> provideTask(engineData)
+                else -> { /* ignore */ }
             }// ignore
         }
 
