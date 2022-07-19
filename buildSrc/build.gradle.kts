@@ -14,6 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+import org.jetbrains.kotlin.gradle.plugin.mpp.pm20.targets
 import java.util.Properties
 import java.io.FileInputStream
 
@@ -28,6 +29,20 @@ run {
     }
     for (key in properties.stringPropertyNames()) {
         ext[key] = properties[key]
+    }
+}
+
+java {
+    targetCompatibility = JavaVersion.VERSION_11
+}
+
+kotlin {
+    target {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = "11"
+            }
+        }
     }
 }
 

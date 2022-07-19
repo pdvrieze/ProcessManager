@@ -173,6 +173,7 @@ allprojects {
         mavenCentral()
         google()
         maven { url = uri("https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven") }
+        maven { url = uri("https://maven.pkg.jetbrains.space/public/p/compose/dev") }
     }
 //
 //    tasks.withType(KotlinCompile) {

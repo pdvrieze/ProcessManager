@@ -74,7 +74,6 @@ fun KotlinTargetContainerWithPresetFunctions.jvmAndroid(configure: KotlinJvmTarg
         compilations.all {
             kotlinOptions {
                 val catalog = project.extensions.getByType<VersionCatalogsExtension>().named("libs")
-                project.logger.warn("Catalog: $catalog")
                 jvmTarget = catalog.findVersion("kotlin.androidClassTarget").get().requiredVersion
             }
         }

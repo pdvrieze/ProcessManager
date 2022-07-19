@@ -20,6 +20,7 @@ pluginManagement {
         mavenCentral()
         google()
         maven { url "https://plugins.gradle.org/m2/" }
+        maven { url "https://maven.pkg.jetbrains.space/public/p/compose/dev" }
 
     }
     resolutionStrategy {
@@ -62,7 +63,7 @@ include(":JavaCommonApi")
 if(file("kotlinsql").exists()) {
     includeBuild("kotlinsql") {
         dependencySubstitution {
-            substitute module("io.github.pdvrieze.kotlinsql:kotlinsql-monadic:") with project(":")
+            substitute module("io.github.pdvrieze.kotlinsql:kotlinsql-monadic:") using project(":")
         }
     }
 }
@@ -70,8 +71,8 @@ if(file("kotlinsql").exists()) {
 if (file("xmlutil").exists()) {
     includeBuild("xmlutil") {
         dependencySubstitution {
-            substitute module('io.github.pdvrieze.xmlutil:core') with project(':core')
-            substitute module('io.github.pdvrieze.xmlutil:serialization') with project(':serialization')
+            substitute module('io.github.pdvrieze.xmlutil:core') using project(':core')
+            substitute module('io.github.pdvrieze.xmlutil:serialization') using project(':serialization')
         }
     }
 }
@@ -82,7 +83,7 @@ include(":DarwinJavaApi")
 include(":TestSupport")
 include(":PE-common")
 
-//include(":endpointDokkalet")
+include(":endpointDokkalet")
 
 include(":DarwinGenerators")
 
@@ -114,6 +115,10 @@ include(":accountmgr:js")
 include(":DarwinServices")
 
 include(":PE-server")
+
+include(":compose:common")
+include(":compose:jvm")
+include(":compose:android")
 
 /*
 include(":PE-common:endpointDoclet")

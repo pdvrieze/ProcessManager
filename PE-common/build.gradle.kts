@@ -82,7 +82,7 @@ kotlin {
                 api(libs.xmlutil.serialization)
 
                 compileOnly(project(":JavaCommonApi"))
-                implementation(project(":java-common"))
+                api(project(":java-common"))
 
             }
         }
