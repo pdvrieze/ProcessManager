@@ -43,21 +43,10 @@ kotlin {
         }
         jvmAndroid {
         }
-/*
-        js {
-            compilations.all {
-                tasks.getByName<KotlinJsCompile>(compileKotlinTaskName).kotlinOptions {
-                    sourceMap = true
-                    suppressWarnings = false
-                    verbose = true
-                    metaInfo = true
-                    moduleKind = "umd"
-                    main = "call"
-                    freeCompilerArgs = listOf("-Xuse-experimental=kotlin.Experimental")
-                }
-            }
+        js(BOTH) {
+            browser()
+            binaries
         }
-*/
     }
 
     sourceSets {

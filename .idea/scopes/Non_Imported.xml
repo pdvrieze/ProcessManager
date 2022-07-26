@@ -1,3 +1,0 @@
-<component name="DependencyValidationManager">
-  <scope name="Non-Imported" pattern="!file[android-auth]:*/&amp;&amp;!file[darwinlib]:*/" />
-</component>

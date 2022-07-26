@@ -34,42 +34,7 @@
     <remote-repository>
       <option name="id" value="maven2" />
       <option name="name" value="maven2" />
-      <option name="url" value="https://plugins.gradle.org/m2/" />
-    </remote-repository>
-    <remote-repository>
-      <option name="id" value="Bundled maven" />
-      <option name="name" value="Bundled maven" />
-      <option name="url" value="file:$PROJECT_DIR$/xmlutil/ktor/mavenBundled" />
-    </remote-repository>
-    <remote-repository>
-      <option name="id" value="Bundled maven" />
-      <option name="name" value="Bundled maven" />
-      <option name="url" value="file:$PROJECT_DIR$/xmlutil/serialization/mavenBundled" />
-    </remote-repository>
-    <remote-repository>
-      <option name="id" value="Bundled maven" />
-      <option name="name" value="Bundled maven" />
-      <option name="url" value="file:$PROJECT_DIR$/xmlutil/mavenBundled/" />
-    </remote-repository>
-    <remote-repository>
-      <option name="id" value="Bundled maven" />
-      <option name="name" value="Bundled maven" />
-      <option name="url" value="file:$PROJECT_DIR$/xmlutil/examples/mavenBundled" />
-    </remote-repository>
-    <remote-repository>
-      <option name="id" value="Bundled maven" />
-      <option name="name" value="Bundled maven" />
-      <option name="url" value="file:$PROJECT_DIR$/xmlutil/serialutil/mavenBundled" />
-    </remote-repository>
-    <remote-repository>
-      <option name="id" value="Bundled maven" />
-      <option name="name" value="Bundled maven" />
-      <option name="url" value="file:$PROJECT_DIR$/xmlutil/xmlserializable/mavenBundled" />
-    </remote-repository>
-    <remote-repository>
-      <option name="id" value="Bundled maven" />
-      <option name="name" value="Bundled maven" />
-      <option name="url" value="file:$PROJECT_DIR$/xmlutil/core/mavenBundled" />
+      <option name="url" value="https://maven.pkg.jetbrains.space/public/p/compose/dev" />
     </remote-repository>
   </component>
 </project>

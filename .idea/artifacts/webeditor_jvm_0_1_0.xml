@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="webeditor-jvm-0.1.0">
+    <output-path>$PROJECT_DIR$/webeditor/build/libs</output-path>
+    <root id="archive" name="webeditor-jvm-0.1.0.jar">
+      <element id="module-output" name="ProcessManager.webeditor.jvmMain" />
+    </root>
+  </artifact>
+</component>

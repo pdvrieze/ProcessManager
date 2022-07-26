@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="darwinjvm-js">
+    <output-path>$PROJECT_DIR$/darwin/war/build/libs</output-path>
+    <root id="archive" name="darwinjvm-js.jar">
+      <element id="module-output" name="ProcessManager.darwin.war.jsMain" />
+    </root>
+  </artifact>
+</component>

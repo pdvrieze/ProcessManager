@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="PE-common-jvm-1.0.0">
+    <output-path>$PROJECT_DIR$/PE-diagram/build/libs</output-path>
+    <root id="archive" name="PE-common-jvm-1.0.0.jar">
+      <element id="module-output" name="ProcessManager.PE-diagram.jvmMain" />
+    </root>
+  </artifact>
+</component>

@@ -6,7 +6,6 @@ import io.github.pdvrieze.process.compose.common.Viewer
 import nl.adaptivity.process.diagram.DrawableProcessNode
 import nl.adaptivity.process.processModel.configurableModel.ConfigurableProcessModel
 import net.devrieze.util.security.SYSTEMPRINCIPAL
-import nl.adaptivity.process.diagram.DrawableProcessModel
 import nl.adaptivity.process.diagram.RootDrawableProcessModel
 import nl.adaptivity.process.processModel.RootProcessModel
 import nl.adaptivity.process.processModel.configurableModel.activity

@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="javaCommonApi-android-1.1.0">
+    <output-path>$PROJECT_DIR$/JavaCommonApi/build/libs</output-path>
+    <root id="archive" name="javaCommonApi-android-1.1.0.jar">
+      <element id="module-output" name="ProcessManager.JavaCommonApi.androidMain" />
+    </root>
+  </artifact>
+</component>

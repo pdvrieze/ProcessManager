@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="multiplatform-jvm-0.1">
+    <output-path>$PROJECT_DIR$/multiplatform/build/libs</output-path>
+    <root id="archive" name="multiplatform-jvm-0.1.jar">
+      <element id="module-output" name="ProcessManager.multiplatform.jvmMain" />
+    </root>
+  </artifact>
+</component>
