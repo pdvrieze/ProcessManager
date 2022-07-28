@@ -494,8 +494,8 @@ class JsCanvas(
 
         override fun drawPath(path: JsCanvasPath, stroke: JsCanvasPen?, fill: JsCanvasPen?) {
             context.save()
-            scale(scale)
-            translate(-xOffset, -yOffset)
+            context.scale(scale, scale)
+            context.translate(xOffset, yOffset)
             this@JsCanvas.drawPath(path, stroke, fill)
             context.restore()
         }

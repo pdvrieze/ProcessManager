@@ -18,10 +18,7 @@ import nl.adaptivity.process.diagram.DrawableProcessModel
 import nl.adaptivity.process.diagram.DrawableProcessNode
 import nl.adaptivity.process.diagram.RootDrawableProcessModel
 import nl.adaptivity.process.processModel.RootProcessModel
-import nl.adaptivity.process.processModel.configurableModel.ConfigurableProcessModel
-import nl.adaptivity.process.processModel.configurableModel.activity
-import nl.adaptivity.process.processModel.configurableModel.endNode
-import nl.adaptivity.process.processModel.configurableModel.startNode
+import nl.adaptivity.process.processModel.configurableModel.*
 import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.util.security.Principal
 import org.jetbrains.compose.web.attributes.height
@@ -39,7 +36,11 @@ private class TestModel(owner: Principal): ConfigurableProcessModel<DrawableProc
 ) {
     val start by startNode
     val ac1 by activity(start) { x = 40.0 }
-    val end by endNode(ac1) { x = 80.0 }
+    val split1 by split(ac1)
+    val ac2 by activity(split1)
+    val ac3 by activity(split1)
+    val join1 by join(ac2, ac3)
+    val end by endNode(join1) { x = 80.0 }
 }
 
 @Composable
