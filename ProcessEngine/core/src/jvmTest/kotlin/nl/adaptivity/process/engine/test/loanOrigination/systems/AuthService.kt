@@ -122,7 +122,7 @@ class AuthService(
             throw AuthorizationException("Password mismatch for client ${authInfo.principal} (${registeredClients[authInfo.principal.name]?.secret} != ${authInfo.secret})")
         }
 
-        val source = Throwable().stackTrace[2].let { "${it.className.substringAfterLast('.')}.${it.methodName}" }
+        val source = Throwable().stackTrace[2].let { "${it.className.substringAfterLast('.')}.${it.methodName.substringBefore('-')}" }
         doLog(
             authInfo,
             "validateUserPermissions(clientId = $serviceId, authInfo = $authInfo, scope = ${useScope.description}) from $source"

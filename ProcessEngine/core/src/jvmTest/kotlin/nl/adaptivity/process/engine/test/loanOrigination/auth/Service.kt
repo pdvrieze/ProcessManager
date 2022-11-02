@@ -63,7 +63,7 @@ abstract class ServiceImpl(protected val authService: AuthService, protected val
     fun logMe(vararg params: Any?) {
         val args = params.joinToString { it.toString() }
         val service = this.javaClass.simpleName.substringAfterLast('.')
-        val methodName = Throwable().stackTrace[1].methodName
+        val methodName = Throwable().stackTrace[1].methodName.substringBefore('-')
         val serviceState = getServiceState()
         val quotedServiceState = if (serviceState.isEmpty()) "" else "($serviceState)"
         authService.logger.log(Level.INFO, "$service$quotedServiceState.$methodName($args)")
