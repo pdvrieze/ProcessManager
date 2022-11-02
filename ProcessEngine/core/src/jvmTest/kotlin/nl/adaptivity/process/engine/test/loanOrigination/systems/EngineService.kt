@@ -26,8 +26,8 @@ import java.util.*
 class EngineService(
     private val engineData: ProcessEngineDataAccess,
     authService: AuthService,
-    serviceAuth: IdSecretAuthInfo
-                   ) : ServiceImpl(authService, serviceAuth) {
+    serviceAuth: IdSecretAuthInfo,
+) : ServiceImpl(authService, serviceAuth) {
 
     override fun getServiceState(): String = ""
 
@@ -39,14 +39,23 @@ class EngineService(
         authToken: AuthToken,
         nodeInstanceHandle: PNIHandle,
         principal: Principal,
-        pendingPermissions: ArrayDeque<LoanActivityContext.PendingPermission>
-                      ): AuthorizationCode {
+        pendingPermissions: ArrayDeque<LoanActivityContext.PendingPermission>,
+    ): AuthorizationCode {
         logMe(authToken, nodeInstanceHandle, principal)
-        validateAuthInfo(authToken, LoanPermissions.ACCEPT_TASK(nodeInstanceHandle)) // TODO mark correct expected permission
-        if (nodeInstanceHandle!= authToken.nodeInstanceHandle) throw IllegalArgumentException("Mismatch with node instances")
+        validateAuthInfo(
+            authToken,
+            LoanPermissions.ACCEPT_TASK(nodeInstanceHandle)
+        ) // TODO mark correct expected permission
+        if (nodeInstanceHandle != authToken.nodeInstanceHandle) throw IllegalArgumentException("Mismatch with node instances")
         // Should register owner.
 //        val taskAuthorizationCode = authService.createAuthorizationCode(serviceAuth, authToken.principal.name, authToken.nodeInstanceHandle, this)
-        return authService.createAuthorizationCode(serviceAuth, principal.name, authToken.nodeInstanceHandle, authService, LoanPermissions.IDENTIFY).also { authorizationCode ->
+        return authService.createAuthorizationCode(
+            serviceAuth,
+            principal.name,
+            authToken.nodeInstanceHandle,
+            authService,
+            LoanPermissions.IDENTIFY
+        ).also { authorizationCode ->
 
             val clientId = principal.name
             // Also use the result to register permissions for it
@@ -56,7 +65,13 @@ class EngineService(
                     serviceAuth,
                     authorizationCode,
                     authService,
-                    LoanPermissions.GRANT_ACTIVITY_PERMISSION.restrictTo(nodeInstanceHandle, clientId, pendingPermission.service, pendingPermission.scope))
+                    LoanPermissions.GRANT_ACTIVITY_PERMISSION.restrictTo(
+                        nodeInstanceHandle,
+                        clientId,
+                        pendingPermission.service,
+                        pendingPermission.scope
+                    )
+                )
             }
 
         }
@@ -66,15 +81,17 @@ class EngineService(
     fun registerActivityToTaskList(taskList: TaskList, pniHandle: PNIHandle) {
         logMe(pniHandle)
 
-        val permissions = listOf(LoanPermissions.UPDATE_ACTIVITY_STATE(pniHandle),
-                                 LoanPermissions.ACCEPT_TASK(pniHandle))
+        val permissions = listOf(
+            LoanPermissions.UPDATE_ACTIVITY_STATE(pniHandle),
+            LoanPermissions.ACCEPT_TASK(pniHandle)
+        )
         val taskListToEngineAuthToken = authService.createAuthorizationCode(
             serviceAuth,
             taskList.serviceId,
             pniHandle,
             this,
             UnionPermissionScope(permissions)
-                                                                       )
+        )
 
         val taskListAuth = authTokenForService(taskList)
 
