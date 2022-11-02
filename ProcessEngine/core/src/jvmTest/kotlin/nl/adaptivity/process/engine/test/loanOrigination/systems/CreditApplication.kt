@@ -16,24 +16,32 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
-import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthInfo
-import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthorizationCode
-import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
-import nl.adaptivity.process.engine.test.loanOrigination.auth.ServiceImpl
+import nl.adaptivity.process.engine.test.loanOrigination.auth.*
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CreditReport
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanApplication
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanEvaluation
 
 class CreditApplication(
     authService: AuthService,
-    val customerInformationFile: CustomerInformationFile
-                       ): ServiceImpl(authService, "Credit_Application") {
+    val customerInformationFile: CustomerInformationFile,
+) : ServiceImpl(authService, "Credit_Application") {
 
     override fun getServiceState(): String = ""
 
-    fun evaluateLoan(authInfo: AuthInfo, delegateAuthorization:AuthorizationCode, application: LoanApplication, creditReport: CreditReport): LoanEvaluation {
+    fun evaluateLoan(
+        authInfo: AuthToken,
+        application: LoanApplication,
+        creditReport: CreditReport,
+    ): LoanEvaluation {
         logMe(application)
         validateAuthInfo(authInfo, LoanPermissions.EVALUATE_LOAN.context(application.customerId, application.amount))
+
+        val delegateAuthorization = authService.exchangeDelegateCode(
+            authInfo,
+            this,
+            customerInformationFile,
+            LoanPermissions.QUERY_CUSTOMER_DATA(application.customerId)
+        )
 
         val cifServiceAuth = authService.getAuthToken(serviceAuth, delegateAuthorization)
         val customer = customerInformationFile.getCustomerData(cifServiceAuth, application.customerId)!!

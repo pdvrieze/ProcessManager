@@ -109,7 +109,7 @@ sealed class LoanPermissions : PermissionScope {
     /** Identify the user as themselves */
     object IDENTIFY : LoanPermissions(), UseAuthScope
 
-    /** Create a token that allows a "user" to editify as task */
+    /** Create a token that allows a "user" to identify as task */
     object CREATE_TASK_IDENTITY : LoanPermissions(), UseAuthScope
 
 
@@ -179,9 +179,12 @@ sealed class LoanPermissions : PermissionScope {
             }
 
             override fun intersect(otherScope: PermissionScope): PermissionScope? {
-                if (otherScope == GRANT_GLOBAL_PERMISSION) return this
-                else if (otherScope is GRANT_ACTIVITY_PERMISSION.ContextScope) {
+                if (otherScope == GRANT_GLOBAL_PERMISSION) {
+                    return this
+                } else if (otherScope is GRANT_ACTIVITY_PERMISSION.ContextScope) {
                     return toActivityPermission(otherScope.taskInstanceHandle).intersect(otherScope)
+                } else if (otherScope is UnionPermissionScope) {
+                    return otherScope.intersect(this)
                 } else if (otherScope !is ContextScope) return  null
 
                 val effectiveClient = when {
@@ -267,8 +270,8 @@ sealed class LoanPermissions : PermissionScope {
             taskHandle: PNIHandle,
             clientId: String,
             service: Service,
-            scope: PermissionScope
-                   ): UseAuthScope {
+            scope: PermissionScope,
+        ): UseAuthScope {
             return ContextScope(taskHandle, clientId, service.serviceId, scope)
         }
 
@@ -276,8 +279,8 @@ sealed class LoanPermissions : PermissionScope {
             taskHandle: PNIHandle,
             clientId: String? = null,
             service: Service? = null,
-            scope: PermissionScope? = null
-                      ): PermissionScope {
+            scope: PermissionScope? = null,
+        ): PermissionScope {
             return ContextScope(taskHandle, clientId, service?.serviceId, scope)
         }
 
@@ -285,16 +288,16 @@ sealed class LoanPermissions : PermissionScope {
             taskHandle: PNIHandle,
             clientId: String? = null,
             serviceId: String? = null,
-            scope: PermissionScope? = null
-                      ): PermissionScope {
+            scope: PermissionScope? = null,
+        ): PermissionScope {
             return ContextScope(taskHandle, clientId, serviceId, scope)
         }
 
         fun restrictTo(
             taskHandle: PNIHandle,
             service: Service? = null,
-            scope: PermissionScope? = null
-                      ): PermissionScope {
+            scope: PermissionScope? = null,
+        ): PermissionScope {
             return ContextScope(taskHandle, null, service?.serviceId, scope)
         }
 
@@ -333,9 +336,12 @@ sealed class LoanPermissions : PermissionScope {
             }
 
             override fun intersect(otherScope: PermissionScope): PermissionScope? {
-                if (otherScope == GRANT_ACTIVITY_PERMISSION) return this
-                else if (otherScope is GRANT_GLOBAL_PERMISSION.ContextScope) {
+                if (otherScope == GRANT_ACTIVITY_PERMISSION) {
+                    return this
+                } else if (otherScope is GRANT_GLOBAL_PERMISSION.ContextScope) {
                     return intersect(otherScope.toActivityPermission(taskInstanceHandle))
+                } else if (otherScope is UnionPermissionScope) {
+                    return otherScope.intersect(this)
                 } else if (otherScope !is ContextScope ||
                     taskInstanceHandle!=otherScope.taskInstanceHandle) return null
 
@@ -418,6 +424,142 @@ sealed class LoanPermissions : PermissionScope {
         }
     }
 
+    object DELEGATED_PERMISSION : LoanPermissions() {
+        fun context(
+            clientId: String,
+            service: Service,
+            scope: PermissionScope,
+        ): UseAuthScope {
+            return DelegateContextScope(service.serviceId, scope)
+        }
+
+        fun restrictTo(
+            clientId: String? = null,
+            service: Service? = null,
+            scope: PermissionScope? = null,
+        ): PermissionScope {
+            return DelegateContextScope(service?.serviceId, scope)
+        }
+
+        fun restrictTo(
+            clientId: String? = null,
+            serviceId: String? = null,
+            scope: PermissionScope? = null,
+        ): PermissionScope {
+            return DelegateContextScope(serviceId, scope)
+        }
+
+        fun restrictTo(
+            service: Service? = null,
+            scope: PermissionScope? = null,
+        ): PermissionScope {
+            return DelegateContextScope(service?.serviceId, scope)
+        }
+
+        override fun includes(useScope: UseAuthScope): Boolean {
+            if (useScope is DelegateContextScope) return true
+            return super.includes(useScope)
+        }
+
+        override fun intersect(otherScope: PermissionScope): PermissionScope? {
+            if (otherScope is DelegateContextScope) return otherScope
+            return super.intersect(otherScope)
+        }
+
+        override fun union(otherScope: PermissionScope): PermissionScope {
+            if (otherScope is DelegateContextScope) return this
+            return super.union(otherScope)
+        }
+
+        data class DelegateContextScope(val serviceId: String?, val childScope: PermissionScope? = null) :
+            UseAuthScope, PermissionScope {
+
+            override fun includes(useScope: UseAuthScope): Boolean = when {
+                useScope !is DelegateContextScope ||
+                    useScope.childScope == null ||
+                    serviceId != null && serviceId != useScope.serviceId
+                                   -> false
+                childScope == null -> true
+                else               -> childScope.intersect(useScope.childScope) == useScope.childScope
+            }
+
+            override fun intersect(otherScope: PermissionScope): PermissionScope? {
+                when (otherScope) {
+                    DELEGATED_PERMISSION -> return this
+                    is UnionPermissionScope -> return otherScope.intersect(this)
+                    !is DelegateContextScope -> return null
+
+                    else -> {
+
+                        val effectiveService = when {
+                            serviceId == null               -> otherScope.serviceId
+                            otherScope.serviceId == null      -> otherScope.serviceId
+                            serviceId == otherScope.serviceId -> serviceId
+                            else                            -> return null
+                        }
+
+                        val effectiveScope = when {
+                            childScope == null       -> otherScope.childScope
+                            otherScope.childScope == null -> otherScope.childScope
+                            else                     -> childScope.intersect(otherScope.childScope) ?: return null
+                        }
+                        return DelegateContextScope(effectiveService, effectiveScope)
+                    }
+                }
+
+            }
+
+            override fun union(otherScope: PermissionScope): PermissionScope {
+                when (otherScope) {
+                    DELEGATED_PERMISSION -> return otherScope
+                    !is DelegateContextScope -> return UnionPermissionScope(listOf(this, otherScope))
+                    else -> {
+
+                        val effectiveService = when {
+                            serviceId == null               -> null
+                            otherScope.serviceId == null      -> null
+                            serviceId == otherScope.serviceId -> serviceId
+                            else                            -> return UnionPermissionScope(listOf(this, otherScope))
+                        }
+
+                        val effectiveScope = when {
+                            childScope == null       -> otherScope.childScope
+                            otherScope.childScope == null -> otherScope.childScope
+                            else                     -> childScope.union(otherScope.childScope)
+                        }
+                        return DelegateContextScope(effectiveService, effectiveScope)
+                    }
+                }
+            }
+
+            override val description: String
+                get() = "DELEGATED_PERMISSION(->${serviceId ?: "<anyService>"}.${childScope?.description ?: "*"})"
+
+            override fun toString(): String {
+                return description
+            }
+
+            override fun equals(other: Any?): Boolean {
+                if (this === other) return true
+                if (javaClass != other?.javaClass) return false
+
+                other as DelegateContextScope
+
+                if (serviceId != other.serviceId) return false
+                if (childScope != other.childScope) return false
+
+                return true
+            }
+
+            override fun hashCode(): Int {
+                var result = (serviceId?.hashCode() ?: 0)
+                result = 31 * result + (childScope?.hashCode() ?: 0)
+                return result
+            }
+
+        }
+    }
+
     object OPEN_ACCOUNT : LoanPermissions() {
         operator fun invoke(customerId: String) = contextImpl(customerId)
     }
@@ -432,6 +574,7 @@ sealed class LoanPermissions : PermissionScope {
     }
 
     override fun intersect(otherScope: PermissionScope): PermissionScope? {
+        if (otherScope is UnionPermissionScope) return otherScope.intersect(this)
         return if (otherScope is UseAuthScope && includes(otherScope)) otherScope else null
     }
 
@@ -500,6 +643,7 @@ class MonetaryRestrictionPermissionScope(
     }
 
     override fun intersect(otherScope: PermissionScope): PermissionScope? {
+        if (otherScope is UnionPermissionScope) return otherScope.intersect(this)
         if (otherScope !is MonetaryRestrictionPermissionScope) return null
         if (scope != otherScope.scope) return null
         if (customerId != null && otherScope.customerId != null && customerId != otherScope.customerId) return null

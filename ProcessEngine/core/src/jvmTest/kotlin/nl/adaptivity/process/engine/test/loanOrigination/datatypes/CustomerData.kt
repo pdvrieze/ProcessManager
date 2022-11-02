@@ -21,5 +21,5 @@ data class CustomerData(
     val taxId: String,
     val passportNo: String,
     val name: String,
-    val address: String
-                       )
+    val address: String,
+)

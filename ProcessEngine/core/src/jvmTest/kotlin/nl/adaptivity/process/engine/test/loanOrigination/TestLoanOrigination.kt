@@ -21,6 +21,7 @@ import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.get
 import nl.adaptivity.process.engine.test.ProcessEngineFactory
 import nl.adaptivity.process.engine.test.ProcessEngineTestSupport
+import nl.adaptivity.process.engine.test.loanOrigination.auth.ANYSCOPE
 import nl.adaptivity.process.engine.test.loanOrigination.auth.AuthorizationException
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions.*
 import nl.adaptivity.process.engine.test.loanOrigination.auth.PermissionScope
@@ -93,7 +94,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
             val newData = ctx.processContext.customerData
 
             customerFile.enterCustomerData(customerFileAuthToken, newData)
-            LoanCustomer(newData.customerId)
+            LoanCustomer(newData.customerId, newData.taxId)
         }
     }
     val createLoanRequest by configureRunnableActivity<LoanCustomer, LoanApplication>(
@@ -171,7 +172,7 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
         ) { customer ->
 
             registerTaskPermission(customerFile, QUERY_CUSTOMER_DATA(customer.customerId))
-            registerTaskPermission(creditBureau, GET_CREDIT_REPORT("taxId234"))
+            registerTaskPermission(creditBureau, GET_CREDIT_REPORT(customer.taxId))
             generalClientService.runWithAuthorization(ctx.serviceTask()) { tknTID ->
 
                 assertForbidden {
@@ -219,26 +220,17 @@ private class Model1(owner: Principal) : ConfigurableProcessModel<ExecutableProc
 
                 action = { (application, creditReport) ->
                     registerTaskPermission(creditApplication, EVALUATE_LOAN(application.customerId))
-                    registerTaskPermission(
-                        creditApplication.serviceId,
+                    registerDelegatePermission(
+                        creditApplication,
                         customerFile,
                         QUERY_CUSTOMER_DATA(application.customerId)
                     )
 
                     generalClientService.runWithAuthorization(ctx.serviceTask()) { taskIdToken ->
-
-                        val delegateAuthorization = authService.createAuthorizationCode(
-                            taskIdToken,
-                            creditApplication.serviceId,
-                            customerFile,
-                            QUERY_CUSTOMER_DATA(application.customerId)
-                        )
-
-                        val authToken = getServiceToken(
-                            creditApplication,
-                            EVALUATE_LOAN(application.customerId, application.amount)
-                        )
-                        creditApplication.evaluateLoan(authToken, delegateAuthorization, application, creditReport)
+                        val authToken = getServiceToken(creditApplication, ANYSCOPE)
+                        // ANYSCOPE is valid here as we just defined the needed permissions. Enumerating is possible,
+                        // but tedious
+                        creditApplication.evaluateLoan(authToken, application, creditReport)
                     }
                 }
             }
@@ -386,8 +378,8 @@ private inline val ActivityInstanceContext.customer get() = ctx.processContext.c
 private fun ActivityInstanceContext.registerTaskPermission(service: Service, scope: PermissionScope) =
     ctx.registerTaskPermission(service, scope)
 
-private fun ActivityInstanceContext.registerTaskPermission(client: String, service: Service, scope: PermissionScope) =
-    ctx.registerTaskPermission(client, service, scope)
+private fun ActivityInstanceContext.registerDelegatePermission(clientService: Service, service: Service, scope: PermissionScope) =
+    ctx.registerDelegatePermission(clientService, service, scope)
 
 private inline fun <R> ActivityInstanceContext.acceptBrowserActivity(
     browser: Browser,

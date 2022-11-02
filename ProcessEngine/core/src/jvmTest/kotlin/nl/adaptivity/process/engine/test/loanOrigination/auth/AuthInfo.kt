@@ -19,7 +19,7 @@ package nl.adaptivity.process.engine.test.loanOrigination.auth
 import java.security.Principal
 
 
-open class AuthInfo(val principal: Principal) {
+sealed class AuthInfo(val principal: Principal) {
 
 
     override fun toString(): String {

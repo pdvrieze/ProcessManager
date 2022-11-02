@@ -21,4 +21,4 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @SerialName("loanCustomer")
-data class LoanCustomer(val customerId: String)
+data class LoanCustomer(val customerId: String, val taxId: String)

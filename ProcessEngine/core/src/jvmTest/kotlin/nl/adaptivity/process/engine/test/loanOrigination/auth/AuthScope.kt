@@ -44,7 +44,9 @@ class UnionPermissionScope(members: List<PermissionScope>): PermissionScope {
     }
 
     override fun intersect(otherScope: PermissionScope): PermissionScope? {
-        val newMembers = members.mapNotNull { it.intersect(otherScope) }
+        val newMembers = members.mapNotNull {
+            it.intersect(otherScope)
+        }
         if(newMembers.isEmpty()) return null
         if (newMembers.size==1) return newMembers.single()
         return UnionPermissionScope(newMembers)

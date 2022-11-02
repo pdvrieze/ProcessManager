@@ -21,8 +21,7 @@ import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.PNIHandle
 import nl.adaptivity.process.engine.test.loanOrigination.Random
 import nl.adaptivity.process.engine.test.loanOrigination.auth.*
-import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions.GRANT_ACTIVITY_PERMISSION
-import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions.GRANT_GLOBAL_PERMISSION
+import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions.*
 import nl.adaptivity.util.nl.adaptivity.util.kotlin.removeIfTo
 import java.security.Principal
 import java.util.logging.Level
@@ -97,10 +96,10 @@ class AuthService(
         if (authToken !in activeTokens) throw AuthorizationException("Token not active: $authToken")
         if (authToken.serviceId != serviceId) throw AuthorizationException("The token $authToken is not for the expected service $serviceId")
 //        val tokenPermissions = tokenPermissions.get(authToken.tokenValue) ?:emptyList<Permission>()
-        val hasPermissionDirectPermission = authToken.serviceId == serviceId && authToken.scope.includes(useScope)
-        if (!hasPermissionDirectPermission) {
-            val additionalPermissions = tokenPermissions[authToken.tokenValue] ?: emptyList<Permission>()
-            val hasExtPermission = additionalPermissions.any { it.scope.includes(useScope) }
+        val hasTransparentPermission = authToken.serviceId == serviceId && authToken.scope.includes(useScope)
+        if (!hasTransparentPermission) {
+            val opaquePermissions = tokenPermissions[authToken.tokenValue] ?: emptyList()
+            val hasExtPermission = opaquePermissions.any { it.scope.includes(useScope) }
             if (!hasExtPermission) {
                 val hasGlobalPerm: Boolean = authToken.scope == LoanPermissions.IDENTIFY &&
                         (globalPermissions.get(authToken.principal)?.get(serviceId)?.any { it.includes(useScope) }
@@ -173,9 +172,66 @@ class AuthService(
         return createAuthorizationCodeImpl(auth, clientId, nodeInstanceHandle, service, scope)
     }
 
+    /**
+     * Create an authorization code for a client to access the service with given scope
+     * @param auth Authorization for this action
+     * @param clientId The client that is being authorized
+     * @param nodeInstanceHandle The node instance related to this authorization
+     * @param service The service being authorized
+     * @param scope The scope being authorized
+     */
+    fun exchangeDelegateCode(
+        auth: AuthToken,
+        client: Service,
+        service: Service,
+        scope: PermissionScope
+    ): AuthorizationCode {
+        val nodeInstanceHandle = auth.getNodeInstanceHandle()
+        return exchangeDelegateCode(auth, client, nodeInstanceHandle, service, scope)
+    }
+
     private fun AuthInfo.getNodeInstanceHandle(): PNIHandle = when (this) {
         is AuthToken -> nodeInstanceHandle
         else         -> Handle.invalid()
+    }
+
+    private fun exchangeDelegateCode(
+        auth: AuthToken,
+        client: Service,
+        nodeInstanceHandle: PNIHandle,
+        service: Service,
+        scope: PermissionScope
+    ): AuthorizationCode {
+        val clientId = client.serviceId
+        // We know the task handle so permission limited to the task handle is sufficient
+        validateAuthTokenPermission(
+            clientId,
+            auth,
+            DELEGATED_PERMISSION.context(clientId, service, scope)
+        )
+
+        val clientPrincipal = clientFromId(clientId)
+        val existingToken = activeTokens.lastOrNull {
+            it.principal == clientPrincipal &&
+                it.nodeInstanceHandle == nodeInstanceHandle &&
+                it.serviceId == serviceId &&
+                it.scope == scope
+        }
+
+        val token = if (existingToken != null) {
+            Random.nextString()
+            existingToken
+        } else {
+            AuthToken(clientPrincipal, nodeInstanceHandle, Random.nextString(), service.serviceId, scope)
+        }
+        val authorizationCode = AuthorizationCode(Random.nextString(), clientPrincipal)
+        authorizationCodes[authorizationCode] = token
+        activeTokens.add(token)
+        doLog(
+            auth,
+            "createAuthorizationCode(code = ${authorizationCode.code}, token${if (existingToken != null) " - reused" else ""} = $token)"
+        )
+        return authorizationCode
     }
 
     private fun createAuthorizationCodeImpl(

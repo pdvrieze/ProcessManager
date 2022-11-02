@@ -33,7 +33,6 @@ abstract class ServiceImpl(protected val authService: AuthService, protected val
 
     abstract fun getServiceState(): String
 
-    @OptIn(ExperimentalUnsignedTypes::class)
     constructor(authService: AuthService, name: String) : this(
         authService,
         authService.registerClient(
@@ -54,7 +53,7 @@ abstract class ServiceImpl(protected val authService: AuthService, protected val
     fun authTokenForService(service: Service, scope: PermissionScope = ANYSCOPE): AuthToken {
         logMe(service.serviceId, scope)
 
-        tokens.removeIf { authService.isTokenInvalid(it) }
+        tokens.removeAll { authService.isTokenInvalid(it) }
 
         tokens.lastOrNull { it.serviceId == service.serviceId }?.let { return it }
 

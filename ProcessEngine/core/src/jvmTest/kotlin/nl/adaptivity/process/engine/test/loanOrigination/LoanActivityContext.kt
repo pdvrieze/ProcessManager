@@ -101,8 +101,9 @@ class LoanActivityContext(override val processContext:LoanProcessContext, privat
      * TODO Function that registers permissions for the task. This should be done based upon task definition
      *      and in acceptActivity.
      */
-    fun registerTaskPermission(clientId: String, service: Service, scope: PermissionScope) {
-        pendingPermissions.add(PendingPermission(clientId, service, scope))
+    fun registerDelegatePermission(clientService: Service, service: Service, scope: PermissionScope) {
+        val delegateScope = LoanPermissions.DELEGATED_PERMISSION.restrictTo(clientService.serviceId, service, scope)
+        pendingPermissions.add(PendingPermission(null, clientService, delegateScope))
     }
 
     lateinit var taskList: TaskList
