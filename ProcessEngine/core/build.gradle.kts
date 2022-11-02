@@ -90,6 +90,7 @@ kotlin {
                     api(libs.jwsApi)
                     api(libs.activationApi)
                     implementation(libs.kotlinx.serialization.core)
+                    implementation(kotlin("stdlib-jdk8"))
 
                     runtimeOnly(libs.woodstox)
 

@@ -53,6 +53,7 @@ artifacts {
 
 dependencies {
     api(project(":java-common"))
+    implementation(project(":JavaCommonApi"))
     implementation(project(":ProcessEngine:core"))
     implementation(project(":PE-common"))
     implementation(project(":DarwinJavaApi"))
