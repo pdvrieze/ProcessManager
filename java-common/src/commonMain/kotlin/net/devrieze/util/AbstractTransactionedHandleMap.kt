@@ -16,15 +16,11 @@
 
 package net.devrieze.util
 
-import java.sql.SQLException
-
-
 /**
  * Created by pdvrieze on 19/05/16.
  */
 abstract class AbstractTransactionedHandleMap<V:Any, T : Transaction> : MutableTransactionedHandleMap<V, T> {
 
-  @Throws(SQLException::class)
   override fun castOrGet(transaction: T, handle: Handle<V>): V? {
     return get(transaction, handle)
   }

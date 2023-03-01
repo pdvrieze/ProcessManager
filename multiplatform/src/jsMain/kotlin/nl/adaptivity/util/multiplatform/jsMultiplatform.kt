@@ -68,7 +68,7 @@ actual interface AutoCloseable {
 
 actual interface Closeable: AutoCloseable
 
-actual interface Runnable {
+actual fun interface Runnable {
     actual fun run()
 }
 

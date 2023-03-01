@@ -112,7 +112,7 @@ expect interface AutoCloseable {
 
 expect interface Closeable : AutoCloseable
 
-expect interface Runnable {
+expect fun interface Runnable {
     fun run()
 }
 

@@ -17,11 +17,8 @@
 package net.devrieze.util
 
 import net.devrieze.util.CachingHandleMap.WrappingIterator
-import java.io.Closeable
-import java.io.IOException
-import java.sql.SQLException
+import nl.adaptivity.util.multiplatform.*
 import java.util.*
-import java.util.concurrent.CopyOnWriteArraySet
 
 
 /**
@@ -63,18 +60,10 @@ open class CachingHandleMap<V : Any, T : Transaction>(
             return result
         }
 
-        @Throws(IOException::class)
         override fun close() {
             val it = iterator
             if (it is AutoCloseable) {
-                try {
-                    it.close()
-                } catch (e: IOException) {
-                    throw e
-                } catch (e: Exception) {
-                    throw RuntimeException(e)
-                }
-
+                it.close()
             }
         }
 
@@ -91,7 +80,7 @@ open class CachingHandleMap<V : Any, T : Transaction>(
 
         override fun remove() {
             if (last != null) {
-                synchronized(cacheHandles) {
+                synchronizedCompat(cacheHandles) {
                     val last = last
                     if (last is Handle<*>) {
                         @Suppress("UNCHECKED_CAST")
@@ -111,18 +100,10 @@ open class CachingHandleMap<V : Any, T : Transaction>(
             iterator.remove()
         }
 
-        @Throws(IOException::class)
         override fun close() {
             val it = iterator
             if (it is AutoCloseable) {
-                try {
-                    it.close()
-                } catch (e: IOException) {
-                    throw e
-                } catch (e: Exception) {
-                    throw RuntimeException(e)
-                }
-
+                it.close()
             }
         }
 
@@ -141,7 +122,7 @@ open class CachingHandleMap<V : Any, T : Transaction>(
     private var cacheHead = 0
     internal val cacheHandles: LongArray
     internal val cacheValues: Array<V?>
-    private val pendingHandles = CopyOnWriteArraySet<Handle<V>>()
+    private val pendingHandles : MutableSet<Handle<V>> = createCachingMapHandleSet()
 
     init {
         cacheHandles = LongArray(cacheSize)
@@ -149,7 +130,6 @@ open class CachingHandleMap<V : Any, T : Transaction>(
         cacheValues = arrayOfNulls<Any>(cacheSize) as Array<V?>
     }
 
-    @Throws(SQLException::class)
     override fun <W : V> put(transaction: T, value: W): Handle<W> {
         val handle = delegate.put(transaction, value)
 
@@ -178,8 +158,8 @@ open class CachingHandleMap<V : Any, T : Transaction>(
                         updatedValue.handle != handle)
                 ) return
 
-                synchronized(cacheHandles) {
-                    transaction.addRollbackHandler(Runnable { invalidateCache(handle) })
+                synchronizedCompat(cacheHandles) {
+                    transaction.addRollbackHandler { invalidateCache(handle) }
                     val pos = cacheHead
                     val handleValue = handle.handleValue
                     if (cacheHandles[pos] != handleValue) {
@@ -194,7 +174,6 @@ open class CachingHandleMap<V : Any, T : Transaction>(
         }
     }
 
-    @Throws(SQLException::class)
     fun getFromDelegate(transaction: T, pHandle: Handle<V>): V? {
         pendingHandles.add(pHandle) // internal locking so no locking needed here
         try {
@@ -205,7 +184,7 @@ open class CachingHandleMap<V : Any, T : Transaction>(
     }
 
     private fun getFromCache(handle: Long): V? {
-        synchronized(cacheHandles) {
+        synchronizedCompat(cacheHandles) {
             for (i in cacheHandles.indices) {
                 if (cacheHandles[i] == handle) {
                     return cacheValues[i]
@@ -215,11 +194,10 @@ open class CachingHandleMap<V : Any, T : Transaction>(
         }
     }
 
-    @Throws(SQLException::class)
     override fun get(transaction: T, handle: Handle<V>): V? {
         if (!handle.isValid) return null
         var value: V?
-        synchronized(cacheHandles) {
+        synchronizedCompat(cacheHandles) {
             value = getFromCache(handle.handleValue)
             if (value != null) {
                 return value
@@ -229,7 +207,6 @@ open class CachingHandleMap<V : Any, T : Transaction>(
         }
     }
 
-    @Throws(SQLException::class)
     override fun contains(transaction: T, handle: Handle<V>): Boolean {
         if (getFromCache(handle.handleValue) != null) {
             return true
@@ -237,7 +214,6 @@ open class CachingHandleMap<V : Any, T : Transaction>(
         return delegate.contains(transaction, handle)
     }
 
-    @Throws(SQLException::class)
     override fun containsElement(transaction: T, element: Any): Boolean {
         if (element is Handle<*>) {
             @Suppress("UNCHECKED_CAST")
@@ -246,7 +222,6 @@ open class CachingHandleMap<V : Any, T : Transaction>(
         return delegate.containsElement(transaction, element)
     }
 
-    @Throws(SQLException::class)
     override fun set(transaction: T, handle: Handle<V>, value: V): V? {
         invalidateCache(handle)
         delegate[transaction, handle] = value
@@ -256,7 +231,7 @@ open class CachingHandleMap<V : Any, T : Transaction>(
     private fun storeInCache(transaction: T, pHandle: Handle<V>, pV: V): V {
         if (!isPending(pHandle)) {
             val handle = pHandle.handleValue
-            synchronized(cacheHandles) {
+            synchronizedCompat(cacheHandles) {
                 removeFromCache(handle) // remove whatever old value was there
                 putCache(transaction, pHandle, pV)
             }
@@ -284,15 +259,14 @@ open class CachingHandleMap<V : Any, T : Transaction>(
     }
 
     override fun invalidateCache() {
-        synchronized(cacheHandles) {
-            Arrays.fill(cacheHandles, -1)
-            Arrays.fill(cacheValues, null)
+        synchronizedCompat(cacheHandles) {
+            cacheHandles.fill(-1)
+            cacheValues.fill(null)
             cacheHead = 0
         }
     }
 
     @Deprecated("")
-    @Throws(SQLException::class)
     fun getUncached(transaction: T, pHandle: Handle<V>): V? {
         return delegate[transaction, pHandle].apply {
             if (this != null)
@@ -303,13 +277,11 @@ open class CachingHandleMap<V : Any, T : Transaction>(
         }
     }
 
-    @Throws(SQLException::class)
     override fun remove(transaction: T, handle: Handle<V>): Boolean {
         removeFromCache(handle.handleValue)
         return delegate.remove(transaction, handle)
     }
 
-    @Throws(SQLException::class)
     override fun clear(transaction: T) {
         invalidateCache()
         delegate.clear(transaction)
@@ -323,7 +295,6 @@ open class CachingHandleMap<V : Any, T : Transaction>(
         return WrappingIterable(transaction, delegate.iterable(transaction))
     }
 
-    @Throws(IOException::class)
     override fun close() {
         invalidateCache()
         if (delegate is Closeable) {
@@ -338,3 +309,5 @@ open class CachingHandleMap<V : Any, T : Transaction>(
         }
     }
 }
+
+internal expect fun <V> createCachingMapHandleSet():MutableSet<Handle<V>>
