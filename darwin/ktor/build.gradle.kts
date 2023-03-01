@@ -32,7 +32,7 @@ val ktorVersion = libs.versions.ktor.get()
 
 kotlin {
     jvm {}
-    js {
+    js(IR) {
         moduleName = "darwin"
         browser {
             dceTask {

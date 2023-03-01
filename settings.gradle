@@ -121,6 +121,10 @@ include(":compose:jvm")
 include(":compose:android")
 include(":compose:js")
 
+include(":pma:main")
+include(":pma:main")
+
+
 /*
 include(":PE-common:endpointDoclet")
 */
