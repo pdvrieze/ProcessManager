@@ -19,6 +19,8 @@ package nl.adaptivity.util
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializer
 import kotlinx.serialization.builtins.serializer
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
@@ -28,28 +30,26 @@ import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.util.multiplatform.toUUID
 import nl.adaptivity.util.security.Principal
 
-@Serializer(forClass = Principal::class)
 class PrincipalSerializer : KSerializer<Principal> {
-    override val descriptor: SerialDescriptor = String.serializer().descriptor
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Principal", PrimitiveKind.STRING)
 
     override fun deserialize(decoder: Decoder): Principal {
         return SimplePrincipal(String.serializer().deserialize(decoder))
     }
 
-    override fun serialize(encoder: Encoder, obj: Principal) {
-        String.serializer().serialize(encoder, obj.name)
+    override fun serialize(encoder: Encoder, value: Principal) {
+        String.serializer().serialize(encoder, value.name)
     }
 }
 
-@Serializer(forClass = UUID::class)
 class UUIDSerializer : KSerializer<UUID> {
-    override val descriptor: SerialDescriptor = String.serializer().descriptor
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("UUID", PrimitiveKind.STRING)
 
     override fun deserialize(decoder: Decoder): UUID {
         return String.serializer().deserialize(decoder).toUUID()
     }
 
-    override fun serialize(encoder: Encoder, obj: UUID) {
-        String.serializer().serialize(encoder, obj.toString())
+    override fun serialize(encoder: Encoder, value: UUID) {
+        String.serializer().serialize(encoder, value.toString())
     }
 }

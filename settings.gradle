@@ -46,7 +46,7 @@ pluginManagement {
                     useModule("org.jetbrains.dokka:dokka-android-gradle-plugin:${ver}")
                     break
                 case "net.devrieze.gradlecodegen":
-                    useModule("net.devrieze:gradle-codegen:0.5.8")
+                    useModule("net.devrieze:gradle-codegen:0.6.0")
                     break
             }
         }
@@ -121,8 +121,11 @@ include(":compose:jvm")
 include(":compose:android")
 include(":compose:js")
 
-include(":pma:main")
-include(":pma:main")
+//include(":dynamicProcessModel")
+
+include(':pma:core')
+include(":pma:loanorigination")
+include(":pma:agfil")
 
 
 /*
