@@ -113,6 +113,7 @@ class LoanContextFactory(val log: Logger) : ProcessContextFactory<LoanActivityCo
             val t = TaskList(authService, engineService, clientAuth, principal)
             val auth = engineClientAuth
             authService.registerGlobalPermission(auth, principal, t, LoanPermissions.ACCEPT_TASK)
+            // TODO, use an activity specific permission/token instead.
             authService.registerGlobalPermission(
                 auth,
                 SimplePrincipal(engineService.serviceId),

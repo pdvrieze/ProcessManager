@@ -93,6 +93,12 @@ class EngineService(
             UnionPermissionScope(permissions)
         )
 
+
+        /* TODO use an activity specific token to access the task list. Try to treat it like any
+           other service. Let the task list use a delegate token. Also see whether ACCEPT_TASK can be given
+            to the user (and delegated to the worklist).
+         */
+
         val taskListAuth = authTokenForService(taskList)
 
         taskList.postTask(taskListAuth, taskListToEngineAuthToken, pniHandle)
