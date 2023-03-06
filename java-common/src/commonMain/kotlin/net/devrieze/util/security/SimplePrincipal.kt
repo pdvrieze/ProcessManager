@@ -16,9 +16,9 @@
 
 package net.devrieze.util.security
 
-import nl.adaptivity.util.security.Principal
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-data class SimplePrincipal(private val name: String) : Principal {
+data class SimplePrincipal(private val name: String) : PrincipalCompat {
 
     override fun getName(): String {
         return name
@@ -29,4 +29,4 @@ data class SimplePrincipal(private val name: String) : Principal {
     }
 }
 
-inline val Principal.name get() = getName()
+inline val PrincipalCompat.name get() = getName()

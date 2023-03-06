@@ -32,7 +32,7 @@ expect class CancellationException: IllegalStateException {
     constructor()
 }
 
-expect class Logger {
+expect class LoggerCompat {
     fun log(level: Level, message: String)
     fun log(level: Level, message: String, cause: Throwable)
 }

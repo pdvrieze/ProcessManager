@@ -60,11 +60,16 @@ kotlin {
             dependencies {
                 implementation(project(":ProcessEngine:core"))
                 implementation(project(":pma:core"))
+                implementation(project(":ProcessEngine:testLib"))
+                implementation(project(":multiplatform"))
 
                 implementation(libs.kotlinx.serialization.core)
                 implementation(libs.xmlutil.core)
 //                api(libs.xmlutil.serialutil)
-                api(libs.xmlutil.serialization)
+                implementation(libs.xmlutil.serialization)
+                implementation(kotlin("test"))
+                implementation(kotlin("test-annotations-common"))
+
 
 //                implementation(project(":java-common"))
 
@@ -86,6 +91,7 @@ kotlin {
         val jvmMain by getting {
             dependsOn(javaMain)
             dependencies {
+                implementation(kotlin("test-junit5"))
             }
         }
         val jvmTest by getting {
@@ -96,6 +102,7 @@ kotlin {
         val androidMain by getting {
             dependsOn(javaMain)
             dependencies {
+                implementation(kotlin("test-junit5"))
             }
         }
         val androidTest by getting {

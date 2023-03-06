@@ -23,8 +23,9 @@ import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.impl.generateXmlString
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
-import nl.adaptivity.util.security.Principal
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.xml.WritableCompactFragment
+import nl.adaptivity.xmlutil.Namespace
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.XmlWriter
 import nl.adaptivity.xmlutil.filterSubstream
@@ -35,9 +36,12 @@ import nl.adaptivity.xmlutil.filterSubstream
 interface IProcessNodeInstance: ReadableHandleAware<SecureObject<ProcessNodeInstance<*>>>, ActivityInstanceContext {
     override val node: ExecutableProcessNode
     val predecessors: Set<Handle<SecureObject<ProcessNodeInstance<*>>>>
-    override val owner: Principal
+    override val owner: PrincipalCompat
 
     override val handle: Handle<SecureObject<ProcessNodeInstance<*>>>
+    override val nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>
+        get() = handle
+
     val hProcessInstance: Handle<SecureObject<ProcessInstance>>
 
     val entryNo: Int
@@ -46,7 +50,8 @@ interface IProcessNodeInstance: ReadableHandleAware<SecureObject<ProcessNodeInst
 
     fun builder(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance.Builder<*, *>
 
-    fun build(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance<*> = builder(processInstanceBuilder).build()
+    fun build(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance<*> =
+        builder(processInstanceBuilder).build()
 
     fun isOtherwiseCondition(predecessor: IProcessNodeInstance) = node.isOtherwiseCondition(predecessor.node)
 
@@ -103,7 +108,7 @@ fun ActivityInstanceContext.instantiateXmlPlaceholders(
         instantiateXmlPlaceholders(nodeInstanceSource, xmlReader, writer, removeWhitespace, localEndpoint)
     }
 
-    return WritableCompactFragment(emptyList(), charArray)
+    return WritableCompactFragment(emptyList<Namespace>(), charArray)
 }
 
 fun ActivityInstanceContext.instantiateXmlPlaceholders(
@@ -114,7 +119,7 @@ fun ActivityInstanceContext.instantiateXmlPlaceholders(
     localEndpoint: EndpointDescriptor
 ) {
     val defines = getDefines(nodeInstanceSource)
-    val pni = nodeInstanceSource.getChildNodeInstance(handle)
+    val pni = nodeInstanceSource.getChildNodeInstance(nodeInstanceHandle)
     val transformer = PETransformer.create(
         ProcessNodeInstanceContext(
             pni,

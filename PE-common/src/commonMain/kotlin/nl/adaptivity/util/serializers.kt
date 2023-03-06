@@ -17,7 +17,6 @@
 package nl.adaptivity.util
 
 import kotlinx.serialization.KSerializer
-import kotlinx.serialization.Serializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
@@ -26,18 +25,18 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import net.devrieze.util.security.SimplePrincipal
 import net.devrieze.util.security.name
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.util.multiplatform.toUUID
-import nl.adaptivity.util.security.Principal
 
-class PrincipalSerializer : KSerializer<Principal> {
+class PrincipalSerializer : KSerializer<PrincipalCompat> {
     override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("Principal", PrimitiveKind.STRING)
 
-    override fun deserialize(decoder: Decoder): Principal {
+    override fun deserialize(decoder: Decoder): PrincipalCompat {
         return SimplePrincipal(String.serializer().deserialize(decoder))
     }
 
-    override fun serialize(encoder: Encoder, value: Principal) {
+    override fun serialize(encoder: Encoder, value: PrincipalCompat) {
         String.serializer().serialize(encoder, value.name)
     }
 }

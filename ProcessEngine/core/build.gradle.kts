@@ -103,6 +103,7 @@ kotlin {
                 dependencies {
                     implementation(libs.xmlutil.core)
                     implementation(libs.xmlutil.serialization)
+                    implementation(project(":ProcessEngine:testLib"))
                 }
             }
             val jvmTest by getting {

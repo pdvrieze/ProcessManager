@@ -22,14 +22,12 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import kotlinx.serialization.modules.SerializersModule
 import net.devrieze.util.security.SYSTEMPRINCIPAL
-import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.UUID
-import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.serialization.XML
-import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 /**
  * A class representing a process model.
@@ -109,7 +107,7 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode> {
             childModels: Collection<ChildProcessModel.Builder> = emptySet(),
             name: String? = null,
             handle: Long = -1L,
-            owner: Principal = SYSTEMPRINCIPAL,
+            owner: PrincipalCompat = SYSTEMPRINCIPAL,
             roles: Set<String> = emptySet(),
             uuid: UUID? = null,
             imports: List<IXmlResultType> = emptyList(),

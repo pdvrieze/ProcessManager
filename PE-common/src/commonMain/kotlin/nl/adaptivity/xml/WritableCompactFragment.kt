@@ -25,7 +25,7 @@ import nl.adaptivity.xmlutil.util.ICompactFragment
 expect class WritableCompactFragment private constructor(
     data: ICompactFragment,
     dummy: Boolean
-                                                        ) : ICompactFragment {
+) : ICompactFragment {
     constructor(namespaces: Iterable<Namespace>, content: CharArray)
     constructor(string: String)
     constructor(orig: ICompactFragment)

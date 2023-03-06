@@ -16,8 +16,9 @@
 
 package net.devrieze.util.security
 
-import nl.adaptivity.util.security.Principal
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 
+typealias Principal = PrincipalCompat
 
 interface SecurityProvider {
 

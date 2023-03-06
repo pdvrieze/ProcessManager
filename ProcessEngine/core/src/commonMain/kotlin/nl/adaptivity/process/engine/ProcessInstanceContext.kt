@@ -17,26 +17,32 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.Handle
-import net.devrieze.util.ReadableHandleAware
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.ProcessNode
-import nl.adaptivity.util.security.Principal
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-interface ProcessInstanceContext: ReadableHandleAware<SecureObject<ProcessInstance>> {
+interface ProcessInstanceContext {
+    val processInstanceHandle : Handle<SecureObject<ProcessInstance>>
+
 }
 
-interface ActivityInstanceContext: ReadableHandleAware<SecureObject<ProcessNodeInstance<*>>> {
+interface ActivityInstanceContext {
     val processContext: ProcessInstanceContext
     val node: ProcessNode
     val state: NodeInstanceState
-    val owner: Principal
+    val owner: PrincipalCompat
+    val nodeInstanceHandle : Handle<SecureObject<ProcessNodeInstance<*>>>
 }
 
-interface ProcessContextFactory<out A:ActivityInstanceContext> {
-    fun newActivityInstanceContext(engineDataAccess: ProcessEngineDataAccess, processNodeInstance: IProcessNodeInstance): A
+interface ProcessContextFactory<out A : ActivityInstanceContext> {
+
+    fun newActivityInstanceContext(
+        engineDataAccess: ProcessEngineDataAccess,
+        processNodeInstance: IProcessNodeInstance
+    ): A
 
     /**
      * Called to inform the factory that the activity is no longer active: completed, failed, cancelled etc.
@@ -48,13 +54,17 @@ interface ProcessContextFactory<out A:ActivityInstanceContext> {
      * Called to inform the factory that the process is no longer active: completed, failed, cancelled etc.
      * This means any resources can be released.
      */
-    fun onProcessFinished(engineDataAccess: ProcessEngineDataAccess, processInstance: Handle<SecureObject<ProcessInstance>>) {}
+    fun onProcessFinished(
+        engineDataAccess: ProcessEngineDataAccess,
+        processInstance: Handle<SecureObject<ProcessInstance>>
+    ) {
+    }
 
-    companion object DEFAULT: ProcessContextFactory<ActivityInstanceContext> {
+    companion object DEFAULT : ProcessContextFactory<ActivityInstanceContext> {
         override fun newActivityInstanceContext(
             engineDataAccess: ProcessEngineDataAccess,
             processNodeInstance: IProcessNodeInstance
-                                               ): ActivityInstanceContext {
+        ): ActivityInstanceContext {
             return processNodeInstance
         }
     }

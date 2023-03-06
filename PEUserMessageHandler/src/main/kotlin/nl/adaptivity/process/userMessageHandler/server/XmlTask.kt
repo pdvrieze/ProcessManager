@@ -33,6 +33,7 @@ import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.client.ServletProcessEngineClient
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.util.Constants
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlElement
@@ -83,7 +84,7 @@ class XmlTask : UserTask<XmlTask> {
     private var endPoint: EndpointDescriptorImpl? = null
 
     @Serializable(PrincipalNameSerializer::class)
-    override var owner: Principal? = null
+    override var owner: PrincipalCompat? = null
 
     @SerialName("item")
     private val _items = mutableListOf<XmlItem>()

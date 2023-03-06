@@ -32,7 +32,6 @@ import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.util.multiplatform.JvmOverloads
 import nl.adaptivity.util.multiplatform.UUID
-import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.serialization.XML
 import kotlin.math.max

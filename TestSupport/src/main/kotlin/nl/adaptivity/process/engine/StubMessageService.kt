@@ -16,16 +16,17 @@
 
 package nl.adaptivity.process.engine
 
+import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.MessageSendingResult
-import nl.adaptivity.process.engine.ActivityInstanceContext
-import nl.adaptivity.process.engine.processModel.*
+import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.instantiateXmlPlaceholders
 import nl.adaptivity.process.processModel.IXmlMessage
 import nl.adaptivity.process.processModel.XmlMessage
 import nl.adaptivity.xmlutil.util.CompactFragment
-import net.devrieze.util.Handle
+import nl.adaptivity.xmlutil.util.ICompactFragment
 import java.util.*
 
 
@@ -56,17 +57,17 @@ class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMess
     override fun sendMessage(engineData: ProcessEngineDataAccess,
                              protoMessage: IXmlMessage,
                              activityInstanceContext: ActivityInstanceContext): MessageSendingResult {
-        assert(activityInstanceContext.handle.isValid) { "Sending messages from invalid nodes is a bad idea (${activityInstanceContext})" }
+        assert(activityInstanceContext.nodeInstanceHandle.isValid) { "Sending messages from invalid nodes is a bad idea (${activityInstanceContext})" }
 
-        val instantiatedContent = if (! protoMessage.messageBody.isEmpty) {
-            val processInstance = engineData.instance(activityInstanceContext.processContext.handle).withPermission()
+        val instantiatedContent: ICompactFragment = if (! protoMessage.messageBody.isEmpty) {
+            val processInstance = engineData.instance(activityInstanceContext.processContext.processInstanceHandle).withPermission()
             // This just creates a temporary copy
             activityInstanceContext.instantiateXmlPlaceholders(
                 processInstance,
                 protoMessage.messageBody.getXmlReader(),
                 false,
                 localEndpoint
-            )
+            ) as ICompactFragment
         } else {
             CompactFragment(Collections.emptyList(), CharArray(0))
         }
@@ -78,7 +79,7 @@ class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMess
                                           protoMessage.contentType,
                                           instantiatedContent)
 
-        _messages.add(ExtMessage(processedMessage, activityInstanceContext.handle))
+        _messages.add(ExtMessage(processedMessage, activityInstanceContext.nodeInstanceHandle))
 
         return MessageSendingResult.ACKNOWLEDGED
     }

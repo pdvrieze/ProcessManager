@@ -19,13 +19,13 @@ package nl.adaptivity.process.engine
 import nl.adaptivity.process.processModel.configurableModel.ConfigurableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.UUID
-import nl.adaptivity.util.security.Principal
 
 @Suppress("NOTHING_TO_INLINE")
 internal abstract class TestConfigurableModel(
     name: String? = null,
-    owner: Principal = EngineTestData.principal,
+    owner: PrincipalCompat = EngineTestData.principal,
     uuid: UUID = UUID.randomUUID()
 ) : ConfigurableProcessModel<ExecutableProcessNode>(
         name,

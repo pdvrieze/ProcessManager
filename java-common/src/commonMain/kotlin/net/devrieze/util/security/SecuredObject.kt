@@ -17,7 +17,7 @@
 package net.devrieze.util.security
 
 import net.devrieze.util.security.SecurityProvider.Permission
-import nl.adaptivity.util.security.Principal
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 /**
  * Interface for objects that will provide interface access with a permission.
@@ -27,14 +27,30 @@ interface SecuredObject<out T> {
   fun withPermission():T
 }
 
-private val defaultAlternate = fun(securityProvider: SecurityProvider, permission: Permission, subject: Principal, o: SecureObject<*>) {securityProvider.ensurePermission(permission, subject, o); throw IllegalStateException() }
+private val defaultAlternate = fun(
+    securityProvider: SecurityProvider,
+    permission: Permission,
+    subject: PrincipalCompat,
+    o: SecureObject<*>
+) {securityProvider.ensurePermission(permission, subject, o); throw IllegalStateException() }
 
-inline fun <T:SecureObject<T>, R> SecureObject<T>.withPermission(securityProvider: SecurityProvider, permission: Permission, subject:Principal, body: (T)->R):R {
+inline fun <T:SecureObject<T>, R> SecureObject<T>.withPermission(
+    securityProvider: SecurityProvider,
+    permission: Permission,
+    subject: PrincipalCompat,
+    body: (T) -> R
+):R {
   securityProvider.ensurePermission(permission, subject, this)
   return body(withPermission())
 }
 
-inline fun <T:SecureObject<T>, R> SecureObject<T>.withPermission(securityProvider: SecurityProvider, permission: Permission, subject:Principal, alternate: (SecurityProvider, Permission, Principal, SecureObject<T>)->R, body: (T)->R):R {
+inline fun <T:SecureObject<T>, R> SecureObject<T>.withPermission(
+    securityProvider: SecurityProvider,
+    permission: Permission,
+    subject: PrincipalCompat,
+    alternate: (SecurityProvider, Permission, PrincipalCompat, SecureObject<T>) -> R,
+    body: (T) -> R
+):R {
   return when {
     securityProvider.hasPermission(permission, subject, this) -> body(this.withPermission())
     else -> alternate(securityProvider, permission, subject, this)
@@ -42,7 +58,11 @@ inline fun <T:SecureObject<T>, R> SecureObject<T>.withPermission(securityProvide
 }
 
 @Suppress("NOTHING_TO_INLINE")
-inline fun <T:SecureObject<T>> SecureObject<T>.ifPermitted(securityProvider: SecurityProvider, permission: Permission, subject:Principal):T? {
+inline fun <T:SecureObject<T>> SecureObject<T>.ifPermitted(
+    securityProvider: SecurityProvider,
+    permission: Permission,
+    subject: PrincipalCompat
+):T? {
   return when {
     securityProvider.hasPermission(permission, subject, this) -> withPermission()
     else -> null

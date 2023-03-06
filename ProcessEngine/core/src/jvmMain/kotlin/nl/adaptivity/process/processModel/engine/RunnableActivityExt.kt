@@ -16,12 +16,15 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import nl.adaptivity.process.processModel.configurableModel.ConfigurableNodeContainer
-import nl.adaptivity.process.util.Identified
 import kotlinx.serialization.serializer
 import nl.adaptivity.process.engine.ActivityInstanceContext
+import nl.adaptivity.process.processModel.configurableModel.ConfigurableNodeContainer
+import nl.adaptivity.process.util.Identified
 
-inline fun <reified I: Any, reified O:Any> ConfigurableNodeContainer<ExecutableProcessNode>.runnableActivity(predecessor: Identified, noinline action: RunnableAction<I,O>): RunnableActivity.Builder<I,O> {
+inline fun <reified I : Any, reified O : Any, C : ActivityInstanceContext> ConfigurableNodeContainer<ExecutableProcessNode>.runnableActivity(
+    predecessor: Identified,
+    noinline action: RunnableAction2<I, O, C>
+): RunnableActivity.Builder<I, O, C> {
     return runnableActivity(
         predecessor,
         serializer<O>(),
@@ -29,10 +32,10 @@ inline fun <reified I: Any, reified O:Any> ConfigurableNodeContainer<ExecutableP
         predecessor.identifier,
         "",
         action
-                           )
+    )
 }
 
-inline fun <reified I:Any> RunnableActivity.Builder<I, *>.defineInput(refNode: Identified): InputCombiner.InputValue<I> {
+inline fun <reified I : Any> RunnableActivity.Builder<I, *, *>.defineInput(refNode: Identified): InputCombiner.InputValue<I> {
     return defineInput(refNode, serializer<I>())
 }
 

@@ -36,8 +36,8 @@ import javax.xml.xpath.XPathConstants
 
 actual fun IXmlDefineType.applyData(nodeInstanceSource: IProcessInstance, context: ActivityInstanceContext): ProcessData {
     // TODO, make this not need engineData
-    val nodeInstance = nodeInstanceSource.getChildNodeInstance(context.handle)
-    return applyDataImpl(nodeInstanceSource, refNode?.let { nodeInstance.resolvePredecessor(nodeInstanceSource, it)}, context.processContext.handle)
+    val nodeInstance = nodeInstanceSource.getChildNodeInstance(context.nodeInstanceHandle)
+    return applyDataImpl(nodeInstanceSource, refNode?.let { nodeInstance.resolvePredecessor(nodeInstanceSource, it)}, context.processContext.processInstanceHandle)
 }
 
 

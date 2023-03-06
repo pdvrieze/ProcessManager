@@ -20,8 +20,8 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.UUID
-import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xmlutil.Namespace
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
@@ -33,7 +33,7 @@ annotation class ConfigurationDsl
 @ConfigurationDsl
 abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
     override val name: String? = null,
-    override val owner: Principal,
+    override val owner: PrincipalCompat,
     override val uuid: UUID
 ) : RootProcessModel<NodeT>, ConfigurableNodeContainer<NodeT> {
 
@@ -43,7 +43,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
             @Suppress("UNCHECKED_CAST")
             return when {
                 thisRef.configurationBuilder != null -> this
-                else                                 -> thisRef.model.getNode(Identifier(id))
+                else -> thisRef.model.getNode(Identifier(id))
             } as T // Really nasty hack to allow node references to be used at definition time
         }
     }
@@ -54,7 +54,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
             @Suppress("UNCHECKED_CAST")
             return when {
                 thisRef.configurationBuilder != null -> this
-                else                                 -> thisRef.model.getChildModel(this)
+                else -> thisRef.model.getChildModel(this)
             } as T // Really nasty hack to allow node references to be used at definition time
         }
     }
@@ -70,7 +70,10 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
     fun childRef(childId: String) = lazy { model.getChildModel(Identifier(childId)) }
     inline val childRef get() = ChildBinder()
     fun nodeRef(nodeId: String) =
-        lazy { (model.modelNodes.asSequence() + model.childModels.asSequence().flatMap { it.modelNodes.asSequence() }).firstOrNull { it.id == nodeId } }
+        lazy {
+            (model.modelNodes.asSequence() + model.childModels.asSequence()
+                .flatMap { it.modelNodes.asSequence() }).firstOrNull { it.id == nodeId }
+        }
 
     inline val nodeRef get() = NodeBinder()
 
@@ -120,7 +123,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
     operator fun ProcessNode.Builder.provideDelegate(
         thisRef: ConfigurableProcessModel<*>,
         property: KProperty<*>
-                                                    ): Identifier {
+    ): Identifier {
         val modelBuilder = configurationBuilder
         val nodeBuilder = this
         if (id == null && modelBuilder.nodes.firstOrNull { it.id == property.name } == null) id = property.name
@@ -137,7 +140,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
     protected inline operator fun Identifier.getValue(
         thisRef: ConfigurableProcessModel<*>,
         property: KProperty<*>
-                                                     ): Identifier = this
+    ): Identifier = this
 
 
     operator fun <T : ConfigurableCompositeActivity> T.provideDelegate(
@@ -166,7 +169,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
             childId = childId,
             id = id,
             predecessor = predecessor
-                                                                                                                 )
+        )
 
         init {
             rootBuilder().childModels.add(configurationBuilder)
@@ -197,7 +200,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
         operator fun ProcessNode.Builder.provideDelegate(
             thisRef: ConfigurableCompositeActivity,
             property: KProperty<*>
-                                                        ): Identifier {
+        ): Identifier {
             val modelBuilder = configurationBuilder
             val nodeBuilder = this
             if (id == null && modelBuilder.nodes.firstOrNull { it.id == property.name } == null) id = property.name
@@ -214,7 +217,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
         protected inline operator fun Identifier.getValue(
             thisRef: ConfigurableCompositeActivity,
             property: KProperty<*>
-                                                         ): Identifier = this
+        ): Identifier = this
 
 
         fun input(
@@ -224,7 +227,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
             path: String? = null,
             content: CharArray? = null,
             nsContext: Iterable<Namespace> = emptyList()
-                 ) {
+        ) {
             configurationBuilder.defines.add(XmlDefineType(name, refNode, refName, path, content, nsContext))
             configurationBuilder.imports.add(XmlResultType(name, "/$name/*"))
         }
@@ -237,7 +240,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
             path: String? = null,
             content: CharArray? = null,
             nsContext: Iterable<Namespace> = emptyList()
-                  ) {
+        ) {
             configurationBuilder.results.add(XmlResultType(name, "/$name/*"))
             configurationBuilder.exports.add(XmlDefineType(name, refNode, refName, path, content, nsContext))
         }

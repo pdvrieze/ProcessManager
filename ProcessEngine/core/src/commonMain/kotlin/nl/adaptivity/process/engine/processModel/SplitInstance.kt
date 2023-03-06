@@ -26,7 +26,7 @@ import nl.adaptivity.process.engine.impl.LogLevel
 import nl.adaptivity.process.processModel.Join
 import nl.adaptivity.process.processModel.engine.ConditionResult
 import nl.adaptivity.process.processModel.engine.ExecutableSplit
-import nl.adaptivity.util.security.Principal
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.xmlutil.util.ICompactFragment
 
 /**
@@ -76,7 +76,7 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
         node: ExecutableSplit,
         predecessor: Handle<SecureObject<ProcessNodeInstance<*>>>,
         processInstanceBuilder: ProcessInstance.Builder,
-        owner: Principal,
+        owner: PrincipalCompat,
         entryNo: Int,
         handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
@@ -103,7 +103,7 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
         predecessor: Handle<SecureObject<ProcessNodeInstance<*>>>,
         processInstanceBuilder: ProcessInstance.Builder,
         hProcessInstance: Handle<SecureObject<ProcessInstance>>,
-        owner: Principal,
+        owner: PrincipalCompat,
         handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending,
         results: Iterable<ProcessData> = emptyList(),

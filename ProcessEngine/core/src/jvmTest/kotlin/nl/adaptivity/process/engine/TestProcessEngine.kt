@@ -17,7 +17,6 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.InputStreamOutputStream
-import net.devrieze.util.security.SYSTEMPRINCIPAL
 import nl.adaptivity.process.engine.ProcessInstance.State
 import nl.adaptivity.process.engine.impl.dom.toFragment
 import nl.adaptivity.process.engine.processModel.NodeInstanceState

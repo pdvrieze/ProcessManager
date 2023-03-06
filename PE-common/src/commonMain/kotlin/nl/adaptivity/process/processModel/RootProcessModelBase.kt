@@ -23,7 +23,6 @@ import kotlinx.serialization.encoding.CompositeDecoder
 import net.devrieze.util.*
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import net.devrieze.util.security.SimplePrincipal
-import net.devrieze.util.security.name
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.processModel.engine.IProcessModelRef
 import nl.adaptivity.process.processModel.engine.ProcessModelRef
@@ -31,8 +30,8 @@ import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.process.util.MutableIdentifyableSet
 import nl.adaptivity.util.UUIDSerializer
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.UUID
-import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
@@ -54,7 +53,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
     /**
      * The owner of a model
      */
-    final override var owner: Principal = SYSTEMPRINCIPAL
+    final override var owner: PrincipalCompat = SYSTEMPRINCIPAL
 
     override val roles: Set<String>
 
@@ -241,7 +240,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
             model.modelNodes.map { ProcessNodeBase.SerialDelegate(it) },
             model.name,
             (model as? ReadableHandleAware<*>)?.handle?.handleValue,
-            model.owner.name,
+            model.owner.getName(),
             model.uuid,
             model.roles.toList(),
             model.childModels.map { ChildProcessModelBase.SerialDelegate(it) }
@@ -253,7 +252,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
             model.nodes.map { ProcessNodeBase.SerialDelegate(it) },
             model.name,
             (model as? ReadableHandleAware<*>)?.handle?.handleValue,
-            model.owner.name,
+            model.owner.getName(),
             model.uuid,
             model.roles.toList(),
             model.childModels.map { ChildProcessModelBase.SerialDelegate(it) }
@@ -268,7 +267,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
             childModels: Collection<ChildProcessModel.Builder> = emptyList(),
             name: String? = null,
             handle: Long = -1L,
-            owner: Principal = SYSTEMPRINCIPAL,
+            owner: PrincipalCompat = SYSTEMPRINCIPAL,
             roles: Collection<String> = emptyList(),
             uuid: UUID? = null,
             imports: Collection<IXmlResultType> = emptyList(),
@@ -299,7 +298,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
 
         final override var handle: Long = -1L
 
-        final override var owner: Principal = SYSTEMPRINCIPAL
+        final override var owner: PrincipalCompat = SYSTEMPRINCIPAL
 
         final override var uuid: UUID? = null
 

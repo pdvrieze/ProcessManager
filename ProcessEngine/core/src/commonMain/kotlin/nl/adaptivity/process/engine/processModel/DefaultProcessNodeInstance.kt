@@ -26,8 +26,8 @@ import nl.adaptivity.process.engine.impl.getClass
 import nl.adaptivity.process.processModel.MessageActivity
 import nl.adaptivity.process.processModel.XmlMessage
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.assert
-import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xmlutil.XmlDeserializerFactory
 import nl.adaptivity.xmlutil.XmlReader
 
@@ -53,7 +53,7 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
         predecessors: Collection<Handle<SecureObject<ProcessNodeInstance<*>>>>,
         processInstanceBuilder: ProcessInstance.Builder,
         hProcessInstance: Handle<SecureObject<ProcessInstance>>,
-        owner: Principal,
+        owner: PrincipalCompat,
         entryNo: Int,
         handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending,
@@ -164,11 +164,11 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
         node: ExecutableProcessNode,
         predecessors: Iterable<Handle<SecureObject<ProcessNodeInstance<*>>>>,
         processInstanceBuilder: ProcessInstance.Builder,
-        owner: Principal,
+        owner: PrincipalCompat,
         entryNo: Int,
         handle: Handle<SecureObject<DefaultProcessNodeInstance>> = Handle.invalid(),
-        state: NodeInstanceState = NodeInstanceState.Pending)
-        : ProcessNodeInstance.BaseBuilder<ExecutableProcessNode, DefaultProcessNodeInstance>(node, predecessors, processInstanceBuilder, owner, entryNo, handle, state), Builder {
+        state: NodeInstanceState = NodeInstanceState.Pending
+    ) : ProcessNodeInstance.BaseBuilder<ExecutableProcessNode, DefaultProcessNodeInstance>(node, predecessors, processInstanceBuilder, owner, entryNo, handle, state), Builder {
 
         override fun build() = DefaultProcessNodeInstance(this)
     }

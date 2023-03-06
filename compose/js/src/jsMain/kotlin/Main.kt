@@ -1,13 +1,5 @@
 // Copyright 2000-2021 JetBrains s.r.o. and contributors. Use of this source code is governed by the Apache 2.0 license that can be found in the LICENSE file.
-import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.padding
 import androidx.compose.runtime.*
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.SolidColor
-import androidx.compose.ui.unit.dp
 import io.github.pdvrieze.process.compose.common.canvas.JsCanvas
 import io.github.pdvrieze.process.compose.common.canvas.JsCanvasStrategy
 import io.github.pdvrieze.process.compose.common.canvas.JsCanvasTheme
@@ -20,7 +12,6 @@ import nl.adaptivity.process.diagram.RootDrawableProcessModel
 import nl.adaptivity.process.processModel.RootProcessModel
 import nl.adaptivity.process.processModel.configurableModel.*
 import nl.adaptivity.util.multiplatform.UUID
-import nl.adaptivity.util.security.Principal
 import org.jetbrains.compose.web.attributes.height
 import org.jetbrains.compose.web.attributes.width
 import org.jetbrains.compose.web.css.*
@@ -29,7 +20,7 @@ import org.jetbrains.compose.web.renderComposable
 import org.w3c.dom.CanvasRenderingContext2D
 
 
-private class TestModel(owner: Principal): ConfigurableProcessModel<DrawableProcessNode>(
+private class TestModel(owner: Any): ConfigurableProcessModel<DrawableProcessNode>(
     name = "PreviewModel",
     owner = owner,
     uuid = UUID("1")

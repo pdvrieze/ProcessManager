@@ -16,8 +16,8 @@
 
 package net.devrieze.util.security
 
-import nl.adaptivity.util.security.Principal
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-interface RolePrincipal : Principal {
+interface RolePrincipal : PrincipalCompat {
   fun hasRole(role: String): Boolean
 }

@@ -26,10 +26,9 @@ import nl.adaptivity.process.processModel.engine.ConditionResult
 import nl.adaptivity.process.processModel.engine.ExecutableCondition
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.evalCondition
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.assert
-import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xmlutil.util.ICompactFragment
-import kotlin.jvm.JvmStatic
 
 class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
@@ -136,7 +135,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
         node: ExecutableJoin,
         predecessors: Iterable<Handle<SecureObject<ProcessNodeInstance<*>>>>,
         processInstanceBuilder: ProcessInstance.Builder,
-        owner: Principal,
+        owner: PrincipalCompat,
         entryNo: Int,
         handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
@@ -170,7 +169,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
         predecessors: Collection<Handle<SecureObject<ProcessNodeInstance<*>>>>,
         processInstanceBuilder: ProcessInstance.Builder,
         hProcessInstance: Handle<SecureObject<ProcessInstance>>,
-        owner: Principal,
+        owner: PrincipalCompat,
         entryNo: Int,
         handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending,
@@ -198,7 +197,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
         ExtBuilder(this, processInstanceBuilder)
 
     companion object {
-        fun build(
+        fun <A: ActivityInstanceContext> build(
             joinImpl: ExecutableJoin,
             predecessors: Set<Handle<SecureObject<ProcessNodeInstance<*>>>>,
             processInstanceBuilder: ProcessInstance.Builder,
@@ -220,7 +219,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
             )
         }
 
-        fun build(
+        fun <A: ActivityInstanceContext> build(
             joinImpl: ExecutableJoin,
             predecessors: Set<Handle<SecureObject<ProcessNodeInstance<*>>>>,
             processInstance: ProcessInstance,
@@ -229,7 +228,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
             state: NodeInstanceState = NodeInstanceState.Pending,
             body: Builder.() -> Unit
         ): JoinInstance {
-            return build(joinImpl, predecessors, processInstance.builder(), entryNo, handle, state, body)
+            return build<A>(joinImpl, predecessors, processInstance.builder(), entryNo, handle, state, body)
         }
 
         /**

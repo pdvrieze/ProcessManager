@@ -21,10 +21,10 @@ import net.devrieze.util.MutableTransactionedHandleMap
 import net.devrieze.util.TransactionFactory
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
-import nl.adaptivity.process.engine.impl.Logger
+import nl.adaptivity.process.engine.impl.LoggerCompat
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
-import nl.adaptivity.util.security.Principal
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -34,7 +34,7 @@ abstract class IProcessEngineData<T : ProcessTransaction> : TransactionFactory<T
     protected abstract val processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance>, T>
     protected abstract val processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, T>
 
-    abstract val logger: Logger
+    abstract val logger: LoggerCompat
 
     fun invalidateCachePM(handle: Handle<SecureObject<ExecutableProcessModel>>) {
         processModels.apply {
@@ -67,7 +67,7 @@ abstract class IProcessEngineData<T : ProcessTransaction> : TransactionFactory<T
 
     @Suppress("UNUSED_PARAMETER")
     inline fun <R> inReadonlyTransaction(
-        principal: Principal,
+        principal: PrincipalCompat,
         permissionResult: SecurityProvider.PermissionResult,
         body: ProcessEngineDataAccess.() -> R
     ): R {
@@ -81,7 +81,7 @@ abstract class IProcessEngineData<T : ProcessTransaction> : TransactionFactory<T
 
     @Suppress("UNUSED_PARAMETER")
     inline fun <R> inWriteTransaction(
-        principal: Principal,
+        principal: PrincipalCompat,
         permissionResult: SecurityProvider.PermissionResult,
         body: MutableProcessEngineDataAccess.() -> R
     ): R {

@@ -795,7 +795,7 @@
     <TableColumn><![CDATA[692]]></TableColumn>
   </TableRow>
    <TableRow>
-    <TableColumn><![CDATA[net.devrieze.util.AbstractTransactionedHandleMap.withTransaction(net.devrieze.util.Transaction)]]></TableColumn>
+    <TableColumn><![CDATA[nl.adaptivity.util.net.devrieze.util.AbstractTransactionedHandleMap.withTransaction(net.devrieze.util.Transaction)]]></TableColumn>
     <TableColumn><![CDATA[0.17%]]></TableColumn>
     <TableColumn><![CDATA[5.384 ms]]></TableColumn>
     <TableColumn><![CDATA[26.854 ms]]></TableColumn>
@@ -4631,7 +4631,7 @@
     <TableColumn><![CDATA[2075]]></TableColumn>
   </TableRow>
    <TableRow>
-    <TableColumn><![CDATA[net.devrieze.util.AbstractTransactionedHandleMap.<init>()]]></TableColumn>
+    <TableColumn><![CDATA[nl.adaptivity.util.net.devrieze.util.AbstractTransactionedHandleMap.<init>()]]></TableColumn>
     <TableColumn><![CDATA[0.00%]]></TableColumn>
     <TableColumn><![CDATA[0.124 ms]]></TableColumn>
     <TableColumn><![CDATA[0.121 ms]]></TableColumn>

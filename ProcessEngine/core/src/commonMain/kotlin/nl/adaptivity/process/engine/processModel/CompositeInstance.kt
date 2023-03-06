@@ -22,8 +22,8 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.impl.generateXmlString
 import nl.adaptivity.process.processModel.engine.ExecutableCompositeActivity
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.assert
-import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.serialize
 import nl.adaptivity.xmlutil.smartStartTag
@@ -82,7 +82,7 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
         predecessor: Handle<SecureObject<ProcessNodeInstance<*>>>?,
         processInstanceBuilder: ProcessInstance.Builder,
         override var hChildInstance: Handle<SecureObject<ProcessInstance>>,
-        owner: Principal,
+        owner: PrincipalCompat,
         entryNo: Int,
         handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending

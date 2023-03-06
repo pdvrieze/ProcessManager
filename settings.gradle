@@ -90,6 +90,7 @@ include(":DarwinGenerators")
 include(":darwin-sql")
 
 include(":ProcessEngine:core")
+include(":ProcessEngine:testLib")
 include(":ProcessEngine:servlet")
 
 include(":DarwinClients:ProcessEngine")

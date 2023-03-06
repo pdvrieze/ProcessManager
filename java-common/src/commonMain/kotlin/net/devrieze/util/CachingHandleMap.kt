@@ -18,7 +18,6 @@ package net.devrieze.util
 
 import net.devrieze.util.CachingHandleMap.WrappingIterator
 import nl.adaptivity.util.multiplatform.*
-import java.util.*
 
 
 /**

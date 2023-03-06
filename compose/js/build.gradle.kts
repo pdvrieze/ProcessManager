@@ -12,6 +12,7 @@ kotlin {
         val jsMain by getting {
             dependencies {
                 implementation(project(":compose:common"))
+                implementation(project(":PE-common"))
                 implementation(compose.web.core)
                 implementation(compose.web.svg)
                 implementation(compose.runtime)

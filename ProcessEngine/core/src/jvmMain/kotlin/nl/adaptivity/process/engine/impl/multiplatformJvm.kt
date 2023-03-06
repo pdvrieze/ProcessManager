@@ -26,7 +26,7 @@ actual typealias TimeUnit = java.util.concurrent.TimeUnit
 actual typealias Future<V> = java.util.concurrent.Future<V>
 actual typealias CancellationException = java.util.concurrent.CancellationException
 
-actual typealias Logger = java.util.logging.Logger
+actual typealias LoggerCompat = java.util.logging.Logger
 actual typealias Level = java.util.logging.Level
 actual object LogLevel {
     actual val WARNING: Level = java.util.logging.Level.WARNING

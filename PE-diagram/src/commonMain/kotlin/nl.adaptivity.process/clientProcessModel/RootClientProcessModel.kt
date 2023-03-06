@@ -21,13 +21,11 @@ package nl.adaptivity.process.clientProcessModel
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.diagram.*
 import nl.adaptivity.process.processModel.*
-import nl.adaptivity.process.processModel.ProcessModelBase.NodeFactory
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
-import nl.adaptivity.util.multiplatform.JvmOverloads
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.UUID
-import nl.adaptivity.util.security.Principal
 
 abstract class RootClientProcessModel constructor(
     builder: RootProcessModel.Builder,
@@ -58,7 +56,7 @@ abstract class RootClientProcessModel constructor(
         name: String? = this.name,
         uuid: UUID? = this.uuid,
         roles: Set<String> = this.roles,
-        owner: Principal = this.owner,
+        owner: PrincipalCompat = this.owner,
         childModels: Collection<ChildProcessModel<DrawableProcessNode>> = this.childModels,
         handle: Long = this.handleValue,
         layoutAlgorithm: LayoutAlgorithm = this.layoutAlgorithm,

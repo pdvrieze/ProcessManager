@@ -14,8 +14,6 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import multiplatform.jvmAndroid
-
 plugins {
     kotlin("multiplatform")
     id("net.devrieze.gradlecodegen")
@@ -35,6 +33,7 @@ kotlin {
                 }
             }
         }
+/*
         jvmAndroid {
             compilations.all {
                 kotlinOptions {
@@ -42,6 +41,7 @@ kotlin {
                 }
             }
         }
+*/
     }
 
     sourceSets {
@@ -58,6 +58,8 @@ kotlin {
                 implementation(libs.xmlutil.core)
 //                api(libs.xmlutil.serialutil)
                 api(libs.xmlutil.serialization)
+                api(project(":multiplatform"))
+                api(project(":JavaCommonApi"))
 
 //                implementation(project(":java-common"))
 
@@ -86,6 +88,7 @@ kotlin {
 
             }
         }
+/*
         val androidMain by getting {
             dependsOn(javaMain)
             dependencies {
@@ -96,6 +99,7 @@ kotlin {
                 runtimeOnly(libs.kxml2)
             }
         }
+*/
     }
 
 }

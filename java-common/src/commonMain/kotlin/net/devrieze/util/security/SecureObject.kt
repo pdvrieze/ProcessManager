@@ -17,7 +17,7 @@
 package net.devrieze.util.security
 
 import net.devrieze.util.security.SecurityProvider.Permission
-import nl.adaptivity.util.security.Principal
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 
 interface SecureObject<out T> :SecuredObject<T> {
@@ -32,6 +32,6 @@ interface SecureObject<out T> :SecuredObject<T> {
   /**
    * The owner of the object. Null values are not allowed. All unowned objects can have [SYSTEMPRINCIPAL] as owner.
    */
-  val owner: Principal
+  val owner: PrincipalCompat
 
 }

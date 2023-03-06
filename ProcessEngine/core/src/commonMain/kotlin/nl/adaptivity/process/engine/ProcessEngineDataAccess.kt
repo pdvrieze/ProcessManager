@@ -21,7 +21,7 @@ import net.devrieze.util.HandleMap
 import net.devrieze.util.MutableHandleMap
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
-import nl.adaptivity.process.engine.impl.Logger
+import nl.adaptivity.process.engine.impl.LoggerCompat
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 
@@ -41,7 +41,7 @@ interface ProcessEngineDataAccess {
     fun processModel(handle: Handle<SecureObject<ExecutableProcessModel>>) = processModels[handle].mustExist(handle)
     fun queueTickle(instanceHandle: Handle<SecureObject<ProcessInstance>>)
 
-    val logger: Logger
+    val logger: LoggerCompat
 }
 
 interface MutableProcessEngineDataAccess : ProcessEngineDataAccess {

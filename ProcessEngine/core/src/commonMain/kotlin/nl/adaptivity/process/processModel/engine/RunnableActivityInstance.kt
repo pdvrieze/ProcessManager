@@ -20,47 +20,45 @@ import net.devrieze.util.Handle
 import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
-import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
-import nl.adaptivity.process.engine.IProcessInstance
-import nl.adaptivity.process.engine.ProcessEngineDataAccess
-import nl.adaptivity.process.engine.ProcessInstance
+import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.impl.CompactFragment
 import nl.adaptivity.process.engine.processModel.*
-import nl.adaptivity.process.engine.processModel.tryCreateTask
-import nl.adaptivity.process.engine.processModel.tryRunTask
-import nl.adaptivity.util.security.Principal
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.xmlutil.serialization.XML
 
-class RunnableActivityInstance<I: Any,O: Any>(builder: Builder<I,O>):
+
+class RunnableActivityInstance<I : Any, O : Any>(builder: Builder<I, O>) :
     ProcessNodeInstance<RunnableActivityInstance<I, O>>(builder) {
 
 
-    interface Builder<I: Any, O: Any>: ProcessNodeInstance.Builder<RunnableActivity<I,O>, RunnableActivityInstance<I,O>> {
-        override fun doProvideTask(engineData: MutableProcessEngineDataAccess):Boolean {
+    interface Builder<I : Any, O : Any> :
+        ProcessNodeInstance.Builder<RunnableActivity<I, O, ActivityInstanceContext>, RunnableActivityInstance<I, O>> {
+
+        override fun doProvideTask(engineData: MutableProcessEngineDataAccess): Boolean {
             return node.provideTask(engineData, this)
-/*
-            TODO("IMplement")
-            val shouldProgress = node.provideTask(engineData, this)
+            /*
+                        TODO("IMplement")
+                        val shouldProgress = node.provideTask(engineData, this)
 
-//            val childHandle=engineData.instances.put(ProcessInstance(engineData, node.childModel, handle) {})
+            //            val childHandle=engineData.instances.put(ProcessInstance(engineData, node.childModel, handle) {})
 
-            store(engineData)
-            engineData.commit()
-            return shouldProgress
-*/
+                        store(engineData)
+                        engineData.commit()
+                        return shouldProgress
+            */
         }
 
 
-        override fun doStartTask(engineData: MutableProcessEngineDataAccess):Boolean {
+        override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {
             val shouldProgress = tryCreateTask { node.startTask(this) }
 
             if (shouldProgress) {
-                val n: RunnableActivity<I, O> = node
+                val n: RunnableActivity<I, O, ActivityInstanceContext> = node
 
                 val resultFragment = tryRunTask {
                     val build = build()
                     val input: I = build.getInputData(processInstanceBuilder)
-                    val action: RunnableAction<I, O> = n.action
+                    val action: RunnableAction2<I, O, ActivityInstanceContext> = n.action
                     val context = engineData.processContextFactory.newActivityInstanceContext(engineData, this)
                     val result: O = context.action(input)
 
@@ -69,7 +67,7 @@ class RunnableActivityInstance<I: Any,O: Any>(builder: Builder<I,O>):
 //                    .start(engineData, build().getPayload(engineData))
                     n.outputSerializer?.let { os ->
                         CompactFragment { writer ->
-                            XML.defaultInstance.toXml(writer, os, result)
+                            XML.defaultInstance.encodeToWriter(writer, os, result)
                         }
                     }
                 }
@@ -85,21 +83,21 @@ class RunnableActivityInstance<I: Any,O: Any>(builder: Builder<I,O>):
     }
 
     class BaseBuilder<I : Any, O : Any>(
-        node: RunnableActivity<I, O>,
+        node: RunnableActivity<I, O, ActivityInstanceContext>,
         predecessor: Handle<SecureObject<ProcessNodeInstance<*>>>?,
         processInstanceBuilder: ProcessInstance.Builder,
-        owner: Principal,
+        owner: PrincipalCompat,
         entryNo: Int,
         handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
-    ) : ProcessNodeInstance.BaseBuilder<RunnableActivity<I, O>, RunnableActivityInstance<I, O>>(
+    ) : ProcessNodeInstance.BaseBuilder<RunnableActivity<I, O, ActivityInstanceContext>, RunnableActivityInstance<I, O>>(
         node, listOfNotNull(predecessor), processInstanceBuilder, owner,
         entryNo, handle, state
     ), Builder<I, O> {
 
         override fun invalidateBuilder(engineData: ProcessEngineDataAccess) {
             engineData.nodeInstances[handle]?.withPermission()?.let { n ->
-                val newBase = n as RunnableActivityInstance<I,O>
+                val newBase = n as RunnableActivityInstance<I, O>
                 node = newBase.node
                 predecessors.replaceBy(newBase.predecessors)
                 owner = newBase.owner
@@ -107,22 +105,28 @@ class RunnableActivityInstance<I: Any,O: Any>(builder: Builder<I,O>):
             }
         }
 
-        override fun build(): RunnableActivityInstance<I,O> {
+        override fun build(): RunnableActivityInstance<I, O> {
             return RunnableActivityInstance(this)
         }
     }
 
-    class ExtBuilder<I: Any, O: Any>(base: RunnableActivityInstance<I,O>, processInstanceBuilder: ProcessInstance.Builder) : ProcessNodeInstance.ExtBuilder<RunnableActivity<I,O>, RunnableActivityInstance<I,O>>(base, processInstanceBuilder), Builder<I,O> {
+    class ExtBuilder<I : Any, O : Any>(
+        base: RunnableActivityInstance<I, O>,
+        processInstanceBuilder: ProcessInstance.Builder
+    ) : ProcessNodeInstance.ExtBuilder<RunnableActivity<I, O, ActivityInstanceContext>, RunnableActivityInstance<I, O>>(
+        base,
+        processInstanceBuilder
+    ), Builder<I, O> {
 
-        override var node: RunnableActivity<I,O> by overlay { base.node }
+        override var node: RunnableActivity<I, O, ActivityInstanceContext> by overlay { base.node }
 
-        override fun build(): RunnableActivityInstance<I,O> {
-            return if(changed) RunnableActivityInstance(this).also { invalidateBuilder(it) } else base
+        override fun build(): RunnableActivityInstance<I, O> {
+            return if (changed) RunnableActivityInstance(this).also { invalidateBuilder(it) } else base
         }
     }
 
     @Suppress("UNCHECKED_CAST")
-    override val node: RunnableActivity<I,O> get() = super.node as RunnableActivity<I,O>
+    override val node: RunnableActivity<I, O, ActivityInstanceContext> get() = super.node as RunnableActivity<I, O, ActivityInstanceContext>
 
     override fun builder(processInstanceBuilder: ProcessInstance.Builder) = ExtBuilder(this, processInstanceBuilder)
 

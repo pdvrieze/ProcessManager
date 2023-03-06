@@ -21,9 +21,8 @@ import nl.adaptivity.process.engine.PETransformer.AbstractDataContext
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.processModel.name
 import nl.adaptivity.process.util.Constants
-import nl.adaptivity.xmlutil.util.CompactFragment
-import nl.adaptivity.xmlutil.util.ICompactFragment
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.util.CompactFragment
 import java.util.*
 
 actual class ProcessNodeInstanceContext actual constructor(private val processNodeInstance: IProcessNodeInstance, private val defines: List<ProcessData>, private val provideResults: Boolean, private val localEndpoint: EndpointDescriptor) : AbstractDataContext() {
@@ -33,7 +32,7 @@ actual class ProcessNodeInstanceContext actual constructor(private val processNo
             "handle"         -> return ProcessData(valueName, CompactFragment(
                 processNodeInstance.handle.handleValue.toString()))
             "instancehandle" -> return ProcessData(valueName, CompactFragment(
-                processNodeInstance.processContext.handle.handleValue.toString()))
+                processNodeInstance.processContext.processInstanceHandle.handleValue.toString()))
             "endpoint"       -> return ProcessData(valueName, createEndpoint())
             "owner"          -> return ProcessData(valueName, CompactFragment(
                 processNodeInstance.owner.name.xmlEncode()))

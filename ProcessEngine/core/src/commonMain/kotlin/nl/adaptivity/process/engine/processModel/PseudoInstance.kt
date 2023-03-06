@@ -22,7 +22,7 @@ import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.util.IdentifyableSet
-import nl.adaptivity.util.security.Principal
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 class PseudoInstance(
     override val processContext: PseudoContext,
@@ -34,7 +34,7 @@ class PseudoInstance(
 
     override val predecessors = predecessors.toMutableSet()
 
-    override val owner: Principal
+    override val owner: PrincipalCompat
         get() = processContext.processInstance.processModel.rootModel.owner
 
     override var state: NodeInstanceState = NodeInstanceState.Pending
@@ -65,7 +65,7 @@ class PseudoInstance(
 
         private val pseudoNodes: MutableList<PseudoInstance> = mutableListOf()
 
-        override val handle: Handle<SecureObject<ProcessInstance>>
+        override val processInstanceHandle: Handle<SecureObject<ProcessInstance>>
             get() = processInstance.handle
 
         init {
@@ -82,7 +82,10 @@ class PseudoInstance(
             else -> pseudoNodes[(handle.handleValue - handleOffset).toInt()]
         }
 
-        private fun getNodeInstance(node: ExecutableProcessNode, hPred: Handle<SecureObject<ProcessNodeInstance<*>>>): IProcessNodeInstance? {
+        private fun getNodeInstance(
+            node: ExecutableProcessNode,
+            hPred: Handle<SecureObject<ProcessNodeInstance<*>>>
+        ): IProcessNodeInstance? {
             return (overlay.asSequence() + pseudoNodes.asSequence())
                 .firstOrNull { it?.node == node && hPred in it.predecessors }
         }
@@ -121,7 +124,7 @@ class PseudoInstance(
                 base.entryNo,
                 base.predecessors + pred
             ).apply { state = base.state }
-            if (inst.handle.handleValue<handleOffset) {
+            if (inst.handle.handleValue < handleOffset) {
                 overlay[inst.handle.handleValue.toInt()] = inst
             } else {
                 pseudoNodes.add(inst)
@@ -138,8 +141,8 @@ class PseudoInstance(
 
             val instance = getNodeInstance(node, entryNo) // predecessor not linked yet
             if (instance != null) {
-                if (! instance.handle.isValid) {
-                    return create(hPred, instance )
+                if (!instance.handle.isValid) {
+                    return create(hPred, instance)
                 } else {
                     when (instance) {
                         is PseudoInstance -> instance.predecessors.add(hPred)
@@ -167,7 +170,7 @@ class PseudoInstance(
             }
             while (toProcess.isNotEmpty()) {
                 val child = toProcess.removeFirst()
-                if (! child.node.isMultiInstance || child.entryNo <= targetEntryNo) {
+                if (!child.node.isMultiInstance || child.entryNo <= targetEntryNo) {
                     for (successorNodeId in child.node.successors) {
                         val updatedTarget = getNodeInstance(handle)!!
                         if (successorNodeId == updatedTarget.node.identifier) {

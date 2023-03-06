@@ -22,18 +22,14 @@ import kotlinx.serialization.Transient
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.serializer
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.engine.impl.getClass
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.util.multiplatform.randomUUID
-import nl.adaptivity.xmlutil.XmlDeserializerFactory
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.serialization.XML
-import kotlin.jvm.JvmOverloads
-import kotlin.jvm.JvmStatic
 
 /**
  * A class representing a process model.
@@ -197,7 +193,7 @@ object EXEC_NODEFACTORY :
 
         override fun visitGenericActivity(builder: Activity.Builder): ExecutableProcessNode {
             return when (builder) {
-                is RunnableActivity.Builder<*, *> -> RunnableActivity(builder, buildHelper.newOwner, otherNodes)
+                is RunnableActivity.Builder<*, *, *> -> RunnableActivity(builder, buildHelper.newOwner, otherNodes)
                 else -> super.visitGenericActivity(builder)
             }
         }

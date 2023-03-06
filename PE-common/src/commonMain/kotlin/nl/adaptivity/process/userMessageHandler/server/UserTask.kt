@@ -20,7 +20,7 @@ import net.devrieze.util.Handle
 import net.devrieze.util.MutableHandleAware
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
-import nl.adaptivity.util.security.Principal
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 
 interface UserTask<T : UserTask<T>> : MutableHandleAware<T> {
@@ -44,11 +44,11 @@ interface UserTask<T : UserTask<T>> : MutableHandleAware<T> {
 
     val state: NodeInstanceState?
 
-    fun setState(newState: NodeInstanceState, user: Principal)
+    fun setState(newState: NodeInstanceState, user: PrincipalCompat)
 
     fun setEndpoint(endPoint: EndpointDescriptorImpl)
 
-    val owner: Principal?
+    val owner: PrincipalCompat?
 
     val items: List<TaskItem>
 

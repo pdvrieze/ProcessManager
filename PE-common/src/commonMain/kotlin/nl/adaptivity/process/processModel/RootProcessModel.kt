@@ -19,8 +19,8 @@ package nl.adaptivity.process.processModel
 import kotlinx.serialization.SerialName
 import nl.adaptivity.process.processModel.engine.IProcessModelRef
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.UUID
-import nl.adaptivity.util.security.Principal
 
 
 //@XmlDeserializer(XmlProcessModel.Factory::class)
@@ -31,7 +31,7 @@ interface RootProcessModel<out NodeT : ProcessNode> : ProcessModel<NodeT> {
     @SerialName("childModel")
     val childModels: Collection<ChildProcessModel<NodeT>>
 
-    val owner: Principal
+    val owner: PrincipalCompat
 
     val ref: IProcessModelRef<NodeT, RootProcessModel<NodeT>>?
 
@@ -60,7 +60,7 @@ interface RootProcessModel<out NodeT : ProcessNode> : ProcessModel<NodeT> {
 
         var name: String?
         var handle: Long
-        var owner: Principal
+        var owner: PrincipalCompat
         var uuid: UUID?
         val roles: MutableSet<String>
 

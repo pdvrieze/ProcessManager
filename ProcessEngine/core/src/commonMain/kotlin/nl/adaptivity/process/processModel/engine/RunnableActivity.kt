@@ -32,14 +32,15 @@ import nl.adaptivity.xmlutil.Namespace
 import nl.adaptivity.xmlutil.serialization.XML
 
 typealias RunnableAction<I, O> = ActivityInstanceContext.(I) -> O
+typealias RunnableAction2<I, O, C> = C.(I) -> O
 
-class RunnableActivity<I : Any, O : Any>(
-    builder: Builder<I, O>,
+class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
+    builder: Builder<I, O, C>,
     newOwner: ProcessModel<*>,
     otherNodes: Iterable<ProcessNode.Builder>
 ) : ActivityBase(builder.checkDefines(), newOwner, otherNodes), ExecutableProcessNode {
 
-    internal val action: RunnableAction<I, O> = builder.action
+    internal val action: RunnableAction2<I, O, C> = builder.action
     internal val inputCombiner: InputCombiner<I> = builder.inputCombiner
     internal val outputSerializer: SerializationStrategy<O>? = builder.outputSerializer
     override val condition: ExecutableCondition? = builder.condition?.toExecutableCondition()
@@ -86,7 +87,7 @@ class RunnableActivity<I : Any, O : Any>(
             }
         }
         return RunnableActivityInstance.BaseBuilder(
-            this, predecessor.handle,
+            this as RunnableActivity<I, O, ActivityInstanceContext>, predecessor.handle,
             processInstanceBuilder,
             processInstanceBuilder.owner, entryNo
         )
@@ -118,11 +119,11 @@ class RunnableActivity<I : Any, O : Any>(
         return inputCombiner(mappedData)
     }
 
-    class Builder<I : Any, O : Any> : ActivityBase.BaseBuilder {
+    class Builder<I : Any, O : Any, C: ActivityInstanceContext> : ActivityBase.BaseBuilder {
 
         var inputCombiner: InputCombiner<I> = InputCombiner()
         val outputSerializer: SerializationStrategy<O>?
-        var action: RunnableAction<I, O>
+        var action: RunnableAction2<I, O, C>
 
         override val defines: MutableCollection<IXmlDefineType>
             get() = TypecheckingCollection(DefineType::class, super.defines)
@@ -133,7 +134,7 @@ class RunnableActivity<I : Any, O : Any>(
             refName: String,
             inputSerializer: DeserializationStrategy<I>,
             outputSerializer: SerializationStrategy<O>? = null,
-            action: RunnableAction<I, O> = { throw UnsupportedOperationException("Action not provided") }
+            action: RunnableAction2<I, O, C> = { throw UnsupportedOperationException("Action not provided") }
         ) : super() {
             this.predecessor = predecessor
             this.outputSerializer = outputSerializer
@@ -158,7 +159,7 @@ class RunnableActivity<I : Any, O : Any>(
             predecessor: Identified,
             inputCombiner: InputCombiner<I> = InputCombiner(),
             outputSerializer: SerializationStrategy<O>? = null,
-            action: RunnableAction<I, O> = { throw UnsupportedOperationException("Action not provided") }
+            action: RunnableAction2<I, O, C> = { throw UnsupportedOperationException("Action not provided") }
         ) : super() {
             this.predecessor = predecessor
             results.add(XmlResultType("output"))
@@ -166,7 +167,7 @@ class RunnableActivity<I : Any, O : Any>(
             this.action = action
         }
 
-        constructor(activity: RunnableActivity<I, O>) : super(activity) {
+        constructor(activity: RunnableActivity<I, O, C>) : super(activity) {
             this.inputCombiner = activity.inputCombiner
             this.outputSerializer = activity.outputSerializer
             this.action = activity.action
@@ -270,7 +271,7 @@ class RunnableActivity<I : Any, O : Any>(
     }
 }
 
-private fun <R : RunnableActivity.Builder<*, *>> R.checkDefines(): R = apply {
+private fun <R : RunnableActivity.Builder<*, *, *>> R.checkDefines(): R = apply {
     val illegalDefine = defines.firstOrNull { it !is RunnableActivity.DefineType<*> }
     if (illegalDefine != null) {
         throw IllegalArgumentException("Invalid define $illegalDefine in runnable activity")
@@ -318,29 +319,29 @@ class InputCombiner<T>(val impl: (InputContext.(Map<String, Any?>) -> T)? = null
     }
 }
 
-fun <I : Any, O : Any> ConfigurableNodeContainer<ExecutableProcessNode>.runnableActivity(
+fun <I : Any, O : Any, C : ActivityInstanceContext> ConfigurableNodeContainer<ExecutableProcessNode>.runnableActivity(
     predecessor: Identified,
     outputSerializer: SerializationStrategy<O>,
     inputSerializer: DeserializationStrategy<I>,
     inputRefNode: Identified?,
     inputRefName: String = "",
-    action: RunnableAction<I, O>
-): RunnableActivity.Builder<I, O> =
+    action: RunnableAction2<I, O, C>
+): RunnableActivity.Builder<I, O, C> =
     RunnableActivity.Builder(predecessor, inputRefNode, inputRefName, inputSerializer, outputSerializer, action)
 
-fun <I : Any, O : Any> ConfigurableNodeContainer<ExecutableProcessNode>.configureRunnableActivity(
+fun <I : Any, O : Any, C: ActivityInstanceContext> ConfigurableNodeContainer<ExecutableProcessNode>.configureRunnableActivity(
     predecessor: Identified,
     outputSerializer: SerializationStrategy<O>,
     inputSerializer: DeserializationStrategy<I>,
     inputRefNode: Identified,
     inputRefName: String = "",
-    config: @ConfigurationDsl RunnableActivity.Builder<I, O>.() -> Unit
-): RunnableActivity.Builder<I, O> =
-    RunnableActivity.Builder(predecessor, inputRefNode, inputRefName, inputSerializer, outputSerializer).apply(config)
+    config: @ConfigurationDsl RunnableActivity.Builder<I, O, C>.() -> Unit
+): RunnableActivity.Builder<I, O, C> =
+    RunnableActivity.Builder<I, O, C>(predecessor, inputRefNode, inputRefName, inputSerializer, outputSerializer).apply(config)
 
-fun <I : Any, O : Any> ConfigurableNodeContainer<ExecutableProcessNode>.configureRunnableActivity(
+fun <I : Any, O : Any, C: ActivityInstanceContext> ConfigurableNodeContainer<ExecutableProcessNode>.configureRunnableActivity(
     predecessor: Identified,
     outputSerializer: SerializationStrategy<O>?,
-    config: @ConfigurationDsl RunnableActivity.Builder<I, O>.() -> Unit
-): RunnableActivity.Builder<I, O> =
-    RunnableActivity.Builder<I, O>(predecessor, outputSerializer = outputSerializer).apply(config)
+    config: @ConfigurationDsl RunnableActivity.Builder<I, O, C>.() -> Unit
+): RunnableActivity.Builder<I, O, C> =
+    RunnableActivity.Builder<I, O, C>(predecessor, outputSerializer = outputSerializer).apply(config)

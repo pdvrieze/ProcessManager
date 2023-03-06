@@ -29,9 +29,9 @@ import nl.adaptivity.process.processModel.MessageActivity
 import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.addSuppressedCompat
 import nl.adaptivity.util.multiplatform.assert
-import nl.adaptivity.util.security.Principal
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.ICompactFragment
@@ -57,19 +57,15 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
     predecessors: Iterable<Handle<SecureObject<ProcessNodeInstance<*>>>>,
     processInstanceBuilder: ProcessInstance.Builder,
     override val hProcessInstance: Handle<SecureObject<ProcessInstance>>,
-    final override val owner: Principal,
+    final override val owner: PrincipalCompat,
     final override val entryNo: Int,
-    handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
+    override val handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
     final override val state: NodeInstanceState = Pending,
     results: Iterable<ProcessData> = emptyList(),
     val failureCause: Throwable? = null
 ) : SecureObject<ProcessNodeInstance<T>>,
     ReadableHandleAware<SecureObject<ProcessNodeInstance<*>>>,
     IProcessNodeInstance {
-
-    private val _handle: Handle<SecureObject<ProcessNodeInstance<*>>> = handle
-
-    override val handle: Handle<SecureObject<ProcessNodeInstance<*>>> get() = _handle
 
     override val results: List<ProcessData> = results.toList()
 
@@ -98,7 +94,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
     override val processContext: ProcessInstanceContext
         get() = object : ProcessInstanceContext {
-            override val handle: Handle<SecureObject<ProcessInstance>> get() = hProcessInstance
+            override val processInstanceHandle: Handle<SecureObject<ProcessInstance>> get() = hProcessInstance
         }
 
     override fun build(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance<T> = this
@@ -139,7 +135,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
     }
 
     fun getHandleValue(): Long {
-        return _handle.handleValue
+        return handle.handleValue
     }
 
     override fun toString(): String {
@@ -151,7 +147,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             writeAttribute("state", state.name)
             writeAttribute("processinstance", hProcessInstance.handleValue)
 
-            if (_handle.isValid) writeAttribute("handle", _handle.handleValue)
+            if (handle.isValid) writeAttribute("handle", handle.handleValue)
 
             writeAttribute("nodeid", node.id)
 
@@ -179,6 +175,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             try {
                 val xmlReader = message.messageBody.getXmlReader()
                 instantiateXmlPlaceholders(builder.processInstanceBuilder, xmlReader, true, localEndpoint)
+                as ICompactFragment
             } catch (e: XmlException) {
                 engineData.logger.log(LogLevel.WARNING, "Error processing body", e)
                 throw e
@@ -193,7 +190,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         override val predecessors: MutableSet<Handle<SecureObject<ProcessNodeInstance<*>>>>
         val processInstanceBuilder: ProcessInstance.Builder
         override val hProcessInstance: Handle<SecureObject<ProcessInstance>> get() = processInstanceBuilder.handle
-        override var owner: Principal
+        override var owner: PrincipalCompat
         override var handle: Handle<SecureObject<ProcessNodeInstance<*>>>
         override var state: NodeInstanceState
         override val results: MutableList<ProcessData>
@@ -268,6 +265,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             when (state) {
                 Pending,
                 FailRetry -> state = Skipped
+
                 Sent,
                 Taken,
                 Started,
@@ -280,9 +278,11 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
                         state = AutoCancelled
                     }
                 }
-                Complete -> if(node is StartNode) { // just special case start nodes
+
+                Complete -> if (node is StartNode) { // just special case start nodes
                     state = AutoCancelled
                 }
+
                 else -> {
                     throw IllegalStateException("The current state ($state) doesn't support cancellation")
                 }
@@ -305,7 +305,9 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             when (state) {
                 FailRetry,
                 Pending -> provideTask(engineData)
-                else -> { /* ignore */ }
+
+                else -> { /* ignore */
+                }
             }// ignore
         }
 
@@ -363,7 +365,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
                 val predecessors = predecessors.map { engineData.nodeInstance(it).withPermission() }
                 for (predecessor in predecessors) {
                     if (predecessor !is SplitInstance && !predecessor.state.isFinal) {
-                        throw ProcessException("Attempting to start successor ${node.id}[$handle] for non-final predecessor ${predecessor.node.id}[${predecessor._handle} - ${predecessor.state}]")
+                        throw ProcessException("Attempting to start successor ${node.id}[$handle] for non-final predecessor ${predecessor.node.id}[${predecessor.handle} - ${predecessor.state}]")
                     }
                 }
             }
@@ -462,13 +464,11 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         final override var node: N,
         predecessors: Iterable<Handle<SecureObject<ProcessNodeInstance<*>>>>,
         final override val processInstanceBuilder: ProcessInstance.Builder,
-        final override var owner: Principal,
+        final override var owner: PrincipalCompat,
         final override val entryNo: Int,
-        handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
+        final override var handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
         state: NodeInstanceState = Pending
     ) : AbstractBuilder<N, T>() {
-
-        final override var handle: Handle<SecureObject<ProcessNodeInstance<*>>> = handle
 
         final override var state = state
             set(value) {
