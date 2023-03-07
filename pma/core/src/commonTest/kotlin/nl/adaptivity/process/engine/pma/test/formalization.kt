@@ -1,8 +1,8 @@
-package nl.adaptivity.process.engine.test
+package nl.adaptivity.process.engine.pma.test.nl.adaptivity.process.engine.pma.test
 
+import nl.adaptivity.process.engine.pma.PermissionScope
+import nl.adaptivity.process.engine.pma.UseAuthScope
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
-import nl.adaptivity.process.engine.test.loanOrigination.auth.PermissionScope
-import nl.adaptivity.process.engine.test.loanOrigination.auth.UseAuthScope
 
 typealias ActivityInstance = ProcessNodeInstance<*>
 typealias Authorization = PermissionScope

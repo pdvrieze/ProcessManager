@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.userMessageHandler.server
 
+import io.github.pdvrieze.xmlutil.testutil.assertXmlEquals
 import net.devrieze.util.Handle
 import net.devrieze.util.ReaderInputStream
 import net.devrieze.util.security.SimplePrincipal
@@ -29,8 +30,6 @@ import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
 import org.junit.jupiter.api.Test
 import org.xml.sax.SAXException
-import org.xmlunit.builder.DiffBuilder
-import org.xmlunit.diff.DefaultComparisonFormatter
 import java.io.IOException
 import java.io.StringReader
 import java.nio.charset.Charset
@@ -55,7 +54,7 @@ class TestXmlTask {
     @Throws(XmlException::class, IOException::class, SAXException::class)
     fun testSerialization() {
         val out = XML.encodeToString(/*XmlTask.serializer(), */sampleTask)
-        assertXMLEqual(
+        assertXmlEquals(
             "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
                 "<umh:task owner=\"pdvrieze\" state=\"Failed\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"/>\n",
             out
@@ -72,7 +71,7 @@ class TestXmlTask {
         sampleTask2.summary = "testing"
         sampleTask2.state = NodeInstanceState.FailRetry
         val out = XML.encodeToString(XmlTask.serializer(), sampleTask2)
-        assertXMLEqual(
+        assertXmlEquals(
             "<?xml version=\"1.0\" encoding=\"UTF-8\" standalone=\"yes\"?>\n" +
                 "<umh:task xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" handle=\"3\" remotehandle=\"1\"" +
                 " instancehandle=\"2\" state=\"FailRetry\" summary=\"testing\" owner=\"pdvrieze\"/>\n",
@@ -110,7 +109,7 @@ class TestXmlTask {
             summary = "bar"
         }
         val serialized = XML.encodeToString(data)
-        assertXMLEqual(expected, serialized)
+        assertXmlEquals(expected, serialized)
     }
 
     @Test
@@ -156,18 +155,5 @@ class TestXmlTask {
         Assertions.assertEquals(0, result.items.size)
         Assertions.assertEquals(null, result.owner)
         Assertions.assertEquals(null, result.summary)
-    }
-}
-
-fun assertXMLEqual(expected: String?, actual: String?) {
-    val diff = DiffBuilder.compare(expected)
-        .withTest(actual)
-        .ignoreWhitespace()
-        .ignoreComments()
-        .checkForSimilar()
-        .build()
-
-    if (diff.hasDifferences()) {
-        Assertions.assertEquals(expected, actual, diff.toString(DefaultComparisonFormatter()))
     }
 }

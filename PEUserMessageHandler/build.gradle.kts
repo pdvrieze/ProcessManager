@@ -145,7 +145,8 @@ dependencies {
 
     testRuntimeOnly(project(":DarwinJavaApi"))
     testImplementation(libs.junit5.api)
-    testImplementation(libs.xmlunit)
+//    testImplementation(libs.xmlunit)
+    testImplementation(libs.xmlutil.testutil)
     testImplementation(project(":PE-common"))
 
     testRuntimeOnly(libs.junit5.engine)

@@ -18,6 +18,8 @@ package net.devrieze.util
 
 import net.devrieze.util.CachingHandleMap.WrappingIterator
 import nl.adaptivity.util.multiplatform.*
+import nl.adaptivity.util.net.devrieze.util.HasForEach
+import nl.adaptivity.util.net.devrieze.util.MutableHasForEach
 
 
 /**
@@ -35,7 +37,8 @@ import nl.adaptivity.util.multiplatform.*
 open class CachingHandleMap<V : Any, T : Transaction>(
     protected open val delegate: MutableTransactionedHandleMap<V, T>,
     cacheSize: Int,
-    val handleAssigner: (T, V, Handle<V>) -> V?) : AbstractTransactionedHandleMap<V, T>(), Closeable, AutoCloseable {
+    val handleAssigner: (T, V, Handle<V>) -> V?
+) : AbstractTransactionedHandleMap<V, T>(), Closeable, AutoCloseable {
 
     constructor(
         delegate: MutableTransactionedHandleMap<V, T>,
@@ -45,7 +48,7 @@ open class CachingHandleMap<V : Any, T : Transaction>(
     private open inner class WrappingIterator(
         private val transaction: T,
         protected open val iterator: Iterator<V>
-    ) : MutableAutoCloseableIterator<V> {
+    ) : MutableIterator<V> {
         private var last: V? = null
 
         override final fun hasNext(): Boolean {
@@ -59,53 +62,9 @@ open class CachingHandleMap<V : Any, T : Transaction>(
             return result
         }
 
-        override fun close() {
-            val it = iterator
-            if (it is AutoCloseable) {
-                it.close()
-            }
-        }
-
         override fun remove() {
             throw UnsupportedOperationException()
         }
-    }
-
-    private inner class WrappingMutableIterator(transaction: T, iterator: MutableIterator<V>) : WrappingIterator(
-        transaction, iterator
-    ), MutableIterator<V>, AutoCloseableIterator<V> {
-        override val iterator: MutableIterator<V> get() = super.iterator as MutableIterator<V>
-        private var last: V? = null
-
-        override fun remove() {
-            if (last != null) {
-                synchronizedCompat(cacheHandles) {
-                    val last = last
-                    if (last is Handle<*>) {
-                        @Suppress("UNCHECKED_CAST")
-                        invalidateCache(last as Handle<V>)
-                    } else {
-                        for (i in cacheHandles.indices) {
-                            val value = cacheValues[i]
-                            if (value != null && value == last) {
-                                cacheHandles[i] = -1
-                                cacheValues[i] = null
-                                break
-                            }
-                        }
-                    }
-                }
-            }
-            iterator.remove()
-        }
-
-        override fun close() {
-            val it = iterator
-            if (it is AutoCloseable) {
-                it.close()
-            }
-        }
-
     }
 
     private inner class WrappingIterable(
@@ -121,7 +80,7 @@ open class CachingHandleMap<V : Any, T : Transaction>(
     private var cacheHead = 0
     internal val cacheHandles: LongArray
     internal val cacheValues: Array<V?>
-    private val pendingHandles : MutableSet<Handle<V>> = createCachingMapHandleSet()
+    private val pendingHandles: MutableSet<Handle<V>> = createCachingMapHandleSet()
 
     init {
         cacheHandles = LongArray(cacheSize)
@@ -286,10 +245,20 @@ open class CachingHandleMap<V : Any, T : Transaction>(
         delegate.clear(transaction)
     }
 
+    override fun forEach(transaction: T, body: HasForEach.ForEachReceiver<V>) {
+        delegate.forEach(transaction, body)
+    }
+
+    override fun forEach(transaction: T, body: MutableHasForEach.ForEachReceiver<V>) {
+        delegate.forEach(transaction, body)
+    }
+
+    @Deprecated("Unsafe as it does not guarantee closing the transaction")
     override fun iterator(transaction: T, readOnly: Boolean): MutableIterator<V> {
         return WrappingIterator(transaction, delegate.iterator(transaction, readOnly))
     }
 
+    @Deprecated("Unsafe as it does not guarantee closing the transaction")
     override fun iterable(transaction: T): MutableIterable<V> {
         return WrappingIterable(transaction, delegate.iterable(transaction))
     }
@@ -309,4 +278,4 @@ open class CachingHandleMap<V : Any, T : Transaction>(
     }
 }
 
-internal expect fun <V> createCachingMapHandleSet():MutableSet<Handle<V>>
+internal expect fun <V> createCachingMapHandleSet(): MutableSet<Handle<V>>

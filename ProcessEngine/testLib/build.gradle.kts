@@ -60,6 +60,7 @@ kotlin {
 
 //                implementation(libs.kotlinx.serialization.core)
                 api(libs.xmlutil.core)
+                api(libs.xmlutil.testutil)
 //                api(libs.xmlutil.serialutil)
                 api(libs.xmlutil.serialization)
 

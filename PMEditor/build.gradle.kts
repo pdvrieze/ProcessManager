@@ -97,6 +97,7 @@ dependencies {
 //    kapt "com.android.databinding:compiler:$databindingVersion"
 
     testImplementation("junit:junit:4.12")
+    testImplemntation(libs.xmlutil.testutil)
     testImplementation("xmlunit:xmlunit:1.6")
     testImplementation("net.sf.kxml:kxml2:2.3.0")
 

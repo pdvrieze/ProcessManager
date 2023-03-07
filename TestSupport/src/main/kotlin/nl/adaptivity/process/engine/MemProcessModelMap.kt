@@ -20,7 +20,7 @@ import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.MemTransactionedHandleMap
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
-import java.util.*
+import nl.adaptivity.util.multiplatform.UUID
 
 
 /**

@@ -3,6 +3,7 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/ProcessEngine/testLib/ProcessManager.ProcessEngine.testLib.commonMain.iml" filepath="$PROJECT_DIR$/.idea/modules/ProcessEngine/testLib/ProcessManager.ProcessEngine.testLib.commonMain.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/pma/core/ProcessManager.pma.core.commonTest.iml" filepath="$PROJECT_DIR$/.idea/modules/pma/core/ProcessManager.pma.core.commonTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/pma/loanorigination/ProcessManager.pma.loanorigination.javaMain.iml" filepath="$PROJECT_DIR$/.idea/modules/pma/loanorigination/ProcessManager.pma.loanorigination.javaMain.iml" />
     </modules>
   </component>

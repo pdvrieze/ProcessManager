@@ -16,9 +16,11 @@
 
 package nl.adaptivity.process.engine
 
+import io.github.pdvrieze.xmlutil.testutil.assertXmlEquals
 import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.XmlResultType
 import nl.adaptivity.process.util.Constants.USER_MESSAGE_HANDLER_NS
+import nl.adaptivity.xmlutil.DomReader
 import nl.adaptivity.xmlutil.SimpleNamespaceContext
 import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlUtilInternal
@@ -58,7 +60,7 @@ class TestXmlResultType {
     @Throws(
         XPathExpressionException::class, ParserConfigurationException::class, IOException::class,
         SAXException::class
-           )
+    )
     fun testXPath() {
         val expr = XPathFactory.newInstance().newXPath().compile("/result/value[@name='user']/text()")
         val testData = db.parse(InputSource(StringReader("<result><value name='user'>Paul</value></result>")))
@@ -69,7 +71,7 @@ class TestXmlResultType {
     @Throws(
         XPathExpressionException::class, ParserConfigurationException::class, IOException::class,
         SAXException::class
-           )
+    )
     fun testXPathNS() {
         val xPath = XPathFactory.newInstance().newXPath()
         val prefixMap = TreeMap<String, String>()
@@ -80,9 +82,9 @@ class TestXmlResultType {
             InputSource(
                 StringReader(
                     "<umh:result xmlns:umh='" + USER_MESSAGE_HANDLER_NS + "'><umh:value name='user'>Paul</umh:value></umh:result>"
-                            )
-                       )
-                               )
+                )
+            )
+        )
         assertEquals("Paul", expr.evaluate(testData))
     }
 
@@ -90,7 +92,7 @@ class TestXmlResultType {
     @Throws(
         XPathExpressionException::class, ParserConfigurationException::class, IOException::class,
         SAXException::class
-           )
+    )
     fun testXPathNS2() {
         val xPath = XPathFactory.newInstance().newXPath()
         val prefixMap = TreeMap<String, String>()
@@ -98,11 +100,16 @@ class TestXmlResultType {
         xPath.namespaceContext = SimpleNamespaceContext(prefixMap)
         val expr = xPath.compile("/ns1:result/ns1:value[@name='user']/text()")
         val testData =
-            db.parse(InputSource(StringReader(
-                "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
-                    "<result xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
-                    "  <value name=\"user\">Some test value</value>\n" +
-                    "</result>")))
+            db.parse(
+                InputSource(
+                    StringReader(
+                        "<?xml version=\"1.0\" encoding=\"UTF-8\"?>" +
+                            "<result xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
+                            "  <value name=\"user\">Some test value</value>\n" +
+                            "</result>"
+                    )
+                )
+            )
         assertEquals("Some test value", expr.evaluate(testData))
     }
 
@@ -126,7 +133,8 @@ class TestXmlResultType {
 
     @Test
     fun testXMLResultHolder() {
-        val testData = "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" path=\"/umh:bar/text()\" />"
+        val testData =
+            "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" path=\"/umh:bar/text()\" />"
 
         val testHolder = XML.decodeFromString<XmlResultType>(testData)
 
@@ -151,9 +159,9 @@ class TestXmlResultType {
                     "<?xml version=\"1.0\" encoding=\"UTF-8\"?><result xmlns=\"http://adaptivity.nl/userMessageHandler\">\n" +
                         "  <value name=\"user\">Some test value</value>\n" +
                         "</result>"
-                            )
-                       )
-                               )
+                )
+            )
+        )
 
         val outer = document.createElementNS(USER_MESSAGE_HANDLER_NS, "result")
         outer.setAttributeNS(XMLConstants.XMLNS_ATTRIBUTE_NS_URI, "xmlns", USER_MESSAGE_HANDLER_NS)
@@ -164,7 +172,7 @@ class TestXmlResultType {
         val frag = document.createDocumentFragment()
         frag.appendChild(outer)
 
-        assertXMLEqual(expected, frag)
+        assertXmlEquals(DomReader(expected), DomReader(frag))
         //    XMLAssert.assertXMLEqual(expected, document);
 
         val xPath = XPathFactory.newInstance().newXPath()

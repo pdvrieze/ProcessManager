@@ -16,6 +16,8 @@
 
 package net.devrieze.util
 
+import nl.adaptivity.util.net.devrieze.util.HasForEach
+
 /**
  * Interface for handlemaps that support transactions. [DBHandleMap] does support this, but
  * the interface is needed for testing without hitting the database.
@@ -29,7 +31,10 @@ interface TransactionedHandleMap<V : Any, T : Transaction> {
 
     operator fun get(transaction: T, handle: Handle<V>): V?
 
+    @Deprecated("Unsafe as it does not guarantee closing the transaction")
     fun iterable(transaction: T): Iterable<V>
+
+    fun forEach(transaction: T, body: HasForEach.ForEachReceiver<V>)
 
     fun containsElement(transaction: T, element: Any): Boolean
 
@@ -41,6 +46,7 @@ interface TransactionedHandleMap<V : Any, T : Transaction> {
 
     fun invalidateCache()
 
+    @Deprecated("Unsafe as it does not guarantee closing the transaction")
     fun iterator(transaction: T, readOnly: Boolean): Iterator<V>
 
     fun withTransaction(transaction: T): HandleMap<V> = HandleMapForwarder(transaction, this)

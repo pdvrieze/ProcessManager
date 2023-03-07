@@ -16,7 +16,10 @@
 
 package net.devrieze.util
 
-interface HandleMap<V:Any> : Iterable<V> {
+import nl.adaptivity.util.net.devrieze.util.HasForEach
+import nl.adaptivity.util.net.devrieze.util.MutableHasForEach
+
+interface HandleMap<V:Any> : Iterable<V>, HasForEach<V> {
 
     /**
      * Determine whether the given object is contained in the map. If the object
@@ -63,7 +66,7 @@ interface HandleMap<V:Any> : Iterable<V> {
 
 }
 
-interface MutableHandleMap<V:Any>: HandleMap<V>, MutableIterable<V> {
+interface MutableHandleMap<V:Any>: HandleMap<V>, MutableIterable<V>, MutableHasForEach<V> {
     override operator fun iterator(): MutableIterator<V>
 
     /**

@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine
 
+import io.github.pdvrieze.xmlutil.testutil.assertXmlEquals
 import net.devrieze.util.InputStreamOutputStream
 import nl.adaptivity.process.engine.ProcessInstance.State
 import nl.adaptivity.process.engine.impl.dom.toFragment
@@ -34,14 +35,8 @@ import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.w3c.dom.Document
 import org.w3c.dom.Node
-import org.xml.sax.InputSource
-import org.xmlunit.XMLUnitException
-import org.xmlunit.builder.DiffBuilder
-import org.xmlunit.diff.DefaultComparisonFormatter
-import java.io.ByteArrayInputStream
 import java.io.ByteArrayOutputStream
 import java.io.CharArrayWriter
-import java.io.StringReader
 import java.util.*
 import javax.xml.bind.JAXB
 import javax.xml.parsers.DocumentBuilder
@@ -49,6 +44,7 @@ import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.transform.TransformerException
 import javax.xml.transform.dom.DOMResult
 import javax.xml.transform.dom.DOMSource
+import kotlin.test.fail
 
 
 /**
@@ -56,21 +52,21 @@ import javax.xml.transform.dom.DOMSource
  */
 class TestProcessEngine : ProcessEngineTestSupport() {
 
-    private fun getXml(name: String): ByteArray? {
+    private fun getXml(name: String): String {
         javaClass.getResourceAsStream("/nl/adaptivity/process/engine/test/" + name)!!.use { reader ->
             val out = ByteArrayOutputStream()
             if (!InputStreamOutputStream.getInputStreamOutputStream(reader, out).get()) {
-                return null
+                fail("Missing file: $name")
             }
             val byteArray = out.toByteArray()
             assertTrue(byteArray.isNotEmpty(), "Some bytes in the xml files are expected")
-            return byteArray
+            return byteArray.decodeToString()
         }
     }
 
     @Throws(XmlException::class)
     private fun getStream(name: String): XmlReader {
-        return XmlStreaming.newReader(ByteArrayInputStream(getXml(name)!!), "UTF-8")
+        return XmlStreaming.newReader(getXml(name))
     }
 
     @Throws(XmlException::class)
@@ -92,7 +88,7 @@ class TestProcessEngine : ProcessEngineTestSupport() {
     }
 
     @Throws(XmlException::class)
-    private fun serializeToXmlCharArray(obj: Any): CharArray {
+    private fun serializeToXml(obj: Any): String {
         return CharArrayWriter().apply {
             val caw = this
             if (obj is XmlSerializable) {
@@ -102,37 +98,7 @@ class TestProcessEngine : ProcessEngineTestSupport() {
             } else {
                 JAXB.marshal(obj, caw)
             }
-        }.toCharArray()
-    }
-
-    fun assertEqualsXml(expected: ByteArray, actual: CharArray?) {
-        if (actual == null) org.junit.jupiter.api.fail("No actual result")
-        val expected = String(expected)
-        val actual = String(actual)
-
-        val expectedDoc = DocumentBuilderFactory
-            .newInstance().apply { isNamespaceAware = true }
-            .newDocumentBuilder()
-            .parse(InputSource(StringReader(expected)))
-        assertNotNull(expectedDoc)
-        val diff = try {
-            DiffBuilder.compare(expectedDoc)
-                .withTest(actual)
-                .ignoreWhitespace()
-                .ignoreComments()
-                .checkForSimilar()
-                .build()
-        } catch (e: XMLUnitException) {
-            assertEquals(expected, actual, "Error comparing: ${e.message}")
-            throw e
-        }
-
-        if (diff.hasDifferences()) {
-            assertEquals(
-                expected, actual,
-                diff.toString(DefaultComparisonFormatter())
-            )
-        }
+        }.toCharArray().concatToString()
     }
 
     @Test
@@ -142,11 +108,11 @@ class TestProcessEngine : ProcessEngineTestSupport() {
         testRawEngine { processEngine ->
             val transaction = processEngine.startTransaction()
             val engineData = transaction.writableEngineData
-            val modelHandle = processEngine.addProcessModel(transaction, model, modelOwnerPrincipal).handle
+            val modelHandle = processEngine.addProcessModel(transaction, model, model.owner).handle
 
             val instanceHandle = processEngine.startProcess(
                 transaction,
-                modelOwnerPrincipal,
+                model.owner,
                 modelHandle,
                 "testInstance1",
                 UUID.randomUUID(),
@@ -156,11 +122,11 @@ class TestProcessEngine : ProcessEngineTestSupport() {
             assertEquals(1, stubMessageService._messages.size)
             assertEquals(1L, stubMessageService.getMessageNode(0).handleValue)
 
-            val expected = getXml("testModel1_task1.xml")!!
+            val expected = getXml("testModel1_task1.xml")
 
-            val receivedChars = serializeToXmlCharArray(stubMessageService._messages[0].base)
+            val receivedChars = serializeToXml(stubMessageService._messages[0].base)
 
-            assertEqualsXml(expected, receivedChars)
+            assertXmlEquals(expected, receivedChars)
 
             if (true) {
                 val processInstance = transaction.getInstance(instanceHandle).assertIsStarted()
@@ -345,11 +311,11 @@ class TestProcessEngine : ProcessEngineTestSupport() {
         testRawEngine { processEngine ->
             val transaction = processEngine.startTransaction()
             val engineData = transaction.writableEngineData
-            val modelHandle = processEngine.addProcessModel(transaction, model, modelOwnerPrincipal).handle
+            val modelHandle = processEngine.addProcessModel(transaction, model, model.owner).handle
 
             val instanceHandle = processEngine.startProcess(
                 transaction,
-                modelOwnerPrincipal,
+                model.owner,
                 modelHandle,
                 "testInstance1",
                 UUID.randomUUID(),
@@ -358,13 +324,13 @@ class TestProcessEngine : ProcessEngineTestSupport() {
 
             assertEquals(1, stubMessageService._messages.size)
 
-            assertEqualsXml(
-                getXml("testModel2_task1.xml")!!,
-                serializeToXmlCharArray(stubMessageService._messages[0].base)
+            assertXmlEquals(
+                getXml("testModel2_task1.xml"),
+                serializeToXml(stubMessageService._messages[0].base)
             )
 
             var ac1: ProcessNodeInstance<*> =
-                processEngine.getNodeInstance(transaction, stubMessageService.getMessageNode(0), modelOwnerPrincipal)
+                processEngine.getNodeInstance(transaction, stubMessageService.getMessageNode(0), model.owner)
                     ?: throw AssertionError("Message node not found")// This should be 0 as it's the first activity
 
             ac1.node.results.let { r ->
@@ -406,12 +372,12 @@ class TestProcessEngine : ProcessEngineTestSupport() {
             assertEquals(0, ac1.results.size)
             ac1 = processEngine.finishTask(
                 transaction,
-                ac1.handle, getDocument("testModel2_response1.xml").toFragment(), modelOwnerPrincipal
+                ac1.handle, getDocument("testModel2_response1.xml").toFragment(), model.owner
             )
             assertEquals(NodeInstanceState.Complete, ac1.state)
             ac1 = processEngine.getNodeInstance(
                 transaction,
-                ac1.handle, modelOwnerPrincipal
+                ac1.handle, model.owner
             ) ?: throw AssertionError("Node ${ac1.handle} not found")
             assertEquals(2, ac1.results.size)
             val result1 = ac1.results[0]
@@ -422,7 +388,7 @@ class TestProcessEngine : ProcessEngineTestSupport() {
 
             result2.content.contentString.let { actual ->
                 val expected = "<user xmlns=''><fullname>Paul</fullname></user>"
-                assertEqualsXml(expected, actual)
+                assertXmlEquals(expected, actual)
             }
             assertEquals(1, stubMessageService._messages.size)
             assertEquals(
@@ -430,9 +396,13 @@ class TestProcessEngine : ProcessEngineTestSupport() {
                 stubMessageService.getMessageNode(0).handleValue
             ) //We should have a new message with the new task (with the data)
             val ac2 =
-                processEngine.getNodeInstance(transaction, stubMessageService.getMessageNode(0), modelOwnerPrincipal)
+                processEngine.getNodeInstance(transaction, stubMessageService.getMessageNode(0), model.owner)
 
-            val ac2Defines = ac2!!.getDefines(processEngine.getProcessInstance(transaction, ac2.hProcessInstance, modelOwnerPrincipal))
+            val ac2Defines = ac2!!.getDefines(processEngine.getProcessInstance(
+                transaction,
+                ac2.hProcessInstance,
+                model.owner
+            ))
             assertEquals(1, ac2Defines.size)
 
 

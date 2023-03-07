@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine
 
+import io.github.pdvrieze.xmlutil.testutil.assertXmlEquals
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.modules.EmptySerializersModule
 import kotlinx.serialization.modules.SerializersModule
@@ -36,7 +37,6 @@ import org.w3c.dom.NodeList
 import org.w3c.dom.Text
 import org.xml.sax.SAXException
 import org.xml.sax.SAXParseException
-import org.xmlunit.builder.DiffBuilder
 import org.xmlunit.diff.*
 import java.io.*
 import java.nio.charset.Charset
@@ -77,7 +77,7 @@ class TestEngineProcessData {
         assertEquals("Paul", result1Apply.contentString)
 
         val result2Apply = result2.applyData(testData).content
-        assertXMLEqual("<user><fullname>Paul</fullname></user>", result2Apply.contentString)
+        assertXmlEquals("<user><fullname>Paul</fullname></user>", result2Apply.contentString)
 
     }
 
@@ -131,7 +131,7 @@ class TestEngineProcessData {
                 "<umh:postTask xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><jbi:endpointDescriptor xmlns:jbi=\"http://adaptivity.nl/jbi\" endpointLocation=\"http://localhost\" endpointName=\"internal\" serviceLocalName=\"foobar\" serviceNS=\"http://foo.bar\"/></umh:postTask>"
             val test = caw.toString()
             try {
-                assertXMLEqual(control, test)
+                assertXmlEquals(control, test)
             } catch (e: SAXParseException) {
                 assertEquals(control, test)
             } catch (e: AssertionError) {
@@ -176,7 +176,7 @@ class TestEngineProcessData {
         private fun getProcessModel(name: String): XmlProcessModel {
             getDocument(name).use { inputStream ->
                 val input = XmlStreaming.newReader(inputStream, "UTF-8")
-                return XML{ autoPolymorphic = true }.decodeFromReader(XmlProcessModel.serializer(), input)
+                return XML { autoPolymorphic = true }.decodeFromReader(XmlProcessModel.serializer(), input)
             }
         }
 
@@ -346,7 +346,7 @@ class TestEngineProcessData {
 
             val actual = xml.encodeToString(target, obj)
 
-            assertXMLEqual(expected, actual)
+            assertXmlEquals(expected, actual)
 
             return actual
         }
@@ -373,44 +373,5 @@ val NAMESPACE_DIFF_EVAL: DifferenceEvaluator = DifferenceEvaluator { comparison,
             comparison,
             outcome
         )
-    }
-}
-
-
-fun assertXMLEqual(expected: String, actual: String, message: String? = null) {
-    val diff: Diff
-    try {
-        diff = DiffBuilder
-            .compare(expected)
-            .withTest(actual)
-            .checkForSimilar()
-            .ignoreWhitespace()
-            .ignoreComments()
-            .withDifferenceEvaluator(NAMESPACE_DIFF_EVAL)
-            .build()
-    } catch (e: Exception) {
-        assertEquals(expected, actual, message)
-        throw e // in case it is textually equal
-    }
-
-    if (diff.hasDifferences()) {
-        val msg = when (message) {
-            null -> diff.toString(DefaultComparisonFormatter())
-            else -> "$message\n"+diff.toString(DefaultComparisonFormatter()).prependIndent("    ")
-        }
-        assertEquals(expected, actual, msg)
-    }
-}
-
-fun assertXMLEqual(expected: Any, actual: Any) {
-    val diff = DiffBuilder.compare(expected)
-        .withTest(actual)
-        .ignoreWhitespace()
-        .withDifferenceEvaluator(NAMESPACE_DIFF_EVAL)
-        .checkForSimilar()
-        .ignoreComments().build()
-
-    if (diff.hasDifferences()) {
-        assertEquals(expected, actual, diff.toString(DefaultComparisonFormatter()))
     }
 }

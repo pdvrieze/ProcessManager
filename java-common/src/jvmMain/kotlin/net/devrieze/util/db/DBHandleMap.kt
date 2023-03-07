@@ -21,6 +21,8 @@ import io.github.pdvrieze.kotlinsql.monadic.DBReceiver
 import io.github.pdvrieze.kotlinsql.monadic.actions.DBAction
 import io.github.pdvrieze.kotlinsql.monadic.actions.mapSeq
 import net.devrieze.util.*
+import nl.adaptivity.util.net.devrieze.util.HasForEach
+import nl.adaptivity.util.net.devrieze.util.MutableHasForEach
 import java.sql.SQLException
 import java.util.*
 
@@ -154,6 +156,15 @@ open class DBHandleMap<TMP, V : Any, TR : MonadicDBTransaction<DB>, DB : Databas
         }
     }
 
+    override fun forEach(transaction: TR, body: MutableHasForEach.ForEachReceiver<V>) {
+        super<DbSet>.forEach(transaction, body)
+    }
+
+    override fun forEach(transaction: TR, body: HasForEach.ForEachReceiver<V>) {
+        super<DbSet>.forEach(transaction, body)
+    }
+
+    @Deprecated("Unsafe as it does not guarantee closing the transaction")
     override fun iterator(transaction: TR, readOnly: Boolean): MutableIterator<V> {
         return with(transaction) {
             super.iterator(dbReceiver = transaction).evaluateNow()
@@ -171,6 +182,7 @@ open class DBHandleMap<TMP, V : Any, TR : MonadicDBTransaction<DB>, DB : Databas
     }
 */
 
+    @Deprecated("Unsafe as it does not guarantee closing the transaction")
     override fun iterable(transaction: TR): MutableIterable<V> {
         return with(transaction) {
             iterable(dbReceiver = this).evaluateNow()
@@ -225,22 +237,22 @@ open class DBHandleMap<TMP, V : Any, TR : MonadicDBTransaction<DB>, DB : Databas
         }
     }
 
-/*
-    @Throws(SQLException::class)
-    override fun contains2(transaction: TR, handle: Handle<V>): Boolean {
-        val query = database
-            .SELECT(database.COUNT(elementFactory.createColumns[0]))
-            .WHERE { elementFactory.getHandleCondition(this, handle) AND elementFactory.filter(this) }
+    /*
+        @Throws(SQLException::class)
+        override fun contains2(transaction: TR, handle: Handle<V>): Boolean {
+            val query = database
+                .SELECT(database.COUNT(elementFactory.createColumns[0]))
+                .WHERE { elementFactory.getHandleCondition(this, handle) AND elementFactory.filter(this) }
 
-        try {
-            return query.getSingleList(transaction.connection) { _, data ->
-                data[0] as Int > 0
+            try {
+                return query.getSingleList(transaction.connection) { _, data ->
+                    data[0] as Int > 0
+                }
+            } catch (e: RuntimeException) {
+                return false
             }
-        } catch (e: RuntimeException) {
-            return false
         }
-    }
-*/
+    */
 
     fun containsAll(c: Collection<*>): Boolean = withDB { dbReceiver ->
         containsAll(dbReceiver, c)

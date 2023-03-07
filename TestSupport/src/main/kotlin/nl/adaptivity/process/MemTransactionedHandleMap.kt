@@ -17,6 +17,8 @@
 package nl.adaptivity.process
 
 import net.devrieze.util.*
+import nl.adaptivity.util.net.devrieze.util.HasForEach
+import nl.adaptivity.util.net.devrieze.util.MutableHasForEach
 
 import java.sql.SQLException
 
@@ -46,7 +48,7 @@ open class MemTransactionedHandleMap<T : Any, TR : StubTransaction>(private val 
     }
 
     private class IteratorWrapper<T>(private val delegate: Iterator<T>, private val readOnly: Boolean) :
-        MutableAutoCloseableIterator<T> {
+        MutableIterator<T> {
 
         override fun remove() {
             if (readOnly) throw UnsupportedOperationException("The iterator is read-only")
@@ -58,10 +60,6 @@ open class MemTransactionedHandleMap<T : Any, TR : StubTransaction>(private val 
 
         override fun hasNext(): Boolean {
             return delegate.hasNext()
-        }
-
-        override fun close() {
-            // Do nothing
         }
     }
 
@@ -87,11 +85,30 @@ open class MemTransactionedHandleMap<T : Any, TR : StubTransaction>(private val 
         return set(handle, value)
     }
 
+    /*
+     * Direct usage of this function is unsafe, but it is used to implement the transactioned version.
+     */
+    @Deprecated("Use the transactioned version")
+    override fun forEach(body: HasForEach.ForEachReceiver<T>) {
+        super<MemHandleMap>.forEach(body)
+    }
+
+    override fun forEach(transaction: TR, body: HasForEach.ForEachReceiver<T>) {
+        forEach(transaction, body as MutableHasForEach.ForEachReceiver<T>)
+    }
+
+    override fun forEach(transaction: TR, body: MutableHasForEach.ForEachReceiver<T>) {
+        assigner.transaction = transaction
+        forEach(body)
+    }
+
+    @Deprecated("Unsafe as it does not guarantee closing the transaction")
     override fun iterable(transaction: TR): MutableIterable<T> {
         assigner.transaction = transaction
         return this
     }
 
+    @Deprecated("Unsafe as it does not guarantee closing the transaction")
     override fun iterator(transaction: TR, readOnly: Boolean): MutableIterator<T> {
         assigner.transaction = transaction
         return IteratorWrapper(iterator(), readOnly)

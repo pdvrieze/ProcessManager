@@ -16,8 +16,8 @@
 
 package nl.adaptivity.diagram.svg
 
+import io.github.pdvrieze.xmlutil.testutil.assertXmlEquals
 import nl.adaptivity.diagram.Rectangle
-import nl.adaptivity.process.engine.assertXMLEqual
 import nl.adaptivity.xmlutil.XmlStreaming
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
@@ -64,7 +64,7 @@ class SVGPathTest {
                 0.0, 270.0,
                 290.0, 110.0,
                 200.0, 100.0
-                   )
+            )
         }
         val bounds = Rectangle(0.0, 0.0, 0.0, 0.0)
         spline.getBounds(bounds, pen)
@@ -118,7 +118,7 @@ class SVGPathTest {
                 "<path style=\"stroke: #ff0000; stroke-width: 0.5; fill:none; \" d=\"M10.0 5.0 L10.0 15.0 C10.0 45.0 50.0 -10.0 60.0 0.0 C70.0 10.0 60.0 70.0 20.0 70.0 \"/>" +
                 "<circle cx=\"20.0\" cy=\"80.0\" r=\"15.0\" style=\"stroke: #0000ff; stroke-width: 2.0; fill: #00ff00; fill-opacity: 0.188235; \"/>" +
                 "</g></svg>"
-        assertXMLEqual(RealSVG, writer.toString())
+        assertXmlEquals(RealSVG, writer.toString())
     }
 
 }

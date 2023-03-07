@@ -26,6 +26,9 @@ import io.github.pdvrieze.kotlinsql.monadic.actions.InsertAction
 import io.github.pdvrieze.kotlinsql.monadic.actions.InsertActionCommon
 import io.github.pdvrieze.kotlinsql.monadic.actions.mapSeq
 import net.devrieze.util.*
+import nl.adaptivity.util.net.devrieze.util.ForEachContextImpl
+import nl.adaptivity.util.net.devrieze.util.HasForEach
+import nl.adaptivity.util.net.devrieze.util.MutableHasForEach
 import java.io.Closeable
 import java.sql.SQLException
 import javax.naming.Context
@@ -36,11 +39,11 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
-open class DbSet<TMP, T : Any, TR: MonadicDBTransaction<DB>, DB : Database>(
+open class DbSet<TMP, T : Any, TR : MonadicDBTransaction<DB>, DB : Database>(
     protected val transactionFactory: DBTransactionFactory<TR, DB>,
     protected open val elementFactory: ElementFactory<TMP, T, TR, DB>,
     val handleAssigner: (T, Handle<T>) -> T? = ::HANDLE_AWARE_ASSIGNER
-) {
+) : MutableHasForEach<T> {
 
 
     /**
@@ -108,6 +111,42 @@ open class DbSet<TMP, T : Any, TR: MonadicDBTransaction<DB>, DB : Database>(
                         elementFactory.createFromBuilder(tr, SetAccessImpl(), builder)
                     }
                 }.map { MutableDbSetIterator(it) }
+        }
+    }
+
+    override fun forEach(body: HasForEach.ForEachReceiver<T>) {
+        withTransaction { forEach(this, body) }
+    }
+
+    override fun forEach(body: MutableHasForEach.ForEachReceiver<T>) {
+        withTransaction { forEach(this, body) }
+    }
+
+    fun forEach(dbReceiver: DBReceiver<DB>, body: MutableHasForEach.ForEachReceiver<T>) {
+        dbReceiver.transaction {
+            val tr = this
+            val toDelete = mutableListOf<T>()
+            SELECT(elementFactory.createColumns)
+                .maybeWHERE { elementFactory.filter(this) }
+                .map { rs ->
+                    lateinit var value: T
+                    val context = ForEachContextImpl { toDelete.add(value) }
+                    while (context.continueIteration && rs.next()) {
+                        val builder = elementFactory.createBuilder(tr, rs.rowData)
+                        value = builder.then { b -> elementFactory.createFromBuilder(tr, SetAccessImpl(), b) }.evaluateNow()
+                        with (body) {
+                            runBody(context, value)
+                        }
+                    }
+                }.evaluateNow()
+            if (toDelete.isNotEmpty()) {
+                tr.transaction {
+                    for(item in toDelete) {
+                        remove(item)
+                    }
+                }
+            }
+
         }
     }
 
@@ -205,10 +244,10 @@ open class DbSet<TMP, T : Any, TR: MonadicDBTransaction<DB>, DB : Database>(
 
     fun remove(dbReceiver: DBReceiver<DB>, value: Any): DBAction<DB, Boolean> {
         dbReceiver.transaction {
-            val elem = elementFactory.asInstance(value) ?: return dbReceiver.value(false)
+            val elem = elementFactory.asInstance(value) ?: return value(false)
             return elementFactory.preRemove(this, elem)
                 .then(DELETE_FROM(elementFactory.table)
-                          .maybeWHERE { elementFactory.getPrimaryKeyCondition(this, elem) }
+                    .maybeWHERE { elementFactory.getPrimaryKeyCondition(this, elem) }
                 ).map { it > 0 }
         }
     }
@@ -293,7 +332,7 @@ open class DbSet<TMP, T : Any, TR: MonadicDBTransaction<DB>, DB : Database>(
     }
 
     @OptIn(ExperimentalContracts::class)
-    protected inline fun <R> DBReceiver<DB>.transaction(action: TR.()->R): R {
+    protected inline fun <R> DBReceiver<DB>.transaction(action: TR.() -> R): R {
         contract {
             callsInPlace(action, InvocationKind.EXACTLY_ONCE)
         }

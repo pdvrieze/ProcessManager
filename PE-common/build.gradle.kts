@@ -89,6 +89,8 @@ kotlin {
         val commonTest by getting {
             dependencies {
                 implementation(libs.xmlutil.core)
+                implementation(libs.xmlutil.testutil)
+                implementation(project(":JavaCommonApi"))
                 implementation(kotlin("test"))
                 implementation(kotlin("test-annotations-common"))
             }

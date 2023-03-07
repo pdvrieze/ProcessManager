@@ -16,12 +16,13 @@
 
 package net.devrieze.util
 
+import nl.adaptivity.util.net.devrieze.util.ForEachContextImpl
+import nl.adaptivity.util.net.devrieze.util.HasForEach
+import nl.adaptivity.util.net.devrieze.util.MutableHasForEach
 import java.util.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
 import kotlin.concurrent.read
 import kotlin.concurrent.write
-import kotlin.jvm.JvmOverloads
-import kotlin.jvm.javaClass
 
 
 /**
@@ -50,7 +51,6 @@ import kotlin.jvm.javaClass
  *
  * @param loadFactor The load factor to use for the map.
  */
-@Suppress("PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 actual open class MemHandleMap<V : Any>
 @JvmOverloads constructor(capacity: Int = DEFAULT_CAPACITY,
                           private var loadFactor: Float = DEFAULT_LOADFACTOR,
@@ -130,6 +130,42 @@ actual open class MemHandleMap<V : Any>
      */
     override fun iterator(): MutableIterator<V> {
         return MapIterator()
+    }
+
+    override fun forEach(body: MutableHasForEach.ForEachReceiver<V>) {
+        var idx: Int = 0
+        var changed = false
+        val context = ForEachContextImpl {
+            ++changeMagic
+            _values[idx] = null
+            generations[idx]++ // Update the generation for safety checking
+            size--
+            changed = true
+        }
+        lock.read {
+            val iterStart = if (barrier >= _values.size) 0 else barrier
+            try {
+                for (i in 0 until _values.size) {
+                    idx = (iterStart + i) % _values.size
+                    val v = _values[idx]
+                    if (v!=null) {
+                        try {
+                            with(body) {
+                                runBody(context, v)
+                            }
+                        } catch (_: ForEachContextImpl.ContinueException) { } // No need to stop
+
+                        if (!context.continueIteration) break
+                    }
+                }
+            } finally {
+                if (changed) updateBarrier()
+            }
+        }
+    }
+
+    override fun forEach(body: HasForEach.ForEachReceiver<V>) {
+        forEach(body as MutableHasForEach.ForEachReceiver<V>)
     }
 
     operator fun contains(element: Any): Boolean {

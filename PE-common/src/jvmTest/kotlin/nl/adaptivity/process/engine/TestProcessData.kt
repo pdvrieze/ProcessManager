@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine
 
+import io.github.pdvrieze.xmlutil.testutil.assertXmlEquals
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.modules.EmptySerializersModule
@@ -25,6 +26,7 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.dom.Node
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.CompactFragment
 import org.junit.jupiter.api.Assertions.*
@@ -42,6 +44,7 @@ import java.util.logging.Logger
 import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.parsers.ParserConfigurationException
+import javax.xml.transform.dom.DOMResult
 import kotlin.reflect.KClass
 
 
@@ -95,9 +98,9 @@ class TestProcessData {
             if (node.id != null) {
                 when (node.id) {
                     "start" -> start = node as XmlStartNode
-                    "ac1"   -> ac1 = node as XmlActivity
-                    "ac2"   -> ac2 = node as XmlActivity
-                    "end"   -> end = node as XmlEndNode
+                    "ac1" -> ac1 = node as XmlActivity
+                    "ac2" -> ac2 = node as XmlActivity
+                    "end" -> end = node as XmlEndNode
                 }
             }
         }
@@ -187,7 +190,7 @@ class TestProcessData {
                 "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xpath=\"/umh:result/umh:value[@name='user']/text()\"/>"
 
 
-            assertXMLEqual(expected, caw.toString())
+            assertXmlEquals(expected, caw.toString())
         }
     }
 
@@ -214,7 +217,7 @@ class TestProcessData {
                 "</user>\n" +
                 "</result>"
 
-            assertXMLEqual(expected, actual)
+            assertXmlEquals(expected, actual)
         }
     }
 
@@ -420,7 +423,7 @@ class TestProcessData {
         val control =
             "<result xpath=\"/umh:result/umh:value[@name='user']/text()\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xmlns=\"http://adaptivity.nl/ProcessEngine/\"/>"
         try {
-            assertXMLEqual(control, caw.toString())
+            assertXmlEquals(control, caw.toString())
         } catch (e: AssertionError) {
             assertEquals(control, caw.toString())
         }
@@ -439,16 +442,16 @@ class TestProcessData {
 
         val control =
             "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"user\">\n" +
-         """|    <user xmlns="" xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity">
+                """|    <user xmlns="" xmlns:jbi="http://adaptivity.nl/ProcessEngine/activity">
             |        <fullname>
             |            <jbi:value xpath="/umh:result/umh:value[@name='user']/text()"/>
             |        </fullname>
             |    </user>
             |</result>""".trimMargin().prependIndent(" ".repeat(8))
         val found = xml.encodeToString(result)
-        assertXMLEqual(control, found)
+        assertXmlEquals(control, found)
 
-        assertXMLEqual(control, XML { indent = 2 }.encodeToString(XmlResultType.serializer(), result, ""))
+        assertXmlEquals(control, XML { indent = 2 }.encodeToString(XmlResultType.serializer(), result, ""))
 
         assertEquals(control, XML { indent = 2 }.encodeToString(XmlResultType.serializer(), result, ""))
 
@@ -918,7 +921,7 @@ class TestProcessData {
 
             val actual = xml.encodeToString(serializer, obj)
 
-            assertXMLEqual(expected, actual)
+            assertXmlEquals(expected, actual)
 
             val copy = xml.decodeFromString(serializer, actual)
 
@@ -953,31 +956,3 @@ val NAMESPACE_DIFF_EVAL: DifferenceEvaluator = DifferenceEvaluator { comparison,
     }
 }
 
-
-fun assertXMLEqual(expected: String, actual: String) {
-    val diff = DiffBuilder
-        .compare(expected)
-        .withTest(actual)
-        .checkForSimilar()
-        .ignoreWhitespace()
-        .ignoreComments()
-        .withDifferenceEvaluator(NAMESPACE_DIFF_EVAL)
-        .build()
-
-    if (diff.hasDifferences()) {
-        assertEquals(expected, actual, diff.toString(DefaultComparisonFormatter()))
-    }
-}
-
-fun assertXMLEqual(expected: Any, actual: Any) {
-    val diff = DiffBuilder.compare(expected)
-        .withTest(actual)
-        .ignoreWhitespace()
-        .withDifferenceEvaluator(NAMESPACE_DIFF_EVAL)
-        .checkForSimilar()
-        .ignoreComments().build()
-
-    if (diff.hasDifferences()) {
-        assertEquals(expected, actual, diff.toString(DefaultComparisonFormatter()))
-    }
-}

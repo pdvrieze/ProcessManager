@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine
 
+import io.github.pdvrieze.xmlutil.testutil.assertXmlEquals
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.StringFormat
 import kotlinx.serialization.decodeFromString
@@ -112,8 +113,11 @@ abstract class TraceTest(val config: ConfigBase) {
         fun assertSerialEquals(format: StringFormat, expected: String, actual: String, message: String) {
             when (format) {
                 is Json -> assertJsonEquals(expected, actual, message)
-                is XML  -> assertXMLEqual(expected, actual, message)
-                else    -> assertEquals(expected, actual, message)
+                is XML -> {
+                    assertXmlEquals(expected, actual, { message })
+                }
+
+                else -> assertEquals(expected, actual, message)
             }
         }
 

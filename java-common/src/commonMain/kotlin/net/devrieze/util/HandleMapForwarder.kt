@@ -16,13 +16,20 @@
 
 package net.devrieze.util
 
+import nl.adaptivity.util.net.devrieze.util.HasForEach
+
 open class HandleMapForwarder<V : Any, T : Transaction>(
     val transaction: T,
     open val delegate: TransactionedHandleMap<V, T>
 ) : HandleMap<V> {
     override fun containsElement(element: V) = delegate.containsElement(transaction, element)
 
+    @Deprecated("Not safe for use")
     override fun iterator() = delegate.iterator(transaction, true)
+
+    override fun forEach(body: HasForEach.ForEachReceiver<V>) {
+        delegate.forEach(transaction, body)
+    }
 
     override fun contains(handle: Handle<V>) = delegate.contains(transaction, handle)
 

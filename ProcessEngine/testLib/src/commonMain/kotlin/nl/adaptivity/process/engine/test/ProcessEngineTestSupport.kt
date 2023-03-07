@@ -173,13 +173,6 @@ open class ProcessEngineTestSupport {
         stubMessageService.clear()
     }
 
-    fun assertEqualsXml(expected: String?, actual: String?) {
-        assertEquals(
-            expected,
-            actual,
-        )
-    }
-
     companion object {
 
         @JvmStatic
@@ -224,7 +217,7 @@ open class ProcessEngineTestSupport {
             )
         }
 
-        internal val PNI_SET_HANDLE = fun(transaction: StubProcessTransaction, pni: SecureObject<ProcessNodeInstance<*>>, handle: PNIHandle): SecureObject<ProcessNodeInstance<*>>? {
+        val PNI_SET_HANDLE = fun(transaction: StubProcessTransaction, pni: SecureObject<ProcessNodeInstance<*>>, handle: PNIHandle): SecureObject<ProcessNodeInstance<*>>? {
             if (pni.withPermission().handle == handle) {
                 return pni
             }
@@ -232,18 +225,18 @@ open class ProcessEngineTestSupport {
             return pni.withPermission().builder(piBuilder).also { it.handle = handle }.build()
         }
 
-        internal fun <V:Any> cacheInstances(base: MutableTransactionedHandleMap<V, StubProcessTransaction>, count: Int): MutableTransactionedHandleMap<V, StubProcessTransaction> {
+        fun <V:Any> cacheInstances(base: MutableTransactionedHandleMap<V, StubProcessTransaction>, count: Int): MutableTransactionedHandleMap<V, StubProcessTransaction> {
             return net.devrieze.util.CachingHandleMap<V, StubProcessTransaction>(
                 base,
                 count
             )
         }
 
-        internal fun <V> cacheNodes(base: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction>, count: Int): MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction> {
+        fun <V> cacheNodes(base: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction>, count: Int): MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction> {
             return net.devrieze.util.CachingHandleMap(base, count, PNI_SET_HANDLE)
         }
 
-        internal fun <V> cacheModels(base: IMutableProcessModelMap<StubProcessTransaction>, count: Int): IMutableProcessModelMap<StubProcessTransaction> {
+        fun <V> cacheModels(base: IMutableProcessModelMap<StubProcessTransaction>, count: Int): IMutableProcessModelMap<StubProcessTransaction> {
             return CachingProcessModelMap(base, count)
         }
 

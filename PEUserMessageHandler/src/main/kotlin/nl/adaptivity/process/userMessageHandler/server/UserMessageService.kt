@@ -111,8 +111,9 @@ class UserMessageService<T : Transaction> private constructor(
 
     fun getPendingTasks(transaction: T, user: Principal): Collection<XmlTask> {
         return tasks.inWriteTransaction(transaction) {
+            buildList<XmlTask> {  }
             mutableListOf<XmlTask>().also { result ->
-                for (task in this) {
+                forEach { task ->
                     val taskState = task.state
                     if (taskState == null || !task.remoteHandle.isValid || taskState.isFinal) {
                         remove(task.handle)
