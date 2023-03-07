@@ -3,26 +3,14 @@ package nl.adaptivity.process.engine.pma
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ActivityInstanceContext
-import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-abstract class PMAActivityContext<A: PMAActivityContext<A>>(private val baseContext: ActivityInstanceContext): ActivityInstanceContext, PMAProcessInstanceContext<A> {
+abstract class PMAActivityContext<A : PMAActivityContext<A>>(private val baseContext: ActivityInstanceContext) :
+    ActivityInstanceContext {
     abstract override val processContext: PMAProcessInstanceContext<A>
-
-    override val processInstanceHandle: Handle<SecureObject<ProcessInstance>>
-        get() = processContext.processInstanceHandle
-
-    override val contextFactory: PMAProcessContextFactory<A>
-        get() = processContext.contextFactory
-
-    override val authService: AuthService get() = processContext.authService
-
-    override val engineService: EngineService get() = processContext.engineService
-
-    override val generalClientService: GeneralClientService get() = processContext.generalClientService
 
     final override var owner: PrincipalCompat = baseContext.owner
         private set
@@ -36,7 +24,7 @@ abstract class PMAActivityContext<A: PMAActivityContext<A>>(private val baseCont
     override val state: NodeInstanceState get() = baseContext.state
 
     override val nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>
-        get() =  baseContext.nodeInstanceHandle
+        get() = baseContext.nodeInstanceHandle
 
     inline fun <R> acceptBrowserActivity(browser: Browser, action: TaskList.Context.() -> R): R {
         acceptActivityImpl(browser) // This will initialise the task list and then delegate to it
@@ -48,7 +36,12 @@ abstract class PMAActivityContext<A: PMAActivityContext<A>>(private val baseCont
         ensureTaskList(browser)
         processContext.engineService.registerActivityToTaskList(taskListService, nodeInstanceHandle)
 
-        val authorizationCode= taskListService.acceptActivity(browser.loginToService(taskListService), browser.user, pendingPermissions, nodeInstanceHandle)
+        val authorizationCode = taskListService.acceptActivity(
+            browser.loginToService(taskListService),
+            browser.user,
+            pendingPermissions,
+            nodeInstanceHandle
+        )
         browser.addToken(processContext.authService, authorizationCode)
 
 
@@ -74,7 +67,7 @@ abstract class PMAActivityContext<A: PMAActivityContext<A>>(private val baseCont
                 throw UnsupportedOperationException("Attempting to change the user for an activity after it has already been set")
             }
         } else {
-            taskListService = contextFactory.getOrCreateTaskListForUser(taskUser)
+            taskListService = processContext.contextFactory.getOrCreateTaskListForUser(taskUser)
             owner = taskUser
         }
     }
@@ -85,7 +78,13 @@ abstract class PMAActivityContext<A: PMAActivityContext<A>>(private val baseCont
         }
         val clientServiceId = processContext.generalClientService.serviceId
         val serviceAuthorization = with(processContext) {
-            engineService.createAuthorizationCode(clientServiceId, this@PMAActivityContext.nodeInstanceHandle, authService, CommonPMAPermissions.IDENTIFY, pendingPermissions)
+            engineService.createAuthorizationCode(
+                clientServiceId,
+                this@PMAActivityContext.nodeInstanceHandle,
+                authService,
+                CommonPMAPermissions.IDENTIFY,
+                pendingPermissions
+            )
         }
 
         check(pendingPermissions.isEmpty()) { "Pending permissions should be empty after a service task is created" }
@@ -106,7 +105,8 @@ abstract class PMAActivityContext<A: PMAActivityContext<A>>(private val baseCont
      *      and in acceptActivity.
      */
     fun registerDelegatePermission(clientService: Service, service: Service, scope: PermissionScope) {
-        val delegateScope = CommonPMAPermissions.DELEGATED_PERMISSION.restrictTo(clientService.serviceId, service, scope)
+        val delegateScope =
+            CommonPMAPermissions.DELEGATED_PERMISSION.restrictTo(clientService.serviceId, service, scope)
         pendingPermissions.add(PendingPermission(null, clientService, delegateScope))
     }
 

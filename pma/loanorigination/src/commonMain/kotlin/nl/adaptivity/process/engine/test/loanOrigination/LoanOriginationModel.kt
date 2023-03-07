@@ -335,8 +335,6 @@ fun <I : Any, O : Any> ConfigurableNodeContainer<ExecutableProcessNode>.configur
 ): RunnableActivity.Builder<I, O, LoanActivityContext> =
     RunnableActivity.Builder<I, O, LoanActivityContext>(predecessor, outputSerializer = outputSerializer).apply(config)
 
-private val LoanActivityContext.ctx: LoanProcessContext get() = processContext
-
 
 data class PricingInput(val loanEvaluation: LoanEvaluation, val chosenProduct: LoanProductBundle)
 data class VerifyCustomerApprovalInput(val customer: LoanCustomer, val approval: SignedDocument<Approval>)
@@ -348,3 +346,16 @@ private inline fun assertForbidden(noinline action: () -> Unit) {
     Assertions.assertThrows(AuthorizationException::class.java, action)
 }
 
+private inline val LoanActivityContext.accountManagementSystem get() = processContext.accountManagementSystem
+private inline val LoanActivityContext.authService get() = processContext.authService
+private inline val LoanActivityContext.clerk1 get() = processContext.clerk1
+private inline val LoanActivityContext.creditApplication get() = processContext.creditApplication
+private inline val LoanActivityContext.creditBureau get() = processContext.creditBureau
+private inline val LoanActivityContext.customer get() = processContext.customer
+private inline val LoanActivityContext.customerData get() = processContext.customerData
+private inline val LoanActivityContext.customerFile get() = processContext.customerFile
+private inline val LoanActivityContext.generalClientService get() = processContext.generalClientService
+private inline val LoanActivityContext.outputManagementSystem get() = processContext.outputManagementSystem
+private inline val LoanActivityContext.postProcClerk get() = processContext.postProcClerk
+private inline val LoanActivityContext.pricingEngine get() = processContext.pricingEngine
+private inline val LoanActivityContext.signingService get() = processContext.signingService

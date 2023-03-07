@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination
 
-import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.pma.*
 import nl.adaptivity.process.engine.test.ProcessEngineFactory
@@ -45,7 +44,7 @@ class TestLoanOrigination : ProcessEngineTestSupport() {
             defaultEngineFactory(
                 messageService,
                 transactionFactory,
-                LoanContextFactory(logger, Random)
+                LoanContextFactory(logger, Random(1234))
             )
         }
         testProcess(pef, model) { processEngine, tr, model, hinstance ->
@@ -63,32 +62,6 @@ class TestLoanOrigination : ProcessEngineTestSupport() {
 
 }
 
-private inline val ActivityInstanceContext.ctx: LoanActivityContext get() = this as LoanActivityContext
-private inline val ActivityInstanceContext.customerFile get() = ctx.processContext.customerFile
-private inline val ActivityInstanceContext.signingService get() = ctx.processContext.signingService
-private inline val ActivityInstanceContext.outputManagementSystem get() = ctx.processContext.outputManagementSystem
-private inline val ActivityInstanceContext.accountManagementSystem get() = ctx.processContext.accountManagementSystem
-private inline val ActivityInstanceContext.creditBureau get() = ctx.processContext.creditBureau
-private inline val ActivityInstanceContext.creditApplication get() = ctx.processContext.creditApplication
-private inline val ActivityInstanceContext.pricingEngine get() = ctx.processContext.pricingEngine
-private inline val ActivityInstanceContext.authService get() = ctx.processContext.authService
-private inline val ActivityInstanceContext.generalClientService get() = ctx.processContext.generalClientService
-private inline val ActivityInstanceContext.clerk1 get() = ctx.processContext.clerk1
-private inline val ActivityInstanceContext.postProcClerk get() = ctx.processContext.postProcClerk
-private inline val ActivityInstanceContext.customer get() = ctx.processContext.customer
-
-
-private fun ActivityInstanceContext.registerTaskPermission(service: Service, scope: PermissionScope) =
-    ctx.registerTaskPermission(service, scope)
-
-private fun ActivityInstanceContext.registerDelegatePermission(clientService: Service, service: Service, scope: PermissionScope) =
-    ctx.registerDelegatePermission(clientService, service, scope)
-
-private inline fun <R> ActivityInstanceContext.acceptBrowserActivity(
-    browser: Browser,
-    action: TaskList.Context.() -> R
-): R =
-    ctx.acceptBrowserActivity(browser, action)
 
 const val ASSERTFORBIDDENENABLED = false
 
@@ -96,5 +69,3 @@ const val ASSERTFORBIDDENENABLED = false
 inline fun assertForbidden(noinline action: () -> Unit) {
     if (ASSERTFORBIDDENENABLED) assertThrows(AuthorizationException::class.java, action)
 }
-
-val Random = kotlin.random.Random(1234)
