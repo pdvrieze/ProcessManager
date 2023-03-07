@@ -41,7 +41,7 @@ open class ProcessEngineTestSupport {
             return StubProcessTransaction(engineData)
         }
     }
-    protected val modelOwnerPrincipal = SimplePrincipal("pdvrieze")
+    protected val modelOwnerPrincipal = SimplePrincipal("modelOwner")
     private val ProcessInstance.sortedFinished
         get() = finished.sortedBy { it.handleValue }
     private val ProcessInstance.sortedActive

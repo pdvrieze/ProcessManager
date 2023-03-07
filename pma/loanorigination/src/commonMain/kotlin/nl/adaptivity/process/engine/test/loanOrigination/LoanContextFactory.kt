@@ -33,15 +33,12 @@ import java.util.logging.Level
 import java.util.logging.Logger
 import kotlin.random.Random
 
-class LoanContextFactory(val log: Logger, val random: Random) : ProcessContextFactory<LoanActivityContext> {
+class LoanContextFactory(val log: Logger, val random: Random) : PMAProcessContextFactory<LoanActivityContext>() {
     private val nodes = mutableMapOf<PNIHandle, String>()
 
     val authService = AuthService(log, nodes, random)
 
     val engineService : EngineService = EngineService(authService)
-
-
-    val engineClientId get() = engineService.serviceId
 
     private val processContexts = mutableMapOf<Handle<SecureObject<ProcessInstance>>, LoanProcessContext>()
     val customerFile = CustomerInformationFile(authService)
@@ -101,9 +98,9 @@ class LoanContextFactory(val log: Logger, val random: Random) : ProcessContextFa
         with(engineService) { context.onActivityTermination(processNodeInstance) }
     }
 
-    fun taskList(engineService: EngineService, principal: Principal): TaskList {
+    override fun getOrCreateTaskListForUser(principal: Principal): TaskList {
         return taskLists.getOrPut(principal) {
-            log.log(Level.INFO, "Creating tasklist for ${principal.name}")
+            log.log(Level.INFO, "Creating tasklist service for ${principal.name}")
             val clientAuth = authService.registerClient("TaskList(${principal.name})", Random.nextString())
             val t = TaskList(authService, engineService, clientAuth, principal)
             engineService.registerGlobalPermission(principal, t, CommonPMAPermissions.ACCEPT_TASK)
@@ -117,7 +114,6 @@ class LoanContextFactory(val log: Logger, val random: Random) : ProcessContextFa
             t
         }
     }
-
 
 }
 

@@ -3,7 +3,6 @@ package nl.adaptivity.process.engine.pma
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ActivityInstanceContext
-import nl.adaptivity.process.engine.ProcessContextFactory
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
@@ -16,7 +15,7 @@ abstract class PMAActivityContext<A: PMAActivityContext<A>>(private val baseCont
     override val processInstanceHandle: Handle<SecureObject<ProcessInstance>>
         get() = processContext.processInstanceHandle
 
-    override val contextFactory: ProcessContextFactory<A>
+    override val contextFactory: PMAProcessContextFactory<A>
         get() = processContext.contextFactory
 
     override val authService: AuthService get() = processContext.authService
@@ -24,10 +23,6 @@ abstract class PMAActivityContext<A: PMAActivityContext<A>>(private val baseCont
     override val engineService: EngineService get() = processContext.engineService
 
     override val generalClientService: GeneralClientService get() = processContext.generalClientService
-
-    override fun taskList(user: PrincipalCompat): TaskList {
-        return processContext.taskList(user)
-    }
 
     final override var owner: PrincipalCompat = baseContext.owner
         private set
@@ -79,7 +74,7 @@ abstract class PMAActivityContext<A: PMAActivityContext<A>>(private val baseCont
                 throw UnsupportedOperationException("Attempting to change the user for an activity after it has already been set")
             }
         } else {
-            taskListService = processContext.taskList(taskUser)
+            taskListService = contextFactory.getOrCreateTaskListForUser(taskUser)
             owner = taskUser
         }
     }

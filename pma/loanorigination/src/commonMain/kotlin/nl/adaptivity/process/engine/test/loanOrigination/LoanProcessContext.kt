@@ -23,7 +23,6 @@ import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.pma.*
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
 import nl.adaptivity.process.engine.test.loanOrigination.systems.*
-import java.security.Principal
 import java.util.logging.Logger
 
 interface LoanProcessContext : PMAProcessInstanceContext<LoanActivityContext> {
@@ -61,13 +60,11 @@ class LoanProcessContextImpl(
     override val pricingEngine: PricingEngine get() = contextFactory.pricingEngine
     override val authService: AuthService get() = contextFactory.authService
     override val generalClientService: GeneralClientService get() = contextFactory.generalClientService
-    override val engineService = EngineService(contextFactory.authService)
+    override val engineService: EngineService get() = contextFactory.engineService
 
     override val clerk1: Browser get() = contextFactory.clerk1
     override val postProcClerk: Browser get() = contextFactory.postProcClerk
     override val customer: Browser get() = contextFactory.customer
 
     override val log: Logger get() = contextFactory.log
-
-    override fun taskList(principal: Principal) = contextFactory.taskList(engineService, principal)
 }

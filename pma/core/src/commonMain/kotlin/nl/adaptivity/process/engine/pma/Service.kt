@@ -27,7 +27,7 @@ interface Service {
 abstract class ServiceImpl(protected val authService: AuthService, protected val serviceAuth: IdSecretAuthInfo) : Service {
     private val tokens = mutableListOf<AuthToken>()
 
-    override val serviceId: String get() = serviceAuth.principal.name
+    override val serviceId: String = getServiceId(serviceAuth)
 
     abstract fun getServiceState(): String
 
@@ -65,5 +65,18 @@ abstract class ServiceImpl(protected val authService: AuthService, protected val
         val serviceState = getServiceState()
         val quotedServiceState = if (serviceState.isEmpty()) "" else "($serviceState)"
         authService.logger.log(Level.INFO, "$service$quotedServiceState.$methodName($args)")
+    }
+
+    companion object {
+        private val counters = mutableMapOf<String, Int>()
+
+        fun getServiceId(serviceAuth: IdSecretAuthInfo): String {
+            val serviceName = serviceAuth.principal.name
+            val id: Int = counters.merge(serviceName, 0) { oldValue, _ -> oldValue + 1 }!!
+            return when {
+                id > 0 -> "$serviceName#$id"
+                else -> serviceName
+            }
+        }
     }
 }

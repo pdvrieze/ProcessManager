@@ -18,6 +18,8 @@ package nl.adaptivity.process.engine.pma
 
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
+import nl.adaptivity.process.engine.pma.CommonPMAPermissions.GRANT_GLOBAL_PERMISSION
+import nl.adaptivity.process.engine.pma.CommonPMAPermissions.UPDATE_ACTIVITY_STATE
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
@@ -28,6 +30,8 @@ class EngineService(
     authService: AuthService,
     serviceAuth: IdSecretAuthInfo = newEngineClientAuth(authService),
 ) : ServiceImpl(authService, serviceAuth) {
+
+    private val taskLists: MutableMap<PNIHandle, List<TaskList>> = mutableMapOf()
 
     override fun getServiceState(): String = ""
 
@@ -82,7 +86,7 @@ class EngineService(
         logMe(pniHandle)
 
         val permissions = listOf(
-            CommonPMAPermissions.UPDATE_ACTIVITY_STATE(pniHandle),
+            UPDATE_ACTIVITY_STATE(pniHandle),
             CommonPMAPermissions.ACCEPT_TASK(pniHandle)
         )
         val taskListToEngineAuthToken = authService.createAuthorizationCode(
@@ -100,6 +104,7 @@ class EngineService(
          */
 
         val taskListAuth = authTokenForService(taskList)
+        taskLists.merge(pniHandle, listOf(taskList)) { old, new -> old + new }
 
         taskList.postTask(taskListAuth, taskListToEngineAuthToken, pniHandle)
     }
@@ -112,11 +117,18 @@ class EngineService(
         pendingPermissions: ArrayDeque<PMAActivityContext.PendingPermission>
     ): AuthorizationCode {
         return authService.createAuthorizationCode(serviceAuth, clientServiceId, handle, service, scope)
-            .also {  serviceAuthorization->
-                while(pendingPermissions.isNotEmpty()) {
+            .also { serviceAuthorization ->
+                while (pendingPermissions.isNotEmpty()) {
                     val pendingPermission = pendingPermissions.removeFirst()
-                    authService.grantPermission(serviceAuth, serviceAuthorization, authService, CommonPMAPermissions.GRANT_ACTIVITY_PERMISSION.restrictTo(
-                        handle, pendingPermission.clientId ?: clientServiceId, pendingPermission.service, pendingPermission.scope))
+                    authService.grantPermission(
+                        serviceAuth, serviceAuthorization, authService,
+                        CommonPMAPermissions.GRANT_ACTIVITY_PERMISSION.restrictTo(
+                            handle,
+                            pendingPermission.clientId ?: clientServiceId,
+                            pendingPermission.service,
+                            pendingPermission.scope
+                        )
+                    )
                 }
             }
     }
@@ -125,10 +137,12 @@ class EngineService(
         processNodeInstance: IProcessNodeInstance
     ) {
         val nodeInstanceHandle = processNodeInstance.handle
-        val taskList = taskList(processNodeInstance.owner) // TODO handle multiple tasklists in a smarter way
+        val taskLists = taskLists[nodeInstanceHandle] ?: emptyList()
 
-        val authToken = authTokenForService(taskList)
-        taskList.unregisterTask(authToken, nodeInstanceHandle)
+        for (taskList in taskLists) {
+            val authToken = authTokenForService(taskList)
+            taskList.unregisterTask(authToken, nodeInstanceHandle)
+        }
 
         authService.invalidateActivityTokens(serviceAuth, processNodeInstance.handle)
 
@@ -143,8 +157,10 @@ class EngineService(
     }
 }
 
-    private fun newEngineClientAuth(authService: AuthService): IdSecretAuthInfo = authService.registerClient("ProcessEngine", Random.nextString()).also {
-        authService.registerGlobalPermission(null, it.principal, authService, CommonPMAPermissions.UPDATE_ACTIVITY_STATE)
-        authService.registerGlobalPermission(null, it.principal, authService, CommonPMAPermissions.GRANT_GLOBAL_PERMISSION)
+private fun newEngineClientAuth(authService: AuthService): IdSecretAuthInfo {
+    return authService.registerClient("ProcessEngine", Random.nextString()).also {
+        authService.registerGlobalPermission(null, it.principal, authService, UPDATE_ACTIVITY_STATE)
+        authService.registerGlobalPermission(null, it.principal, authService, GRANT_GLOBAL_PERMISSION)
     }
+}
 

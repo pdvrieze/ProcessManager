@@ -153,7 +153,6 @@ class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<Ex
 
                 creditBureau.getCreditReport(creditAuthToken, customerData)
             }
-            TODO()
         }
 
         val getLoanEvaluation by let { m ->
