@@ -16,8 +16,8 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.IProcessInstance
+import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
@@ -36,7 +36,7 @@ class ExecutableMessageActivity(
     builder: MessageActivity.Builder,
     newOwner: ProcessModel<*>,
     otherNodes: Iterable<ProcessNode.Builder>
-) : MessageActivityBase(builder, newOwner, otherNodes), ExecutableProcessNode {
+) : MessageActivityBase(builder, newOwner, otherNodes), ExecutableActivity {
 
     private var _condition: ExecutableCondition? = builder.condition?.toExecutableCondition()
 

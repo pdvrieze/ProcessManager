@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.Transient
 import nl.adaptivity.process.engine.ProcessException
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
@@ -318,7 +317,7 @@ interface ProcessModel<out NodeT : ProcessNode> {
 
     }
 
-    /** Interface that helps collating all the elements needed to build child nodes and child models*/
+    /** Interface that helps to collate all the elements needed to build child nodes and child models */
     interface BuildHelper<NodeT : ProcessNode, out ModelT : ProcessModel<NodeT>, out RootT : RootProcessModel<*>, out ChildT : ChildProcessModel<*>> {
         val newOwner: ModelT// TODO must this be nullable ?
         val pedantic: Boolean get() = false
@@ -327,7 +326,7 @@ interface ProcessModel<out NodeT : ProcessNode> {
         fun node(
             builder: ProcessNode.Builder,
             otherNodes: Iterable<ProcessNode.Builder>
-                ): NodeT
+        ): NodeT
 
         fun <M : ProcessModel<NodeT>> withOwner(newOwner: M): BuildHelper<NodeT, M, RootT, ChildT>
         fun condition(condition: Condition): Condition = condition

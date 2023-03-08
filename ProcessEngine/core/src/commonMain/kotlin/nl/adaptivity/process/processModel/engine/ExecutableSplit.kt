@@ -70,5 +70,12 @@ class ExecutableSplit(
         ) : super(id, predecessor, successors, label, defines, results, x, y, min, max, multiInstance)
 
         constructor(node: Split) : super(node)
+
+        override fun build(
+            buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ProcessModel<ExecutableProcessNode>, *, *>,
+            otherNodes: Iterable<ProcessNode.Builder>
+        ): ExecutableProcessNode {
+            return ExecutableSplit(this, buildHelper.newOwner, otherNodes)
+        }
     }
 }

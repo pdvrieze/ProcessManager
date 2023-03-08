@@ -166,6 +166,12 @@ class ExecutableJoin(
 
         constructor(node: Join) : super(node)
 
+        override fun build(
+            buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ProcessModel<ExecutableProcessNode>, *, *>,
+            otherNodes: Iterable<ProcessNode.Builder>
+        ): ExecutableProcessNode {
+            return ExecutableJoin(this, buildHelper, otherNodes)
+        }
     }
 
 }

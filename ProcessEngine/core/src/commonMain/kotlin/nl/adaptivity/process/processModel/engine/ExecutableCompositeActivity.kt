@@ -17,8 +17,8 @@
 package nl.adaptivity.process.processModel.engine
 
 import net.devrieze.util.Handle
-import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.IProcessInstance
+import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.CompositeInstance
@@ -30,7 +30,7 @@ import nl.adaptivity.process.processModel.*
 /**
  * Activity version that is used for process execution.
  */
-class ExecutableCompositeActivity : CompositeActivityBase, ExecutableProcessNode {
+class ExecutableCompositeActivity : CompositeActivityBase, ExecutableActivity {
 
     constructor(
         builder: CompositeActivity.ModelBuilder,

@@ -64,19 +64,19 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
     ) :
         this(
             Builder(name = name, uuid = uuid, nodes = nodes.map { it.visit(DRAWABLE_BUILDER_VISITOR) },
-                    layoutAlgorithm = (layoutAlgorithm ?: LayoutAlgorithm()).apply {
-                        defaultNodeWidth = max(
-                            max(STARTNODERADIUS, ENDNODEOUTERRADIUS),
-                            max(ACTIVITYWIDTH, JOINWIDTH)
-                        )
-                        defaultNodeHeight = max(
-                            max(STARTNODERADIUS, ENDNODEOUTERRADIUS),
-                            max(ACTIVITYHEIGHT, JOINHEIGHT)
-                        )
-                        horizSeparation = DEFAULT_HORIZ_SEPARATION
-                        vertSeparation = DEFAULT_VERT_SEPARATION
+                layoutAlgorithm = (layoutAlgorithm ?: LayoutAlgorithm()).apply {
+                    defaultNodeWidth = max(
+                        max(STARTNODERADIUS, ENDNODEOUTERRADIUS),
+                        max(ACTIVITYWIDTH, JOINWIDTH)
+                    )
+                    defaultNodeHeight = max(
+                        max(STARTNODERADIUS, ENDNODEOUTERRADIUS),
+                        max(ACTIVITYHEIGHT, JOINHEIGHT)
+                    )
+                    horizSeparation = DEFAULT_HORIZ_SEPARATION
+                    vertSeparation = DEFAULT_VERT_SEPARATION
 
-                    })
+                })
         )
 
     override fun copy(
@@ -166,11 +166,11 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
         @kotlin.jvm.JvmStatic
         fun get(src: ProcessModel<*>?): DrawableProcessModel? {
             return when (src) {
-                null                        -> null
-                is DrawableProcessModel     -> src
-                is ChildProcessModel        -> TODO("Support child models")
+                null -> null
+                is DrawableProcessModel -> src
+                is ChildProcessModel -> TODO("Support child models")
                 is RootDrawableProcessModel -> RootDrawableProcessModel(src)
-                else                        -> throw UnsupportedOperationException("Unknown process model subtype")
+                else -> throw UnsupportedOperationException("Unknown process model subtype")
             }
         }
 
@@ -308,7 +308,7 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
             }
         }
 
-/*
+        /*
         override fun notifyNodeChanged(node: DrawableProcessNode.Builder<*>) {
             invalidateConnectors()
             // TODO this is not correct as it will only expand the bounds.
@@ -329,7 +329,7 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
             _bounds.height = bottom - _bounds.top
         }
 */
-/*
+        /*
     override fun notifyNodeChanged(node: DrawableProcessNode.Builder<*>) {
         invalidateConnectors()
         // TODO this is not correct as it will only expand the bounds.
@@ -351,7 +351,7 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
     }
 */
 
-/*
+        /*
     private fun updateBounds() {
         val modelNodes = modelNodes
         if (modelNodes.isEmpty()) {
@@ -366,7 +366,7 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
     }
 */
 
-/*
+        /*
     override fun invalidate() {
         isInvalid = true
         invalidateConnectors()
@@ -405,7 +405,7 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
 // Casting as we cannot express that it will create the correct child.
 @Suppress("NOTHING_TO_INLINE", "UNCHECKED_CAST")
 inline fun <T : DrawableProcessNode> DrawableProcessNode.Builder<T>.build(): T =
-    build(STUB_DRAWABLE_BUILD_HELPER, emptyList()) as T
+    STUB_DRAWABLE_BUILD_HELPER.node(this, emptyList()) as T
 
 object STUB_OWNER : DrawableProcessModel {
     override fun builder(): DrawableProcessModel.Builder {
@@ -524,24 +524,24 @@ private fun toDrawableNode(
     return elem.visit(object : Visitor<DrawableProcessNode> {
 
         override fun visitStartNode(startNode: StartNode): DrawableProcessNode {
-            return startNode as? DrawableProcessNode ?: DrawableStartNode.Builder(startNode)
-                .build(buildHelper, otherNodes)
+            return startNode as? DrawableProcessNode ?:
+            buildHelper.node(DrawableStartNode.Builder(startNode), otherNodes)
         }
 
         override fun visitGenericActivity(activity: Activity): DrawableProcessNode {
-            return activity as? DrawableProcessNode ?: DrawableActivity.Builder(activity).build(buildHelper, otherNodes)
+            return activity as? DrawableProcessNode ?: buildHelper.node(DrawableActivity.Builder(activity), otherNodes)
         }
 
         override fun visitSplit(split: Split): DrawableProcessNode {
-            return split as? DrawableProcessNode ?: DrawableSplit.Builder(split).build(buildHelper, otherNodes)
+            return split as? DrawableProcessNode ?: buildHelper.node(DrawableSplit.Builder(split), otherNodes)
         }
 
         override fun visitJoin(join: Join): DrawableProcessNode {
-            return join as? DrawableProcessNode ?: DrawableJoin.Builder(join).build(buildHelper, otherNodes)
+            return join as? DrawableProcessNode ?: buildHelper.node(DrawableJoin.Builder(join), otherNodes)
         }
 
         override fun visitEndNode(endNode: EndNode): DrawableProcessNode {
-            return endNode as? DrawableProcessNode ?: DrawableEndNode.Builder(endNode).build(buildHelper, otherNodes)
+            return endNode as? DrawableProcessNode ?: buildHelper.node(DrawableEndNode.Builder(endNode), otherNodes)
         }
 
     })

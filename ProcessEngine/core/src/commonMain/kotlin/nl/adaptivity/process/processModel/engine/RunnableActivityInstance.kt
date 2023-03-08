@@ -58,7 +58,7 @@ class RunnableActivityInstance<I : Any, O : Any>(builder: Builder<I, O>) :
                 val resultFragment = tryRunTask {
                     val build = build()
                     val input: I = build.getInputData(processInstanceBuilder)
-                    val action: RunnableAction2<I, O, ActivityInstanceContext> = n.action
+                    val action: RunnableAction<I, O, ActivityInstanceContext> = n.action
                     val context = engineData.processContextFactory.newActivityInstanceContext(engineData, this)
                     val result: O = context.action(input)
 

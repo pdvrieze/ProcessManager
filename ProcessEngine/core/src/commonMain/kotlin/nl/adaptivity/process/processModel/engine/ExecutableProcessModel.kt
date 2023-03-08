@@ -38,8 +38,8 @@ import nl.adaptivity.xmlutil.serialization.XML
  */
 @Serializable(ExecutableProcessModel.Companion::class)
 class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode>,
-                               ExecutableModelCommon,
-                               SecureObject<ExecutableProcessModel> {
+    ExecutableModelCommon,
+    SecureObject<ExecutableProcessModel> {
 
     @JvmOverloads
     constructor(builder: RootProcessModel.Builder, pedantic: Boolean = true) :
@@ -87,7 +87,7 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode>,
     }
 
 
-    companion object: KSerializer<ExecutableProcessModel> {
+    companion object : KSerializer<ExecutableProcessModel> {
 
         private val delegateSerializer = SerialDelegate.serializer()
 
@@ -107,7 +107,11 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode>,
 
         @JvmStatic
         fun deserialize(reader: XmlReader): ExecutableProcessModel {
-            return ExecutableProcessModel(XML { autoPolymorphic = true }.decodeFromReader<XmlProcessModel.Builder>(reader))
+            return ExecutableProcessModel(
+                XML { autoPolymorphic = true }.decodeFromReader<XmlProcessModel.Builder>(
+                    reader
+                )
+            )
         }
 
         @JvmStatic
@@ -177,8 +181,7 @@ object EXEC_NODEFACTORY :
     private class ExecutableProcessNodeBuilderVisitor(
         private val buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ProcessModel<ExecutableProcessNode>, *, *>,
         val otherNodes: Iterable<ProcessNode.Builder>
-                                                     ) :
-        ProcessNode.BuilderVisitor<ExecutableProcessNode> {
+    ) : ProcessNode.BuilderVisitor<ExecutableProcessNode> {
         override fun visitStartNode(startNode: StartNode.Builder) =
             ExecutableStartNode(startNode, buildHelper)
 
@@ -193,7 +196,8 @@ object EXEC_NODEFACTORY :
 
         override fun visitGenericActivity(builder: Activity.Builder): ExecutableProcessNode {
             return when (builder) {
-                is RunnableActivity.Builder<*, *, *> -> RunnableActivity(builder, buildHelper.newOwner, otherNodes)
+                is ExecutableProcessNode.Builder -> builder.build(buildHelper, otherNodes)
+//                is RunnableActivity.Builder<*, *, *> -> RunnableActivity(builder, buildHelper.newOwner, otherNodes)
                 else -> super.visitGenericActivity(builder)
             }
         }
@@ -205,7 +209,7 @@ object EXEC_NODEFACTORY :
             ExecutableJoin(join, buildHelper, otherNodes)
 
         override fun visitEndNode(endNode: EndNode.Builder) =
-            ExecutableEndNode(endNode, buildHelper, otherNodes)
+            ExecutableEndNode(endNode, buildHelper.newOwner, otherNodes)
     }
 
     override fun invoke(
@@ -218,7 +222,7 @@ object EXEC_NODEFACTORY :
     override fun invoke(
         baseChildBuilder: ChildProcessModel.Builder,
         buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, *, *, *>
-                       ): ExecutableChildModel {
+    ): ExecutableChildModel {
         return ExecutableChildModel(baseChildBuilder, buildHelper)
     }
 

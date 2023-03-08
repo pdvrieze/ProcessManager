@@ -392,13 +392,6 @@ abstract class ProcessNodeBase : ProcessNode {
             node.defines, node.results, node.x, node.y, node.isMultiInstance
         )
 
-        override final fun <T : ProcessNode> build(
-            buildHelper: ProcessModel.BuildHelper<T, *, *, *>,
-            otherNodes: Iterable<ProcessNode.Builder>
-        ): T {
-            return buildHelper.node(this, otherNodes)
-        }
-
         override fun toString(): String {
             val className = this::class.name
             val pkgPos = className.lastIndexOf('.', className.lastIndexOf('.') - 1)

@@ -21,6 +21,7 @@ import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.XmlResultType
 import nl.adaptivity.process.util.Identified
@@ -38,6 +39,11 @@ interface ExecutableProcessNode : ProcessNode, Identified {
         override fun result(builder: XmlResultType.Builder.() -> Unit) {
             results.add(XmlResultType.Builder().apply(builder).build())
         }
+
+        fun build(
+            buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ProcessModel<ExecutableProcessNode>, *, *>,
+            otherNodes: Iterable<ProcessNode.Builder>
+        ): ExecutableProcessNode
 
     }
 

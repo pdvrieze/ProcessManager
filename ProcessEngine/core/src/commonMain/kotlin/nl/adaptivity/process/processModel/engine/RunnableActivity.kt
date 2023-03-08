@@ -31,16 +31,15 @@ import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xmlutil.Namespace
 import nl.adaptivity.xmlutil.serialization.XML
 
-typealias RunnableAction<I, O> = ActivityInstanceContext.(I) -> O
-typealias RunnableAction2<I, O, C> = C.(I) -> O
+typealias RunnableAction<I, O, C> = C.(I) -> O
 
 class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
     builder: Builder<I, O, C>,
     newOwner: ProcessModel<*>,
     otherNodes: Iterable<ProcessNode.Builder>
-) : ActivityBase(builder.checkDefines(), newOwner, otherNodes), ExecutableProcessNode {
+) : ActivityBase(builder.checkDefines(), newOwner, otherNodes), ExecutableActivity {
 
-    internal val action: RunnableAction2<I, O, C> = builder.action
+    internal val action: RunnableAction<I, O, C> = builder.action
     internal val inputCombiner: InputCombiner<I> = builder.inputCombiner
     internal val outputSerializer: SerializationStrategy<O>? = builder.outputSerializer
     override val condition: ExecutableCondition? = builder.condition?.toExecutableCondition()
@@ -119,11 +118,11 @@ class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
         return inputCombiner(mappedData)
     }
 
-    class Builder<I : Any, O : Any, C: ActivityInstanceContext> : ActivityBase.BaseBuilder {
+    class Builder<I : Any, O : Any, C: ActivityInstanceContext> : BaseBuilder, ExecutableProcessNode.Builder {
 
         var inputCombiner: InputCombiner<I> = InputCombiner()
         val outputSerializer: SerializationStrategy<O>?
-        var action: RunnableAction2<I, O, C>
+        var action: RunnableAction<I, O, C>
 
         override val defines: MutableCollection<IXmlDefineType>
             get() = TypecheckingCollection(DefineType::class, super.defines)
@@ -134,7 +133,7 @@ class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
             refName: String,
             inputSerializer: DeserializationStrategy<I>,
             outputSerializer: SerializationStrategy<O>? = null,
-            action: RunnableAction2<I, O, C> = { throw UnsupportedOperationException("Action not provided") }
+            action: RunnableAction<I, O, C> = { throw UnsupportedOperationException("Action not provided") }
         ) : super() {
             this.predecessor = predecessor
             this.outputSerializer = outputSerializer
@@ -159,7 +158,7 @@ class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
             predecessor: Identified,
             inputCombiner: InputCombiner<I> = InputCombiner(),
             outputSerializer: SerializationStrategy<O>? = null,
-            action: RunnableAction2<I, O, C> = { throw UnsupportedOperationException("Action not provided") }
+            action: RunnableAction<I, O, C> = { throw UnsupportedOperationException("Action not provided") }
         ) : super() {
             this.predecessor = predecessor
             results.add(XmlResultType("output"))
@@ -214,6 +213,12 @@ class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
             return visitor.visitGenericActivity(this)
         }
 
+        override fun build(
+            buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ProcessModel<ExecutableProcessNode>, *, *>,
+            otherNodes: Iterable<ProcessNode.Builder>
+        ): ExecutableProcessNode {
+            return RunnableActivity(this, buildHelper.newOwner, otherNodes)
+        }
 
         class InputValueImpl<V>(override val name: String) : InputCombiner.InputValue<V>
     }
@@ -325,7 +330,7 @@ fun <I : Any, O : Any, C : ActivityInstanceContext> ConfigurableNodeContainer<Ex
     inputSerializer: DeserializationStrategy<I>,
     inputRefNode: Identified?,
     inputRefName: String = "",
-    action: RunnableAction2<I, O, C>
+    action: RunnableAction<I, O, C>
 ): RunnableActivity.Builder<I, O, C> =
     RunnableActivity.Builder(predecessor, inputRefNode, inputRefName, inputSerializer, outputSerializer, action)
 

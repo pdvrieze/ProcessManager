@@ -360,7 +360,7 @@ abstract class ActivityBase(
             x: Double = Double.NaN,
             y: Double = Double.NaN,
             isMultiInstance: Boolean = false
-       ) : super(rootBuilder, childId, nodes, imports, exports) {
+        ) : super(rootBuilder, childId, nodes, imports, exports) {
             this.id = id
             this.condition = condition
             this.label = label
@@ -373,17 +373,11 @@ abstract class ActivityBase(
             this.results = results.toMutableList()
         }
 
-        override fun <T : ProcessNode> build(
-            buildHelper: ProcessModel.BuildHelper<T, *, *, *>,
-            otherNodes: Iterable<ProcessNode.Builder>
-                                            ): T =
-            buildHelper.node(this, otherNodes)
-
         @Suppress("unused")
         fun buildActivity(
             buildHelper: ProcessModel.BuildHelper<*, *, *, *>,
             otherNodes: Iterable<ProcessNode.Builder>
-                         ): XmlActivity {
+        ): XmlActivity {
             return XmlActivity(this, buildHelper, otherNodes)
         }
 

@@ -78,11 +78,6 @@ interface ProcessNode : Positioned, Identifiable {
             results.add(XmlResultType.Builder().apply(builder).build())
         }
 
-        fun <T : ProcessNode> build(
-            buildHelper: ProcessModel.BuildHelper<T, *, *, *>,
-            otherNodes: Iterable<Builder>
-                                   ): T
-
         fun <R> visit(visitor: BuilderVisitor<R>): R
 
         fun setDefines(value: Iterable<IXmlDefineType>) = defines.replaceBy(value)
