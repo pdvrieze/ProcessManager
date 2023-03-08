@@ -33,6 +33,7 @@ import nl.adaptivity.xmlutil.Namespace
 import nl.adaptivity.xmlutil.serialization.XML
 
 typealias RunnableAction<I, O, C> = C.(I) -> O
+typealias NoInputRunnableAction<O, C> = C.() -> O
 
 class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
     builder: Builder<I, O, C>,

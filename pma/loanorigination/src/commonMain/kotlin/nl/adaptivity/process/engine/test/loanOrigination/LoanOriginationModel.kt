@@ -194,9 +194,11 @@ class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<Ex
     }
 
     val chooseBundledProduct by loanActivity(
-        evaluateCredit,
-        LoanProductBundle.serializer(),
-        LoanEvaluation.serializer(), evaluateCredit, "loanEvaluation"
+        predecessor = evaluateCredit,
+        outputSerializer = LoanProductBundle.serializer(),
+        inputSerializer = LoanEvaluation.serializer(),
+        inputRefNode = evaluateCredit,
+        inputRefName = "loanEvaluation"
     ) { loanEvaluation ->
         LoanProductBundle("simpleLoan", "simpleLoan2019.a")
     }
@@ -217,8 +219,7 @@ class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<Ex
             val loanEval = defineInput("loanEval", null, "loanEval", LoanEvaluation.serializer())
             val productInput = defineInput("prod", null, "chosenProduct", LoanProductBundle.serializer())
 
-            inputCombiner = InputCombiner<PricingInput> {
- it: Map<String, Any?> ->
+            inputCombiner = InputCombiner<PricingInput> { it: Map<String, Any?> ->
                 PricingInput(loanEval(), productInput())
             }
 
@@ -307,8 +308,12 @@ class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<Ex
         output("loanEvaluation", evaluateCredit, "loanEvaluation")
         output("creditReport", evaluateCredit, "creditReport")
         output("accountNumber", openAccount)
+
+
+
     }
 }
+
 
 
 fun <I : Any, O : Any> ConfigurableNodeContainer<ExecutableProcessNode>.loanActivity(
@@ -345,7 +350,7 @@ data class VerifyCustomerApprovalInput(val customer: LoanCustomer, val approval:
 
 @Deprecated("These are testing things")
 @Suppress("NOTHING_TO_INLINE")
-private inline fun assertForbidden(noinline action: () -> Unit) {
+internal inline fun assertForbidden(noinline action: () -> Unit) {
     Assertions.assertThrows(AuthorizationException::class.java, action)
 }
 
