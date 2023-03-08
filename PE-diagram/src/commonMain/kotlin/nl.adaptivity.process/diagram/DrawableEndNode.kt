@@ -23,7 +23,6 @@ import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ENDNODEO
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ENDNODEOUTERSTROKEWIDTH
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.xmlutil.XmlReader
 import kotlin.math.abs
 
 interface IDrawableEndNode : IDrawableProcessNode {
@@ -86,6 +85,12 @@ class DrawableEndNode : EndNodeBase, DrawableProcessNode {
             set(compat) {
                 if (compat) throw IllegalArgumentException("Compatibility not supported on end nodes.")
             }
+
+        override val predecessors: Set<Identified>
+            get() = setOfNotNull(predecessor?.identifier)
+
+        override val successors: Set<Identified>
+            get() = emptySet()
 
         constructor() : this(id = null)
 

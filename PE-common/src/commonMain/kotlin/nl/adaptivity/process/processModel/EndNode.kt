@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.processModel
 
-import net.devrieze.util.collection.setOfNotNull
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified

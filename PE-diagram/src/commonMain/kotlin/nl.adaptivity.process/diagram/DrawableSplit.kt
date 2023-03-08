@@ -25,7 +25,6 @@ import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.JOINWIDT
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWIDTH
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.xmlutil.XmlReader
 import kotlin.math.PI
 import kotlin.math.cos
 import kotlin.math.sin
@@ -140,6 +139,9 @@ class DrawableSplit(
     class Builder : SplitBase.Builder, DrawableJoinSplit.Builder<DrawableSplit>, IDrawableSplit {
 
         override val _delegate: DrawableProcessNode.Builder.Delegate
+
+        override val predecessors: Set<Identified>
+            get() = setOfNotNull(predecessor?.identifier)
 
         constructor() : this(id = null)
 

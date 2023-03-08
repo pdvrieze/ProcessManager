@@ -65,10 +65,13 @@ kotlin {
 
         val jvmMain by getting {
             dependencies {
-                implementation(libs.ktor.serialization)
+                implementation(libs.ktor.serialization.xml)
+                implementation(libs.ktor.serialization.json)
                 implementation(libs.ktor.server.core)
-                implementation(libs.ktor.auth)
+                implementation(libs.ktor.server.auth)
                 implementation(libs.ktor.server.netty)
+                implementation(libs.ktor.server.contentNegotiation)
+                implementation(libs.ktor.server.compression)
                 implementation(libs.xmlutil.ktor)
                 implementation(libs.logback)
                 implementation(libs.kotlinx.html)
@@ -86,7 +89,7 @@ kotlin {
             dependencies {
                 implementation(libs.ktor.client.js)
                 implementation(libs.ktor.client.json)
-                implementation(libs.ktor.client.serialization)
+                implementation(libs.ktor.serialization.json)
                 implementation(libs.requirejs)
                 api(project(":darwin"/*, configuration = "jsDefault"*/))
             }

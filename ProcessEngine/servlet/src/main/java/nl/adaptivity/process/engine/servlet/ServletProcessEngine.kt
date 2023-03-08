@@ -120,7 +120,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
             protoMessage: NewServletMessage,
             activityInstanceContext: ActivityInstanceContext
         ): MessageSendingResult {
-            val nodeHandle = activityInstanceContext.handle
+            val nodeHandle = activityInstanceContext.nodeInstanceHandle
 
             protoMessage.setHandle(engineData, activityInstanceContext)
 
@@ -222,7 +222,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
             this.activityInstanceContext = activityInstanceContext
 
             try {
-                val processInstance = engineData.instance(activityInstanceContext.processContext.handle).withPermission()
+                val processInstance = engineData.instance(activityInstanceContext.processContext.processInstanceHandle).withPermission()
 
                 data = activityInstanceContext.instantiateXmlPlaceholders(processInstance, source, false, localEndpoint)
 
@@ -503,7 +503,6 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
             }
             return transaction.commitSerializable(list, REFS_TAG)
         }
-
     }
 
     /**
@@ -1082,6 +1081,10 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
 
 }
 
+private inline fun <TR: ProcessTransaction, R> TR.use(block: (TR) -> R): R {
+    return (this as Closeable).use { block(this) }
+}
+
 
 @OptIn(ExperimentalContracts::class)
 internal inline fun <E : GenericEndpoint, R> E.translateExceptions(body: E.() -> R): R {
@@ -1097,3 +1100,4 @@ internal inline fun <E : GenericEndpoint, R> E.translateExceptions(body: E.() ->
         throw HttpResponseException(HttpServletResponse.SC_INTERNAL_SERVER_ERROR, e)
     }
 }
+

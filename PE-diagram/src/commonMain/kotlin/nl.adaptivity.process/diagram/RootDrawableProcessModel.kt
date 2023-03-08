@@ -31,6 +31,7 @@ import nl.adaptivity.process.processModel.engine.XmlCondition
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.util.multiplatform.JvmOverloads
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.serialization.XML
@@ -86,7 +87,7 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
         name: String?,
         uuid: UUID?,
         roles: Set<String>,
-        owner: Principal,
+        owner: PrincipalCompat,
         childModels: Collection<ChildProcessModel<DrawableProcessNode>>,
         handle: Long,
         layoutAlgorithm: LayoutAlgorithm,
@@ -227,7 +228,7 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
             childModels: Collection<ChildProcessModel.Builder> = emptyList(),
             name: String? = null,
             handle: Long = -1L,
-            owner: Principal = SYSTEMPRINCIPAL,
+            owner: PrincipalCompat = SYSTEMPRINCIPAL,
             roles: Collection<String> = emptyList(),
             uuid: UUID? = null,
             imports: Collection<IXmlResultType> = emptyList(),

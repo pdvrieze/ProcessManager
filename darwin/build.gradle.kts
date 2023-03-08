@@ -34,7 +34,7 @@ kotlin {
                 }
             }
         }
-        js(BOTH) {
+        js(IR) {
             moduleName = "darwin"
             browser()
             compilations.all {

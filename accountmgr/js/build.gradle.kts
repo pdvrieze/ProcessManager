@@ -14,8 +14,6 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
-
 plugins {
     kotlin("js")
     idea
@@ -27,7 +25,7 @@ description = "Javascript library supporting the accountmanager funcationality."
 val myJavaVersion: JavaVersion by project
 
 kotlin {
-    js(KotlinJsCompilerType.LEGACY) {
+    js(IR) {
         moduleName = "accountmgr"
         browser{
         }

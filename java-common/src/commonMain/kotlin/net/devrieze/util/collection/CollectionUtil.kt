@@ -349,5 +349,3 @@ fun FloatArray.minIndex():Int {
 interface ArrayAccess<K,V> {
     operator fun get(key:K):V?
 }
-
-fun <T> setOfNotNull(value: T?) = value?.let { setOf(value) } ?: emptySet()

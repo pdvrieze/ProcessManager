@@ -16,8 +16,6 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.Transient
-import net.devrieze.util.collection.setOfNotNull
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.processModel.engine.XmlCondition
 import nl.adaptivity.process.util.Identifiable

@@ -16,7 +16,6 @@
 
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsCompilerAttribute
-import org.jetbrains.kotlin.serialization.js.ModuleKind
 import versions.myJavaVersion
 
 plugins {
@@ -45,7 +44,7 @@ kotlin {
                 }
             }
         }
-        js(LEGACY) {
+        js(IR) {
             moduleName = "darwinwar"
             browser {
                 dceTask {

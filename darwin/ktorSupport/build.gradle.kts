@@ -39,8 +39,11 @@ kotlin {
 }
 
 dependencies {
-    implementation("io.ktor:ktor-server-core:$ktorVersion")
-    implementation("io.ktor:ktor-auth:$ktorVersion")
+    implementation(libs.ktor.server.core)
+    implementation(libs.ktor.server.auth)
+    implementation(libs.ktor.serialization.xml)
+
+
     implementation("io.github.pdvrieze.xmlutil:ktor:$xmlutilVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-html:$kotlinx_html_version")
     api(project(":darwin"))

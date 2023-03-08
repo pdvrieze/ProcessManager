@@ -21,7 +21,6 @@ import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STARTNOD
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.STROKEWIDTH
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.xmlutil.XmlReader
 
 interface IDrawableStartNode : IDrawableProcessNode {
     override val leftExtent get() = REFERENCE_OFFSET_X
@@ -61,6 +60,8 @@ class DrawableStartNode(builder: StartNode.Builder,
     class Builder : StartNodeBase.Builder, DrawableProcessNode.Builder<DrawableStartNode>, IDrawableStartNode {
 
         override val _delegate: DrawableProcessNode.Builder.Delegate
+        override val successors: Set<Identified>
+            get() = setOfNotNull(successor?.identifier)
 
         constructor() : this(id = null)
 
