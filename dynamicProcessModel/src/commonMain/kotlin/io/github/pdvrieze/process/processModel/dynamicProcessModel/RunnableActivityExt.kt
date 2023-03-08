@@ -14,11 +14,12 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.processModel.engine
+package io.github.pdvrieze.process.processModel.dynamicProcessModel
 
 import kotlinx.serialization.serializer
 import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.processModel.configurableModel.ConfigurableNodeContainer
+import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Identified
 
 inline fun <reified I : Any, reified O : Any, C : ActivityInstanceContext> ConfigurableNodeContainer<ExecutableProcessNode>.runnableActivity(

@@ -122,7 +122,7 @@ include(":compose:jvm")
 include(":compose:android")
 include(":compose:js")
 
-//include(":dynamicProcessModel")
+include(":dynamicProcessModel")
 
 include(':pma:core')
 include(":pma:loanorigination")

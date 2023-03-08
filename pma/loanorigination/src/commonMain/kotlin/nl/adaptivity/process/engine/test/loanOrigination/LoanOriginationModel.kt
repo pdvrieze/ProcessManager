@@ -14,6 +14,8 @@ import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.toUUID
 import org.junit.jupiter.api.Assertions
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.runnableActivity
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.defineInput
 
 class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<ExecutableProcessNode>(
     "testLoanOrigination",

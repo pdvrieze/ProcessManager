@@ -62,6 +62,7 @@ kotlin {
                 implementation(project(":pma:core"))
                 implementation(project(":ProcessEngine:testLib"))
                 implementation(project(":multiplatform"))
+                implementation(project(":dynamicProcessModel"))
 
                 implementation(libs.kotlinx.serialization.core)
                 implementation(libs.xmlutil.core)
