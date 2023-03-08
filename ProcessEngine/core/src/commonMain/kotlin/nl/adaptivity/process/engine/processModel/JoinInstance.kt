@@ -25,7 +25,7 @@ import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.processModel.engine.ConditionResult
 import nl.adaptivity.process.processModel.engine.ExecutableCondition
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
-import nl.adaptivity.process.processModel.engine.evalCondition
+import nl.adaptivity.process.processModel.engine.evalNodeStartCondition
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.xmlutil.util.ICompactFragment
@@ -267,7 +267,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
             for (predecessor in instantiatedPredecessors) {
                 val condition = node.conditions[predecessor.node.identifier] as? ExecutableCondition
 
-                val conditionResult = condition.evalCondition(processInstanceBuilder, predecessor, this)
+                val conditionResult = condition.evalNodeStartCondition(processInstanceBuilder, predecessor, this)
                 if (conditionResult == ConditionResult.NEVER) {
                     skippedOrNever += 1
                 } else {

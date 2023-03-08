@@ -117,11 +117,6 @@ include(":DarwinServices")
 
 include(":PE-server")
 
-include(":compose:common")
-include(":compose:jvm")
-include(":compose:android")
-include(":compose:js")
-
 include(":dynamicProcessModel")
 
 include(':pma:core')
@@ -145,4 +140,10 @@ if (Boolean.parseBoolean(androidEnabledProp)) {
     }
     include(":darwinlib")
 //    include(":PMEditor")
+
+    include(":compose:common")
+    include(":compose:jvm")
+    include(":compose:android")
+    include(":compose:js")
+
 }

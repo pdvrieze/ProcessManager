@@ -1,6 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project version="4">
   <component name="CompilerConfiguration">
-    <bytecodeTargetLevel target="1.8" />
+    <bytecodeTargetLevel target="1.8">
+      <module name="ProcessManager.compose.android" target="11" />
+      <module name="ProcessManager.compose.common" target="11" />
+      <module name="ProcessManager.compose.js" target="11" />
+      <module name="ProcessManager.compose.jvm" target="11" />
+      <module name="ProcessManager.compose.jvm.main" target="11" />
+      <module name="ProcessManager.compose.jvm.test" target="11" />
+    </bytecodeTargetLevel>
   </component>
 </project>

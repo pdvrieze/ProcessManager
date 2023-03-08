@@ -14,7 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.processModel.engine
+package io.github.pdvrieze.process.processModel.dynamicProcessModel
 
 import net.devrieze.util.Handle
 import net.devrieze.util.collection.replaceBy

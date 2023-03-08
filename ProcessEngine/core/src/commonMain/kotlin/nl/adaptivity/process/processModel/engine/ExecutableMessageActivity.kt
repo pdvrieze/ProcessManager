@@ -59,7 +59,7 @@ class ExecutableMessageActivity(
         predecessor: IProcessNodeInstance,
         nodeInstance: IProcessNodeInstance
     ): ConditionResult {
-        return _condition.evalCondition(nodeInstanceSource, predecessor, nodeInstance)
+        return _condition.evalNodeStartCondition(nodeInstanceSource, predecessor, nodeInstance)
     }
 
     override fun isOtherwiseCondition(predecessor: ExecutableProcessNode): Boolean {

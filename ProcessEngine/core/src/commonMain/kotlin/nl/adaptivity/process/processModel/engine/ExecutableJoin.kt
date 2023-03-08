@@ -81,7 +81,7 @@ class ExecutableJoin(
         nodeInstance: IProcessNodeInstance
     ): ConditionResult {
         val predCondResult = (conditions[predecessor.node.identifier] as ExecutableCondition?)
-            .evalCondition(nodeInstanceSource, predecessor, nodeInstance)
+            .evalNodeStartCondition(nodeInstanceSource, predecessor, nodeInstance)
 
         var neverCount = 0
         var alwaysCount = 0
@@ -92,7 +92,7 @@ class ExecutableJoin(
                 else -> {
                     val sibling = nodeInstanceSource.getChildNodeInstance(hPred)
                     (conditions[sibling.node.identifier] as ExecutableCondition?)
-                        .evalCondition(nodeInstanceSource, sibling, nodeInstance)
+                        .evalNodeStartCondition(nodeInstanceSource, sibling, nodeInstance)
                 }
             }
 

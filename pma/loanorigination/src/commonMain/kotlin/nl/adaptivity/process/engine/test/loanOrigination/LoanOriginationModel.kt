@@ -1,5 +1,6 @@
 package nl.adaptivity.process.engine.test.loanOrigination
 
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.*
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
 import nl.adaptivity.process.engine.pma.ANYSCOPE
@@ -14,8 +15,6 @@ import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.toUUID
 import org.junit.jupiter.api.Assertions
-import io.github.pdvrieze.process.processModel.dynamicProcessModel.runnableActivity
-import io.github.pdvrieze.process.processModel.dynamicProcessModel.defineInput
 
 class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<ExecutableProcessNode>(
     "testLoanOrigination",
@@ -86,7 +85,7 @@ class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<Ex
                 val custIn = defineInput("customer", null, "customerId", LoanCustomer.serializer())
                 val approvalIn =
                     defineInput("approval", m.getCustomerApproval, SignedDocument.serializer(Approval.serializer()))
-                inputCombiner = InputCombiner { VerifyCustomerApprovalInput(custIn(), approvalIn()) }
+                inputCombiner = InputCombiner<VerifyCustomerApprovalInput> { it: Map<String, Any?> -> VerifyCustomerApprovalInput(custIn(), approvalIn()) }
                 action = { (customer, approval) ->
                     registerTaskPermission(customerFile, LoanPermissions.QUERY_CUSTOMER_DATA(customer.customerId))
                     registerTaskPermission(signingService, LoanPermissions.SIGN)
@@ -164,7 +163,8 @@ class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<Ex
             ) {
                 val apIn = defineInput("application", null, "loanApplication", LoanApplication.serializer())
                 val credIn = defineInput("creditReport", m.getCreditReport, CreditReport.serializer())
-                inputCombiner = InputCombiner {
+                inputCombiner = InputCombiner<Pair<LoanApplication, CreditReport>> {
+ it: Map<String, Any?> ->
                     Pair(apIn(), credIn())
                 }
 
@@ -217,7 +217,8 @@ class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<Ex
             val loanEval = defineInput("loanEval", null, "loanEval", LoanEvaluation.serializer())
             val productInput = defineInput("prod", null, "chosenProduct", LoanProductBundle.serializer())
 
-            inputCombiner = InputCombiner {
+            inputCombiner = InputCombiner<PricingInput> {
+ it: Map<String, Any?> ->
                 PricingInput(loanEval(), productInput())
             }
 
@@ -316,7 +317,7 @@ fun <I : Any, O : Any> ConfigurableNodeContainer<ExecutableProcessNode>.loanActi
     inputSerializer: DeserializationStrategy<I>,
     inputRefNode: Identified?,
     inputRefName: String = "",
-    action: RunnableAction<I, O, LoanActivityContext>
+    action: LoanActivityContext.(I) -> O
 ): RunnableActivity.Builder<I, O, LoanActivityContext> =
     RunnableActivity.Builder(predecessor, inputRefNode, inputRefName, inputSerializer, outputSerializer, action)
 

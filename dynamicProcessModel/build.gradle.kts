@@ -97,14 +97,20 @@ kotlin {
         }
         val javaMain by creating {
             dependsOn(commonMain)
+/*
             dependencies {
+                implementation(libs.xmlutil.core)
                 implementation(libs.xmlutil.xmlserializable)
             }
+*/
         }
         val jvmMain by getting {
             dependsOn(javaMain)
+/*
             dependencies {
+                implementation(libs.xmlutil.core)
             }
+*/
         }
         val jvmTest by getting {
             dependencies {

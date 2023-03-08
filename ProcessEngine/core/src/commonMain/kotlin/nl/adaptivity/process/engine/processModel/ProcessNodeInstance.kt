@@ -550,7 +550,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 private typealias Observer<T> = (T) -> T
 
 @OptIn(ExperimentalContracts::class)
-internal inline fun <R> ProcessNodeInstance.Builder<*, *>.tryCreateTask(body: () -> R): R {
+inline fun <R> ProcessNodeInstance.Builder<*, *>.tryCreateTask(body: () -> R): R {
     contract {
         callsInPlace(body, InvocationKind.EXACTLY_ONCE)
     }
@@ -560,7 +560,7 @@ internal inline fun <R> ProcessNodeInstance.Builder<*, *>.tryCreateTask(body: ()
 }
 
 @OptIn(ExperimentalContracts::class)
-internal inline fun <R> ProcessNodeInstance.Builder<*, *>.tryRunTask(body: () -> R): R {
+inline fun <R> ProcessNodeInstance.Builder<*, *>.tryRunTask(body: () -> R): R {
     contract {
         callsInPlace(body, InvocationKind.EXACTLY_ONCE)
     }

@@ -18,6 +18,7 @@ package nl.adaptivity.process.processModel.engine
 
 import nl.adaptivity.process.engine.IProcessInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.processModel.Condition
 import nl.adaptivity.process.processModel.engine.ConditionResult.*
 import nl.adaptivity.util.multiplatform.name
@@ -28,7 +29,7 @@ import nl.adaptivity.util.multiplatform.name
  *
  * @author Paul de Vrieze
  */
-abstract class ExecutableCondition : Condition, Function2<IProcessInstance, IProcessNodeInstance, ConditionResult> {
+abstract class ExecutableCondition : Condition, ((IProcessInstance, IProcessNodeInstance) -> ConditionResult) {
     open val isOtherwise: Boolean get()= false
 
     /**
@@ -85,4 +86,48 @@ enum class ConditionResult {
 
 fun ConditionResult(boolean: Boolean): ConditionResult {
     return if (boolean) TRUE else NEVER
+}
+
+/**
+ * Determine whether the node start condition is satisfied. This is a bit more complex as it also deals
+ * with joins etc.
+ *
+ * @param nodeInstanceSource The process instance containing the node instance with the condition
+ *
+ * @param predecessor The predecessor that is evaluating the condition
+ *
+ * @param nodeInstanceBuilder The node instance against which the condition should be evaluated.
+ *
+ * @return `true` if the node can be started, `false` if not.
+ */
+fun ExecutableCondition?.evalNodeStartCondition(
+    nodeInstanceSource: IProcessInstance,
+    predecessor: IProcessNodeInstance,
+    nodeInstance: IProcessNodeInstance
+): ConditionResult {
+    // If the instance is final, the condition maps to the state
+    if (nodeInstance.state.isFinal) {
+        return if(nodeInstance.state == NodeInstanceState.Complete) TRUE else NEVER
+    }
+    // A lack of condition is a true result
+    if (this==null) return TRUE
+
+    if (isOtherwise) { // An alternate is only true if all others are never/finalised
+        val successorCount = predecessor.node.successors.size
+        val hPred = predecessor.handle
+        var nonTakenSuccessorCount:Int = 0
+        for (sibling in nodeInstanceSource.allChildNodeInstances()) {
+            if (sibling.handle != nodeInstance.handle && hPred in sibling.predecessors) {
+                when (sibling.condition(nodeInstanceSource, predecessor)) {
+                    TRUE -> return NEVER
+                    MAYBE -> return MAYBE
+                    NEVER -> nonTakenSuccessorCount++
+                }
+            }
+        }
+        if (nonTakenSuccessorCount+1>=successorCount) return TRUE
+        return MAYBE
+    }
+
+    return eval(nodeInstanceSource, nodeInstance)
 }
