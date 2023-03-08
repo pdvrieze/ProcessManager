@@ -16,17 +16,27 @@
 
 package nl.adaptivity.util
 
+import io.github.pdvrieze.util.jvmOnly.HttpRequest
+import io.github.pdvrieze.util.jvmOnly.parseMultipartFormDataTo
+import jakarta.servlet.http.HttpServletRequest
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.PrimitiveKind
+import kotlinx.serialization.descriptors.PrimitiveSerialDescriptor
+import kotlinx.serialization.descriptors.SerialDescriptor
+import kotlinx.serialization.encoding.Decoder
+import kotlinx.serialization.encoding.Encoder
 import net.devrieze.util.Iterators
 import net.devrieze.util.security.SimplePrincipal
 import net.devrieze.util.toString
-import net.devrieze.util.webServer.HttpRequest
-import net.devrieze.util.webServer.parseMultipartFormDataTo
+import nl.adaptivity.util.HttpMessage.Companion.ELEMENTLOCALNAME
+import nl.adaptivity.util.HttpMessage.Companion.NAMESPACE
+import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
-import nl.adaptivity.xmlutil.*
 import org.w3c.dom.Document
 import java.io.*
-import java.io.IOException
 import java.net.URLDecoder
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
@@ -34,44 +44,28 @@ import java.security.Principal
 import java.util.*
 import javax.activation.DataHandler
 import javax.activation.DataSource
-import jakarta.servlet.http.HttpServletRequest
 import javax.xml.bind.annotation.XmlAttribute
-import kotlin.collections.ArrayList
-import kotlin.collections.HashMap
 import kotlin.collections.Map.Entry
-import nl.adaptivity.xmlutil.serialization.XmlSerialName
-import nl.adaptivity.xmlutil.xmlserializable.writeChildren
 
 
 // TODO change this to handle regular request bodies.
-/*
-@Element(name = HttpMessage.ELEMENTLOCALNAME, nsUri = HttpMessage.NAMESPACE, attributes = arrayOf(
-    Attribute("user")),
-                                              children = arrayOf(
-                                                  Child(property = "queries",
-                                                                                             type = Query::class),
-                                                  Child(property = "posts",
-                                                                                             type = Post::class),
-                                                  Child(
-                                                      name = HttpMessage.BODYELEMENTLOCALNAME, property = "body",
-                                                      type = AnyType::class)))
-@XmlDeserializer(HttpMessage.Factory::class)
-*/
+@Serializable
+@XmlSerialName(ELEMENTLOCALNAME, NAMESPACE, "http")
 class HttpMessage {
 
     private val _queries: MutableMap<String, String>// by lazy { HashMap<String, String>() }
 
-    @XmlSerialName("query", HttpMessage.NAMESPACE, "http")
+    @XmlSerialName("query", NAMESPACE, "http")
     val queries: Collection<Query>
         get() = QueryCollection(_queries)
 
     private val _post: MutableMap<String, String>// by lazy { HashMap<String, String>() }
 
-    @XmlSerialName("post", HttpMessage.NAMESPACE, "http")
+    @XmlSerialName("post", NAMESPACE, "http")
     val posts: Collection<Post>
         get() = PostCollection(_post)
 
-    @XmlSerialName("body", HttpMessage.NAMESPACE, "http")
+    @XmlSerialName("body", NAMESPACE, "http")
     var body: ICompactFragment? = null
 
     private val _byteContent: MutableList<ByteContentDataSource> by lazy { ArrayList<ByteContentDataSource>() }
@@ -89,6 +83,7 @@ class HttpMessage {
     var contentType: String? = null
         private set
 
+    @Serializable(CharsetSerializer::class)
     var characterEncoding: Charset? = null
         private set
 
@@ -109,7 +104,7 @@ class HttpMessage {
         @Throws(XmlException::class)
         get() = body?.getXmlReader()
 
-    @XmlSerialName("user", HttpMessage.NAMESPACE, "http")
+    @XmlSerialName("user", NAMESPACE, "http")
     internal var user: String?
         get() = userPrincipal?.name
         set(name) {
@@ -225,7 +220,7 @@ class HttpMessage {
 
     abstract class PairBase {
 
-        @XmlSerialName("name", HttpMessage.NAMESPACE, "http")
+        @XmlSerialName("name", NAMESPACE, "http")
         lateinit var key: String
 
         lateinit var value: String
@@ -568,5 +563,18 @@ class HttpMessage {
 
             return baos.toByteArray()
         }
+    }
+}
+
+internal object CharsetSerializer: KSerializer<Charset>  {
+    override val descriptor: SerialDescriptor
+        get() = PrimitiveSerialDescriptor("java.nio.Charset", PrimitiveKind.STRING)
+
+    override fun deserialize(decoder: Decoder): Charset {
+        return Charset.forName(decoder.decodeString())
+    }
+
+    override fun serialize(encoder: Encoder, value: Charset) {
+        encoder.encodeString(value.name())
     }
 }

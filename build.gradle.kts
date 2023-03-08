@@ -59,11 +59,11 @@ configurations {
 
 
 dependencies {
-    tomcatWars(project(path= ":ProcessEngine:servlet", configuration= "archives"))
+//    tomcatWars(project(path= ":ProcessEngine:servlet", configuration= "archives"))
     tomcatWars(project(path= ":PEUserMessageHandler", configuration= "archives"))
     tomcatWars(project(path= ":accountmgr", configuration= "archives"))
     tomcatWars(project(path= ":darwin:war", configuration= "warConfig"))
-    tomcatWars(project(path= ":webeditor", configuration= "archives"))
+//    tomcatWars(project(path= ":webeditor", configuration= "archives"))
     tomcatWars(project(path= ":DarwinServices", configuration= "archives"))
 
 

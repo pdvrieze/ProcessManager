@@ -8,6 +8,12 @@
       <module name="ProcessManager.compose.jvm" target="11" />
       <module name="ProcessManager.compose.jvm.main" target="11" />
       <module name="ProcessManager.compose.jvm.test" target="11" />
+      <module name="ProcessManager.java-common.jaxb" target="11" />
+      <module name="ProcessManager.java-common.jaxb.main" target="11" />
+      <module name="ProcessManager.java-common.jaxb.test" target="11" />
+      <module name="ProcessManager.webeditor" target="11" />
+      <module name="ProcessManager.webeditor.main" target="11" />
+      <module name="ProcessManager.webeditor.test" target="11" />
     </bytecodeTargetLevel>
   </component>
 </project>

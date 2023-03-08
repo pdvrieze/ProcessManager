@@ -16,6 +16,8 @@
 
 package net.devrieze.util
 
+import nl.adaptivity.util.net.devrieze.util.MutableHasForEach
+
 actual open class MemHandleMap<V : Any>
 actual constructor(private val handleAssigner: (V, Handle<V>) -> V?) : MutableHandleMap<V> {
     private var nextHandle: Long = 0L
@@ -42,6 +44,10 @@ actual constructor(private val handleAssigner: (V, Handle<V>) -> V?) : MutableHa
 
     override fun iterator(): MutableIterator<V> {
         return backingMap.values.iterator()
+    }
+
+    override fun forEach(body: MutableHasForEach.ForEachReceiver<V>) {
+        MutableHasForEach.forEach(backingMap.values.iterator(), body)
     }
 
     override fun <W : V> put(value: W): Handle<W> {

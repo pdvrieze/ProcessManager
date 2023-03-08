@@ -20,7 +20,7 @@
  * Created on 15 May 2001, 14:34
  */
 
-package net.devrieze.util.webServer
+package io.github.pdvrieze.util.jvmOnly
 
 import net.devrieze.lang.Const
 import net.devrieze.util.DebugTool
@@ -200,7 +200,7 @@ class HttpRequest(input: BufferedReader, var uri: String) {
             input: InputStream,
             contentType: MimeType,
             encoding: String?
-                                  ): Map<String, DataSource> {
+        ): Map<String, DataSource> {
 
             return input.parseMultipartFormDataTo(HashMap(), contentType, encoding)
         }
@@ -215,7 +215,7 @@ class HttpRequest(input: BufferedReader, var uri: String) {
         private fun parseUrlEncodedHelper(
             result: MutableMap<String, String>,
             source: CharSequence?
-                                         ): Map<String, String> {
+        ): Map<String, String> {
             if (source == null) {
                 return result
             }

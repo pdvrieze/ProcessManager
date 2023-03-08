@@ -14,7 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package net.devrieze.util
+package io.github.pdvrieze.util.jvmOnly
 
 import javax.xml.bind.JAXBElement
 import javax.xml.bind.annotation.XmlAccessType

@@ -78,6 +78,7 @@ kotlin {
                 implementation(project(":ProcessEngine:core"))
                 implementation(project(":PE-common"))
                 implementation(project(":JavaCommonApi"))
+                api(project(":multiplatform"))
 
                 implementation(libs.kotlinx.serialization.core)
                 implementation(libs.xmlutil.core)

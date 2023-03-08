@@ -109,6 +109,7 @@ kotlin {
                 compileOnly(project(":DarwinJavaApi"))
                 compileOnly(project(":JavaCommonApi"))
                 compileOnly(libs.servletApi)
+                compileOnly(project(":java-common:jvmonly"))
                 implementation(libs.jwsApi)
                 implementation(libs.activationApi)
                 implementation(libs.jaxb.api)

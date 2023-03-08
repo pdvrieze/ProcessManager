@@ -98,7 +98,7 @@ tasks {
 
 dependencies {
     "codegen"(project(":DarwinGenerators"))
-    "codegenClasspath"(project(path = ":ProcessEngine:servlet", configuration = "codeGen"))
+//    "codegenClasspath"(project(path = ":ProcessEngine:servlet", configuration = "codeGen"))
     "codegenClasspath"(project(path = ":PE-common"))
     "codegenClasspath"(project(":JavaCommonApi"))
 

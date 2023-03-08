@@ -78,6 +78,7 @@ if (file("xmlutil").exists()) {
 }
 
 include(":java-common")
+include(":java-common:jvmonly")
 include(":DarwinJavaApi")
 
 include(":TestSupport")
@@ -131,7 +132,7 @@ include(":PE-common:endpointDoclet")
 //include(":structurizr")
 
 include(":jscommon")
-include(":webeditor")
+//include(":webeditor")
 
 // Android modules
 if (Boolean.parseBoolean(androidEnabledProp)) {

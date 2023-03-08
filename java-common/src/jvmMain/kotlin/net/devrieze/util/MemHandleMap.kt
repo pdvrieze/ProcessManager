@@ -17,7 +17,6 @@
 package net.devrieze.util
 
 import nl.adaptivity.util.net.devrieze.util.ForEachContextImpl
-import nl.adaptivity.util.net.devrieze.util.HasForEach
 import nl.adaptivity.util.net.devrieze.util.MutableHasForEach
 import java.util.*
 import java.util.concurrent.locks.ReentrantReadWriteLock
@@ -151,7 +150,7 @@ actual open class MemHandleMap<V : Any>
                     if (v!=null) {
                         try {
                             with(body) {
-                                runBody(context, v)
+                                eval(context, v)
                             }
                         } catch (_: ForEachContextImpl.ContinueException) { } // No need to stop
 
@@ -162,10 +161,6 @@ actual open class MemHandleMap<V : Any>
                 if (changed) updateBarrier()
             }
         }
-    }
-
-    override fun forEach(body: HasForEach.ForEachReceiver<V>) {
-        forEach(body as MutableHasForEach.ForEachReceiver<V>)
     }
 
     operator fun contains(element: Any): Boolean {

@@ -16,10 +16,11 @@
 
 package nl.adaptivity.ws.rest
 
+import io.github.pdvrieze.util.jvmOnly.JAXBCollectionWrapper
+import jakarta.servlet.http.HttpServletResponse
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.serializerOrNull
 import net.devrieze.util.Annotations
-import net.devrieze.util.JAXBCollectionWrapper
 import net.devrieze.util.ReaderInputStream
 import net.devrieze.util.Types
 import nl.adaptivity.messaging.HttpResponseException
@@ -29,12 +30,13 @@ import nl.adaptivity.rest.annotations.RestParam
 import nl.adaptivity.rest.annotations.RestParamType
 import nl.adaptivity.util.DomUtil
 import nl.adaptivity.util.HttpMessage
+import nl.adaptivity.util.SerializableData
 import nl.adaptivity.util.activation.Sources
 import nl.adaptivity.util.activation.writeToStream
-import nl.adaptivity.xmlutil.util.CompactFragment
-import nl.adaptivity.xmlutil.util.ICompactFragment
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.util.ICompactFragment
 import nl.adaptivity.xmlutil.xmlserializable.XmlDeserializer
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
@@ -44,8 +46,6 @@ import java.lang.reflect.*
 import java.nio.charset.Charset
 import javax.activation.DataHandler
 import javax.activation.DataSource
-import jakarta.servlet.http.HttpServletResponse
-import nl.adaptivity.util.SerializableData
 import javax.xml.XMLConstants
 import javax.xml.bind.JAXB
 import javax.xml.bind.JAXBContext
@@ -64,7 +64,6 @@ import javax.xml.transform.dom.DOMSource
 import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathExpressionException
 import javax.xml.xpath.XPathFactory
-import kotlin.jvm.Volatile
 
 abstract class RestMethodWrapper protected constructor(owner: Any, method: Method) : nl.adaptivity.ws.WsMethodWrapper(
     owner, method

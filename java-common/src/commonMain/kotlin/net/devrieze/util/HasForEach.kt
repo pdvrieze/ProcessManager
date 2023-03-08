@@ -17,21 +17,21 @@ public interface HasForEach<V> {
     }
 
     fun interface ForEachReceiver<V>: MutableHasForEach.ForEachReceiver<V> {
-        fun runBody(context: IteratingContext, v: V)
+        fun eval(context: IteratingContext, v: V)
 
         @JvmSynthetic
-        override fun runBody(context: MutableHasForEach.IteratingContext, v: V) {
-            return runBody((context as IteratingContext), v)
+        override fun eval(context: MutableHasForEach.IteratingContext, v: V) {
+            return eval((context as IteratingContext), v)
         }
     }
 
     companion object {
-        fun <V> forEach(iterable: Iterator<V>, body: IteratingContext.(V) -> Unit) {
+        fun <V> forEach(iterable: Iterator<V>, body: ForEachReceiver<V>) {
             val context = ForEachContextImpl()
             val iterator = iterable.iterator()
             while (iterator.hasNext() && context.continueIteration) {
                 try {
-                    context.body(iterator.next())
+                    body.eval(context, iterator.next())
                 } catch (e: ForEachContextImpl.ContinueException) { // Don't need to do anything }
                 }
             }
@@ -40,6 +40,10 @@ public interface HasForEach<V> {
 }
 
 interface MutableHasForEach<V> : HasForEach<V> {
+    override fun forEach(body: HasForEach.ForEachReceiver<V>) {
+        forEach(body as MutableHasForEach.ForEachReceiver<V>)
+    }
+
     fun forEach(body: ForEachReceiver<V>)
 
     public interface IteratingContext : HasForEach.IteratingContext {
@@ -47,7 +51,20 @@ interface MutableHasForEach<V> : HasForEach<V> {
     }
 
     fun interface ForEachReceiver<V> {
-        fun runBody(context: IteratingContext, v: V)
+        fun eval(context: IteratingContext, v: V)
+    }
+
+    companion object {
+        fun <V> forEach(iterable: Iterator<V>, body: ForEachReceiver<V>) {
+            val context = ForEachContextImpl()
+            val iterator = iterable.iterator()
+            while (iterator.hasNext() && context.continueIteration) {
+                try {
+                    body.eval(context, iterator.next())
+                } catch (e: ForEachContextImpl.ContinueException) { // Don't need to do anything }
+                }
+            }
+        }
     }
 
 }

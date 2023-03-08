@@ -59,7 +59,7 @@ dependencies {
     implementation(kotlin("stdlib-jdk8"))
 //    implementation("org.jetbrains:annotations:13.0")
 
-    implementation(project(":java-common"))
+    runtimeOnly(project(":java-common:jvmonly"))
     implementation(project(":PE-common"))
     implementation(libs.kotlinx.serialization.core)
     testImplementation(project(":ProcessEngine:core"))

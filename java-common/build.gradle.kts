@@ -14,8 +14,6 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import multiplatform.jvmAndroid
-
 plugins {
     kotlin("multiplatform")
     mpconsumer
@@ -40,7 +38,6 @@ kotlin {
                 }
             }
         }
-        jvmAndroid({})
         js(BOTH) {
             browser()
             nodejs()
@@ -74,13 +71,9 @@ kotlin {
                 api(project(":multiplatform"))
             }
         }
-        val javaMain by creating {
-            dependsOn(commonMain)
-        }
         val jvmMain by getting {
-            dependsOn(javaMain)
             dependencies {
-                implementation(libs.jaxb.api)
+//                implementation(libs.jaxb.api)
                 api(libs.kotlinsql.monadic)
             }
         }
@@ -88,12 +81,6 @@ kotlin {
             dependencies {
                 implementation(libs.junit5.api)
                 runtimeOnly(libs.junit5.engine)
-            }
-        }
-        val androidMain by getting {
-            dependsOn(javaMain)
-            dependencies {
-                implementation(kotlin("stdlib-jdk7"))
             }
         }
         val jsMain by getting {

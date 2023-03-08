@@ -135,7 +135,7 @@ open class DbSet<TMP, T : Any, TR : MonadicDBTransaction<DB>, DB : Database>(
                         val builder = elementFactory.createBuilder(tr, rs.rowData)
                         value = builder.then { b -> elementFactory.createFromBuilder(tr, SetAccessImpl(), b) }.evaluateNow()
                         with (body) {
-                            runBody(context, value)
+                            eval(context, value)
                         }
                     }
                 }.evaluateNow()

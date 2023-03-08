@@ -16,6 +16,7 @@
 
 package net.devrieze.util
 
+import nl.adaptivity.util.net.devrieze.util.HasForEach
 import nl.adaptivity.util.net.devrieze.util.MutableHasForEach
 
 open class MutableHandleMapForwarder<V : Any, T : Transaction>(
@@ -34,4 +35,8 @@ open class MutableHandleMapForwarder<V : Any, T : Transaction>(
     override fun clear() = delegate.clear(transaction)
 
     override fun forEach(body: MutableHasForEach.ForEachReceiver<V>) = delegate.forEach(transaction, body)
+
+    override fun forEach(body: HasForEach.ForEachReceiver<V>) {
+        super<HandleMapForwarder>.forEach(body)
+    }
 }
