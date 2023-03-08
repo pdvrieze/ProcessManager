@@ -314,7 +314,7 @@ fun <I : Any, O : Any> ConfigurableNodeContainer<ExecutableProcessNode>.loanActi
     inputSerializer: DeserializationStrategy<I>,
     inputRefNode: Identified?,
     inputRefName: String = "",
-    action: RunnableAction2<I, O, LoanActivityContext>
+    action: RunnableAction<I, O, LoanActivityContext>
 ): RunnableActivity.Builder<I, O, LoanActivityContext> =
     RunnableActivity.Builder(predecessor, inputRefNode, inputRefName, inputSerializer, outputSerializer, action)
 

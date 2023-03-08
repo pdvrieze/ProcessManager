@@ -23,7 +23,7 @@ import nl.adaptivity.process.util.Identified
 
 inline fun <reified I : Any, reified O : Any, C : ActivityInstanceContext> ConfigurableNodeContainer<ExecutableProcessNode>.runnableActivity(
     predecessor: Identified,
-    noinline action: RunnableAction2<I, O, C>
+    noinline action: RunnableAction<I, O, C>
 ): RunnableActivity.Builder<I, O, C> {
     return runnableActivity(
         predecessor,

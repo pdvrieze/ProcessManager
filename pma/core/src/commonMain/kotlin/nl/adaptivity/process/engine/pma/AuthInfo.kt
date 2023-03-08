@@ -21,8 +21,6 @@ import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 sealed class AuthInfo(val principal: PrincipalCompat) {
 
-    override fun toString(): String {
-        return "<unspecified>"
-    }
+    abstract override fun toString(): String
 }
 

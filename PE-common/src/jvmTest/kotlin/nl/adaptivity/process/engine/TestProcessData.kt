@@ -943,16 +943,3 @@ class TestProcessData {
 
 }
 
-val NAMESPACE_DIFF_EVAL: DifferenceEvaluator = DifferenceEvaluator { comparison, outcome ->
-    when {
-        outcome == ComparisonResult.DIFFERENT &&
-            comparison.type == ComparisonType.NAMESPACE_PREFIX
-             -> ComparisonResult.SIMILAR
-
-        else -> DifferenceEvaluators.Default.evaluate(
-            comparison,
-            outcome
-        )
-    }
-}
-
