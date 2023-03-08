@@ -18,8 +18,6 @@
  * under the License.
  */
 
-import multiplatform.jvmAndroid
-
 plugins {
     kotlin("multiplatform")
 }
@@ -38,7 +36,6 @@ kotlin {
                 }
             }
         }
-        jvmAndroid()
         js(BOTH) {
             browser()
             nodejs()
@@ -67,9 +64,6 @@ kotlin {
             dependsOn(commonMain)
         }
         val jvmMain by getting {
-            dependsOn(javaShared)
-        }
-        val androidMain by getting {
             dependsOn(javaShared)
         }
         val jsMain by getting {
