@@ -14,8 +14,6 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import multiplatform.jvmAndroid
-
 plugins {
     kotlin("multiplatform")
     mpconsumer
@@ -36,7 +34,6 @@ kotlin {
                 }
             }
         }
-        jvmAndroid()
         js(BOTH) {
             browser()
             nodejs()
@@ -63,17 +60,6 @@ kotlin {
             dependencies {
                 implementation(project(":multiplatform"))
             }
-        }
-        val javaShared by creating {
-            dependsOn(commonMain)
-            dependencies {
-            }
-        }
-        val jvmMain by getting {
-            dependsOn(javaShared)
-        }
-        val androidMain by getting {
-            dependsOn(javaShared)
         }
         val jsMain by getting {
             dependsOn(commonMain)
