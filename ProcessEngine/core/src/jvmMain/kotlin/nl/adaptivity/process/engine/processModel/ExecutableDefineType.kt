@@ -35,7 +35,6 @@ import java.sql.SQLException
 import javax.xml.xpath.XPathConstants
 
 actual fun IXmlDefineType.applyData(nodeInstanceSource: IProcessInstance, context: ActivityInstanceContext): ProcessData {
-    // TODO, make this not need engineData
     val nodeInstance = nodeInstanceSource.getChildNodeInstance(context.nodeInstanceHandle)
     return applyDataImpl(nodeInstanceSource, refNode?.let { nodeInstance.resolvePredecessor(nodeInstanceSource, it)}, context.processContext.processInstanceHandle)
 }
@@ -51,12 +50,12 @@ actual fun IXmlDefineType.applyFromProcessInstance(processInstance: ProcessInsta
 }
 
 @OptIn(XmlUtilInternal::class)
-private fun IXmlDefineType.applyDataImpl(nodeInstanceSource: IProcessInstance, predecessor: IProcessNodeInstance?, hProcessInstance: Handle<SecureObject<ProcessInstance>>): ProcessData {
+private fun IXmlDefineType.applyDataImpl(nodeInstanceSource: IProcessInstance, refNodeInstance: IProcessNodeInstance?, hProcessInstance: Handle<SecureObject<ProcessInstance>>): ProcessData {
     val processData: ProcessData
 
-    val predRefName = predecessor?.node?.effectiveRefName(refName)
-    if (predecessor != null && predRefName != null) {
-        val origpair = predecessor.getResult(predRefName)
+    val predRefName = refNodeInstance?.node?.effectiveRefName(refName)
+    if (refNodeInstance != null && predRefName != null) {
+        val origpair = refNodeInstance.getResult(predRefName)
         if (origpair == null) {
             // TODO on missing data do something else than an empty value
             processData = ProcessData.missingData(name)
@@ -75,7 +74,7 @@ private fun IXmlDefineType.applyDataImpl(nodeInstanceSource: IProcessInstance, p
                 )
             }
         }
-    } else if (predecessor==null && !refName.isNullOrEmpty()) { // Reference to container
+    } else if (refNodeInstance==null && !refName.isNullOrEmpty()) { // Reference to container
         return nodeInstanceSource.inputs.single { it.name == refName }.let { ProcessData(name, it.content) }
     } else {
         processData = ProcessData(name, CompactFragment(""))

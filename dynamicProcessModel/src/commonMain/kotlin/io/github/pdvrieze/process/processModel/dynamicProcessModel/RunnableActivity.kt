@@ -27,6 +27,7 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.configurableModel.ConfigurableNodeContainer
 import nl.adaptivity.process.processModel.configurableModel.ConfigurationDsl
 import nl.adaptivity.process.processModel.engine.*
+import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xmlutil.Namespace
@@ -40,6 +41,13 @@ class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
     newOwner: ProcessModel<*>,
     otherNodes: Iterable<ProcessNode.Builder>
 ) : ActivityBase(builder.checkDefines(), newOwner, otherNodes), ExecutableActivity {
+    init {
+        checkPredSuccCounts()
+    }
+
+    override val predecessor: Identifiable get() = predecessors.single()
+
+    override val successor: Identifiable get() = successors.single()
 
     internal val action: RunnableAction<I, O, C> = builder.action
     internal val inputCombiner: InputCombiner<I> = builder.inputCombiner

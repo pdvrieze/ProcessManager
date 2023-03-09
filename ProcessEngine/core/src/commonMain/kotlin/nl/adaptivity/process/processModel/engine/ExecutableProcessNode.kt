@@ -162,5 +162,14 @@ interface ExecutableProcessNode : ProcessNode, Identified {
         return preds
     }
 
+    fun checkPredSuccCounts(predRange: IntRange = 1..1, succRange: IntRange = 1 .. 1) {
+        require(predecessors.size in predRange) {
+            "The amount of predecessors is expected to be in the range ${predRange}"
+        }
+        require(successors.size in succRange) {
+            "The amount of successors is expected to be in the range ${succRange}"
+        }
+    }
+
 }
 

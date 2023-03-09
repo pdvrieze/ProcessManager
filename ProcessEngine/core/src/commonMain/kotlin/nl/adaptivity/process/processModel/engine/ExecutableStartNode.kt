@@ -31,6 +31,10 @@ class ExecutableStartNode(
     builder, buildHelper
 ), ExecutableProcessNode {
 
+    init {
+        checkPredSuccCounts(predRange = 0..0)
+    }
+
     override val ownerModel: ExecutableModelCommon
         get() = super.ownerModel as ExecutableModelCommon
 

@@ -17,9 +17,9 @@
 package nl.adaptivity.process.processModel.engine
 
 import nl.adaptivity.process.processModel.Activity
-import nl.adaptivity.process.processModel.ActivityBase
-import nl.adaptivity.process.processModel.ProcessModel
+import nl.adaptivity.process.util.Identifiable
 
 interface ExecutableActivity: Activity, ExecutableProcessNode {
-
+    override val predecessor: Identifiable
+    override val successor: Identifiable
 }

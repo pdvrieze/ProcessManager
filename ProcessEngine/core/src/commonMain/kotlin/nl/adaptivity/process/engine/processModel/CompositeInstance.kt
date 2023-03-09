@@ -57,7 +57,7 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
             assert(hChildInstance.isValid) { "The task can only be started if the child instance already exists" }
             tryCreateTask {
                 engineData.updateInstance(hChildInstance) {
-                    start(engineData, build().getPayload(processInstanceBuilder))
+                        start(engineData, build().getPayload(processInstanceBuilder))
                 }
             }
             engineData.queueTickle(hChildInstance)

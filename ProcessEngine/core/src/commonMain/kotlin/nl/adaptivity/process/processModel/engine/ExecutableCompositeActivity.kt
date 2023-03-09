@@ -25,6 +25,7 @@ import nl.adaptivity.process.engine.processModel.CompositeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
+import nl.adaptivity.process.util.Identifiable
 
 
 /**
@@ -48,6 +49,10 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableActivity {
         this._condition = builder.condition?.toExecutableCondition()
     }
 
+    init {
+        checkPredSuccCounts()
+    }
+
     override val childModel: ExecutableChildModel get() = super.childModel as ExecutableChildModel
 
     private var _condition: ExecutableCondition?
@@ -62,6 +67,10 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableActivity {
         set(value) {
             _condition = value?.toExecutableCondition()
         }
+
+    override val predecessor: Identifiable get() = predecessors.single()
+
+    override val successor: Identifiable get() = successors.single()
 
     override fun isOtherwiseCondition(predecessor: ExecutableProcessNode): Boolean {
         return _condition?.isOtherwise == true

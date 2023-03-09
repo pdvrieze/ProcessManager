@@ -173,7 +173,8 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
         with(modelBuilder) {
             nodes.add(nodeBuilder.ensureId())
         }
-        return ActivityHandleImpl(id!!, property.name, this.outputSerializer as KSerializer<O>)
+        val outputName = results.singleOrNull()?.name ?: ""
+        return ActivityHandleImpl(id!!, outputName, this.outputSerializer as KSerializer<O>)
     }
 
     operator fun ProcessNode.Builder.provideDelegate(

@@ -48,10 +48,12 @@ private class RootModelBuilderContextImpl<C: ActivityInstanceContext>(
 }
 
 private class CompositeModelBuilderContextImpl<C: ActivityInstanceContext>(
-    val predecessor: Identified,
+    predecessor: Identified,
     private val owner: RootModelBuilderContextImpl<C>
 ): CompositeModelBuilderContext<C>() {
-    override val modelBuilder = ActivityBase.CompositeActivityBuilder(owner.modelBuilder)
+    override val modelBuilder = ActivityBase.CompositeActivityBuilder(owner.modelBuilder).apply {
+        this.predecessor = predecessor
+    }
 
     override fun compositeActivityContext(predecessor: Identified): CompositeModelBuilderContext<C> {
         return CompositeModelBuilderContextImpl(predecessor, owner)

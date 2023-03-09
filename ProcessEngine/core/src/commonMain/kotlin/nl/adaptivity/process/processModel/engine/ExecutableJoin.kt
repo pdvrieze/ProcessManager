@@ -31,6 +31,10 @@ class ExecutableJoin(
     otherNodes: Iterable<ProcessNode.Builder>
 ) : JoinBase<ExecutableProcessNode, ExecutableModelCommon>(builder, buildHelper, otherNodes), ExecutableProcessNode {
 
+    init {
+        checkPredSuccCounts(predRange = 1..Int.MAX_VALUE)
+    }
+
     override val ownerModel: ExecutableModelCommon
         get() = super.ownerModel as ExecutableModelCommon
 

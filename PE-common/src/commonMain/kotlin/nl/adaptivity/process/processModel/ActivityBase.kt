@@ -42,9 +42,9 @@ abstract class ActivityBase(
     @Suppress("OverridingDeprecatedMember", "DEPRECATION")
     override var name: String? = builder.name
 
-    final override val predecessor: Identifiable? get() = predecessors.singleOrNull()
+    override val predecessor: Identifiable? get() = predecessors.singleOrNull()
 
-    final override val successor: Identifiable?
+    override val successor: Identifiable?
         get() = successors.singleOrNull()
 
     abstract override fun builder(): Activity.Builder

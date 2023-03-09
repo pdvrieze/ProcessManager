@@ -31,6 +31,10 @@ class ExecutableSplit(
     otherNodes: Iterable<ProcessNode.Builder>
 ) : SplitBase(builder, newOwner, otherNodes), ExecutableProcessNode {
 
+    init {
+        checkPredSuccCounts(succRange = 1..Int.MAX_VALUE)
+    }
+
     override val ownerModel: ExecutableModelCommon
         get() = super.ownerModel as ExecutableModelCommon
 

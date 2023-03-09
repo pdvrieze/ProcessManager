@@ -23,6 +23,7 @@ import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
+import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlWriter
@@ -37,6 +38,9 @@ class ExecutableMessageActivity(
     newOwner: ProcessModel<*>,
     otherNodes: Iterable<ProcessNode.Builder>
 ) : MessageActivityBase(builder, newOwner, otherNodes), ExecutableActivity {
+    init {
+        checkPredSuccCounts()
+    }
 
     private var _condition: ExecutableCondition? = builder.condition?.toExecutableCondition()
 
@@ -44,6 +48,10 @@ class ExecutableMessageActivity(
         get() = super.ownerModel as ExecutableModelCommon
 
     override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
+
+    override val predecessor: Identifiable get() = predecessors.single()
+
+    override val successor: Identifiable get() = successors.single()
 
     override var condition: Condition?
         get() = _condition

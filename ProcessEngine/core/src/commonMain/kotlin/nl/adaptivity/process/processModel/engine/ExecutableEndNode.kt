@@ -26,6 +26,10 @@ class ExecutableEndNode(
     otherNodes: Iterable<ProcessNode.Builder>
 ) : EndNodeBase(builder, newOwner, otherNodes), ExecutableProcessNode {
 
+    init {
+        checkPredSuccCounts(succRange = 0..0)
+    }
+
     override val ownerModel: ExecutableModelCommon
         get() = super.ownerModel as ExecutableModelCommon
 
