@@ -32,6 +32,7 @@ import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xmlutil.Namespace
 import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.serialutil.nonNullSerializer
 
 typealias RunnableAction<I, O, C> = C.(I) -> O
 typealias NoInputRunnableAction<O, C> = C.() -> O
@@ -119,9 +120,11 @@ class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
     fun getInputData(data: List<ProcessData>): I {
         val mappedData = mutableMapOf<String, Any?>()
         for (define in this.defines) {
+            val valueHolder = data.singleOrNull() { it.name == define.name }
+            val ser: DeserializationStrategy<Any> = define.deserializer.nonNullSerializer()
             val valueReader = data.singleOrNull() { it.name == define.name }?.contentStream
                 ?: throw NoSuchElementException("Could not find single define with name ${define.refName}")
-            val value = XML.decodeFromReader(define.deserializer, valueReader)
+            val value = XML.decodeFromReader(ser, valueReader)
             mappedData[define.getName()] = value
         }
 
@@ -174,6 +177,7 @@ class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
             results.add(XmlResultType("output"))
             this.outputSerializer = outputSerializer
             this.action = action
+            this.inputCombiner = inputCombiner
         }
 
         constructor(activity: RunnableActivity<I, O, C>) : super(activity) {
@@ -233,7 +237,7 @@ class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
         class InputValueImpl<V>(override val name: String) : InputCombiner.InputValue<V>
     }
 
-    class DefineType<T : Any>(
+    class DefineType<T>(
         private val name: String,
         private val refNode: Identified?,
         private val refName: String,
@@ -293,6 +297,8 @@ private fun <R : RunnableActivity.Builder<*, *, *>> R.checkDefines(): R = apply 
     }
 }
 
+class DefineInputCombiner<T> internal constructor(internal val defines: List<RunnableActivity.DefineType<*>>, internal val combiner: InputCombiner<T>)
+
 class InputCombiner<T>(val impl: (InputContext.(Map<String, Any?>) -> T)? = null) {
     @Suppress("UNCHECKED_CAST")
     operator fun invoke(input: Map<String, Any?>): T {
@@ -315,6 +321,10 @@ class InputCombiner<T>(val impl: (InputContext.(Map<String, Any?>) -> T)? = null
         fun <T> valueOf(inputValue: InputValue<T>): T
 
         operator fun <T> InputValue<T>.invoke() = valueOf(this)
+
+        operator fun <T> DefineHolder<T>.invoke() = valueOf<T>(define.name)
+
+
     }
 
     @Suppress("UNCHECKED_CAST")

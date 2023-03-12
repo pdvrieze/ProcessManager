@@ -1,6 +1,9 @@
 package nl.adaptivity.process.engine.test.loanOrigination
 
-import io.github.pdvrieze.process.processModel.dynamicProcessModel.*
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.ActivityHandle
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.OutputRef
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.compositeActivity
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.runnableProcess
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.pma.ANYSCOPE
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
@@ -10,7 +13,7 @@ import nl.adaptivity.process.engine.test.loanOrigination.systems.SignedDocument
 val loanModel2 = runnableProcess<LoanActivityContext>("foo", SimplePrincipal("modelOwner")) {
     val start by startNode
 
-    val inputCustomerMasterData by outputActivity(start) {
+    val inputCustomerMasterData by activity(start) {
         // TODO break this down into subactivities
         registerTaskPermission(customerFile, LoanPermissions.QUERY_CUSTOMER_DATA)
         registerTaskPermission(customerFile, LoanPermissions.CREATE_CUSTOMER)
@@ -58,13 +61,11 @@ val loanModel2 = runnableProcess<LoanActivityContext>("foo", SimplePrincipal("mo
             }
         }
 
-        val verifyCustomerApproval by configuredActivity<VerifyCustomerApprovalInput, SignedDocument<SignedDocument<Approval>>>(
-            getCustomerApproval
-        ) {
-            val custIn = defineInput("customer", customerIdInput)
-            val approvalIn = defineInput("approval", getCustomerApproval)
-            inputCombiner = InputCombiner { VerifyCustomerApprovalInput(custIn(), approvalIn()) }
-
+        val verifyCustomerApproval by activity<VerifyCustomerApprovalInput, SignedDocument<SignedDocument<Approval>>>(
+            predecessor = getCustomerApproval,
+            input = combine(customerIdInput named "customer", getCustomerApproval named "approval") { a, b ->
+                VerifyCustomerApprovalInput(a, b)
+            },
             action = { (customer, approval) ->
                 registerTaskPermission(customerFile, LoanPermissions.QUERY_CUSTOMER_DATA(customer.customerId))
                 registerTaskPermission(signingService, LoanPermissions.SIGN)
@@ -81,7 +82,7 @@ val loanModel2 = runnableProcess<LoanActivityContext>("foo", SimplePrincipal("mo
                     signingService.signDocument(signAuth, approval)
                 }
             }
-        }
+        )
 
         val getCreditReport by activity(
             verifyCustomerApproval,
@@ -134,13 +135,12 @@ val loanModel2 = runnableProcess<LoanActivityContext>("foo", SimplePrincipal("mo
             }
         }
 
-        val getLoanEvaluation by configuredActivity<Pair<LoanApplication, CreditReport>, LoanEvaluation>(
-            predecessor = getCreditReport
-        ) {
-            val apIn = defineInput("application", loanApplicationInput)
-            val credIn = defineInput("creditReport", getCreditReport)
-            inputCombiner = InputCombiner { Pair(apIn(), credIn()) }
-
+        val getLoanEvaluation by activity<Pair<LoanApplication, CreditReport>, LoanEvaluation>(
+            predecessor = getCreditReport,
+            input = combine(
+                loanApplicationInput named "application",
+                getCreditReport named "creditReport"
+            ),
             action = { (application, creditReport) ->
                 registerTaskPermission(creditApplication, LoanPermissions.EVALUATE_LOAN(application.customerId))
                 registerDelegatePermission(
@@ -156,7 +156,7 @@ val loanModel2 = runnableProcess<LoanActivityContext>("foo", SimplePrincipal("mo
                     creditApplication.evaluateLoan(authToken, application, creditReport)
                 }
             }
-        }
+        )
 
 
         val end by endNode(getLoanEvaluation)
@@ -177,15 +177,12 @@ val loanModel2 = runnableProcess<LoanActivityContext>("foo", SimplePrincipal("mo
         val chosenProductInput = input("chosenProduct", chooseBundledProduct)
 
         val start by startNode
-        val priceBundledProduct by configuredActivity<PricingInput, PricedLoanProductBundle>(
+
+        val priceBundledProduct by activity<PricingInput, PricedLoanProductBundle>(
             start,
-        ) {
-
-            val loanEval = defineInput("loanEval", loanEvalInput)
-            val productInput = defineInput("prod", chosenProductInput)
-
-            inputCombiner = InputCombiner { PricingInput(loanEval(), productInput()) }
-
+            combine(loanEvalInput named "loanEval", chosenProductInput named "prod") { e, p ->
+                PricingInput(e, p)
+            },
             action = { (loanEval, chosenProduct) ->
                 registerTaskPermission(pricingEngine, LoanPermissions.PRICE_LOAN.restrictTo(Double.NaN))
 
@@ -194,8 +191,7 @@ val loanModel2 = runnableProcess<LoanActivityContext>("foo", SimplePrincipal("mo
                     pricingEngine.priceLoan(pricingEngineLoginToken, chosenProduct, loanEval)
                 }
             }
-        }
-
+        )
         val approveOffer: ActivityHandle<PricedLoanProductBundle> by activity(
             predecessor = priceBundledProduct,
             input = priceBundledProduct
@@ -208,7 +204,7 @@ val loanModel2 = runnableProcess<LoanActivityContext>("foo", SimplePrincipal("mo
 
         approvedOfferOut = output("approvedOffer", approveOffer)
     }
-    val printOffer by activity(
+    val printOffer: ActivityHandle<Offer> by activity(
         predecessor = offerPriceLoan,
         input = approvedOfferOut
     ) { approvedOffer ->
