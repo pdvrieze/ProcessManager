@@ -18,12 +18,13 @@ package nl.adaptivity.process.engine.test.loanOrigination.systems
 
 import nl.adaptivity.process.engine.pma.AuthInfo
 import nl.adaptivity.process.engine.pma.AuthService
-import nl.adaptivity.process.engine.pma.ServiceImpl
+import nl.adaptivity.process.engine.pma.dynamic.ServiceImpl
+import nl.adaptivity.process.engine.pma.models.AutomatedService
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CreditReport
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
 
-class CreditBureau(authService: AuthService): ServiceImpl(authService, "CreditBureau") {
+class CreditBureau(authService: AuthService): ServiceImpl(authService, "CreditBureau"), AutomatedService {
 
     override fun getServiceState(): String = ""
 

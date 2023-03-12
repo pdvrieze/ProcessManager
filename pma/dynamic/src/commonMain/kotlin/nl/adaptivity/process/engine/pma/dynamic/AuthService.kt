@@ -21,6 +21,7 @@ import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.impl.Level
 import nl.adaptivity.process.engine.impl.LoggerCompat
 import nl.adaptivity.process.engine.pma.CommonPMAPermissions.*
+import nl.adaptivity.process.engine.pma.models.*
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.nl.adaptivity.util.kotlin.removeIfTo
 import kotlin.random.Random
@@ -31,7 +32,7 @@ class AuthService(
     val logger: LoggerCompat,
     private val nodeLookup: Map<PNIHandle, String>,
     private val random: Random
-) : Service {
+) : AutomatedService {
     val authServiceId = "AuthService:${random.nextUInt().toString(16)}"
     override val serviceId: String
         get() = authServiceId
@@ -71,7 +72,11 @@ class AuthService(
      * @param authInfo The authentication information being used
      * @param scope The scope of the access requested
      */
-    fun validateAuthInfo(service: Service, authInfo: AuthInfo, scope: UseAuthScope) {
+    fun validateAuthInfo(
+        service: Service,
+        authInfo: AuthInfo,
+        scope: UseAuthScope
+    ) {
         val serviceId = service.serviceId
         when (authInfo) {
             is IdSecretAuthInfo -> validateUserPermission(serviceId, authInfo, scope)
@@ -83,7 +88,10 @@ class AuthService(
         }
     }
 
-    private fun internalValidateAuthInfo(authInfo: AuthInfo, scope: UseAuthScope) {
+    private fun internalValidateAuthInfo(
+        authInfo: AuthInfo,
+        scope: UseAuthScope
+    ) {
         when (authInfo) {
             is IdSecretAuthInfo -> validateUserPermission(authServiceId, authInfo, scope)
             is AuthToken -> validateAuthTokenPermission(authServiceId, authInfo, scope)
@@ -92,7 +100,11 @@ class AuthService(
 
     }
 
-    private fun validateAuthTokenPermission(serviceId: String, authToken: AuthToken, useScope: UseAuthScope) {
+    private fun validateAuthTokenPermission(
+        serviceId: String,
+        authToken: AuthToken,
+        useScope: UseAuthScope
+    ) {
         if (authToken !in activeTokens) throw AuthorizationException("Token not active: $authToken")
         if (authToken.serviceId != serviceId) throw AuthorizationException("The token $authToken is not for the expected service $serviceId")
 //        val tokenPermissions = tokenPermissions.get(authToken.tokenValue) ?:emptyList<Permission>()
@@ -116,7 +128,11 @@ class AuthService(
         )
     }
 
-    private fun validateUserPermission(serviceId: String, authInfo: IdSecretAuthInfo, useScope: UseAuthScope) {
+    private fun validateUserPermission(
+        serviceId: String,
+        authInfo: IdSecretAuthInfo,
+        useScope: UseAuthScope
+    ) {
         if (serviceId != authServiceId) throw AuthorizationException("Only authService allows password auth")
         if (registeredClients[authInfo.principal.name]?.secret != authInfo.secret) {
             throw AuthorizationException("Password mismatch for client ${authInfo.principal} (${registeredClients[authInfo.principal.name]?.secret} != ${authInfo.secret})")
@@ -289,12 +305,17 @@ class AuthService(
     }
 
     /** Common implementation that is used for authorization codes/authtokens but doesn't log*/
-    private fun getAuthCommon(identityToken: AuthInfo, service: Service, reqScope: PermissionScope): AuthToken {
+    private fun getAuthCommon(
+        identityToken: AuthInfo,
+        service: Service,
+        reqScope: PermissionScope
+    ): AuthToken {
         // TODO principal should be authorized
         val serviceId = service.serviceId
         internalValidateAuthInfo(identityToken, IDENTIFY)
         val userPermissions =
-            globalPermissions.get(identityToken.principal)?.get(serviceId) ?: emptyList<PermissionScope>()
+            globalPermissions.get(identityToken.principal)?.get(serviceId)
+                ?: emptyList<PermissionScope>()
 
         val effectiveScope: PermissionScope
         val tokenAssociatedPermissions: Sequence<PermissionScope> = if (identityToken is AuthToken) {
@@ -360,7 +381,11 @@ class AuthService(
 
     }
 
-    fun getAuthorizationCode(identityToken: AuthInfo, service: Service, reqScope: PermissionScope): AuthorizationCode {
+    fun getAuthorizationCode(
+        identityToken: AuthInfo,
+        service: Service,
+        reqScope: PermissionScope
+    ): AuthorizationCode {
         val token = getAuthCommon(identityToken, service, reqScope)
         val authorizationCode = AuthorizationCode(Random.nextString(), clientFromId(service.serviceId))
         authorizationCodes[authorizationCode] = token
@@ -373,7 +398,11 @@ class AuthService(
         return authorizationCode
     }
 
-    fun getAuthTokenDirect(identityToken: AuthInfo, service: Service, reqScope: PermissionScope): AuthToken {
+    fun getAuthTokenDirect(
+        identityToken: AuthInfo,
+        service: Service,
+        reqScope: PermissionScope
+    ): AuthToken {
         val token = getAuthCommon(identityToken, service, reqScope)
         if (token in activeTokens) {
             doLog(identityToken, "getAuthTokenDirect($identityToken) - reuse = $token")
@@ -409,7 +438,12 @@ class AuthService(
         grantPermission(auth, authToken, service, scope)
     }
 
-    fun grantPermission(auth: AuthInfo, taskIdToken: AuthToken, service: Service, scope: PermissionScope) {
+    fun grantPermission(
+        auth: AuthInfo,
+        taskIdToken: AuthToken,
+        service: Service,
+        scope: PermissionScope
+    ) {
         val serviceId = service.serviceId
         val neededClientId = auth.principal.name
         // If we are providing permission to an activity limited token, it is sufficient to have the ability to grant

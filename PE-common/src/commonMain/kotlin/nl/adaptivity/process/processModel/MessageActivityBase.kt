@@ -62,6 +62,7 @@ abstract class MessageActivityBase(
     open class Builder : BaseBuilder, MessageActivity.Builder {
 
         final override var message: IXmlMessage?
+        final override var authRestrictions: AuthRestriction?
 
         constructor(): this(
             null,
@@ -91,7 +92,8 @@ abstract class MessageActivityBase(
             name: String?,
             x: Double,
             y: Double,
-            isMultiInstance: Boolean
+            isMultiInstance: Boolean,
+            authRestrictions: AuthRestriction? = null
         ) : super(
             id,
             predecessor,
@@ -106,6 +108,7 @@ abstract class MessageActivityBase(
             isMultiInstance
         ) {
             this.message = message
+            this.authRestrictions = authRestrictions
         }
 
 //        @Suppress("DEPRECATION")

@@ -16,9 +16,13 @@
 
 package nl.adaptivity.process.engine.pma
 
+import nl.adaptivity.process.engine.pma.dynamic.ServiceImpl
+import nl.adaptivity.process.engine.pma.models.AutomatedService
+import nl.adaptivity.process.engine.pma.models.PermissionScope
+import nl.adaptivity.process.engine.pma.models.Service
 import java.security.Principal
 
-class GeneralClientService(authService: AuthService) : ServiceImpl(authService, "<automated>") {
+class GeneralClientService(authService: AuthService) : ServiceImpl(authService, "<automated>"), AutomatedService {
     fun <R> runWithAuthorization(
         authorizationCode: AuthorizationCode,
         action: ClientServiceContext.(AuthToken) -> R

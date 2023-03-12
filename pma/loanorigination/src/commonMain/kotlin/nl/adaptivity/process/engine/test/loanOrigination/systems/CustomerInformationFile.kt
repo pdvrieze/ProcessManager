@@ -18,11 +18,13 @@ package nl.adaptivity.process.engine.test.loanOrigination.systems
 
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.AuthToken
-import nl.adaptivity.process.engine.pma.ServiceImpl
+import nl.adaptivity.process.engine.pma.dynamic.UIServiceImpl
+import nl.adaptivity.process.engine.pma.models.AutomatedService
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
 
-class CustomerInformationFile(authService: AuthService): ServiceImpl(authService, "Customer_Information_File") {
+class CustomerInformationFile(authService: AuthService): UIServiceImpl(authService, "Customer_Information_File"),
+    AutomatedService {
 
     private val customerData = mutableMapOf<String, CustomerData>()
 

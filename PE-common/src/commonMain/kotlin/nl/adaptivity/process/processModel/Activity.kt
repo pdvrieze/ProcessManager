@@ -61,6 +61,8 @@ interface Activity : ProcessNode {
 
     override fun builder(): Builder
 
+    val accessRestrictions: AuthRestriction?
+
     interface Builder : ProcessNode.Builder {
 
         /**

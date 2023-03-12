@@ -14,7 +14,10 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.pma
+package nl.adaptivity.process.engine.pma.models
+
+import nl.adaptivity.process.engine.pma.AuthorizationException
+
 
 interface AuthScope {
     val description: String get() = toString()

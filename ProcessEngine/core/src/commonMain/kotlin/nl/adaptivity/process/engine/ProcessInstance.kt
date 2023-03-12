@@ -125,6 +125,10 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
         fun allChildNodeInstances(childFilter: (IProcessNodeInstance) -> Boolean): Sequence<IProcessNodeInstance>
 
+        override fun instancesForName(name: Identified): List<IProcessNodeInstance> {
+            return allChildNodeInstances().filter { it.node.id == name.id }.toList()
+        }
+
         fun active(): Sequence<IProcessNodeInstance> {
             return allChildNodeInstances { !it.state.isFinal }
         }

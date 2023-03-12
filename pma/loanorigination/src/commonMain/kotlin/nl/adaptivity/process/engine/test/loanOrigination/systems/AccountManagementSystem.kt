@@ -17,12 +17,14 @@
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 import nl.adaptivity.process.engine.pma.AuthInfo
 import nl.adaptivity.process.engine.pma.AuthService
-import nl.adaptivity.process.engine.pma.ServiceImpl
+import nl.adaptivity.process.engine.pma.dynamic.UIServiceImpl
+import nl.adaptivity.process.engine.pma.models.AutomatedService
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.BankAccountNumber
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.Contract
 
-class AccountManagementSystem(authService: AuthService): ServiceImpl(authService, "Account_Management_System") {
+class AccountManagementSystem(authService: AuthService): UIServiceImpl(authService, "Account_Management_System"),
+    AutomatedService {
 
     override fun getServiceState(): String = ""
 

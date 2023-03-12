@@ -21,8 +21,10 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.pma.*
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
 import nl.adaptivity.process.engine.test.loanOrigination.systems.*
+import nl.adaptivity.process.util.Identified
 import java.util.logging.Logger
 
 interface LoanProcessContext : PMAProcessInstanceContext<LoanActivityContext> {
@@ -45,7 +47,7 @@ interface LoanProcessContext : PMAProcessInstanceContext<LoanActivityContext> {
 
 
 class LoanProcessContextImpl(
-    engineData: ProcessEngineDataAccess,
+    protected val engineData: ProcessEngineDataAccess,
     override val contextFactory: LoanContextFactory,
     override val processInstanceHandle: Handle<SecureObject<ProcessInstance>>
 ) : LoanProcessContext {
@@ -67,4 +69,10 @@ class LoanProcessContextImpl(
     override val customer: Browser get() = contextFactory.customer
 
     override val log: Logger get() = contextFactory.log
+
+    override fun instancesForName(name: Identified): List<IProcessNodeInstance> {
+        return engineData.instance(processInstanceHandle).withPermission().allChildNodeInstances()
+            .filter { it.node.id == name.id }
+            .toList()
+    }
 }

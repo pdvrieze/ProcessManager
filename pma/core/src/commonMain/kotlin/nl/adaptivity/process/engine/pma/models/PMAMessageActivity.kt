@@ -14,7 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.processModel.engine
+package nl.adaptivity.process.engine.pma.models
 
 import nl.adaptivity.process.engine.IProcessInstance
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
@@ -23,6 +23,7 @@ import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
+import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xmlutil.XmlException
@@ -33,7 +34,7 @@ import nl.adaptivity.xmlutil.serialization.XML
 /**
  * Activity version that is used for process execution.
  */
-class ExecutableMessageActivity(
+class PMAMessageActivity(
     builder: MessageActivity.Builder,
     newOwner: ProcessModel<*>,
     otherNodes: Iterable<ProcessNode.Builder>
@@ -42,7 +43,7 @@ class ExecutableMessageActivity(
         checkPredSuccCounts()
     }
 
-    private val _condition: ExecutableCondition? = builder.condition?.toExecutableCondition()
+    private var _condition: ExecutableCondition? = builder.condition?.toExecutableCondition()
 
     override val ownerModel: ExecutableModelCommon
         get() = super.ownerModel as ExecutableModelCommon
@@ -53,15 +54,15 @@ class ExecutableMessageActivity(
 
     override val successor: Identifiable get() = successors.single()
 
-    override val condition: Condition?
+    override val accessRestrictions: AuthRestriction? = builder.authRestrictions
+
+    val authorizations: List<AuthScope> get() = TODO("IMPLEMENT")
+
+    override var condition: Condition?
         get() = _condition
-/*
         private set(value) {
             _condition = value?.toExecutableCondition()
         }
-*/
-
-    override val accessRestrictions: AuthRestriction? = builder.authRestrictions
 
     /**
      * Determine whether the process can start.
@@ -114,6 +115,27 @@ class ExecutableMessageActivity(
         condition?.let {
             XML.Companion.encodeToWriter(out, XmlCondition(it.condition))
         }
+    }
+
+    open class Builder: MessageActivityBase.Builder {
+        constructor() : super()
+        constructor(
+            id: String?,
+            predecessor: Identifiable?,
+            successor: Identifiable?,
+            label: String?,
+            defines: Collection<IXmlDefineType>?,
+            results: Collection<IXmlResultType>?,
+            message: XmlMessage?,
+            condition: Condition?,
+            name: String?,
+            x: Double,
+            y: Double,
+            isMultiInstance: Boolean
+        ) : super(id, predecessor, successor, label, defines, results, message, condition, name, x, y, isMultiInstance)
+
+        constructor(activity: PMAMessageActivity) : super(activity)
+        constructor(serialDelegate: SerialDelegate) : super(serialDelegate)
     }
 
 }

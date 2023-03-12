@@ -120,6 +120,11 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
                 else -> cancel(engineData)
             }
         }
+
+        override fun canBeAccessedBy(principal: PrincipalCompat): Boolean {
+            error("Joins have no authorization restrictions")
+        }
+
     }
 
     class ExtBuilder(instance: JoinInstance, processInstanceBuilder: ProcessInstance.Builder) :
@@ -163,6 +168,9 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
         get() = super.handle as Handle<SecureObject<JoinInstance>>
 
     fun canFinish() = predecessors.size >= node.min
+    override fun canBeAccessedBy(principal: PrincipalCompat): Boolean {
+        error("Joins have no authorization restrictions")
+    }
 
     constructor(
         node: ExecutableJoin,

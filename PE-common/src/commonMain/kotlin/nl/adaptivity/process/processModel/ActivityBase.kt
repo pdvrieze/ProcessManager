@@ -47,6 +47,7 @@ abstract class ActivityBase(
     override val successor: Identifiable?
         get() = successors.singleOrNull()
 
+
     abstract override fun builder(): Activity.Builder
 
     override fun equals(other: Any?): Boolean {

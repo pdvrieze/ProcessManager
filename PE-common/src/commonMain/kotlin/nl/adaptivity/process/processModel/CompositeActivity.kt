@@ -16,11 +16,11 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.Serializable
-
 interface CompositeActivity : Activity {
 
     val childModel: ChildProcessModel<ProcessNode>?
+
+    override val accessRestrictions: AuthRestriction? get() = null
 
     interface ReferenceBuilder : Activity.Builder {
         var childId: String?

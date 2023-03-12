@@ -22,6 +22,7 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.impl.generateXmlString
+import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.xml.WritableCompactFragment

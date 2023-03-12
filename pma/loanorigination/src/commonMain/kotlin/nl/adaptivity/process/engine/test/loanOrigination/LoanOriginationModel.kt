@@ -3,8 +3,8 @@ package nl.adaptivity.process.engine.test.loanOrigination
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.*
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
-import nl.adaptivity.process.engine.pma.ANYSCOPE
 import nl.adaptivity.process.engine.pma.AuthorizationException
+import nl.adaptivity.process.engine.pma.models.ANYSCOPE
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions.*
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.*
@@ -30,7 +30,7 @@ class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<Ex
         registerTaskPermission(customerFile, UPDATE_CUSTOMER_DATA)
         acceptBrowserActivity(clerk1) {
 
-            val customerFileAuthToken = loginToService(customerFile)
+            val customerFileAuthToken = uiServiceLogin(customerFile)
 
             val newData = customerData
 
@@ -72,7 +72,7 @@ class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<Ex
         ) { customer ->
             registerTaskPermission(signingService, LoanPermissions.SIGN)
             acceptBrowserActivity(processContext.customer) {
-                val signingToken = loginToService(signingService)
+                val signingToken = uiServiceLogin(signingService)
                 signingService.signDocument(signingToken, Approval(true))
             }
         }
@@ -92,13 +92,13 @@ class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<Ex
 
                     acceptBrowserActivity(postProcClerk) {
                         val customerData =
-                            customerFile.getCustomerData(loginToService(customerFile), customer.customerId)
+                            customerFile.getCustomerData(uiServiceLogin(customerFile), customer.customerId)
 
                         if (customerData?.name != approval.signedBy) {
                             throw IllegalArgumentException("Customer and signature mismatch: ${customerData?.name} != ${approval.signedBy}")
                         }
 
-                        val signAuth = loginToService(signingService)
+                        val signAuth = uiServiceLogin(signingService)
                         signingService.signDocument(signAuth, approval)
                     }
                 }
@@ -227,7 +227,7 @@ class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<Ex
                 registerTaskPermission(pricingEngine, LoanPermissions.PRICE_LOAN.restrictTo(Double.NaN))
 
                 acceptBrowserActivity(postProcClerk) {
-                    val pricingEngineLoginToken = loginToService(pricingEngine)
+                    val pricingEngineLoginToken = uiServiceLogin(pricingEngine)
                     pricingEngine.priceLoan(pricingEngineLoginToken, chosenProduct, loanEval)
                 }
             }
@@ -257,7 +257,7 @@ class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<Ex
         registerTaskPermission(outputManagementSystem, LoanPermissions.PRINT_OFFER)
         acceptBrowserActivity(postProcClerk) {
 
-            val printAuth = loginToService(outputManagementSystem)
+            val printAuth = uiServiceLogin(outputManagementSystem)
 
             outputManagementSystem.registerAndPrintOffer(printAuth, approvedOffer)
         }
@@ -284,7 +284,7 @@ class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<Ex
 
         acceptBrowserActivity(postProcClerk) {
 
-            val omsToken = loginToService(outputManagementSystem)
+            val omsToken = uiServiceLogin(outputManagementSystem)
             outputManagementSystem.signAndRegisterContract(omsToken, offer, "Signed by 'the bank manager'")
         }
     }
@@ -297,7 +297,7 @@ class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<Ex
         registerTaskPermission(accountManagementSystem, OPEN_ACCOUNT.invoke(contract.customerId))
 
         acceptBrowserActivity(postProcClerk) {
-            val amsToken = loginToService(accountManagementSystem)
+            val amsToken = uiServiceLogin(accountManagementSystem)
 
             accountManagementSystem.openAccountFor(amsToken, contract)
         }

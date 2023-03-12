@@ -80,6 +80,11 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
         return ExtBuilderImpl(this, processInstanceBuilder)
     }
 
+    override fun canBeAccessedBy(principal: PrincipalCompat): Boolean {
+        require(node is MessageActivity) { "Only message activities have authorization info" }
+        TODO("Implement this for actual AuthRestrictions")
+    }
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other?.getClass() != getClass()) return false
@@ -153,6 +158,13 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
         override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {
             return node.startTask(this)
         }
+
+
+        override fun canBeAccessedBy(principal: PrincipalCompat): Boolean {
+            require(node is MessageActivity) { "Only message activities have authorization info" }
+            TODO("Implement this for actual AuthRestrictions")
+        }
+
     }
 
     private class ExtBuilderImpl(base: DefaultProcessNodeInstance, processInstanceBuilder: ProcessInstance.Builder) : ExtBuilder<ExecutableProcessNode, DefaultProcessNodeInstance>(base, processInstanceBuilder), Builder {

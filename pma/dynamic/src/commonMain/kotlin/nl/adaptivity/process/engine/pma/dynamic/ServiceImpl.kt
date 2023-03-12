@@ -14,20 +14,18 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.pma
+package nl.adaptivity.process.engine.pma.dynamic
 
+import nl.adaptivity.process.engine.pma.*
+import nl.adaptivity.process.engine.pma.models.*
 import java.util.logging.Level
 import kotlin.random.Random
 import kotlin.random.nextULong
 
-interface Service {
-    val serviceId: String
-}
-
-abstract class ServiceImpl(protected val authService: AuthService, protected val serviceAuth: IdSecretAuthInfo) : Service {
+abstract class ServiceImpl(protected val authService: AuthService, protected val serviceAuth: IdSecretAuthInfo) {
     private val tokens = mutableListOf<AuthToken>()
 
-    override val serviceId: String = getServiceId(serviceAuth)
+    val serviceId: String = getServiceId(serviceAuth)
 
     abstract fun getServiceState(): String
 
@@ -39,13 +37,8 @@ abstract class ServiceImpl(protected val authService: AuthService, protected val
         )
     )
 
-    protected fun validateAuthInfo(authInfo: AuthInfo, scope: UseAuthScope) {
+    protected fun Service.validateAuthInfo(authInfo: AuthInfo, scope: UseAuthScope) {
         authService.validateAuthInfo(this, authInfo, scope)
-    }
-
-    fun loginBrowser(browser: Browser): AuthToken {
-        val authorization = browser.loginToService(authService, this)
-        return authService.getAuthToken(serviceAuth, authorization)
     }
 
     fun authTokenForService(service: Service, scope: PermissionScope = ANYSCOPE): AuthToken {
@@ -79,4 +72,16 @@ abstract class ServiceImpl(protected val authService: AuthService, protected val
             }
         }
     }
+}
+
+abstract class UIServiceImpl : ServiceImpl, UIService {
+
+    constructor(authService: AuthService, serviceAuth: IdSecretAuthInfo) : super(authService, serviceAuth)
+    constructor(authService: AuthService, name: String) : super(authService, name)
+
+    fun loginBrowser(browser: Browser): AuthToken {
+        val authorization = browser.loginToService(authService, this)
+        return authService.getAuthToken(serviceAuth, authorization)
+    }
+
 }

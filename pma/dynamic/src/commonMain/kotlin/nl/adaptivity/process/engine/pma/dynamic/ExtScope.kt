@@ -16,6 +16,10 @@
 
 package nl.adaptivity.process.engine.pma
 
+import nl.adaptivity.process.engine.pma.models.PermissionScope
+import nl.adaptivity.process.engine.pma.models.UnionPermissionScope
+import nl.adaptivity.process.engine.pma.models.UseAuthScope
+
 data class ExtScope<V>(val scope: PermissionScope, val extraData: V) :
     PermissionScope, UseAuthScope {
     override val description: String get() = toString()
@@ -24,24 +28,26 @@ data class ExtScope<V>(val scope: PermissionScope, val extraData: V) :
         return this == useScope
     }
 
-    override fun intersect(otherScope: PermissionScope): PermissionScope? = when {
-        this == otherScope || otherScope == scope -> this
+    override fun intersect(otherScope: PermissionScope): PermissionScope? =
+        when {
+            this == otherScope || otherScope == scope -> this
 
-        otherScope is UnionPermissionScope -> otherScope.intersect(this)
+            otherScope is UnionPermissionScope -> otherScope.intersect(this)
 
-        otherScope is ExtScope<*>
-            && extraData == otherScope.extraData  -> {
-            val effectiveScope = scope.intersect(otherScope.scope)
-            effectiveScope?.let { ExtScope(it, extraData) }
+            otherScope is ExtScope<*>
+                && extraData == otherScope.extraData -> {
+                val effectiveScope = scope.intersect(otherScope.scope)
+                effectiveScope?.let { ExtScope(it, extraData) }
+            }
+
+            else -> null
         }
 
-        else                                      -> null
-    }
-
-    override fun union(otherScope: PermissionScope): PermissionScope = when {
-        this == otherScope -> this
-        else               -> UnionPermissionScope(listOf(this, otherScope))
-    }
+    override fun union(otherScope: PermissionScope): PermissionScope =
+        when {
+            this == otherScope -> this
+            else -> UnionPermissionScope(listOf(this, otherScope))
+        }
 
     override fun toString(): String {
         return "${scope.description}($extraData)"

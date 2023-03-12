@@ -60,6 +60,11 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
             }
             super.doFinishTask(engineData, resultPayload)
         }
+
+        override fun canBeAccessedBy(principal: PrincipalCompat): Boolean {
+            error("Splits have no authorization restrictions")
+        }
+
     }
 
     class ExtBuilder(private val instance: SplitInstance, processInstanceBuilder: ProcessInstance.Builder) :
@@ -134,6 +139,10 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
 
     override fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder {
         return ExtBuilder(this, processInstanceBuilder)
+    }
+
+    override fun canBeAccessedBy(principal: PrincipalCompat): Boolean {
+        error("Splits have no authorization restrictions")
     }
 
     private fun successorInstances(engineData: ProcessEngineDataAccess): Sequence<ProcessNodeInstance<*>> {

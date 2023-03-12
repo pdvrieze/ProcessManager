@@ -30,6 +30,9 @@ import nl.adaptivity.xmlutil.serialization.XML
 class RunnableActivityInstance<I : Any, O : Any>(builder: Builder<I, O>) :
     ProcessNodeInstance<RunnableActivityInstance<I, O>>(builder) {
 
+    override fun canBeAccessedBy(principal: PrincipalCompat): Boolean {
+        return node.accessRestrictions!!.hasAccess(this, principal)
+    }
 
     interface Builder<I : Any, O : Any> :
         ProcessNodeInstance.Builder<RunnableActivity<I, O, ActivityInstanceContext>, RunnableActivityInstance<I, O>> {
@@ -79,6 +82,10 @@ class RunnableActivityInstance<I : Any, O : Any>(builder: Builder<I, O>) :
 
         override fun doTakeTask(engineData: MutableProcessEngineDataAccess): Boolean {
             return true
+        }
+
+        override fun canBeAccessedBy(principal: PrincipalCompat): Boolean {
+            return node.accessRestrictions?.hasAccess(this, principal) ?: true
         }
     }
 

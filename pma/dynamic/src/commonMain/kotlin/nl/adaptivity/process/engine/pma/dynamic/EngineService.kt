@@ -20,6 +20,11 @@ import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.pma.CommonPMAPermissions.GRANT_GLOBAL_PERMISSION
 import nl.adaptivity.process.engine.pma.CommonPMAPermissions.UPDATE_ACTIVITY_STATE
+import nl.adaptivity.process.engine.pma.dynamic.ServiceImpl
+import nl.adaptivity.process.engine.pma.models.AutomatedService
+import nl.adaptivity.process.engine.pma.models.PermissionScope
+import nl.adaptivity.process.engine.pma.models.Service
+import nl.adaptivity.process.engine.pma.models.UnionPermissionScope
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
@@ -29,7 +34,7 @@ import kotlin.random.Random
 class EngineService(
     authService: AuthService,
     serviceAuth: IdSecretAuthInfo = newEngineClientAuth(authService),
-) : ServiceImpl(authService, serviceAuth) {
+) : ServiceImpl(authService, serviceAuth), AutomatedService {
 
     private val taskLists: MutableMap<PNIHandle, List<TaskList>> = mutableMapOf()
 

@@ -16,18 +16,8 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
-import kotlinx.serialization.*
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
-import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
-import nl.adaptivity.serialutil.DelegatingSerializer
-import nl.adaptivity.xmlutil.serialization.XmlDefault
-import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 
 /**
@@ -57,6 +47,8 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
     override val condition: Condition?
         get() = xmlCondition
 
+    override val accessRestrictions: AuthRestriction?
+
     constructor(
         builder: MessageActivity.Builder,
         newOwner: ProcessModel<*>,
@@ -65,6 +57,7 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
         childModel = null
         childId = null
         message = builder.message
+        accessRestrictions = builder.authRestrictions
     }
 
     constructor(
@@ -75,6 +68,7 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
         childModel = buildHelper.childModel(builder)
         childId = builder.childId
         message = null
+        accessRestrictions = null
     }
 
     constructor(
@@ -86,6 +80,7 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
         childModel = id?.let { buildHelper.childModel(it) }
         childId = id
         message = null
+        accessRestrictions = null
     }
 
     override fun builder(): Activity.Builder = when {

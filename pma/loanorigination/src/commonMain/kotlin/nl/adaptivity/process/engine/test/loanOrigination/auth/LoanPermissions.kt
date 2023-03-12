@@ -18,9 +18,9 @@ package nl.adaptivity.process.engine.test.loanOrigination.auth
 
 import net.devrieze.util.Handle
 import nl.adaptivity.process.engine.pma.ExtScope
-import nl.adaptivity.process.engine.pma.PermissionScope
-import nl.adaptivity.process.engine.pma.UnionPermissionScope
-import nl.adaptivity.process.engine.pma.UseAuthScope
+import nl.adaptivity.process.engine.pma.models.PermissionScope
+import nl.adaptivity.process.engine.pma.models.UnionPermissionScope
+import nl.adaptivity.process.engine.pma.models.UseAuthScope
 import nl.adaptivity.process.engine.test.PNIHandle
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanApplication
 
@@ -36,7 +36,10 @@ sealed class LoanPermissions : PermissionScope {
             return MonetaryRestrictionPermissionScope(PRICE_LOAN, maxAmount = maxAmount)
         }
 
-        fun restrictTo(customerId: String, maxAmount: Double = Double.NaN): PermissionScope {
+        fun restrictTo(
+            customerId: String,
+            maxAmount: Double = Double.NaN
+        ): PermissionScope {
             return MonetaryRestrictionPermissionScope(PRICE_LOAN, customerId, maxAmount)
         }
     }
@@ -47,13 +50,16 @@ sealed class LoanPermissions : PermissionScope {
             return MonetaryUseScope(SIGN_LOAN, customerId, offerAmount)
         }
 
-        fun restrictTo(customerId: String? = null, maxAmount: Double = Double.NaN): PermissionScope {
+        fun restrictTo(
+            customerId: String? = null,
+            maxAmount: Double = Double.NaN
+        ): PermissionScope {
             return MonetaryRestrictionPermissionScope(SIGN_LOAN, customerId, maxAmount)
         }
 
         override fun includes(useScope: UseAuthScope): Boolean = when (useScope) {
             is ExtScope<*> -> useScope.scope == this
-            else           -> false
+            else -> false
         }
     }
 
@@ -64,7 +70,7 @@ sealed class LoanPermissions : PermissionScope {
         override fun includes(useScope: UseAuthScope): Boolean {
             return when (useScope) {
                 is ExtScope<*> -> Handle.invalid<Any>() != useScope.extraData
-                else           -> false
+                else -> false
             }
         }
     }
@@ -72,7 +78,10 @@ sealed class LoanPermissions : PermissionScope {
     object EVALUATE_LOAN : LoanPermissions() {
         fun context(application: LoanApplication) = context(application.customerId, application.amount)
         fun context(customerId: String, amount: Double) = MonetaryUseScope(EVALUATE_LOAN, customerId, amount)
-        operator fun invoke(customerId: String? = null, maxAmount: Double = Double.NaN): PermissionScope {
+        operator fun invoke(
+            customerId: String? = null,
+            maxAmount: Double = Double.NaN
+        ): PermissionScope {
             return MonetaryRestrictionPermissionScope(EVALUATE_LOAN, customerId, maxAmount)
         }
     }
@@ -89,13 +98,13 @@ sealed class LoanPermissions : PermissionScope {
             contextImpl(hNodeInstance)
 
         override fun includes(useScope: UseAuthScope): Boolean {
-            return useScope is ExtScope<*> && useScope.scope==this
+            return useScope is ExtScope<*> && useScope.scope == this
         }
 
         override fun intersect(otherScope: PermissionScope): PermissionScope? {
             return when {
                 otherScope == UPDATE_ACTIVITY_STATE -> this
-                otherScope is ExtScope<*> && otherScope.scope ==this -> otherScope
+                otherScope is ExtScope<*> && otherScope.scope == this -> otherScope
                 else -> null
             }
         }
@@ -123,10 +132,11 @@ sealed class LoanPermissions : PermissionScope {
         return if (otherScope is UseAuthScope && includes(otherScope)) otherScope else null
     }
 
-    override fun union(otherScope: PermissionScope): PermissionScope = when (otherScope) {
-        this -> this
-        else -> UnionPermissionScope(listOf(this, otherScope))
-    }
+    override fun union(otherScope: PermissionScope): PermissionScope =
+        when (otherScope) {
+            this -> this
+            else -> UnionPermissionScope(listOf(this, otherScope))
+        }
 
     override val description: String
         get() = javaClass.simpleName.substringAfterLast('.')
@@ -134,7 +144,8 @@ sealed class LoanPermissions : PermissionScope {
     override fun toString(): String = description
 }
 
-class MonetaryUseScope(val scope: LoanPermissions, val customerId: String, val amount: Double) : UseAuthScope {
+class MonetaryUseScope(val scope: LoanPermissions, val customerId: String, val amount: Double) :
+    UseAuthScope {
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
@@ -180,9 +191,9 @@ class MonetaryRestrictionPermissionScope(
         ) return UnionPermissionScope(listOf(this, otherScope))
         val effectiveCustomerId = if (customerId != null) otherScope.customerId else null
         val effectiveMax = when {
-            !maxAmount.isFinite()            -> otherScope.maxAmount
+            !maxAmount.isFinite() -> otherScope.maxAmount
             !otherScope.maxAmount.isFinite() -> maxAmount
-            else                             -> maxOf(maxAmount, otherScope.maxAmount)
+            else -> maxOf(maxAmount, otherScope.maxAmount)
         }
         return MonetaryRestrictionPermissionScope(scope, effectiveCustomerId, effectiveMax)
     }
@@ -194,9 +205,9 @@ class MonetaryRestrictionPermissionScope(
         if (customerId != null && otherScope.customerId != null && customerId != otherScope.customerId) return null
         val effectiveCustomerId = customerId ?: otherScope.customerId
         val effectiveMax = when {
-            !maxAmount.isFinite()            -> otherScope.maxAmount
+            !maxAmount.isFinite() -> otherScope.maxAmount
             !otherScope.maxAmount.isFinite() -> maxAmount
-            else                             -> minOf(maxAmount, otherScope.maxAmount)
+            else -> minOf(maxAmount, otherScope.maxAmount)
         }
         if (effectiveMax <= 0.0) return null
         return MonetaryRestrictionPermissionScope(scope, effectiveCustomerId, effectiveMax)
@@ -205,9 +216,9 @@ class MonetaryRestrictionPermissionScope(
     override val description: String
         get() = when {
             customerId == null && !maxAmount.isFinite() -> "${scope.description}()"
-            customerId == null                          -> "${scope.description}(# <= $maxAmount)"
-            !maxAmount.isFinite()                       -> "${scope.description}($customerId)"
-            else                                        -> "${scope.description}($customerId, # <= $maxAmount)"
+            customerId == null -> "${scope.description}(# <= $maxAmount)"
+            !maxAmount.isFinite() -> "${scope.description}($customerId)"
+            else -> "${scope.description}($customerId, # <= $maxAmount)"
         }
 
     override fun toString(): String {

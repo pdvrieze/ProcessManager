@@ -18,17 +18,20 @@ package nl.adaptivity.process.engine.pma
 
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
+import nl.adaptivity.process.engine.pma.models.PermissionScope
+import nl.adaptivity.process.engine.pma.models.Service
+import nl.adaptivity.process.engine.pma.models.UnionPermissionScope
+import nl.adaptivity.process.engine.pma.models.UseAuthScope
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 
 internal typealias PNIHandle = Handle<SecureObject<ProcessNodeInstance<*>>>
 
 sealed class CommonPMAPermissions : PermissionScope {
-    object POST_TASK: CommonPMAPermissions(), UseAuthScope
+    object POST_TASK : CommonPMAPermissions(), UseAuthScope
     object ACCEPT_TASK : CommonPMAPermissions(), UseAuthScope {
         operator fun invoke(hNodeInstance: PNIHandle) =
             contextImpl(hNodeInstance)
     }
-
 
 
     object INVALIDATE_ACTIVITY : CommonPMAPermissions() {
@@ -38,12 +41,10 @@ sealed class CommonPMAPermissions : PermissionScope {
         override fun includes(useScope: UseAuthScope): Boolean {
             return when (useScope) {
                 is ExtScope<*> -> Handle.invalid<Any>() != useScope.extraData
-                else           -> false
+                else -> false
             }
         }
     }
-
-
 
 
     object UPDATE_ACTIVITY_STATE : CommonPMAPermissions() {
@@ -52,13 +53,13 @@ sealed class CommonPMAPermissions : PermissionScope {
             contextImpl(hNodeInstance)
 
         override fun includes(useScope: UseAuthScope): Boolean {
-            return useScope is ExtScope<*> && useScope.scope==this
+            return useScope is ExtScope<*> && useScope.scope == this
         }
 
         override fun intersect(otherScope: PermissionScope): PermissionScope? {
             return when {
                 otherScope == UPDATE_ACTIVITY_STATE -> this
-                otherScope is ExtScope<*> && otherScope.scope ==this -> otherScope
+                otherScope is ExtScope<*> && otherScope.scope == this -> otherScope
                 else -> null
             }
         }
@@ -77,7 +78,7 @@ sealed class CommonPMAPermissions : PermissionScope {
             clientId: String,
             service: Service,
             scope: PermissionScope
-                   ): UseAuthScope {
+        ): UseAuthScope {
             return ContextScope(clientId, service.serviceId, scope)
         }
 
@@ -85,14 +86,14 @@ sealed class CommonPMAPermissions : PermissionScope {
             clientId: String? = null,
             service: Service? = null,
             scope: PermissionScope? = null
-                      ): PermissionScope {
+        ): PermissionScope {
             return ContextScope(clientId, service?.serviceId, scope)
         }
 
         fun restrictTo(
             service: Service? = null,
             scope: PermissionScope? = null
-                      ): PermissionScope {
+        ): PermissionScope {
             return ContextScope(null, service?.serviceId, scope)
         }
 
@@ -112,25 +113,29 @@ sealed class CommonPMAPermissions : PermissionScope {
             return super.union(otherScope)
         }
 
-        data class ContextScope(val clientId: String?, val serviceId: String?, val childScope: PermissionScope? = null) :
+        data class ContextScope(
+            val clientId: String?,
+            val serviceId: String?,
+            val childScope: PermissionScope? = null
+        ) :
             UseAuthScope, PermissionScope {
             override fun includes(useScope: UseAuthScope): Boolean = when {
                 useScope is GRANT_ACTIVITY_PERMISSION.ContextScope &&
-                    useScope.childScope!=null &&
+                    useScope.childScope != null &&
                     (clientId == null || clientId == useScope.clientId) &&
                     (serviceId == null || serviceId != useScope.serviceId) &&
                     (childScope == null || childScope.intersect(useScope.childScope) == useScope.childScope)
-                                   -> true
+                -> true
 
                 useScope !is ContextScope ||
                     useScope.childScope == null ||
                     clientId != null && clientId != useScope.clientId ||
                     serviceId != null && serviceId != useScope.serviceId
-                                   -> false
+                -> false
 
                 childScope == null -> true
 
-                else               -> childScope.intersect(useScope.childScope) == useScope.childScope
+                else -> childScope.intersect(useScope.childScope) == useScope.childScope
             }
 
             fun toActivityPermission(taskHandle: PNIHandle): PermissionScope {
@@ -144,7 +149,7 @@ sealed class CommonPMAPermissions : PermissionScope {
                     return toActivityPermission(otherScope.taskInstanceHandle).intersect(otherScope)
                 } else if (otherScope is UnionPermissionScope) {
                     return otherScope.intersect(this)
-                } else if (otherScope !is ContextScope) return  null
+                } else if (otherScope !is ContextScope) return null
 
                 val effectiveClient = when {
                     clientId == null -> otherScope.clientId
@@ -154,47 +159,59 @@ sealed class CommonPMAPermissions : PermissionScope {
                 }
 
                 val effectiveService = when {
-                    serviceId == null               -> otherScope.serviceId
-                    otherScope.serviceId == null      -> otherScope.serviceId
+                    serviceId == null -> otherScope.serviceId
+                    otherScope.serviceId == null -> otherScope.serviceId
                     serviceId == otherScope.serviceId -> serviceId
-                    else                            -> return null
+                    else -> return null
                 }
 
                 val effectiveScope = when {
-                    childScope == null       -> otherScope.childScope
+                    childScope == null -> otherScope.childScope
                     otherScope.childScope == null -> otherScope.childScope
-                    else                     -> childScope.intersect(otherScope.childScope) ?: return null
+                    else -> childScope.intersect(otherScope.childScope) ?: return null
                 }
                 return ContextScope(effectiveClient, effectiveService, effectiveScope)
             }
 
             override fun union(otherScope: PermissionScope): PermissionScope {
                 if (otherScope == GRANT_GLOBAL_PERMISSION) return otherScope
-                else if (otherScope !is ContextScope) return UnionPermissionScope(listOf(this, otherScope))
+                else if (otherScope !is ContextScope) return UnionPermissionScope(
+                    listOf(this, otherScope)
+                )
 
                 val effectiveClient = when {
-                    clientId == null || otherScope.clientId==null -> null
+                    clientId == null || otherScope.clientId == null -> null
                     clientId == otherScope.clientId -> clientId
-                    else -> return UnionPermissionScope(listOf(this, otherScope))
+                    else -> return UnionPermissionScope(
+                        listOf(
+                            this,
+                            otherScope
+                        )
+                    )
                 }
 
                 val effectiveService = when {
-                    serviceId == null               -> null
-                    otherScope.serviceId == null      -> null
+                    serviceId == null -> null
+                    otherScope.serviceId == null -> null
                     serviceId == otherScope.serviceId -> serviceId
-                    else                            -> return UnionPermissionScope(listOf(this, otherScope))
+                    else -> return UnionPermissionScope(
+                        listOf(
+                            this,
+                            otherScope
+                        )
+                    )
                 }
 
                 val effectiveScope = when {
-                    childScope == null       -> otherScope.childScope
+                    childScope == null -> otherScope.childScope
                     otherScope.childScope == null -> otherScope.childScope
-                    else                     -> childScope.union(otherScope.childScope)
+                    else -> childScope.union(otherScope.childScope)
                 }
                 return ContextScope(effectiveClient, effectiveService, effectiveScope)
             }
 
             override val description: String
-                get() = "GRANT_GLOBAL_PERMISSION(${clientId?:"<anyClient>"}.${serviceId?:"<anyService>"}.${childScope?.description?:"*"})"
+                get() = "GRANT_GLOBAL_PERMISSION(${clientId ?: "<anyClient>"}.${serviceId ?: "<anyService>"}.${childScope?.description ?: "*"})"
 
             override fun toString(): String {
                 return description
@@ -275,7 +292,12 @@ sealed class CommonPMAPermissions : PermissionScope {
             return super.union(otherScope)
         }
 
-        data class ContextScope(val taskInstanceHandle: PNIHandle, val clientId: String?, val serviceId: String?, val childScope: PermissionScope? = null) :
+        data class ContextScope(
+            val taskInstanceHandle: PNIHandle,
+            val clientId: String?,
+            val serviceId: String?,
+            val childScope: PermissionScope? = null
+        ) :
             UseAuthScope, PermissionScope {
 
             init {
@@ -289,9 +311,10 @@ sealed class CommonPMAPermissions : PermissionScope {
                     useScope.taskInstanceHandle != taskInstanceHandle ||
                     clientId != null && clientId != useScope.clientId ||
                     serviceId != null && serviceId != useScope.serviceId
-                                   -> false
+                -> false
+
                 childScope == null -> true
-                else               -> childScope.intersect(useScope.childScope) == useScope.childScope
+                else -> childScope.intersect(useScope.childScope) == useScope.childScope
             }
 
             override fun intersect(otherScope: PermissionScope): PermissionScope? {
@@ -302,7 +325,8 @@ sealed class CommonPMAPermissions : PermissionScope {
                 } else if (otherScope is UnionPermissionScope) {
                     return otherScope.intersect(this)
                 } else if (otherScope !is ContextScope ||
-                    taskInstanceHandle!=otherScope.taskInstanceHandle) return null
+                    taskInstanceHandle != otherScope.taskInstanceHandle
+                ) return null
 
                 val effectiveClient = when {
                     clientId == null -> otherScope.clientId
@@ -312,16 +336,16 @@ sealed class CommonPMAPermissions : PermissionScope {
                 }
 
                 val effectiveService = when {
-                    serviceId == null               -> otherScope.serviceId
-                    otherScope.serviceId == null      -> otherScope.serviceId
+                    serviceId == null -> otherScope.serviceId
+                    otherScope.serviceId == null -> otherScope.serviceId
                     serviceId == otherScope.serviceId -> serviceId
-                    else                            -> return null
+                    else -> return null
                 }
 
                 val effectiveScope = when {
-                    childScope == null       -> otherScope.childScope
+                    childScope == null -> otherScope.childScope
                     otherScope.childScope == null -> otherScope.childScope
-                    else                     -> childScope.intersect(otherScope.childScope) ?: return null
+                    else -> childScope.intersect(otherScope.childScope) ?: return null
                 }
                 return ContextScope(taskInstanceHandle, effectiveClient, effectiveService, effectiveScope)
             }
@@ -329,32 +353,42 @@ sealed class CommonPMAPermissions : PermissionScope {
             override fun union(otherScope: PermissionScope): PermissionScope {
                 if (otherScope == GRANT_ACTIVITY_PERMISSION) return otherScope
                 else if (otherScope !is ContextScope ||
-                        taskInstanceHandle != otherScope.taskInstanceHandle
-                    ) return UnionPermissionScope(listOf(this, otherScope))
+                    taskInstanceHandle != otherScope.taskInstanceHandle
+                ) return UnionPermissionScope(listOf(this, otherScope))
 
                 val effectiveClient = when {
-                    clientId == null || otherScope.clientId==null -> null
+                    clientId == null || otherScope.clientId == null -> null
                     clientId == otherScope.clientId -> clientId
-                    else -> return UnionPermissionScope(listOf(this, otherScope))
+                    else -> return UnionPermissionScope(
+                        listOf(
+                            this,
+                            otherScope
+                        )
+                    )
                 }
 
                 val effectiveService = when {
-                    serviceId == null               -> null
-                    otherScope.serviceId == null      -> null
+                    serviceId == null -> null
+                    otherScope.serviceId == null -> null
                     serviceId == otherScope.serviceId -> serviceId
-                    else                            -> return UnionPermissionScope(listOf(this, otherScope))
+                    else -> return UnionPermissionScope(
+                        listOf(
+                            this,
+                            otherScope
+                        )
+                    )
                 }
 
                 val effectiveScope = when {
-                    childScope == null       -> otherScope.childScope
+                    childScope == null -> otherScope.childScope
                     otherScope.childScope == null -> otherScope.childScope
-                    else                     -> childScope.union(otherScope.childScope)
+                    else -> childScope.union(otherScope.childScope)
                 }
                 return ContextScope(taskInstanceHandle, effectiveClient, effectiveService, effectiveScope)
             }
 
             override val description: String
-                get() = "GRANT_ACTIVITY_PERMISSION($taskInstanceHandle, ${clientId?:"<anyClient>"}->${serviceId?:"<anyService>"}.${childScope?.description?:"*"})"
+                get() = "GRANT_ACTIVITY_PERMISSION($taskInstanceHandle, ${clientId ?: "<anyClient>"}->${serviceId ?: "<anyService>"}.${childScope?.description ?: "*"})"
 
             override fun toString(): String {
                 return description
@@ -430,16 +464,20 @@ sealed class CommonPMAPermissions : PermissionScope {
             return super.union(otherScope)
         }
 
-        data class DelegateContextScope(val serviceId: String?, val childScope: PermissionScope? = null) :
+        data class DelegateContextScope(
+            val serviceId: String?,
+            val childScope: PermissionScope? = null
+        ) :
             UseAuthScope, PermissionScope {
 
             override fun includes(useScope: UseAuthScope): Boolean = when {
                 useScope !is DelegateContextScope ||
                     useScope.childScope == null ||
                     serviceId != null && serviceId != useScope.serviceId
-                                   -> false
+                -> false
+
                 childScope == null -> true
-                else               -> childScope.intersect(useScope.childScope) == useScope.childScope
+                else -> childScope.intersect(useScope.childScope) == useScope.childScope
             }
 
             override fun intersect(otherScope: PermissionScope): PermissionScope? {
@@ -451,16 +489,16 @@ sealed class CommonPMAPermissions : PermissionScope {
                     else -> {
 
                         val effectiveService = when {
-                            serviceId == null               -> otherScope.serviceId
-                            otherScope.serviceId == null      -> otherScope.serviceId
+                            serviceId == null -> otherScope.serviceId
+                            otherScope.serviceId == null -> otherScope.serviceId
                             serviceId == otherScope.serviceId -> serviceId
-                            else                            -> return null
+                            else -> return null
                         }
 
                         val effectiveScope = when {
-                            childScope == null       -> otherScope.childScope
+                            childScope == null -> otherScope.childScope
                             otherScope.childScope == null -> otherScope.childScope
-                            else                     -> childScope.intersect(otherScope.childScope) ?: return null
+                            else -> childScope.intersect(otherScope.childScope) ?: return null
                         }
                         return DelegateContextScope(effectiveService, effectiveScope)
                     }
@@ -471,20 +509,28 @@ sealed class CommonPMAPermissions : PermissionScope {
             override fun union(otherScope: PermissionScope): PermissionScope {
                 when (otherScope) {
                     DELEGATED_PERMISSION -> return otherScope
-                    !is DelegateContextScope -> return UnionPermissionScope(listOf(this, otherScope))
+                    !is DelegateContextScope -> return UnionPermissionScope(
+                        listOf(this, otherScope)
+                    )
+
                     else -> {
 
                         val effectiveService = when {
-                            serviceId == null               -> null
-                            otherScope.serviceId == null      -> null
+                            serviceId == null -> null
+                            otherScope.serviceId == null -> null
                             serviceId == otherScope.serviceId -> serviceId
-                            else                            -> return UnionPermissionScope(listOf(this, otherScope))
+                            else -> return UnionPermissionScope(
+                                listOf(
+                                    this,
+                                    otherScope
+                                )
+                            )
                         }
 
                         val effectiveScope = when {
-                            childScope == null       -> otherScope.childScope
+                            childScope == null -> otherScope.childScope
                             otherScope.childScope == null -> otherScope.childScope
-                            else                     -> childScope.union(otherScope.childScope)
+                            else -> childScope.union(otherScope.childScope)
                         }
                         return DelegateContextScope(effectiveService, effectiveScope)
                     }
@@ -532,10 +578,11 @@ sealed class CommonPMAPermissions : PermissionScope {
         return if (otherScope is UseAuthScope && includes(otherScope)) otherScope else null
     }
 
-    override fun union(otherScope: PermissionScope): PermissionScope = when (otherScope) {
-        this -> this
-        else -> UnionPermissionScope(listOf(this, otherScope))
-    }
+    override fun union(otherScope: PermissionScope): PermissionScope =
+        when (otherScope) {
+            this -> this
+            else -> UnionPermissionScope(listOf(this, otherScope))
+        }
 
     override val description: String
         get() = javaClass.simpleName.substringAfterLast('.')

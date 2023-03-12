@@ -18,7 +18,8 @@ package nl.adaptivity.process.engine.test.loanOrigination.systems
 
 import nl.adaptivity.process.engine.pma.AuthInfo
 import nl.adaptivity.process.engine.pma.AuthService
-import nl.adaptivity.process.engine.pma.ServiceImpl
+import nl.adaptivity.process.engine.pma.dynamic.UIServiceImpl
+import nl.adaptivity.process.engine.pma.models.AutomatedService
 import nl.adaptivity.process.engine.pma.nextString
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.Contract
@@ -26,7 +27,8 @@ import nl.adaptivity.process.engine.test.loanOrigination.datatypes.Offer
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.PricedLoanProductBundle
 import kotlin.random.Random
 
-class OutputManagementSystem(authService: AuthService): ServiceImpl(authService, "Output_Management_System") {
+class OutputManagementSystem(authService: AuthService): UIServiceImpl(authService, "Output_Management_System"),
+    AutomatedService {
 
     override fun getServiceState(): String = ""
 

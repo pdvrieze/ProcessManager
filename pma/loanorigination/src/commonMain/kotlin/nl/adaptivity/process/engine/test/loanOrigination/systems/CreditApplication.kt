@@ -18,7 +18,8 @@ package nl.adaptivity.process.engine.test.loanOrigination.systems
 
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.AuthToken
-import nl.adaptivity.process.engine.pma.ServiceImpl
+import nl.adaptivity.process.engine.pma.dynamic.ServiceImpl
+import nl.adaptivity.process.engine.pma.models.AutomatedService
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CreditReport
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanApplication
@@ -27,7 +28,7 @@ import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanEvaluatio
 class CreditApplication(
     authService: AuthService,
     val customerInformationFile: CustomerInformationFile,
-) : ServiceImpl(authService, "Credit_Application") {
+) : ServiceImpl(authService, "Credit_Application"), AutomatedService {
 
     override fun getServiceState(): String = ""
 

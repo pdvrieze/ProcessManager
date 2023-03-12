@@ -1,11 +1,13 @@
 package nl.adaptivity.process.engine.pma
 
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.RunnableActivity
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ActivityInstanceContext
+import nl.adaptivity.process.engine.pma.models.PermissionScope
+import nl.adaptivity.process.engine.pma.models.Service
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
-import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 abstract class PMAActivityContext<A : PMAActivityContext<A>>(private val baseContext: ActivityInstanceContext) :
@@ -19,7 +21,8 @@ abstract class PMAActivityContext<A : PMAActivityContext<A>>(private val baseCon
 
     lateinit var taskListService: TaskList
 
-    override val node: ProcessNode get() = baseContext.node
+    @Suppress("UNCHECKED_CAST")
+    override val node: RunnableActivity<*,*, A> get() = baseContext.node as RunnableActivity<*, *, A>
 
     override val state: NodeInstanceState get() = baseContext.state
 
@@ -104,12 +107,20 @@ abstract class PMAActivityContext<A : PMAActivityContext<A>>(private val baseCon
      * TODO Function that registers permissions for the task. This should be done based upon task definition
      *      and in acceptActivity.
      */
-    fun registerDelegatePermission(clientService: Service, service: Service, scope: PermissionScope) {
+    fun registerDelegatePermission(
+        clientService: Service,
+        service: Service,
+        scope: PermissionScope
+    ) {
         val delegateScope =
             CommonPMAPermissions.DELEGATED_PERMISSION.restrictTo(clientService.serviceId, service, scope)
         pendingPermissions.add(PendingPermission(null, clientService, delegateScope))
     }
 
-    class PendingPermission(val clientId: String? = null, val service: Service, val scope: PermissionScope)
+    class PendingPermission(
+        val clientId: String? = null,
+        val service: Service,
+        val scope: PermissionScope
+    )
 
 }

@@ -34,9 +34,16 @@ import nl.adaptivity.xmlutil.util.ICompactFragment
  * Class representing a node instance that wraps a composite activity.
  */
 class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstance>(builder) {
+    override fun canBeAccessedBy(principal: PrincipalCompat): Boolean {
+        error("Composite activities have no authorization")
+    }
 
     interface Builder : ProcessNodeInstance.Builder<ExecutableCompositeActivity, CompositeInstance> {
         var hChildInstance: Handle<SecureObject<ProcessInstance>>
+
+        override fun canBeAccessedBy(principal: PrincipalCompat): Boolean {
+            error("Composite activities have no authorization")
+        }
 
         override fun doProvideTask(engineData: MutableProcessEngineDataAccess): Boolean {
             val shouldProgress = node.provideTask(engineData, this)

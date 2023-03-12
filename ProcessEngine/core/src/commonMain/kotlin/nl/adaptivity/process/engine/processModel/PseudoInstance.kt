@@ -21,6 +21,7 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
+import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
@@ -52,6 +53,9 @@ class PseudoInstance(
     override fun toString(): String {
         return "pseudo instance ($handle, ${node.id}[$entryNo] - $state)"
     }
+    override fun canBeAccessedBy(principal: PrincipalCompat): Boolean {
+        throw UnsupportedOperationException("Pseudo instances have no authorization restrictions")
+    }
 
     class PseudoContext(
         val processInstance: IProcessInstance,
@@ -67,6 +71,10 @@ class PseudoInstance(
 
         override val processInstanceHandle: Handle<SecureObject<ProcessInstance>>
             get() = processInstance.handle
+
+        override fun instancesForName(name: Identified): List<IProcessNodeInstance> {
+            return processInstance.allChildNodeInstances().filter { it.node.id == name.id }.toList()
+        }
 
         init {
             for (child in processInstance.allChildNodeInstances()) {

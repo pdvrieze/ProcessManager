@@ -29,6 +29,7 @@ import nl.adaptivity.process.processModel.MessageActivity
 import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
+import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.addSuppressedCompat
 import nl.adaptivity.util.multiplatform.assert
@@ -95,6 +96,9 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
     override val processContext: ProcessInstanceContext
         get() = object : ProcessInstanceContext {
             override val processInstanceHandle: Handle<SecureObject<ProcessInstance>> get() = hProcessInstance
+            override fun instancesForName(name: Identified): List<IProcessNodeInstance> {
+                throw UnsupportedOperationException("The actual process context is not available here.")
+            }
         }
 
     override fun build(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance<T> = this

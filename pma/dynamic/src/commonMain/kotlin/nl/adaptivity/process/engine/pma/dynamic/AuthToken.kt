@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine.pma
 
+import nl.adaptivity.process.engine.pma.models.PermissionScope
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 class AuthToken(

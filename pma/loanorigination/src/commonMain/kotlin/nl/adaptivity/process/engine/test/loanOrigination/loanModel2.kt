@@ -5,7 +5,7 @@ import io.github.pdvrieze.process.processModel.dynamicProcessModel.OutputRef
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.compositeActivity
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.runnableProcess
 import net.devrieze.util.security.SimplePrincipal
-import nl.adaptivity.process.engine.pma.ANYSCOPE
+import nl.adaptivity.process.engine.pma.models.ANYSCOPE
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.*
 import nl.adaptivity.process.engine.test.loanOrigination.systems.SignedDocument
@@ -20,7 +20,7 @@ val loanModel2 = runnableProcess<LoanActivityContext>("foo", SimplePrincipal("mo
         registerTaskPermission(customerFile, LoanPermissions.UPDATE_CUSTOMER_DATA)
         acceptBrowserActivity(clerk1) {
 
-            val customerFileAuthToken = loginToService(customerFile)
+            val customerFileAuthToken = uiServiceLogin(customerFile)
 
             val newData = customerData
 
@@ -56,7 +56,7 @@ val loanModel2 = runnableProcess<LoanActivityContext>("foo", SimplePrincipal("mo
         ) { customer: LoanCustomer ->
             registerTaskPermission(signingService, LoanPermissions.SIGN)
             acceptBrowserActivity(processContext.customer) {
-                val signingToken = loginToService(signingService)
+                val signingToken = uiServiceLogin(signingService)
                 signingService.signDocument(signingToken, Approval(true))
             }
         }
@@ -72,13 +72,13 @@ val loanModel2 = runnableProcess<LoanActivityContext>("foo", SimplePrincipal("mo
 
                 acceptBrowserActivity(postProcClerk) {
                     val customerData =
-                        customerFile.getCustomerData(loginToService(customerFile), customer.customerId)
+                        customerFile.getCustomerData(uiServiceLogin(customerFile), customer.customerId)
 
                     if (customerData?.name != approval.signedBy) {
                         throw IllegalArgumentException("Customer and signature mismatch: ${customerData?.name} != ${approval.signedBy}")
                     }
 
-                    val signAuth = loginToService(signingService)
+                    val signAuth = uiServiceLogin(signingService)
                     signingService.signDocument(signAuth, approval)
                 }
             }
@@ -187,7 +187,7 @@ val loanModel2 = runnableProcess<LoanActivityContext>("foo", SimplePrincipal("mo
                 registerTaskPermission(pricingEngine, LoanPermissions.PRICE_LOAN.restrictTo(Double.NaN))
 
                 acceptBrowserActivity(postProcClerk) {
-                    val pricingEngineLoginToken = loginToService(pricingEngine)
+                    val pricingEngineLoginToken = uiServiceLogin(pricingEngine)
                     pricingEngine.priceLoan(pricingEngineLoginToken, chosenProduct, loanEval)
                 }
             }
@@ -211,7 +211,7 @@ val loanModel2 = runnableProcess<LoanActivityContext>("foo", SimplePrincipal("mo
         registerTaskPermission(outputManagementSystem, LoanPermissions.PRINT_OFFER)
         acceptBrowserActivity(postProcClerk) {
 
-            val printAuth = loginToService(outputManagementSystem)
+            val printAuth = uiServiceLogin(outputManagementSystem)
 
             outputManagementSystem.registerAndPrintOffer(printAuth, approvedOffer)
         }
@@ -235,7 +235,7 @@ val loanModel2 = runnableProcess<LoanActivityContext>("foo", SimplePrincipal("mo
 
         acceptBrowserActivity(postProcClerk) {
 
-            val omsToken = loginToService(outputManagementSystem)
+            val omsToken = uiServiceLogin(outputManagementSystem)
             outputManagementSystem.signAndRegisterContract(omsToken, offer, "Signed by 'the bank manager'")
         }
     }
@@ -246,7 +246,7 @@ val loanModel2 = runnableProcess<LoanActivityContext>("foo", SimplePrincipal("mo
         registerTaskPermission(accountManagementSystem, LoanPermissions.OPEN_ACCOUNT.invoke(contract.customerId))
 
         acceptBrowserActivity(postProcClerk) {
-            val amsToken = loginToService(accountManagementSystem)
+            val amsToken = uiServiceLogin(accountManagementSystem)
 
             accountManagementSystem.openAccountFor(amsToken, contract)
         }

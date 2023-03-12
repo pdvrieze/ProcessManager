@@ -22,11 +22,12 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.ProcessNode
+import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 interface ProcessInstanceContext {
     val processInstanceHandle : Handle<SecureObject<ProcessInstance>>
-
+    fun instancesForName(name: Identified): List<IProcessNodeInstance>
 }
 
 interface ActivityInstanceContext {
@@ -35,6 +36,8 @@ interface ActivityInstanceContext {
     val state: NodeInstanceState
     val owner: PrincipalCompat
     val nodeInstanceHandle : Handle<SecureObject<ProcessNodeInstance<*>>>
+
+    fun canBeAccessedBy(principal: PrincipalCompat): Boolean
 }
 
 interface ProcessContextFactory<out A : ActivityInstanceContext> {

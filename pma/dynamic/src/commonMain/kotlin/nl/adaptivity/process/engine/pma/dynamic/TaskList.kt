@@ -16,6 +16,8 @@
 
 package nl.adaptivity.process.engine.pma
 
+import nl.adaptivity.process.engine.pma.dynamic.UIServiceImpl
+import nl.adaptivity.process.engine.pma.models.TaskListService
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 class TaskList constructor(
@@ -23,7 +25,7 @@ class TaskList constructor(
     private val engineService: EngineService,
     clientAuth: IdSecretAuthInfo,
     val principal: PrincipalCompat
-) : ServiceImpl(authService, clientAuth) {
+) : UIServiceImpl(authService, clientAuth), TaskListService {
 //    val nodeInstanceHandle: PNIHandle? get() = activityAccessToken?.nodeInstanceHandle
 
     override fun getServiceState(): String = principal.name
@@ -68,11 +70,11 @@ class TaskList constructor(
     }
 
     interface Context {
-        fun loginToService(service: ServiceImpl): AuthToken
+        fun uiServiceLogin(service: UIServiceImpl): AuthToken
     }
 
     private inner class ContextImpl(val browser: Browser) : Context {
-        override fun loginToService(service: ServiceImpl): AuthToken {
+        override fun uiServiceLogin(service: UIServiceImpl): AuthToken {
             logMe(service.serviceId)
             return browser.loginToService(service)
 //            return authService.getAuthTokenDirect(browser.user, taskIdentityToken!!, service, ANYSCOPE)
