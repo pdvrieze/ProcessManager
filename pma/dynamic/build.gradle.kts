@@ -22,9 +22,9 @@ plugins {
 }
 
 base {
-    archivesName.set("PE-loan-origination model")
+    archivesName.set("PE-pma-dynamic")
     version = "1.0.0"
-    description = "An implementation of the loan origination case."
+    description = "Dynamic PMA model"
 }
 
 kotlin {
@@ -39,15 +39,6 @@ kotlin {
                 }
             }
         }
-/*
-        jvmAndroid {
-            compilations.all {
-                kotlinOptions {
-                    jvmTarget = libs.versions.kotlin.androidClassTarget.get()
-                }
-            }
-        }
-*/
     }
 
     sourceSets {
@@ -59,14 +50,14 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":ProcessEngine:core"))
-                implementation(project(":pma:dynamic"))
+                api(project(":pma:core"))
                 implementation(project(":ProcessEngine:testLib"))
                 implementation(project(":multiplatform"))
                 implementation(project(":dynamicProcessModel"))
 
                 implementation(libs.kotlinx.serialization.core)
                 implementation(libs.xmlutil.core)
-//                api(libs.xmlutil.serialutil)
+                implementation(libs.xmlutil.serialutil)
                 implementation(libs.xmlutil.serialization)
                 implementation(kotlin("test"))
                 implementation(kotlin("test-annotations-common"))

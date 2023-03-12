@@ -1,0 +1,8 @@
+<component name="ArtifactManager">
+  <artifact type="jar" name="PE-loan-origination model-jvm-1.0.0">
+    <output-path>$PROJECT_DIR$/pma/loanorigination/build/libs</output-path>
+    <root id="archive" name="PE-loan-origination model-jvm-1.0.0.jar">
+      <element id="module-output" name="ProcessManager.pma.loanorigination.jvmMain" />
+    </root>
+  </artifact>
+</component>

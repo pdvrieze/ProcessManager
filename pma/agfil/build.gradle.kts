@@ -14,8 +14,6 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import multiplatform.jvmAndroid
-
 plugins {
     kotlin("multiplatform")
     id("net.devrieze.gradlecodegen")
@@ -24,9 +22,9 @@ plugins {
 }
 
 base {
-    archivesName.set("PE-dynamic-model")
+    archivesName.set("PE-pma-agfil")
     version = "1.0.0"
-    description = "A library supporting in-process process models"
+    description = "Model of the AGFIL case"
 }
 
 kotlin {
@@ -38,13 +36,6 @@ kotlin {
                 }
                 tasks.withType<Test> {
                     useJUnitPlatform()
-                }
-            }
-        }
-        jvmAndroid {
-            compilations.all {
-                kotlinOptions {
-                    jvmTarget = libs.versions.kotlin.androidClassTarget.get()
                 }
             }
         }
@@ -60,11 +51,17 @@ kotlin {
             dependencies {
                 implementation(project(":ProcessEngine:core"))
                 implementation(project(":pma:core"))
+                implementation(project(":ProcessEngine:testLib"))
+                implementation(project(":multiplatform"))
+                implementation(project(":dynamicProcessModel"))
 
                 implementation(libs.kotlinx.serialization.core)
                 implementation(libs.xmlutil.core)
 //                api(libs.xmlutil.serialutil)
-                api(libs.xmlutil.serialization)
+                implementation(libs.xmlutil.serialization)
+                implementation(kotlin("test"))
+                implementation(kotlin("test-annotations-common"))
+
 
 //                implementation(project(":java-common"))
 
@@ -77,15 +74,10 @@ kotlin {
                 implementation(kotlin("test-annotations-common"))
             }
         }
-        val javaMain by creating {
-            dependsOn(commonMain)
+        val jvmMain by getting {
             dependencies {
                 implementation(libs.xmlutil.xmlserializable)
-            }
-        }
-        val jvmMain by getting {
-            dependsOn(javaMain)
-            dependencies {
+                implementation(kotlin("test-junit5"))
             }
         }
         val jvmTest by getting {
@@ -93,21 +85,6 @@ kotlin {
 
             }
         }
-        val androidMain by getting {
-            dependsOn(javaMain)
-            dependencies {
-            }
-        }
-        val androidTest by getting {
-            dependencies {
-                runtimeOnly(libs.kxml2)
-            }
-        }
     }
 
-}
-
-tasks.register("test") {
-    dependsOn(tasks.named("jvmTest"))
-    group="verification"
 }

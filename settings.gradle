@@ -121,6 +121,7 @@ include(":PE-server")
 include(":dynamicProcessModel")
 
 include(':pma:core')
+include(':pma:dynamic')
 include(":pma:loanorigination")
 include(":pma:agfil")
 
