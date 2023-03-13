@@ -32,10 +32,10 @@ actual class ProcessNodeInstanceContext actual constructor(private val processNo
             "handle"         -> return ProcessData(valueName, CompactFragment(
                 processNodeInstance.handle.handleValue.toString()))
             "instancehandle" -> return ProcessData(valueName, CompactFragment(
-                processNodeInstance.processContext.processInstanceHandle.handleValue.toString()))
+                processNodeInstance.hProcessInstance.handleValue.toString()))
             "endpoint"       -> return ProcessData(valueName, createEndpoint())
             "owner"          -> return ProcessData(valueName, CompactFragment(
-                processNodeInstance.owner.name.xmlEncode()))
+                processNodeInstance.assignedUser?.name?.xmlEncode() ?: ""))
         }
 
         defines.firstOrNull { valueName == it.name }?.let { return it }

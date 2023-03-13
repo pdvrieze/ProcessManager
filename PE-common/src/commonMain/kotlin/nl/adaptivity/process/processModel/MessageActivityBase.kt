@@ -62,7 +62,7 @@ abstract class MessageActivityBase(
     open class Builder : BaseBuilder, MessageActivity.Builder {
 
         final override var message: IXmlMessage?
-        final override var authRestrictions: AuthRestriction?
+        final override var authRestrictions: AccessRestriction<Nothing?>?
 
         constructor(): this(
             null,
@@ -93,7 +93,7 @@ abstract class MessageActivityBase(
             x: Double,
             y: Double,
             isMultiInstance: Boolean,
-            authRestrictions: AuthRestriction? = null
+            authRestrictions: AccessRestriction<Nothing?>? = null
         ) : super(
             id,
             predecessor,

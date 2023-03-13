@@ -30,10 +30,6 @@ import nl.adaptivity.xmlutil.serialization.XML
 class RunnableActivityInstance<I : Any, O : Any>(builder: Builder<I, O>) :
     ProcessNodeInstance<RunnableActivityInstance<I, O>>(builder) {
 
-    override fun canBeAccessedBy(principal: PrincipalCompat): Boolean {
-        return node.accessRestrictions!!.hasAccess(this, principal)
-    }
-
     interface Builder<I : Any, O : Any> :
         ProcessNodeInstance.Builder<RunnableActivity<I, O, ActivityInstanceContext>, RunnableActivityInstance<I, O>> {
 
@@ -60,7 +56,8 @@ class RunnableActivityInstance<I : Any, O : Any>(builder: Builder<I, O>) :
 
                 val resultFragment = tryRunTask {
                     val build = build()
-                    val input: I = build.getInputData(processInstanceBuilder)
+                    val icontext = engineData.processContextFactory.newActivityInstanceContext(engineData, this)
+                    val input: I = with(build) { icontext.getInputData(processInstanceBuilder) }
                     val action: RunnableAction<I, O, ActivityInstanceContext> = n.action
                     val context = engineData.processContextFactory.newActivityInstanceContext(engineData, this)
                     val result: O = context.action(input)
@@ -82,10 +79,6 @@ class RunnableActivityInstance<I : Any, O : Any>(builder: Builder<I, O>) :
 
         override fun doTakeTask(engineData: MutableProcessEngineDataAccess): Boolean {
             return true
-        }
-
-        override fun canBeAccessedBy(principal: PrincipalCompat): Boolean {
-            return node.accessRestrictions?.hasAccess(this, principal) ?: true
         }
     }
 
@@ -137,9 +130,9 @@ class RunnableActivityInstance<I : Any, O : Any>(builder: Builder<I, O>) :
 
     override fun builder(processInstanceBuilder: ProcessInstance.Builder) = ExtBuilder(this, processInstanceBuilder)
 
-    fun getInputData(nodeInstanceSource: IProcessInstance): I {
+    fun ActivityInstanceContext.getInputData(nodeInstanceSource: IProcessInstance): I {
         val defines = getDefines(nodeInstanceSource)
-        return node.getInputData(defines)
+        return this@RunnableActivityInstance.node.getInputData(defines)
     }
 
 }

@@ -54,7 +54,7 @@ class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
     internal val inputCombiner: InputCombiner<I> = builder.inputCombiner
     internal val outputSerializer: SerializationStrategy<O>? = builder.outputSerializer
     override val condition: ExecutableCondition? = builder.condition?.toExecutableCondition()
-    override val accessRestrictions: RunnableAuthRestriction? = builder.authRestrictions
+    override val accessRestrictions: RunnableAccessRestriction? = builder.authRestrictions
 
     override val ownerModel: ExecutableModelCommon
         get() = super.ownerModel as ExecutableModelCommon
@@ -138,7 +138,7 @@ class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
         val outputSerializer: SerializationStrategy<O>?
         var action: RunnableAction<I, O, C>
 
-        var authRestrictions: RunnableAuthRestriction? = null
+        var authRestrictions: RunnableAccessRestriction? = null
 
         override val defines: MutableCollection<IXmlDefineType>
             get() = TypecheckingCollection(DefineType::class, super.defines)

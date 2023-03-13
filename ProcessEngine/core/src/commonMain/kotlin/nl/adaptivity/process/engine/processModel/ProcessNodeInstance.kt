@@ -29,7 +29,6 @@ import nl.adaptivity.process.processModel.MessageActivity
 import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.processModel.engine.ExecutableJoin
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
-import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.addSuppressedCompat
 import nl.adaptivity.util.multiplatform.assert
@@ -93,14 +92,6 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         builder.results, builder.failureCause
     )
 
-    override val processContext: ProcessInstanceContext
-        get() = object : ProcessInstanceContext {
-            override val processInstanceHandle: Handle<SecureObject<ProcessInstance>> get() = hProcessInstance
-            override fun instancesForName(name: Identified): List<IProcessNodeInstance> {
-                throw UnsupportedOperationException("The actual process context is not available here.")
-            }
-        }
-
     override fun build(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance<T> = this
 
     override abstract fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder<out ExecutableProcessNode, T>
@@ -146,7 +137,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         return "nodeInstance  ($handle, ${node.id}[$entryNo] - $state)"
     }
 
-    fun serialize(nodeInstanceSource: IProcessInstance, out: XmlWriter, localEndpoint: EndpointDescriptor) {
+    fun ActivityInstanceContext.serialize(nodeInstanceSource: IProcessInstance, out: XmlWriter, localEndpoint: EndpointDescriptor) {
         out.smartStartTag(XmlProcessNodeInstance.ELEMENTNAME) {
             writeAttribute("state", state.name)
             writeAttribute("processinstance", hProcessInstance.handleValue)
@@ -172,7 +163,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         }
     }
 
-    fun toSerializable(engineData: ProcessEngineDataAccess, localEndpoint: EndpointDescriptor): XmlProcessNodeInstance {
+    fun ActivityInstanceContext.toSerializable(engineData: ProcessEngineDataAccess, localEndpoint: EndpointDescriptor): XmlProcessNodeInstance {
         val builder = builder(engineData.instance(hProcessInstance).withPermission().builder())
 
         val body: ICompactFragment? = (node as? MessageActivity)?.message?.let { message ->
@@ -194,7 +185,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         override val predecessors: MutableSet<Handle<SecureObject<ProcessNodeInstance<*>>>>
         val processInstanceBuilder: ProcessInstance.Builder
         override val hProcessInstance: Handle<SecureObject<ProcessInstance>> get() = processInstanceBuilder.handle
-        override var owner: PrincipalCompat
+        var owner: PrincipalCompat
         override var handle: Handle<SecureObject<ProcessNodeInstance<*>>>
         override var state: NodeInstanceState
         override val results: MutableList<ProcessData>
@@ -318,9 +309,6 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
     }
 
     abstract class AbstractBuilder<N : ExecutableProcessNode, T : ProcessNodeInstance<*>> : Builder<N, T> {
-
-        override val processContext: ProcessInstanceContext
-            get() = processInstanceBuilder
 
         override fun toXmlInstance(body: ICompactFragment?): XmlProcessNodeInstance {
             return XmlProcessNodeInstance(

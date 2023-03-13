@@ -22,6 +22,7 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.ProcessNode
+import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
@@ -34,7 +35,6 @@ interface ActivityInstanceContext {
     val processContext: ProcessInstanceContext
     val node: ProcessNode
     val state: NodeInstanceState
-    val owner: PrincipalCompat
     val nodeInstanceHandle : Handle<SecureObject<ProcessNodeInstance<*>>>
 
     fun canBeAccessedBy(principal: PrincipalCompat): Boolean
@@ -68,7 +68,35 @@ interface ProcessContextFactory<out A : ActivityInstanceContext> {
             engineDataAccess: ProcessEngineDataAccess,
             processNodeInstance: IProcessNodeInstance
         ): ActivityInstanceContext {
-            return processNodeInstance
+            val processContext:ProcessInstanceContext = SimpleProcessContext(engineDataAccess.instance(processNodeInstance.hProcessInstance).withPermission())
+            return SimpleActivityContext(processNodeInstance, processContext)
+        }
+    }
+
+    private class SimpleProcessContext(
+        private val processInstance: IProcessInstance
+    ) : ProcessInstanceContext {
+        override val processInstanceHandle: Handle<SecureObject<ProcessInstance>>
+            get() = processInstance.handle
+
+        override fun instancesForName(name: Identified): List<IProcessNodeInstance> {
+            val id = name.id
+            return processInstance.allChildNodeInstances().filter { it.node.id == id }.toList()
+        }
+    }
+
+    private class SimpleActivityContext(
+        private val nodeInstance: IProcessNodeInstance,
+        override val processContext: ProcessInstanceContext
+    ) : ActivityInstanceContext {
+        override val node: ExecutableActivity get() = nodeInstance.node as ExecutableActivity
+        override val state: NodeInstanceState get() = nodeInstance.state
+        override val nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>
+            get() = nodeInstance.handle
+
+        override fun canBeAccessedBy(principal: PrincipalCompat): Boolean {
+            val ar = (node.accessRestrictions ?: return true)
+            return ar.hasAccess(null, principal)
         }
     }
 }

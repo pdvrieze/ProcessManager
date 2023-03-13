@@ -19,7 +19,6 @@ package nl.adaptivity.process.engine.test.loanOrigination
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
-import nl.adaptivity.process.engine.ProcessContextFactory
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.pma.*
@@ -69,7 +68,7 @@ class LoanContextFactory(val log: Logger, val random: Random) : PMAProcessContex
         engineDataAccess: ProcessEngineDataAccess,
         processNodeInstance: IProcessNodeInstance
     ): LoanActivityContext {
-        val instanceHandle = processNodeInstance.processContext.processInstanceHandle
+        val instanceHandle = processNodeInstance.hProcessInstance
         nodes[processNodeInstance.handle] = processNodeInstance.node.id
         val processContext = getProcessContext(engineDataAccess, instanceHandle)
         return LoanActivityContext(processContext, processNodeInstance)
@@ -93,7 +92,7 @@ class LoanContextFactory(val log: Logger, val random: Random) : PMAProcessContex
         processNodeInstance: IProcessNodeInstance
     ) {
 
-        val context = getProcessContext(engineDataAccess, processNodeInstance.processContext.processInstanceHandle)
+        val context = getProcessContext(engineDataAccess, processNodeInstance.hProcessInstance)
 
         with(engineService) { context.onActivityTermination(processNodeInstance) }
     }

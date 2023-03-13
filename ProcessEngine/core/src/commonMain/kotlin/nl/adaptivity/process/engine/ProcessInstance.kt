@@ -83,7 +83,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         }
     }
 
-    interface Builder : ProcessInstanceContext, IProcessInstance {
+    interface Builder : IProcessInstance {
         val generation: Int
         val pendingChildren: List<Future<out ProcessNodeInstance<*>>>
         override var handle: Handle<SecureObject<ProcessInstance>>
@@ -98,9 +98,6 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         val outputs: MutableList<ProcessData>
         fun build(data: MutableProcessEngineDataAccess): ProcessInstance
         fun <T : ProcessNodeInstance<*>> storeChild(child: T): Future<T>
-
-        override val processInstanceHandle: Handle<SecureObject<ProcessInstance>>
-            get() = handle
 
         override fun getChildNodeInstance(handle: Handle<SecureObject<ProcessNodeInstance<*>>>): IProcessNodeInstance =
             allChildNodeInstances { it.handle == handle }.first()
@@ -124,10 +121,6 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
         override fun allChildNodeInstances(): Sequence<IProcessNodeInstance>
 
         fun allChildNodeInstances(childFilter: (IProcessNodeInstance) -> Boolean): Sequence<IProcessNodeInstance>
-
-        override fun instancesForName(name: Identified): List<IProcessNodeInstance> {
-            return allChildNodeInstances().filter { it.node.id == name.id }.toList()
-        }
 
         fun active(): Sequence<IProcessNodeInstance> {
             return allChildNodeInstances { !it.state.isFinal }

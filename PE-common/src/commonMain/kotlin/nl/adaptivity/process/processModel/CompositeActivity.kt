@@ -20,7 +20,7 @@ interface CompositeActivity : Activity {
 
     val childModel: ChildProcessModel<ProcessNode>?
 
-    override val accessRestrictions: AuthRestriction? get() = null
+    override val accessRestrictions: AccessRestriction<Nothing?>? get() = null
 
     interface ReferenceBuilder : Activity.Builder {
         var childId: String?

@@ -26,7 +26,7 @@ import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 class PseudoInstance(
-    override val processContext: PseudoContext,
+    private val processContext: PseudoContext,
     override val handle: Handle<SecureObject<ProcessNodeInstance<*>>>,
     override val node: ExecutableProcessNode,
     override val entryNo: Int,
@@ -35,7 +35,7 @@ class PseudoInstance(
 
     override val predecessors = predecessors.toMutableSet()
 
-    override val owner: PrincipalCompat
+    private val owner: PrincipalCompat
         get() = processContext.processInstance.processModel.rootModel.owner
 
     override var state: NodeInstanceState = NodeInstanceState.Pending
@@ -52,9 +52,6 @@ class PseudoInstance(
 
     override fun toString(): String {
         return "pseudo instance ($handle, ${node.id}[$entryNo] - $state)"
-    }
-    override fun canBeAccessedBy(principal: PrincipalCompat): Boolean {
-        throw UnsupportedOperationException("Pseudo instances have no authorization restrictions")
     }
 
     class PseudoContext(

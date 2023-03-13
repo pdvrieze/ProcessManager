@@ -22,7 +22,6 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.impl.generateXmlString
-import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.xml.WritableCompactFragment
@@ -34,19 +33,18 @@ import nl.adaptivity.xmlutil.filterSubstream
 /**
  * Simple base interface for process node instances that can also be implemented by builders
  */
-interface IProcessNodeInstance: ReadableHandleAware<SecureObject<ProcessNodeInstance<*>>>, ActivityInstanceContext {
-    override val node: ExecutableProcessNode
+interface IProcessNodeInstance: ReadableHandleAware<SecureObject<ProcessNodeInstance<*>>> {
+    val node: ExecutableProcessNode
     val predecessors: Set<Handle<SecureObject<ProcessNodeInstance<*>>>>
-    override val owner: PrincipalCompat
+//    override val owner: PrincipalCompat
+    val assignedUser: PrincipalCompat? get() = null
 
     override val handle: Handle<SecureObject<ProcessNodeInstance<*>>>
-    override val nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>
-        get() = handle
 
     val hProcessInstance: Handle<SecureObject<ProcessInstance>>
 
     val entryNo: Int
-    override val state: NodeInstanceState
+    val state: NodeInstanceState
     val results: List<ProcessData>
 
     fun builder(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance.Builder<*, *>

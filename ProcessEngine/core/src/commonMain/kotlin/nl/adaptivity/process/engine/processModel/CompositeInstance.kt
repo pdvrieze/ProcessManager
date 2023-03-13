@@ -34,16 +34,9 @@ import nl.adaptivity.xmlutil.util.ICompactFragment
  * Class representing a node instance that wraps a composite activity.
  */
 class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstance>(builder) {
-    override fun canBeAccessedBy(principal: PrincipalCompat): Boolean {
-        error("Composite activities have no authorization")
-    }
 
     interface Builder : ProcessNodeInstance.Builder<ExecutableCompositeActivity, CompositeInstance> {
         var hChildInstance: Handle<SecureObject<ProcessInstance>>
-
-        override fun canBeAccessedBy(principal: PrincipalCompat): Boolean {
-            error("Composite activities have no authorization")
-        }
 
         override fun doProvideTask(engineData: MutableProcessEngineDataAccess): Boolean {
             val shouldProgress = node.provideTask(engineData, this)
@@ -63,8 +56,9 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
 
             assert(hChildInstance.isValid) { "The task can only be started if the child instance already exists" }
             tryCreateTask {
+                val instanceContext = engineData.processContextFactory.newActivityInstanceContext(engineData, this)
                 engineData.updateInstance(hChildInstance) {
-                        start(engineData, build().getPayload(processInstanceBuilder))
+                    start(engineData, with(build()) { instanceContext.getPayload(processInstanceBuilder) })
                 }
             }
             engineData.queueTickle(hChildInstance)
@@ -103,7 +97,6 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
                 val newBase = n as CompositeInstance
                 node = newBase.node
                 predecessors.replaceBy(newBase.predecessors)
-                owner = newBase.owner
                 state = newBase.state
                 hChildInstance = newBase.hChildInstance
             }
@@ -139,7 +132,7 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
 
     override fun builder(processInstanceBuilder: ProcessInstance.Builder) = ExtBuilder(this, processInstanceBuilder)
 
-    fun getPayload(nodeInstanceSource: IProcessInstance): CompactFragment? {
+    fun ActivityInstanceContext.getPayload(nodeInstanceSource: IProcessInstance): CompactFragment? {
         val defines = getDefines(nodeInstanceSource)
         if (defines.isEmpty()) return null
 

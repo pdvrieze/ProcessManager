@@ -122,7 +122,7 @@ open class DrawableActivity @JvmOverloads constructor(
         override var state: DrawableState = Drawable.STATE_DEFAULT,
         isMultiInstance: Boolean = false,
         override var isCompat: Boolean = false,
-        override var authRestrictions: AuthRestriction? = null
+        override var authRestrictions: AccessRestriction? = null
     ) : BaseBuilder(
         id, predecessor, successor, label, defines, results,
         condition, name, x, y, isMultiInstance

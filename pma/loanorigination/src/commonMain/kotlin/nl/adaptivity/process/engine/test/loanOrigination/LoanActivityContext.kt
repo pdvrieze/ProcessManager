@@ -17,12 +17,12 @@
 package nl.adaptivity.process.engine.test.loanOrigination
 
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.RunnableActivity
-import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.pma.PMAActivityContext
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-class LoanActivityContext(override val processContext: LoanProcessContext, baseContext: ActivityInstanceContext) :
-    PMAActivityContext<LoanActivityContext>(baseContext) {
+class LoanActivityContext(override val processContext: LoanProcessContext, processNode: IProcessNodeInstance) :
+    PMAActivityContext<LoanActivityContext>(processNode) {
 
     override fun canBeAccessedBy(principal: PrincipalCompat): Boolean {
         return (node as? RunnableActivity<*, *, *>)

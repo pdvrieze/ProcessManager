@@ -31,7 +31,7 @@ interface MessageActivity : Activity {
 
         override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitActivity(this)
 
-        var authRestrictions: AuthRestriction?
+        var authRestrictions: AccessRestriction<Nothing?>?
 
     }
 }

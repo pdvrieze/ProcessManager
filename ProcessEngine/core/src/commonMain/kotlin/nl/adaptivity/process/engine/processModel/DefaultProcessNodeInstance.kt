@@ -21,7 +21,10 @@ import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.MessageSendingResult
-import nl.adaptivity.process.engine.*
+import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
+import nl.adaptivity.process.engine.ProcessData
+import nl.adaptivity.process.engine.ProcessException
+import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.impl.getClass
 import nl.adaptivity.process.processModel.MessageActivity
 import nl.adaptivity.process.processModel.XmlMessage
@@ -80,11 +83,6 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
         return ExtBuilderImpl(this, processInstanceBuilder)
     }
 
-    override fun canBeAccessedBy(principal: PrincipalCompat): Boolean {
-        require(node is MessageActivity) { "Only message activities have authorization info" }
-        TODO("Implement this for actual AuthRestrictions")
-    }
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other?.getClass() != getClass()) return false
@@ -116,8 +114,7 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
     }
 
     interface Builder :
-        ProcessNodeInstance.Builder<ExecutableProcessNode, DefaultProcessNodeInstance>,
-        ActivityInstanceContext {
+        ProcessNodeInstance.Builder<ExecutableProcessNode, DefaultProcessNodeInstance> {
 
         override fun doProvideTask(engineData: MutableProcessEngineDataAccess): Boolean {
 
@@ -159,11 +156,6 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
             return node.startTask(this)
         }
 
-
-        override fun canBeAccessedBy(principal: PrincipalCompat): Boolean {
-            require(node is MessageActivity) { "Only message activities have authorization info" }
-            TODO("Implement this for actual AuthRestrictions")
-        }
 
     }
 

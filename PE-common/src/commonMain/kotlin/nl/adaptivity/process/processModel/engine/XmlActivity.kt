@@ -47,7 +47,7 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
     override val condition: Condition?
         get() = xmlCondition
 
-    override val accessRestrictions: AuthRestriction?
+    override val accessRestrictions: AccessRestriction<Nothing?>?
 
     constructor(
         builder: MessageActivity.Builder,
