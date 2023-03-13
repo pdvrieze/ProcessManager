@@ -83,15 +83,17 @@ class PrincipalRestriction(val allowedPrincipals: Set<String>) : RunnableAccessR
 class BindingOfDutyRestriction(val referenceNode: Identified): RunnableAccessRestriction() {
     override fun hasAccess(context: ActivityInstanceContext?, principal: PrincipalCompat): Boolean {
         val refInst: IProcessNodeInstance = context?.processContext?.instancesForName(referenceNode)
-            ?.firstOrNull { it.state == NodeInstanceState.Complete } ?: return false
-        val referencePrincipal = refInst
-
-        TODO("not implemented")
+            ?.singleOrNull { it.state == NodeInstanceState.Complete } ?: return false
+        val referencePrincipal = refInst.assignedUser
+        return principal.name == referencePrincipal?.name
     }
 }
 
 class SeparationOfDutyRestriction(val referenceNode: Identified) : RunnableAccessRestriction() {
     override fun hasAccess(context: ActivityInstanceContext?, principal: PrincipalCompat): Boolean {
-        TODO("not implemented")
+        val refInsts: List<IProcessNodeInstance> = context?.processContext?.instancesForName(referenceNode)
+            ?.filter { it.state == NodeInstanceState.Complete } ?: emptyList()
+
+        return refInsts.none { it.assignedUser?.name == principal.name }
     }
 }
