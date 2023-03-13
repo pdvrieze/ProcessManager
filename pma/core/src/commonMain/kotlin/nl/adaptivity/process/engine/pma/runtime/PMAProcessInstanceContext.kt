@@ -1,12 +1,9 @@
-package nl.adaptivity.process.engine.pma
+package nl.adaptivity.process.engine.pma.runtime
 
 import nl.adaptivity.process.engine.ProcessInstanceContext
 
 interface PMAProcessInstanceContext<A: PMAActivityContext<A>>: ProcessInstanceContext {
 
     val contextFactory: PMAProcessContextFactory<A>
-    val authService: AuthService
-    val engineService: EngineService
-    val generalClientService: GeneralClientService
 
 }

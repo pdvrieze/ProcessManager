@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine.pma
 
+import nl.adaptivity.process.engine.pma.dynamic.DynamicPMAActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.UIServiceImpl
 import nl.adaptivity.process.engine.pma.models.TaskListService
 import nl.adaptivity.util.multiplatform.PrincipalCompat
@@ -55,7 +56,7 @@ class TaskList constructor(
     fun acceptActivity(
         authToken: AuthToken,
         principal: PrincipalCompat,
-        pendingPermissions: ArrayDeque<PMAActivityContext.PendingPermission>,
+        pendingPermissions: ArrayDeque<DynamicPMAActivityContext.PendingPermission>,
         processNodeInstance: PNIHandle
     ): AuthorizationCode {
         logMe(processNodeInstance, principal)

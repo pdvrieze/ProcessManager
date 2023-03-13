@@ -1,36 +1,23 @@
-package nl.adaptivity.process.engine.pma
+package nl.adaptivity.process.engine.pma.dynamic
 
-import net.devrieze.util.Handle
-import net.devrieze.util.security.SecureObject
-import nl.adaptivity.process.engine.ActivityInstanceContext
+import nl.adaptivity.process.engine.pma.*
 import nl.adaptivity.process.engine.pma.models.PermissionScope
 import nl.adaptivity.process.engine.pma.models.Service
+import nl.adaptivity.process.engine.pma.runtime.PMAActivityContext
+import nl.adaptivity.process.engine.pma.runtime.PMAProcessContextFactory
+import nl.adaptivity.process.engine.pma.runtime.PMAProcessInstanceContext
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
-import nl.adaptivity.process.engine.processModel.NodeInstanceState
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
-import nl.adaptivity.process.processModel.engine.ExecutableActivity
-import nl.adaptivity.util.multiplatform.PrincipalCompat
+import java.security.Principal
 
-abstract class PMAActivityContext<A : PMAActivityContext<A>>(private val processNode: IProcessNodeInstance) :
-    ActivityInstanceContext {
-    abstract override val processContext: PMAProcessInstanceContext<A>
+abstract class DynamicPMAActivityContext<A : DynamicPMAActivityContext<A>>(processNode: IProcessNodeInstance) :
+    PMAActivityContext<A>(processNode) {
+
+    final override lateinit var taskListService: TaskList
+        private set
+
+    abstract override val processContext: DynamicPMAProcessInstanceContext<A>
 
     private val pendingPermissions = ArrayDeque<PendingPermission>()
-
-    lateinit var taskListService: TaskList
-
-    override val node: ExecutableActivity get() = processNode.node as ExecutableActivity
-
-    override val state: NodeInstanceState get() = processNode.state
-
-    override val nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>
-        get() = processNode.handle
-
-    override val assignedUser: PrincipalCompat?
-        get() = processNode.assignedUser
-
-    override val owner: PrincipalCompat
-        get() = (processNode as SecureObject<*>).owner
 
     inline fun <R> acceptBrowserActivity(browser: Browser, action: TaskList.Context.() -> R): R {
         acceptActivityImpl(browser) // This will initialise the task list and then delegate to it
@@ -85,7 +72,7 @@ abstract class PMAActivityContext<A : PMAActivityContext<A>>(private val process
         val serviceAuthorization = with(processContext) {
             engineService.createAuthorizationCode(
                 clientServiceId,
-                this@PMAActivityContext.nodeInstanceHandle,
+                this@DynamicPMAActivityContext.nodeInstanceHandle,
                 authService,
                 CommonPMAPermissions.IDENTIFY,
                 pendingPermissions
@@ -125,4 +112,15 @@ abstract class PMAActivityContext<A : PMAActivityContext<A>>(private val process
         val scope: PermissionScope
     )
 
+}
+
+interface DynamicPMAProcessInstanceContext<A : DynamicPMAActivityContext<A>>: PMAProcessInstanceContext<A> {
+    val authService: AuthService
+    val engineService: EngineService
+    val generalClientService: GeneralClientService
+    override val contextFactory: DynamicPMAProcessContextFactory<A>
+}
+
+abstract class DynamicPMAProcessContextFactory<A : PMAActivityContext<A>>: PMAProcessContextFactory<A>() {
+    abstract override fun getOrCreateTaskListForUser(principal: Principal): TaskList
 }

@@ -23,6 +23,7 @@ import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.pma.*
+import nl.adaptivity.process.engine.pma.dynamic.DynamicPMAProcessContextFactory
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.test.PNIHandle
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
@@ -33,7 +34,7 @@ import java.util.logging.Level
 import java.util.logging.Logger
 import kotlin.random.Random
 
-class LoanContextFactory(val log: Logger, val random: Random) : PMAProcessContextFactory<LoanActivityContext>() {
+class LoanContextFactory(val log: Logger, val random: Random) : DynamicPMAProcessContextFactory<LoanActivityContext>() {
     private val nodes = mutableMapOf<PNIHandle, String>()
 
     val authService = AuthService(log, nodes, random)

@@ -21,13 +21,14 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.pma.*
+import nl.adaptivity.process.engine.pma.dynamic.DynamicPMAProcessInstanceContext
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
 import nl.adaptivity.process.engine.test.loanOrigination.systems.*
 import nl.adaptivity.process.util.Identified
 import java.util.logging.Logger
 
-interface LoanProcessContext : PMAProcessInstanceContext<LoanActivityContext> {
+interface LoanProcessContext : DynamicPMAProcessInstanceContext<LoanActivityContext> {
     override val contextFactory: LoanContextFactory
 
     val customerData: CustomerData

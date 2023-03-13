@@ -20,11 +20,13 @@ import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.pma.CommonPMAPermissions.GRANT_GLOBAL_PERMISSION
 import nl.adaptivity.process.engine.pma.CommonPMAPermissions.UPDATE_ACTIVITY_STATE
+import nl.adaptivity.process.engine.pma.dynamic.DynamicPMAActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.ServiceImpl
 import nl.adaptivity.process.engine.pma.models.AutomatedService
 import nl.adaptivity.process.engine.pma.models.PermissionScope
 import nl.adaptivity.process.engine.pma.models.Service
 import nl.adaptivity.process.engine.pma.models.UnionPermissionScope
+import nl.adaptivity.process.engine.pma.runtime.PMAProcessInstanceContext
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
@@ -48,7 +50,7 @@ class EngineService(
         authToken: AuthToken,
         nodeInstanceHandle: PNIHandle,
         principal: Principal,
-        pendingPermissions: ArrayDeque<PMAActivityContext.PendingPermission>,
+        pendingPermissions: ArrayDeque<DynamicPMAActivityContext.PendingPermission>,
     ): AuthorizationCode {
         logMe(authToken, nodeInstanceHandle, principal)
         validateAuthInfo(
@@ -119,7 +121,7 @@ class EngineService(
         handle: Handle<SecureObject<ProcessNodeInstance<*>>>,
         service: AuthService,
         scope: CommonPMAPermissions.IDENTIFY,
-        pendingPermissions: ArrayDeque<PMAActivityContext.PendingPermission>
+        pendingPermissions: ArrayDeque<DynamicPMAActivityContext.PendingPermission>
     ): AuthorizationCode {
         return authService.createAuthorizationCode(serviceAuth, clientServiceId, handle, service, scope)
             .also { serviceAuthorization ->
