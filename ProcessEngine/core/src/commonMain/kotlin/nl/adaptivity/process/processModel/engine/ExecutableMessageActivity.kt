@@ -16,14 +16,12 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import nl.adaptivity.process.engine.IProcessInstance
-import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
-import nl.adaptivity.process.engine.ProcessEngineDataAccess
-import nl.adaptivity.process.engine.ProcessInstance
+import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlWriter
@@ -99,7 +97,12 @@ class ExecutableMessageActivity(
      *
      * @return `false`
      */
-    override fun takeTask(instance: ProcessNodeInstance.Builder<*, *>) = false
+    override fun takeTask(instance: ProcessNodeInstance.Builder<*, *>, assignedUser: PrincipalCompat?): Boolean {
+        if (assignedUser==null) throw ProcessException("Message activities must have a user assigned for 'taking' them")
+        if (instance.assignedUser!=null) throw ProcessException("Users should not have been assigned before being taken")
+        instance.assignedUser = assignedUser
+        return false
+    }
 
     /**
      * Start the task. Tasks are either process aware or finished when a reply is

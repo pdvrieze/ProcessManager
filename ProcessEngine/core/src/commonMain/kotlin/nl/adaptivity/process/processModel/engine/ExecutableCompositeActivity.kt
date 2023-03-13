@@ -26,6 +26,7 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 
 /**
@@ -114,7 +115,7 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableActivity {
      *
      * @return `false`
      */
-    override fun takeTask(instance: ProcessNodeInstance.Builder<*, *>) = true
+    override fun takeTask(instance: ProcessNodeInstance.Builder<*, *>, assignedUser: PrincipalCompat?) = true
 
     /**
      * Start the task. Tasks are either process aware or finished when a reply is

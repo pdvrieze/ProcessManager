@@ -56,8 +56,8 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
             return false
         }
 
-        override fun doTakeTask(engineData: MutableProcessEngineDataAccess): Boolean {
-            return node.takeTask(this)
+        override fun doTakeTask(engineData: MutableProcessEngineDataAccess, assignedUser: PrincipalCompat?): Boolean {
+            return node.takeTask(this, assignedUser)
         }
 
         override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {

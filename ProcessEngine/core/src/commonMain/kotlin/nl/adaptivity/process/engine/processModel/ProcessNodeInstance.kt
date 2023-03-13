@@ -193,6 +193,12 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         override val entryNo: Int
         var failureCause: Throwable?
 
+        override var assignedUser: PrincipalCompat?
+            get() = super.assignedUser
+            set(value) {
+                require(value == null) { "Only message activities can have assigned users" }
+            }
+
         fun invalidateBuilder(engineData: ProcessEngineDataAccess)
 
         fun build(): T
@@ -233,8 +239,8 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         /** Function that will do provision, but not progress. This is where custom implementations live */
         fun doProvideTask(engineData: MutableProcessEngineDataAccess): Boolean
 
-        fun takeTask(engineData: MutableProcessEngineDataAccess)
-        fun doTakeTask(engineData: MutableProcessEngineDataAccess): Boolean
+        fun takeTask(engineData: MutableProcessEngineDataAccess, assignedUser: PrincipalCompat? = null)
+        fun doTakeTask(engineData: MutableProcessEngineDataAccess, assignedUser: PrincipalCompat? = null): Boolean
 
         fun startTask(engineData: MutableProcessEngineDataAccess)
         fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean
@@ -366,8 +372,8 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             }
         }
 
-        final override fun takeTask(engineData: MutableProcessEngineDataAccess) {
-            if (doTakeTask(engineData).also { softUpdateState(engineData, Taken) })
+        final override fun takeTask(engineData: MutableProcessEngineDataAccess, assignedUser: PrincipalCompat?) {
+            if (doTakeTask(engineData, assignedUser).also { softUpdateState(engineData, Taken) })
                 startTask(engineData)
         }
 

@@ -95,6 +95,7 @@ object ProcessEngineDB : Database(1) {
     val pihandle by reference(processInstances.pihandle) { NOT_NULL }
     val nodeid by VARCHAR(30) { NOT_NULL }
     val entryno by INT
+    val assigneduser by VARCHAR(200)
     val state by X_NODESTATE
     override fun init() {
       PRIMARY_KEY(pnihandle)

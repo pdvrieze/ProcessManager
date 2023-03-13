@@ -33,6 +33,8 @@ class RunnableActivityInstance<I : Any, O : Any>(builder: Builder<I, O>) :
     interface Builder<I : Any, O : Any> :
         ProcessNodeInstance.Builder<RunnableActivity<I, O, ActivityInstanceContext>, RunnableActivityInstance<I, O>> {
 
+        override var assignedUser: PrincipalCompat?
+
         override fun doProvideTask(engineData: MutableProcessEngineDataAccess): Boolean {
             return node.provideTask(engineData, this)
             /*
@@ -77,7 +79,8 @@ class RunnableActivityInstance<I : Any, O : Any>(builder: Builder<I, O>) :
             return false // we call finish ourselves, so don't call it afterwards.
         }
 
-        override fun doTakeTask(engineData: MutableProcessEngineDataAccess): Boolean {
+        override fun doTakeTask(engineData: MutableProcessEngineDataAccess, assignedUser: PrincipalCompat?): Boolean {
+            if(!node.takeTask(this, assignedUser)) return false
             return true
         }
     }
@@ -88,6 +91,7 @@ class RunnableActivityInstance<I : Any, O : Any>(builder: Builder<I, O>) :
         processInstanceBuilder: ProcessInstance.Builder,
         owner: PrincipalCompat,
         entryNo: Int,
+        override var assignedUser: PrincipalCompat? = null,
         handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
     ) : ProcessNodeInstance.BaseBuilder<RunnableActivity<I, O, ActivityInstanceContext>, RunnableActivityInstance<I, O>>(
@@ -119,6 +123,8 @@ class RunnableActivityInstance<I : Any, O : Any>(builder: Builder<I, O>) :
     ), Builder<I, O> {
 
         override var node: RunnableActivity<I, O, ActivityInstanceContext> by overlay { base.node }
+
+        override var assignedUser: PrincipalCompat? by overlay { base.assignedUser }
 
         override fun build(): RunnableActivityInstance<I, O> {
             return if (changed) RunnableActivityInstance(this).also { invalidateBuilder(it) } else base

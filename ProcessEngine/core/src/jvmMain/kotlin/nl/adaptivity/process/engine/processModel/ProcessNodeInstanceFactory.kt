@@ -80,6 +80,7 @@ internal class ProcessNodeInstanceFactory(val processEngine: ProcessEngine<Proce
         val pihandle = tbl_pni.pihandle.value(row)
         val state = tbl_pni.state.value(row)
         val entryNo = tbl_pni.entryno.nullableValue(row) ?: 1
+        val assignedUser = tbl_pni.assigneduser.nullableValue(row)?.let(processEngine::getPrincipal)
 
         with(transaction) {
             val processInstanceBuilder = transaction.pendingProcessInstance(pihandle)
@@ -94,13 +95,14 @@ internal class ProcessNodeInstanceFactory(val processEngine: ProcessEngine<Proce
                 .mapEach { it!! }
 
             return when (node) {
-                is ExecutableJoin              -> predecessorHandles.map { predecessors ->
+                is ExecutableJoin -> predecessorHandles.map { predecessors ->
                     JoinInstance.BaseBuilder(
                         node, predecessors, processInstanceBuilder, processInstanceBuilder.owner, entryNo,
                         if (pnihandle.handleValue < 0) Handle.invalid() else Handle(pnihandle.handleValue), state
                     )
                 }
-                is ExecutableSplit             -> predecessorHandles.map { predecessors ->
+
+                is ExecutableSplit -> predecessorHandles.map { predecessors ->
                     SplitInstance.BaseBuilder(
                         node,
                         predecessors.single(),
@@ -111,6 +113,7 @@ internal class ProcessNodeInstanceFactory(val processEngine: ProcessEngine<Proce
                         state
                     )
                 }
+
                 is ExecutableCompositeActivity -> {
                     predecessorHandles.then<Pair<List<Handle<SecureObject<ProcessNodeInstance<*>>>>, Handle<SecureObject<ProcessInstance>>>> { predecessors ->
                         SELECT(tbl_pi.pihandle)
@@ -136,11 +139,17 @@ internal class ProcessNodeInstanceFactory(val processEngine: ProcessEngine<Proce
 
                     }
                 }
-                else                           -> predecessorHandles.map { predecessors ->
+
+                else -> predecessorHandles.map { predecessors ->
                     DefaultProcessNodeInstance.BaseBuilder(
-                        node, predecessors, processInstanceBuilder,
-                        processInstanceBuilder.owner, entryNo,
-                        if (pnihandle.handleValue < 0) Handle.invalid() else Handle(pnihandle.handleValue), state
+                        node,
+                        predecessors,
+                        processInstanceBuilder,
+                        processInstanceBuilder.owner,
+                        entryNo,
+                        assignedUser = assignedUser,
+                        handle = if (pnihandle.handleValue < 0) Handle.invalid() else Handle(pnihandle.handleValue),
+                        state = state
                     )
                 }
             }
@@ -219,7 +228,7 @@ internal class ProcessNodeInstanceFactory(val processEngine: ProcessEngine<Proce
                             .VALUES(results) { data -> VALUES(newValue.handle, data.name, data.content.contentString) }
                         val fc = newValue.failureCause
 
-                        if (isFailure && fc!=null) {
+                        if (isFailure && fc != null) {
                             insertResult.VALUES(newValue.handle, FAILURE_CAUSE, fc.message)
                         }
 
@@ -254,7 +263,7 @@ internal class ProcessNodeInstanceFactory(val processEngine: ProcessEngine<Proce
             DELETE_FROM(tbl_pred)
                 .WHERE { tbl_pred.pnihandle eq handle }
                 .then(DELETE_FROM(tbl_nd)
-                          .WHERE { tbl_nd.pnihandle eq handle })
+                    .WHERE { tbl_nd.pnihandle eq handle })
                 .map { true }
         }
     }

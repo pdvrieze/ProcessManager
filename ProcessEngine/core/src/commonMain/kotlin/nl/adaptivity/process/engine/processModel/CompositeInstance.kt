@@ -73,7 +73,7 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
             return super.doFinishTask(engineData, childInstance.getOutputPayload())
         }
 
-        override fun doTakeTask(engineData: MutableProcessEngineDataAccess): Boolean {
+        override fun doTakeTask(engineData: MutableProcessEngineDataAccess, assignedUser: PrincipalCompat?): Boolean {
             return true
         }
     }

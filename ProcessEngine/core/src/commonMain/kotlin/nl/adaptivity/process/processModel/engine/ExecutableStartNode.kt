@@ -22,6 +22,7 @@ import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 
 class ExecutableStartNode(
@@ -72,7 +73,7 @@ class ExecutableStartNode(
     override fun provideTask(engineData: ProcessEngineDataAccess,
                              instanceBuilder: ProcessNodeInstance.Builder<*, *>) = true
 
-    override fun takeTask(instance: ProcessNodeInstance.Builder<*, *>) = true
+    override fun takeTask(instance: ProcessNodeInstance.Builder<*, *>, assignedUser: PrincipalCompat?) = true
 
     override fun startTask(instance: ProcessNodeInstance.Builder<*, *>) = true
 

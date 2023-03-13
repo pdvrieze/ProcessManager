@@ -58,24 +58,36 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
         hProcessInstance: Handle<SecureObject<ProcessInstance>>,
         owner: PrincipalCompat,
         entryNo: Int,
+        assignedUser: PrincipalCompat?,
         handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending,
         results: Iterable<ProcessData> = emptyList(),
         failureCause: Throwable? = null
-    )
-        : super(node, predecessors, processInstanceBuilder, hProcessInstance, owner, entryNo, handle, state, results, failureCause)
+    ) : super(node, predecessors, processInstanceBuilder, hProcessInstance, owner, entryNo, handle, state, results, failureCause) {
+        this.assignedUser = assignedUser
+    }
 
     constructor(
         node: ExecutableProcessNode,
         predecessor: Handle<SecureObject<ProcessNodeInstance<*>>>,
         processInstance: ProcessInstance,
-        entryNo: Int
+        entryNo: Int,
+        assignedUser: PrincipalCompat?
+    ) : this(
+        node,
+        if (predecessor.isValid) listOf(predecessor) else emptyList(),
+        processInstance.builder(),
+        processInstance.handle,
+        processInstance.owner,
+        entryNo = entryNo,
+        assignedUser = assignedUser
     )
-        : this(node, if (predecessor.isValid) listOf(predecessor) else emptyList(), processInstance.builder(),
-               processInstance.handle,
-               processInstance.owner, entryNo = entryNo)
 
-    constructor(builder: Builder) : super(builder)
+    constructor(builder: Builder) : super(builder) {
+        assignedUser = builder.assignedUser
+    }
+
+    override val assignedUser: PrincipalCompat?
 
     override fun withPermission() = this
 
@@ -116,6 +128,8 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
     interface Builder :
         ProcessNodeInstance.Builder<ExecutableProcessNode, DefaultProcessNodeInstance> {
 
+        override var assignedUser: PrincipalCompat?
+
         override fun doProvideTask(engineData: MutableProcessEngineDataAccess): Boolean {
 
             if (!handle.isValid) store(engineData)
@@ -148,8 +162,8 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
             return impl(engineData.messageService())
         }
 
-        override fun doTakeTask(engineData: MutableProcessEngineDataAccess): Boolean {
-            return node.takeTask(this)
+        override fun doTakeTask(engineData: MutableProcessEngineDataAccess, assignedUser: PrincipalCompat?): Boolean {
+            return node.takeTask(this, assignedUser)
         }
 
         override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {
@@ -162,6 +176,7 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
     private class ExtBuilderImpl(base: DefaultProcessNodeInstance, processInstanceBuilder: ProcessInstance.Builder) : ExtBuilder<ExecutableProcessNode, DefaultProcessNodeInstance>(base, processInstanceBuilder), Builder {
         override var node: ExecutableProcessNode by overlay { base.node }
         override fun build() = if (changed) DefaultProcessNodeInstance(this).also { invalidateBuilder(it) } else base
+        override var assignedUser: PrincipalCompat? = base.assignedUser
     }
 
     class BaseBuilder(
@@ -170,6 +185,7 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
         processInstanceBuilder: ProcessInstance.Builder,
         owner: PrincipalCompat,
         entryNo: Int,
+        override var assignedUser: PrincipalCompat? = null,
         handle: Handle<SecureObject<DefaultProcessNodeInstance>> = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
     ) : ProcessNodeInstance.BaseBuilder<ExecutableProcessNode, DefaultProcessNodeInstance>(node, predecessors, processInstanceBuilder, owner, entryNo, handle, state), Builder {
@@ -193,10 +209,13 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
             handle: Handle<SecureObject<DefaultProcessNodeInstance>> = Handle.invalid(),
             state: NodeInstanceState = NodeInstanceState.Pending,
             entryNo: Int,
+            assignedUser: PrincipalCompat?,
             body: Builder.() -> Unit
         ): DefaultProcessNodeInstance {
-            return DefaultProcessNodeInstance(BaseBuilder(node, predecessors, processInstanceBuilder, processInstanceBuilder.owner,
-                                                          entryNo, handle, state).apply(body))
+            return DefaultProcessNodeInstance(BaseBuilder(
+                node, predecessors, processInstanceBuilder, processInstanceBuilder.owner,
+                entryNo, assignedUser, handle, state
+            ).apply(body))
         }
 
 
@@ -207,9 +226,10 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
             handle: Handle<SecureObject<DefaultProcessNodeInstance>> = Handle.invalid(),
             state: NodeInstanceState = NodeInstanceState.Pending,
             entryNo: Int,
+            assignedUser: PrincipalCompat?,
             body: Builder.() -> Unit
         ): DefaultProcessNodeInstance {
-            return build(node, predecessors, processInstance.builder(), handle, state, entryNo, body)
+            return build(node, predecessors, processInstance.builder(), handle, state, entryNo, assignedUser, body)
         }
 
 

@@ -27,6 +27,7 @@ import nl.adaptivity.process.processModel.XmlResultType
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 
 /**
@@ -116,7 +117,7 @@ interface ExecutableProcessNode : ProcessNode, Identified {
     fun provideTask(engineData: ProcessEngineDataAccess, instanceBuilder: ProcessNodeInstance.Builder<*, *>): Boolean
         = true
 
-    fun takeTask(instance: ProcessNodeInstance.Builder<*, *>): Boolean = true
+    fun takeTask(instance: ProcessNodeInstance.Builder<*, *>, assignedUser: PrincipalCompat?): Boolean = true
 
     fun startTask(instance: ProcessNodeInstance.Builder<*, *>): Boolean = true
 

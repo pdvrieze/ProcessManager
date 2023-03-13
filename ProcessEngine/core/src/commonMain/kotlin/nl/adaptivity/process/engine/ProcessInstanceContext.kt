@@ -18,6 +18,8 @@ package nl.adaptivity.process.engine
 
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
+import net.devrieze.util.security.SimplePrincipal
+import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
@@ -36,6 +38,8 @@ interface ActivityInstanceContext {
     val node: ProcessNode
     val state: NodeInstanceState
     val nodeInstanceHandle : Handle<SecureObject<ProcessNodeInstance<*>>>
+    val owner: PrincipalCompat
+    val assignedUser: PrincipalCompat?
 
     fun canBeAccessedBy(principal: PrincipalCompat): Boolean
 }
@@ -63,6 +67,8 @@ interface ProcessContextFactory<out A : ActivityInstanceContext> {
     ) {
     }
 
+    abstract fun getPrincipal(userName: String): PrincipalCompat
+
     companion object DEFAULT : ProcessContextFactory<ActivityInstanceContext> {
         override fun newActivityInstanceContext(
             engineDataAccess: ProcessEngineDataAccess,
@@ -71,6 +77,8 @@ interface ProcessContextFactory<out A : ActivityInstanceContext> {
             val processContext:ProcessInstanceContext = SimpleProcessContext(engineDataAccess.instance(processNodeInstance.hProcessInstance).withPermission())
             return SimpleActivityContext(processNodeInstance, processContext)
         }
+
+        override fun getPrincipal(userName: String): PrincipalCompat = SimplePrincipal(userName)
     }
 
     private class SimpleProcessContext(
@@ -93,6 +101,18 @@ interface ProcessContextFactory<out A : ActivityInstanceContext> {
         override val state: NodeInstanceState get() = nodeInstance.state
         override val nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>
             get() = nodeInstance.handle
+
+        override val owner: PrincipalCompat
+            get() = when (nodeInstance) {
+                is SecureObject<*> -> nodeInstance.owner
+                else -> throw IllegalStateException("The node instance has no owner")
+            }
+
+        override val assignedUser: PrincipalCompat?
+            get() = when(nodeInstance) {
+                is DefaultProcessNodeInstance -> nodeInstance.assignedUser
+                else -> null
+            }
 
         override fun canBeAccessedBy(principal: PrincipalCompat): Boolean {
             val ar = (node.accessRestrictions ?: return true)

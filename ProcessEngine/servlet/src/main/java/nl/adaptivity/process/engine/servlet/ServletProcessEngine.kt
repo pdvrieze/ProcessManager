@@ -851,6 +851,38 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     }
 
     /**
+     * finish a task. Process aware services will need to call this to signal completion.
+     * @param handle Handle of the task to update
+     * @param payload An XML document that is the "result" of the service.
+     * @param user A user with appropriate permissions
+     * @return the new state of the task. This may be different than requested, for example due to engine semantics. (either further, or no change at all)
+     */
+    @WebMethod(operationName = "takeTask")
+    @RestMethod(method = HttpMethod.POST, path = "/tasks/\${handle}", query = ["state=Taken"])
+    fun takeTask(
+        @WebParam(name = "handle", mode = Mode.IN)
+        @RestParam(name = "handle", type = RestParamType.VAR)
+        handle: Long,
+
+        @WebParam(name = "payload", mode = Mode.IN)
+        @RestParam(name = "payload", type = RestParamType.QUERY)
+        payload: Node,
+
+        @WebParam(name="assignedUser", mode = Mode.IN)
+        @RestParam(name="assignedUser", type=RestParamType.POST)
+        assignedUserName: String,
+
+        @RestParam(type = RestParamType.PRINCIPAL)
+        @WebParam(name = "principal", mode = Mode.IN, header = true)
+        user: Principal,
+    ): NodeInstanceState = translateExceptions {
+        require(handle>=0L)
+        processEngine.startTransaction().use { transaction ->
+            return transaction.commit(processEngine.takeTask(transaction, Handle(handle), assignedUserName, user))
+        }
+    }
+
+    /**
      * Update the state of a task.
      * @param handle Handle of the task to update
      * @param newState The new state
@@ -899,8 +931,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
         @RestParam(type = RestParamType.PRINCIPAL)
         @WebParam(name = "principal", mode = Mode.IN, header = true)
         user: Principal
-    )
-        : NodeInstanceState = translateExceptions {
+    ): NodeInstanceState = translateExceptions {
 
         val payloadNode = DomUtil.nodeToFragment(payload)
         processEngine.startTransaction().use { transaction ->

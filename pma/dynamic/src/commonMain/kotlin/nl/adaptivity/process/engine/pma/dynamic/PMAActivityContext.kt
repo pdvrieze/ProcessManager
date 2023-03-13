@@ -9,6 +9,7 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.engine.ExecutableActivity
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 abstract class PMAActivityContext<A : PMAActivityContext<A>>(private val processNode: IProcessNodeInstance) :
     ActivityInstanceContext {
@@ -24,6 +25,12 @@ abstract class PMAActivityContext<A : PMAActivityContext<A>>(private val process
 
     override val nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>
         get() = processNode.handle
+
+    override val assignedUser: PrincipalCompat?
+        get() = processNode.assignedUser
+
+    override val owner: PrincipalCompat
+        get() = (processNode as SecureObject<*>).owner
 
     inline fun <R> acceptBrowserActivity(browser: Browser, action: TaskList.Context.() -> R): R {
         acceptActivityImpl(browser) // This will initialise the task list and then delegate to it

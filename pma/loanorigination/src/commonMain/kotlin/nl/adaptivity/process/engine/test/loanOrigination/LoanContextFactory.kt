@@ -114,5 +114,9 @@ class LoanContextFactory(val log: Logger, val random: Random) : PMAProcessContex
         }
     }
 
+    override fun getPrincipal(userName: String): PrincipalCompat {
+        // TODO Use an actual user database
+        return SimplePrincipal(userName)
+    }
 }
 

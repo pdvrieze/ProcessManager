@@ -35,6 +35,7 @@ import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap
 import nl.adaptivity.process.processModel.RootProcessModel
 import nl.adaptivity.process.processModel.engine.*
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.xmlutil.XmlStreaming
 import nl.adaptivity.xmlutil.siblingsToFragment
 import nl.adaptivity.xmlutil.util.CompactFragment
@@ -799,12 +800,10 @@ class ProcessEngine<TR : ProcessTransaction, PIC : ActivityInstanceContext> {
 
     /**
      * Update the state of the given task
-
+     *
      * @param handle Handle to the process instance.
-     *
      * @param newState The new state
-     *
-     * @return
+     * @return the new state
      *
      * @throws SQLException
      */
@@ -826,8 +825,13 @@ class ProcessEngine<TR : ProcessTransaction, PIC : ActivityInstanceContext> {
                         finalState = updateChild(handle) {
                             when (newState) {
                                 Sent -> throw IllegalArgumentException("Updating task state to initial state not possible")
-                                Acknowledged -> state = newState
-                                Taken -> takeTask(engineData)
+                                Acknowledged -> {
+                                    if (state == Taken) {
+                                        assignedUser = null
+                                    }
+                                    state = newState
+                                }
+                                Taken -> takeTask(engineData, assignedUser)
                                 Started -> startTask(engineData)
                                 Complete -> throw IllegalArgumentException("Finishing a task must be done by a separate method")
                                 // TODO don't just make up a failure cause
@@ -846,6 +850,50 @@ class ProcessEngine<TR : ProcessTransaction, PIC : ActivityInstanceContext> {
         }
 
     }
+
+    /**
+     * Update the state of the given task
+     *
+     * @param handle Handle to the process instance.
+     * @param newState The new state
+     * @return the new state
+     *
+     * @throws SQLException
+     */
+    fun takeTask(
+        transaction: TR,
+        handle: Handle<SecureObject<ProcessNodeInstance<*>>>,
+        assignedUserName: String,
+        user: PrincipalCompat
+    ): NodeInstanceState {
+        val assignedUser = when (assignedUserName) {
+            user.name -> user
+            else -> getPrincipal(assignedUserName)
+        }
+        try {
+            val engineData = transaction.writableEngineData
+            engineData.nodeInstances[handle]
+                .shouldExist(handle)
+                .withPermission(securityProvider, SecureObject.Permissions.UPDATE, user) { task ->
+
+                    var finalState: NodeInstanceState = Taken
+                    engineData.updateInstance(task.hProcessInstance) {
+                        synchronized(this.base) {
+                            finalState = updateChild(handle) {
+                                takeTask(engineData, assignedUser)
+                            }.state
+                        }
+                    }
+
+                    return finalState
+                }
+        } finally {
+            processTickleQueue(transaction)
+        }
+
+    }
+
+    fun getPrincipal(userName: String) = processContextFactory.getPrincipal(userName)
 
     @Throws(SQLException::class)
     fun finishTask(

@@ -33,6 +33,7 @@ import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xmlutil.Namespace
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.serialutil.nonNullSerializer
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 typealias RunnableAction<I, O, C> = C.(I) -> O
 typealias NoInputRunnableAction<O, C> = C.() -> O
@@ -104,7 +105,13 @@ class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
         )
     }
 
-    override fun takeTask(instance: ProcessNodeInstance.Builder<*, *>): Boolean = true
+    override fun takeTask(instance: ProcessNodeInstance.Builder<*, *>, assignedUser: PrincipalCompat?): Boolean {
+//        if (assignedUser == null) throw ProcessException("Message activities must have a user assigned for 'taking' them")
+        if (instance.assignedUser != null) throw ProcessException("Users should not have been assigned before being taken")
+        instance.assignedUser = assignedUser
+
+        return true
+    }
 
     override fun isOtherwiseCondition(predecessor: ExecutableProcessNode): Boolean {
         return condition?.isOtherwise == true
