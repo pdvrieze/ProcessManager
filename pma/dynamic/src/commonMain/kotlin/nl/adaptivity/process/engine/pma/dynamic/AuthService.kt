@@ -297,7 +297,8 @@ class AuthService(
 
         if (token !in activeTokens) activeTokens.add(token)
 
-        if (authorizationCode.principal != clientAuth.principal) throw AuthorizationException("Invalid client for authentication code ${token.principal} != ${clientAuth.principal}")
+        if (authorizationCode.principal != clientAuth.principal)
+            throw AuthorizationException("Invalid client for authentication code ${token.principal} != ${clientAuth.principal}")
 
         doLog(clientAuth, "authTokenFromAuthorization(authorization = $authorizationCode) = $token")
         authorizationCodes.remove(authorizationCode)

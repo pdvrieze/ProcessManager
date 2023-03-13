@@ -119,12 +119,12 @@ class TestProcessEngine : ProcessEngineTestSupport() {
                 null
             )
 
-            assertEquals(1, stubMessageService._messages.size)
+            assertEquals(1, stubMessageService.messages.size)
             assertEquals(1L, stubMessageService.getMessageNode(0).handleValue)
 
             val expected = getXml("testModel1_task1.xml")
 
-            val receivedChars = serializeToXml(stubMessageService._messages[0].base)
+            val receivedChars = serializeToXml(stubMessageService.messages[0].base)
 
             assertXmlEquals(expected, receivedChars)
 
@@ -221,11 +221,11 @@ class TestProcessEngine : ProcessEngineTestSupport() {
                     instance.assertActive(split, ac1, ac2)
 
                     run {
-                        val messageSources = stubMessageService._messages
+                        val messageSources = stubMessageService.messages
                             .map { transaction.readableEngineData.nodeInstance(it.source).withPermission() }
                             .sortedBy { it.node.id }
                         assertEquals(listOf(ac1, ac2), messageSources)
-                        stubMessageService._messages.forEach { msg ->
+                        stubMessageService.messages.forEach { msg ->
                             msg.source
                         }
                     }
@@ -322,11 +322,11 @@ class TestProcessEngine : ProcessEngineTestSupport() {
                 null
             )
 
-            assertEquals(1, stubMessageService._messages.size)
+            assertEquals(1, stubMessageService.messages.size)
 
             assertXmlEquals(
                 getXml("testModel2_task1.xml"),
-                serializeToXml(stubMessageService._messages[0].base)
+                serializeToXml(stubMessageService.messages[0].base)
             )
 
             var ac1: ProcessNodeInstance<*> =
@@ -390,7 +390,7 @@ class TestProcessEngine : ProcessEngineTestSupport() {
                 val expected = "<user xmlns=''><fullname>Paul</fullname></user>"
                 assertXmlEquals(expected, actual)
             }
-            assertEquals(1, stubMessageService._messages.size)
+            assertEquals(1, stubMessageService.messages.size)
             assertEquals(
                 2L,
                 stubMessageService.getMessageNode(0).handleValue

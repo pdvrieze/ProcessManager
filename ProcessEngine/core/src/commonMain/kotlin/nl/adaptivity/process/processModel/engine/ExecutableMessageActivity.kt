@@ -97,10 +97,17 @@ class ExecutableMessageActivity(
      *
      * @return `false`
      */
-    override fun takeTask(instance: ProcessNodeInstance.Builder<*, *>, assignedUser: PrincipalCompat?): Boolean {
+    override fun takeTask(
+        activityContext: ActivityInstanceContext,
+        instance: ProcessNodeInstance.Builder<*, *>,
+        assignedUser: PrincipalCompat?
+    ): Boolean {
         if (assignedUser==null) throw ProcessException("Message activities must have a user assigned for 'taking' them")
         if (instance.assignedUser!=null) throw ProcessException("Users should not have been assigned before being taken")
         instance.assignedUser = assignedUser
+        if (! activityContext.canBeAccessedBy(assignedUser))
+            throw ProcessException("User $assignedUser has no access to activity: $instance")
+
         return false
     }
 

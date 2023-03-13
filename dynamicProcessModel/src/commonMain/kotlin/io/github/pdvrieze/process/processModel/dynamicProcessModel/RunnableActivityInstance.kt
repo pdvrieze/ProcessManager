@@ -16,6 +16,7 @@
 
 package io.github.pdvrieze.process.processModel.dynamicProcessModel
 
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.RunnableActivity.OnActivityProvided
 import net.devrieze.util.Handle
 import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.overlay
@@ -36,7 +37,8 @@ class RunnableActivityInstance<I : Any, O : Any>(builder: Builder<I, O>) :
         override var assignedUser: PrincipalCompat?
 
         override fun doProvideTask(engineData: MutableProcessEngineDataAccess): Boolean {
-            return node.provideTask(engineData, this)
+            node.provideTask(engineData, this)
+            return node.onActivityProvided(engineData, this)
             /*
                         TODO("IMplement")
                         val shouldProgress = node.provideTask(engineData, this)
@@ -79,9 +81,10 @@ class RunnableActivityInstance<I : Any, O : Any>(builder: Builder<I, O>) :
             return false // we call finish ourselves, so don't call it afterwards.
         }
 
+        override fun canTakeTaskAutomatically(): Boolean = node.onActivityProvided == OnActivityProvided.DEFAULT
+
         override fun doTakeTask(engineData: MutableProcessEngineDataAccess, assignedUser: PrincipalCompat?): Boolean {
-            if(!node.takeTask(this, assignedUser)) return false
-            return true
+            return node.takeTask(createActivityContext(engineData), this, assignedUser)
         }
     }
 

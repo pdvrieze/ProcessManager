@@ -24,11 +24,11 @@ import nl.adaptivity.util.multiplatform.PrincipalCompat
 class LoanActivityContext(override val processContext: LoanProcessContext, processNode: IProcessNodeInstance) :
     PMAActivityContext<LoanActivityContext>(processNode) {
 
-    override fun canBeAccessedBy(principal: PrincipalCompat): Boolean {
-        return (node as? RunnableActivity<*, *, *>)
-            ?.accessRestrictions
-            ?.hasAccess(this, principal)
-            ?: false
+    override fun canBeAccessedBy(principal: PrincipalCompat?): Boolean {
+
+        val restrictions = (node as? RunnableActivity<*, *, *>)
+            ?.accessRestrictions ?: return true
+        return principal != null && restrictions.hasAccess(this, principal)
     }
 
 }

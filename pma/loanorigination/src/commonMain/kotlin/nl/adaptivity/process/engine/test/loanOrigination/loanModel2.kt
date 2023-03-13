@@ -1,9 +1,6 @@
 package nl.adaptivity.process.engine.test.loanOrigination
 
-import io.github.pdvrieze.process.processModel.dynamicProcessModel.ActivityHandle
-import io.github.pdvrieze.process.processModel.dynamicProcessModel.OutputRef
-import io.github.pdvrieze.process.processModel.dynamicProcessModel.compositeActivity
-import io.github.pdvrieze.process.processModel.dynamicProcessModel.runnableProcess
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.*
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.pma.models.ANYSCOPE
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
@@ -13,7 +10,17 @@ import nl.adaptivity.process.engine.test.loanOrigination.systems.SignedDocument
 val loanModel2 = runnableProcess<LoanActivityContext>("foo", SimplePrincipal("modelOwner")) {
     val start by startNode
 
-    val inputCustomerMasterData by activity(start) {
+    val inputCustomerMasterData by activity(
+        predecessor = start,
+        accessRestrictions = RoleRestriction("clerk"),
+        onActivityProvided = { da, inst ->
+            da.updateNodeInstance(inst.handle) {
+                val ctx = da.processContextFactory.newActivityInstanceContext(da, inst) as LoanActivityContext
+                takeTask(da, ctx.processContext.clerk1.user)
+            }
+            false
+        }
+    ) {
         // TODO break this down into subactivities
         registerTaskPermission(customerFile, LoanPermissions.QUERY_CUSTOMER_DATA)
         registerTaskPermission(customerFile, LoanPermissions.CREATE_CUSTOMER)

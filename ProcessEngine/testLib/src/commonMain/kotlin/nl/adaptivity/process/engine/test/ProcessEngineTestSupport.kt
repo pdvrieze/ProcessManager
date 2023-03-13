@@ -1,26 +1,21 @@
 package nl.adaptivity.process.engine.test
 
-import net.devrieze.util.CachingHandleMap
 import net.devrieze.util.Handle
 import net.devrieze.util.MutableTransactionedHandleMap
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
-import nl.adaptivity.dropStack
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
-import nl.adaptivity.process.engine.ProcessInstance.State
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import org.junit.jupiter.api.Assertions.assertEquals
-import org.junit.jupiter.api.BeforeEach
 import java.net.URI
 import java.util.*
 import java.util.logging.Logger
 import kotlin.collections.ArrayList
-import kotlin.test.assertEquals
 import nl.adaptivity.xmlutil.QName
 import kotlin.test.BeforeTest
 import nl.adaptivity.xmlutil.util.CompactFragment
@@ -83,7 +78,7 @@ open class ProcessEngineTestSupport {
     }
 
     protected fun StubMessageService.messageNode(transaction: ProcessTransaction, index: Int): ProcessNodeInstance<*> {
-        return transaction.readableEngineData.nodeInstance(this._messages[index].source).withPermission()
+        return transaction.readableEngineData.nodeInstance(this.messages[index].source).withPermission()
     }
 
     protected fun ProcessInstance.child(transaction: ProcessTransaction, name: String) : ProcessNodeInstance<*> {

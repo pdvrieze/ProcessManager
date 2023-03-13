@@ -117,7 +117,11 @@ interface ExecutableProcessNode : ProcessNode, Identified {
     fun provideTask(engineData: ProcessEngineDataAccess, instanceBuilder: ProcessNodeInstance.Builder<*, *>): Boolean
         = true
 
-    fun takeTask(instance: ProcessNodeInstance.Builder<*, *>, assignedUser: PrincipalCompat?): Boolean = true
+    fun takeTask(
+        activityContext: ActivityInstanceContext,
+        instance: ProcessNodeInstance.Builder<*, *>,
+        assignedUser: PrincipalCompat?
+    ): Boolean = true
 
     fun startTask(instance: ProcessNodeInstance.Builder<*, *>): Boolean = true
 

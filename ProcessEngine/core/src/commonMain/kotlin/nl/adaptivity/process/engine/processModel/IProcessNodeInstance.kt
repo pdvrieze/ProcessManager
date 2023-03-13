@@ -69,6 +69,9 @@ interface IProcessNodeInstance: ReadableHandleAware<SecureObject<ProcessNodeInst
         return results.firstOrNull { name == it.name }
     }
 
+    fun createActivityContext(engineData: MutableProcessEngineDataAccess) =
+        engineData.processContextFactory.newActivityInstanceContext(engineData, this)
+
 }
 
 private fun IProcessNodeInstance.getPredecessor(

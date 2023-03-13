@@ -37,7 +37,9 @@ class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMess
 
     class ExtMessage(val base: IXmlMessage, val source: Handle<SecureObject<ProcessNodeInstance<*>>>) : IXmlMessage by base
 
-    var _messages = mutableListOf<ExtMessage>()
+    private var _messages = mutableListOf<ExtMessage>()
+
+    val messages: List<ExtMessage> get() = _messages
 
     override fun createMessage(message: IXmlMessage): IXmlMessage {
         return message

@@ -41,7 +41,7 @@ interface ActivityInstanceContext {
     val owner: PrincipalCompat
     val assignedUser: PrincipalCompat?
 
-    fun canBeAccessedBy(principal: PrincipalCompat): Boolean
+    fun canBeAccessedBy(principal: PrincipalCompat?): Boolean
 }
 
 interface ProcessContextFactory<out A : ActivityInstanceContext> {
@@ -114,9 +114,9 @@ interface ProcessContextFactory<out A : ActivityInstanceContext> {
                 else -> null
             }
 
-        override fun canBeAccessedBy(principal: PrincipalCompat): Boolean {
+        override fun canBeAccessedBy(principal: PrincipalCompat?): Boolean {
             val ar = (node.accessRestrictions ?: return true)
-            return ar.hasAccess(null, principal)
+            return principal != null && ar.hasAccess(null, principal)
         }
     }
 }

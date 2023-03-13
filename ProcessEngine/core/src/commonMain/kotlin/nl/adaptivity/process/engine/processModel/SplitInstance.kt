@@ -44,8 +44,10 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
             return node.provideTask(engineData, this)
         }
 
+        override fun canTakeTaskAutomatically(): Boolean = true
+
         override fun doTakeTask(engineData: MutableProcessEngineDataAccess, assignedUser: PrincipalCompat?): Boolean {
-            return node.takeTask(this, assignedUser)
+            return node.takeTask(createActivityContext(engineData), this, assignedUser)
         }
 
         override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {

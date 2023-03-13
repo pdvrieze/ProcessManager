@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
@@ -73,7 +74,11 @@ class ExecutableStartNode(
     override fun provideTask(engineData: ProcessEngineDataAccess,
                              instanceBuilder: ProcessNodeInstance.Builder<*, *>) = true
 
-    override fun takeTask(instance: ProcessNodeInstance.Builder<*, *>, assignedUser: PrincipalCompat?) = true
+    override fun takeTask(
+        activityContext: ActivityInstanceContext,
+        instance: ProcessNodeInstance.Builder<*, *>,
+        assignedUser: PrincipalCompat?
+    ) = true
 
     override fun startTask(instance: ProcessNodeInstance.Builder<*, *>) = true
 

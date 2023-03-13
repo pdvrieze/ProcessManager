@@ -17,10 +17,7 @@
 package nl.adaptivity.process.processModel.engine
 
 import net.devrieze.util.Handle
-import nl.adaptivity.process.engine.IProcessInstance
-import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
-import nl.adaptivity.process.engine.ProcessEngineDataAccess
-import nl.adaptivity.process.engine.ProcessInstance
+import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.processModel.CompositeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
@@ -115,7 +112,11 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableActivity {
      *
      * @return `false`
      */
-    override fun takeTask(instance: ProcessNodeInstance.Builder<*, *>, assignedUser: PrincipalCompat?) = true
+    override fun takeTask(
+        activityContext: ActivityInstanceContext,
+        instance: ProcessNodeInstance.Builder<*, *>,
+        assignedUser: PrincipalCompat?
+    ) = true
 
     /**
      * Start the task. Tasks are either process aware or finished when a reply is

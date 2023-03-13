@@ -4,6 +4,7 @@
 
 package io.github.pdvrieze.process.processModel.dynamicProcessModel
 
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.RunnableActivity.OnActivityProvided
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationStrategy
@@ -97,6 +98,8 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
     inline fun <I: Any, reified O: Any> activity(
         predecessor: Identified,
         input: InputRef<I>,
+        accessRestrictions: RunnableAccessRestriction? = null,
+        onActivityProvided: OnActivityProvided<I, O> = RunnableActivity.OnActivityProvided.DEFAULT,
         @BuilderInference
         noinline action: RunnableAction<I, O, C>
     ) : RunnableActivity.Builder<I, O, C> {
@@ -107,22 +110,31 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
             input.serializer,
             serializer(),
             action
-        )
+        ).apply {
+            this.accessRestrictions = accessRestrictions
+            this.onActivityProvided = onActivityProvided
+        }
     }
 
     inline fun <I : Any, reified O : Any> activity(
         predecessor: Identified,
         input: DefineInputCombiner<I>,
+        accessRestrictions: RunnableAccessRestriction? = null,
+        onActivityProvided: OnActivityProvided<I, O> = RunnableActivity.OnActivityProvided.DEFAULT,
         @BuilderInference
         noinline action: RunnableAction<I, O, C>
     ): RunnableActivity.Builder<I, O, C> {
         return configuredActivityBuilder<I, O>(predecessor, input, serializer()).apply {
             this.action = action
+            this.accessRestrictions = accessRestrictions
+            this.onActivityProvided = onActivityProvided
         }
     }
 
     inline fun <I : Any, reified O : Any> activity(
         predecessor: NodeHandle<I>,
+        accessRestrictions: RunnableAccessRestriction? = null,
+        onActivityProvided: OnActivityProvided<I, O> = RunnableActivity.OnActivityProvided.DEFAULT,
         @BuilderInference
         noinline action: RunnableAction<I, O, C>
     ): RunnableActivity.Builder<I, O, C> {
@@ -133,12 +145,17 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
             predecessor.serializer,
             serializer(),
             action
-        )
+        ).apply {
+            this.accessRestrictions = accessRestrictions
+            this.onActivityProvided = onActivityProvided
+        }
     }
 
     fun <I : Any, O : Any> activity(
         predecessor: ActivityHandle<I>,
         outputSerializer: SerializationStrategy<O>,
+        accessRestrictions: RunnableAccessRestriction? = null,
+        onActivityProvided: OnActivityProvided<I, O> = RunnableActivity.OnActivityProvided.DEFAULT,
         @BuilderInference
         action: RunnableAction<I, O, C>
     ): RunnableActivity.Builder<I, O, C> {
@@ -149,7 +166,10 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
             predecessor.serializer,
             outputSerializer,
             action
-        )
+        ).apply {
+            this.onActivityProvided = onActivityProvided
+            this.accessRestrictions = accessRestrictions
+        }
     }
 
     fun <I : Any, O : Any> activity(
@@ -157,6 +177,8 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
         inputSerializer: DeserializationStrategy<I>,
         outputSerializer: SerializationStrategy<O>,
         inputRefNode: Identified? = null,
+        accessRestrictions: RunnableAccessRestriction? = null,
+        onActivityProvided: OnActivityProvided<I, O> = RunnableActivity.OnActivityProvided.DEFAULT,
         @BuilderInference
         action: RunnableAction<I, O, C>
     ): RunnableActivity.Builder<I, O, C> {
@@ -167,7 +189,10 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
             inputSerializer,
             outputSerializer,
             action
-        )
+        ).apply {
+            this.onActivityProvided = onActivityProvided
+            this.accessRestrictions = accessRestrictions
+        }
     }
 
     fun <I : Any, O : Any> activity(
@@ -175,6 +200,8 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
         inputSerializer: DeserializationStrategy<I>,
         outputSerializer: SerializationStrategy<O>,
         inputRefName: String = "",
+        accessRestrictions: RunnableAccessRestriction? = null,
+        onActivityProvided: OnActivityProvided<I, O> = RunnableActivity.OnActivityProvided.DEFAULT,
         @BuilderInference
         action: RunnableAction<I, O, C>
     ): RunnableActivity.Builder<I, O, C> {
@@ -185,7 +212,10 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
             inputSerializer,
             outputSerializer,
             action
-        )
+        ).apply {
+            this.onActivityProvided = onActivityProvided
+            this.accessRestrictions = accessRestrictions
+        }
     }
 
     fun <I : Any, O : Any> activity(
@@ -194,6 +224,8 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
         outputSerializer: SerializationStrategy<O>,
         inputRefNode: Identified?,
         inputRefName: String,
+        accessRestrictions: RunnableAccessRestriction? = null,
+        onActivityProvided: OnActivityProvided<I, O> = RunnableActivity.OnActivityProvided.DEFAULT,
         @BuilderInference
         action: RunnableAction<I, O, C>
     ): RunnableActivity.Builder<I, O, C> {
@@ -204,7 +236,10 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
             inputSerializer,
             outputSerializer,
             action
-        )
+        ).apply {
+            this.onActivityProvided = onActivityProvided
+            this.accessRestrictions = accessRestrictions
+        }
     }
 
     @PublishedApi

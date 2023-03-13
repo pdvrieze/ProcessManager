@@ -49,6 +49,7 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
             return shouldProgress
         }
 
+        override fun canTakeTaskAutomatically(): Boolean = true
 
         @OptIn(ProcessInstanceStorage::class)
         override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {

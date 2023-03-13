@@ -27,6 +27,18 @@ data class SimplePrincipal(private val name: String) : PrincipalCompat {
     override fun toString(): String {
         return name
     }
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other !is PrincipalCompat) return false
+
+        return name == other.name
+    }
+
+    override fun hashCode(): Int {
+        return name.hashCode()
+    }
+
 }
 
 inline val PrincipalCompat.name get() = getName()

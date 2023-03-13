@@ -63,7 +63,18 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
         state: NodeInstanceState = NodeInstanceState.Pending,
         results: Iterable<ProcessData> = emptyList(),
         failureCause: Throwable? = null
-    ) : super(node, predecessors, processInstanceBuilder, hProcessInstance, owner, entryNo, handle, state, results, failureCause) {
+    ) : super(
+        node,
+        predecessors,
+        processInstanceBuilder,
+        hProcessInstance,
+        owner,
+        entryNo,
+        handle,
+        state,
+        results,
+        failureCause
+    ) {
         this.assignedUser = assignedUser
     }
 
@@ -135,7 +146,8 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
             if (!handle.isValid) store(engineData)
             assert(handle.isValid)
 
-            val node = this.node // Create a local copy to prevent races - and shut up Kotlin about the possibilities as it should be immutable
+            val node =
+                this.node // Create a local copy to prevent races - and shut up Kotlin about the possibilities as it should be immutable
 
             fun <MSG_T> impl(messageService: IMessageService<MSG_T>): Boolean {
 
@@ -144,13 +156,13 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
                 if (node is MessageActivity) {
                     val preparedMessage = messageService.createMessage(node.message ?: XmlMessage())
                     val sendingResult = tryCreateTask {
-                        val aic = engineData.processContextFactory.newActivityInstanceContext(engineData, this)
+                        val aic = createActivityContext(engineData)
                         messageService.sendMessage(engineData, preparedMessage, aic)
                     }
                     when (sendingResult) {
-                        MessageSendingResult.SENT         -> state = NodeInstanceState.Sent
+                        MessageSendingResult.SENT -> state = NodeInstanceState.Sent
                         MessageSendingResult.ACKNOWLEDGED -> state = NodeInstanceState.Acknowledged
-                        MessageSendingResult.FAILED       -> failTaskCreation(ProcessException("Failure to send message"))
+                        MessageSendingResult.FAILED -> failTaskCreation(ProcessException("Failure to send message"))
                     }
                     store(engineData)
                 }
@@ -162,8 +174,13 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
             return impl(engineData.messageService())
         }
 
+        override fun canTakeTaskAutomatically(): Boolean {
+            val n = node
+            return n !is MessageActivity || n.accessRestrictions==null
+        }
+
         override fun doTakeTask(engineData: MutableProcessEngineDataAccess, assignedUser: PrincipalCompat?): Boolean {
-            return node.takeTask(this, assignedUser)
+            return node.takeTask(createActivityContext(engineData), this, assignedUser)
         }
 
         override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {
@@ -173,7 +190,8 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
 
     }
 
-    private class ExtBuilderImpl(base: DefaultProcessNodeInstance, processInstanceBuilder: ProcessInstance.Builder) : ExtBuilder<ExecutableProcessNode, DefaultProcessNodeInstance>(base, processInstanceBuilder), Builder {
+    private class ExtBuilderImpl(base: DefaultProcessNodeInstance, processInstanceBuilder: ProcessInstance.Builder) :
+        ExtBuilder<ExecutableProcessNode, DefaultProcessNodeInstance>(base, processInstanceBuilder), Builder {
         override var node: ExecutableProcessNode by overlay { base.node }
         override fun build() = if (changed) DefaultProcessNodeInstance(this).also { invalidateBuilder(it) } else base
         override var assignedUser: PrincipalCompat? = base.assignedUser
@@ -188,7 +206,15 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
         override var assignedUser: PrincipalCompat? = null,
         handle: Handle<SecureObject<DefaultProcessNodeInstance>> = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
-    ) : ProcessNodeInstance.BaseBuilder<ExecutableProcessNode, DefaultProcessNodeInstance>(node, predecessors, processInstanceBuilder, owner, entryNo, handle, state), Builder {
+    ) : ProcessNodeInstance.BaseBuilder<ExecutableProcessNode, DefaultProcessNodeInstance>(
+        node,
+        predecessors,
+        processInstanceBuilder,
+        owner,
+        entryNo,
+        handle,
+        state
+    ), Builder {
 
         override fun build() = DefaultProcessNodeInstance(this)
     }
@@ -212,10 +238,12 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
             assignedUser: PrincipalCompat?,
             body: Builder.() -> Unit
         ): DefaultProcessNodeInstance {
-            return DefaultProcessNodeInstance(BaseBuilder(
-                node, predecessors, processInstanceBuilder, processInstanceBuilder.owner,
-                entryNo, assignedUser, handle, state
-            ).apply(body))
+            return DefaultProcessNodeInstance(
+                BaseBuilder(
+                    node, predecessors, processInstanceBuilder, processInstanceBuilder.owner,
+                    entryNo, assignedUser, handle, state
+                ).apply(body)
+            )
         }
 
 

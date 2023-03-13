@@ -137,7 +137,11 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         return "nodeInstance  ($handle, ${node.id}[$entryNo] - $state)"
     }
 
-    fun ActivityInstanceContext.serialize(nodeInstanceSource: IProcessInstance, out: XmlWriter, localEndpoint: EndpointDescriptor) {
+    fun ActivityInstanceContext.serialize(
+        nodeInstanceSource: IProcessInstance,
+        out: XmlWriter,
+        localEndpoint: EndpointDescriptor
+    ) {
         out.smartStartTag(XmlProcessNodeInstance.ELEMENTNAME) {
             writeAttribute("state", state.name)
             writeAttribute("processinstance", hProcessInstance.handleValue)
@@ -163,14 +167,17 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         }
     }
 
-    fun ActivityInstanceContext.toSerializable(engineData: ProcessEngineDataAccess, localEndpoint: EndpointDescriptor): XmlProcessNodeInstance {
+    fun ActivityInstanceContext.toSerializable(
+        engineData: ProcessEngineDataAccess,
+        localEndpoint: EndpointDescriptor
+    ): XmlProcessNodeInstance {
         val builder = builder(engineData.instance(hProcessInstance).withPermission().builder())
 
         val body: ICompactFragment? = (node as? MessageActivity)?.message?.let { message ->
             try {
                 val xmlReader = message.messageBody.getXmlReader()
                 instantiateXmlPlaceholders(builder.processInstanceBuilder, xmlReader, true, localEndpoint)
-                as ICompactFragment
+                    as ICompactFragment
             } catch (e: XmlException) {
                 engineData.logger.log(LogLevel.WARNING, "Error processing body", e)
                 throw e
@@ -234,15 +241,22 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         fun failTask(engineData: MutableProcessEngineDataAccess, cause: Throwable)
 
         /** Function that will eventually do progression */
-        fun provideTask(engineData: MutableProcessEngineDataAccess)
+        fun provideTask(engineData: MutableProcessEngineDataAccess, autoContinue: Boolean = true)
 
         /** Function that will do provision, but not progress. This is where custom implementations live */
         fun doProvideTask(engineData: MutableProcessEngineDataAccess): Boolean
 
-        fun takeTask(engineData: MutableProcessEngineDataAccess, assignedUser: PrincipalCompat? = null)
+        fun canTakeTaskAutomatically(): Boolean
+
+        fun takeTask(
+            engineData: MutableProcessEngineDataAccess,
+            assignedUser: PrincipalCompat? = null,
+            autoContinue: Boolean = true
+        )
+
         fun doTakeTask(engineData: MutableProcessEngineDataAccess, assignedUser: PrincipalCompat? = null): Boolean
 
-        fun startTask(engineData: MutableProcessEngineDataAccess)
+        fun startTask(engineData: MutableProcessEngineDataAccess, autoContinue: Boolean = true)
         fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean
 
         fun skipTask(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState)
@@ -349,6 +363,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
                 SkippedInvalidated -> state == Pending
                 Cancelled,
                 AutoCancelled -> !state.isFinal
+
                 FailRetry -> throw ProcessException("Recovering a retryable failed state is not a soft state update")
                 Failed -> throw ProcessException("Failed states can not be changed, this should not be attempted")
             }
@@ -358,7 +373,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             }
         }
 
-        final override fun provideTask(engineData: MutableProcessEngineDataAccess) {
+        final override fun provideTask(engineData: MutableProcessEngineDataAccess, autoContinue: Boolean) {
             if (this !is JoinInstance.Builder) {
                 val predecessors = predecessors.map { engineData.nodeInstance(it).withPermission() }
                 for (predecessor in predecessors) {
@@ -367,18 +382,24 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
                     }
                 }
             }
-            if (doProvideTask(engineData).also { softUpdateState(engineData, Sent) }) {
+            if (doProvideTask(engineData).also { softUpdateState(engineData, Sent) } &&
+                autoContinue &&
+                canTakeTaskAutomatically()) {
                 takeTask(engineData)
             }
         }
 
-        final override fun takeTask(engineData: MutableProcessEngineDataAccess, assignedUser: PrincipalCompat?) {
-            if (doTakeTask(engineData, assignedUser).also { softUpdateState(engineData, Taken) })
+        final override fun takeTask(
+            engineData: MutableProcessEngineDataAccess,
+            assignedUser: PrincipalCompat?,
+            autoContinue: Boolean
+        ) {
+            if (doTakeTask(engineData, assignedUser).also { softUpdateState(engineData, Taken) } && autoContinue)
                 startTask(engineData)
         }
 
-        final override fun startTask(engineData: MutableProcessEngineDataAccess) {
-            if (doStartTask(engineData).also { softUpdateState(engineData, Started) }) {
+        final override fun startTask(engineData: MutableProcessEngineDataAccess, autoContinue: Boolean) {
+            if (doStartTask(engineData).also { softUpdateState(engineData, Started) } && autoContinue) {
                 finishTask(engineData)
             }
         }

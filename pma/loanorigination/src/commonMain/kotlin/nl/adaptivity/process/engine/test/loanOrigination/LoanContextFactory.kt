@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination
 
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.SimpleRolePrincipal
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
@@ -60,9 +61,20 @@ class LoanContextFactory(val log: Logger, val random: Random) : PMAProcessContex
         "10 Downing Street"
     )
 
-    val clerk1: Browser = Browser(authService, SimplePrincipal("preprocessing clerk 1") as PrincipalCompat)
-    val postProcClerk: Browser = Browser(authService, SimplePrincipal("postprocessing clerk 2"))
-    val customer: Browser = Browser(authService, SimplePrincipal(customerData.name))
+    object principals {
+        fun withName(userName: String): PrincipalCompat? {
+            return map[userName]
+        }
+
+        val clerk1 = SimpleRolePrincipal("preprocessing clerk 1", "clerk", "bankuser")
+        val clerk2 = SimpleRolePrincipal("postprocessing clerk 2", "clerk", "bankuser")
+        val customer = SimpleRolePrincipal("John Doe", "customer")
+        private val map = arrayOf(clerk1, clerk2, customer).associateBy { it.name }
+    }
+
+    val clerk1: Browser = Browser(authService, principals.clerk1)
+    val postProcClerk: Browser = Browser(authService, principals.clerk2)
+    val customer: Browser = Browser(authService, principals.customer)
 
     override fun newActivityInstanceContext(
         engineDataAccess: ProcessEngineDataAccess,
@@ -115,8 +127,7 @@ class LoanContextFactory(val log: Logger, val random: Random) : PMAProcessContex
     }
 
     override fun getPrincipal(userName: String): PrincipalCompat {
-        // TODO Use an actual user database
-        return SimplePrincipal(userName)
+        return principals.withName(userName) ?: SimplePrincipal(userName)
     }
 }
 

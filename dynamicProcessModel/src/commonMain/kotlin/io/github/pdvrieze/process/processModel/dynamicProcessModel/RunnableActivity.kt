@@ -38,7 +38,7 @@ import nl.adaptivity.util.multiplatform.PrincipalCompat
 typealias RunnableAction<I, O, C> = C.(I) -> O
 typealias NoInputRunnableAction<O, C> = C.() -> O
 
-class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
+open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
     builder: Builder<I, O, C>,
     newOwner: ProcessModel<*>,
     otherNodes: Iterable<ProcessNode.Builder>
@@ -55,7 +55,8 @@ class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
     internal val inputCombiner: InputCombiner<I> = builder.inputCombiner
     internal val outputSerializer: SerializationStrategy<O>? = builder.outputSerializer
     override val condition: ExecutableCondition? = builder.condition?.toExecutableCondition()
-    override val accessRestrictions: RunnableAccessRestriction? = builder.authRestrictions
+    override val accessRestrictions: RunnableAccessRestriction? = builder.accessRestrictions
+    val onActivityProvided: OnActivityProvided<I, O> = builder.onActivityProvided
 
     override val ownerModel: ExecutableModelCommon
         get() = super.ownerModel as ExecutableModelCommon
@@ -105,11 +106,16 @@ class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
         )
     }
 
-    override fun takeTask(instance: ProcessNodeInstance.Builder<*, *>, assignedUser: PrincipalCompat?): Boolean {
+    override fun takeTask(
+        activityContext: ActivityInstanceContext,
+        instance: ProcessNodeInstance.Builder<*, *>,
+        assignedUser: PrincipalCompat?
+    ): Boolean {
 //        if (assignedUser == null) throw ProcessException("Message activities must have a user assigned for 'taking' them")
         if (instance.assignedUser != null) throw ProcessException("Users should not have been assigned before being taken")
-        instance.assignedUser = assignedUser
+        if (!activityContext.canBeAccessedBy(assignedUser)) throw ProcessException("User $assignedUser is not valid for activity")
 
+        instance.assignedUser = assignedUser
         return true
     }
 
@@ -139,13 +145,29 @@ class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
         return inputCombiner(mappedData)
     }
 
+    fun interface OnActivityProvided<out I: Any, in O: Any>: (MutableProcessEngineDataAccess, RunnableActivityInstance.Builder<@UnsafeVariance I, @UnsafeVariance O>) -> Boolean {
+        companion object {
+
+            val DEFAULT = OnActivityProvided<Nothing, Any> { engineData, instance ->
+/*
+                engineData.updateNodeInstance(instance.handle) {
+                    takeTask(engineData)
+                }
+*/
+                true
+            }
+        }
+    }
+
     class Builder<I : Any, O : Any, C: ActivityInstanceContext> : BaseBuilder, ExecutableProcessNode.Builder {
 
         var inputCombiner: InputCombiner<I> = InputCombiner()
         val outputSerializer: SerializationStrategy<O>?
         var action: RunnableAction<I, O, C>
 
-        var authRestrictions: RunnableAccessRestriction? = null
+        var accessRestrictions: RunnableAccessRestriction? = null
+
+        var onActivityProvided: OnActivityProvided<I, O> = OnActivityProvided.DEFAULT
 
         override val defines: MutableCollection<IXmlDefineType>
             get() = TypecheckingCollection(DefineType::class, super.defines)
@@ -254,7 +276,7 @@ class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
         private val path: String?,
         val deserializer: DeserializationStrategy<T>,
         pathNSContext: Iterable<Namespace> = emptyList()
-    ) : /*XPathHolder(name, path, null, pathNSContext),*/ IXmlDefineType {
+    ) : IXmlDefineType {
         override val content: Nothing? get() = null
         override val originalNSContext: Iterable<Namespace> get() = emptyList()
 
