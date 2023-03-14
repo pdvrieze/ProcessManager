@@ -39,16 +39,6 @@ class RunnableActivityInstance<I : Any, O : Any>(builder: Builder<I, O>) :
         override fun doProvideTask(engineData: MutableProcessEngineDataAccess): Boolean {
             node.provideTask(engineData, this)
             return node.onActivityProvided(engineData, this)
-            /*
-                        TODO("IMplement")
-                        val shouldProgress = node.provideTask(engineData, this)
-
-            //            val childHandle=engineData.instances.put(ProcessInstance(engineData, node.childModel, handle) {})
-
-                        store(engineData)
-                        engineData.commit()
-                        return shouldProgress
-            */
         }
 
 

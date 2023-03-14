@@ -32,7 +32,7 @@ import kotlin.test.assertEquals
 import kotlin.test.assertIs
 import kotlin.test.assertNotNull
 
-class TestLoanOrigination : ProcessEngineTestSupport() {
+class TestLoanOrigination : ProcessEngineTestSupport<LoanActivityContext>() {
 
     @Test
     fun testCreateObjectModel() {

@@ -315,8 +315,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         }
 
 
-        fun tickle(engineData: MutableProcessEngineDataAccess, messageService: IMessageService<*>) {
-            @Suppress("NON_EXHAUSTIVE_WHEN")
+        fun tickle(engineData: MutableProcessEngineDataAccess, messageService: IMessageService<*, *>) {
             when (state) {
                 FailRetry,
                 Pending -> provideTask(engineData)

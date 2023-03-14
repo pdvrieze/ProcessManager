@@ -18,11 +18,8 @@ package nl.adaptivity.process
 
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.engine.ActivityInstanceContext
-import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.IXmlMessage
-
 
 /**
  * Interface signifying that the object can be used to send messages. The message provided is an opaque type
@@ -31,7 +28,7 @@ import nl.adaptivity.process.processModel.IXmlMessage
  *
  * @param MSG_T The type signifying a message that can then be sent. This is used to be able to treat the message as opaque
  */
-interface IMessageService<MSG_T> {
+interface IMessageService<MSG_T, in C: ActivityInstanceContext> {
 
   /**
    * Create a message.
@@ -54,7 +51,7 @@ interface IMessageService<MSG_T> {
    * @return `true` or lack of failure, `false` on failure.
    *
    */
-  fun sendMessage(engineData: ProcessEngineDataAccess, protoMessage: MSG_T, activityInstanceContext: ActivityInstanceContext): MessageSendingResult
+  fun sendMessage(engineData: ProcessEngineDataAccess, protoMessage: MSG_T, activityInstanceContext: C): MessageSendingResult
 
   /**
    * Get the endpoint belonging to the messenger. (Where can replies go)

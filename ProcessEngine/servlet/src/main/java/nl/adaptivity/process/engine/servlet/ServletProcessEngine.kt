@@ -23,7 +23,6 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.io.Writable
 import nl.adaptivity.io.WritableReader
 import nl.adaptivity.messaging.*
-import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.MessageSendingResult
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef
@@ -57,6 +56,7 @@ import javax.jws.WebParam.Mode
 import jakarta.servlet.ServletConfig
 import jakarta.servlet.ServletException
 import jakarta.servlet.http.HttpServletResponse
+import nl.adaptivity.process.IMessageService
 import javax.xml.bind.annotation.XmlElementWrapper
 import javax.xml.namespace.QName
 import javax.xml.stream.*
@@ -105,7 +105,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
         get() = null
 
     inner class MessageService(localEndpoint: EndpointDescriptor) :
-        IMessageService<ServletProcessEngine.NewServletMessage> {
+        IMessageService<NewServletMessage, ActivityInstanceContext> {
 
         override var localEndpoint: EndpointDescriptor = localEndpoint
             internal set

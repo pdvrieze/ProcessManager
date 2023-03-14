@@ -94,9 +94,11 @@ abstract class StringRep : CharSequence {
      * @param end the index of the first character not belonging to the string
      * @param element the string to base the rep of.
      */
-    private class IndexedCharArrayStringRep constructor(private val begin: Int,
-                                                        private val end: Int,
-                                                        private val element: CharArray) : StringRep() {
+    private class IndexedCharArrayStringRep constructor(
+        private val begin: Int,
+        private val end: Int,
+        private val element: CharArray
+    ) : StringRep() {
 
         init {
             if (end < begin || begin < 0 || end >= element.size) {
@@ -148,9 +150,11 @@ abstract class StringRep : CharSequence {
      * @param end the end index of the substring
      * @param element The string to base this one of
      */
-    private class RepStringRep constructor(private val begin: Int,
-                                           private val end: Int,
-                                           private val element: StringRep) : StringRep() {
+    private class RepStringRep constructor(
+        private val begin: Int,
+        private val end: Int,
+        private val element: StringRep
+    ) : StringRep() {
 
         init {
             if (end < begin || begin < 0 || end > element.length) {
@@ -283,7 +287,8 @@ abstract class StringRep : CharSequence {
         private val token: Char,
         private val quotes: Boolean,
         private val openQuotes: CharArray,
-        private val closeQuotes: CharArray) : StringRepIterator {
+        private val closeQuotes: CharArray
+    ) : StringRepIterator {
 
 
         constructor(stringRep: StringRep, token: Char, quotes: Boolean) :
@@ -315,8 +320,8 @@ abstract class StringRep : CharSequence {
          */
         constructor(stringRep: StringRep, token: Char, quotes: CharSequence) :
             this(stringRep, token, true,
-                 CharArray(quotes.length / 2) { quotes[it * 2] },
-                 CharArray(quotes.length / 2) { quotes[it * 2 + 1] })
+                CharArray(quotes.length / 2) { quotes[it * 2] },
+                CharArray(quotes.length / 2) { quotes[it * 2 + 1] })
 
 
         /*
@@ -353,7 +358,7 @@ abstract class StringRep : CharSequence {
 
             val newPos: Int = when {
                 quotes -> nextPosQuoted()
-                else   -> nextPos()
+                else -> nextPos()
             }
 
             var right = newPos - 1
@@ -391,7 +396,6 @@ abstract class StringRep : CharSequence {
         }
 
         private fun nextPosQuoted(): Int {
-            /* TODO refactor this function */
             var quote = false
 
             if (openQuotes.isEmpty()) {
@@ -399,16 +403,15 @@ abstract class StringRep : CharSequence {
                 while (i < stringRep.length) {
                     val c = stringRep[i]
 
-                    if (quote) {
-                        if (c == '\\') {
-                            i++ /* skip next char */
-                        } else if (c == '"') {
-                            quote = false
+                    when {
+                        quote -> when (c) {
+                            '\\' -> i++ /* skip next char */
+                            '"' -> quote = false
                         }
-                    } else if (c == token) {
-                        return i
-                    } else if (c == '"') {
-                        quote = true
+
+                        c == token -> return i
+
+                        c == '"' -> quote = true
                     }
                     i++
                 }
@@ -419,13 +422,11 @@ abstract class StringRep : CharSequence {
                 while (i < stringRep.length) {
                     val c = stringRep[i]
 
-                    if (!stack.isEmpty) {
-                        if (c == '\\') {
-                            i++ /* skip next char */
-                        } else if (c == closeQuotes[stack.peek()]) {
-                            stack.pop()
-                        } else {
-                            for (j in openQuotes.indices) {
+                    when {
+                        !stack.isEmpty -> when (c) {
+                            '\\' -> i++ /* skip next char */
+                            closeQuotes[stack.peek()] -> stack.pop()
+                            else -> for (j in openQuotes.indices) {
                                 if (c == openQuotes[j]) {
                                     stack.push(j)
 
@@ -433,14 +434,16 @@ abstract class StringRep : CharSequence {
                                 }
                             }
                         }
-                    } else if (c == token) {
-                        return i
-                    } else {
-                        for (j in openQuotes.indices) {
-                            if (c == openQuotes[j]) {
-                                stack.push(j)
 
-                                break
+                        c == token -> return i
+
+                        else -> {
+                            for (j in openQuotes.indices) {
+                                if (c == openQuotes[j]) {
+                                    stack.push(j)
+
+                                    break
+                                }
                             }
                         }
                     }
@@ -577,7 +580,6 @@ abstract class StringRep : CharSequence {
      * @throws NumberFormatException When quotes are unmatched
      */
     fun indexOf(char: Char, pStartIndex: Int, pQuotes: CharSequence?): Int {
-        /* TODO refactor this function */
         var quote = false
 
         if (pQuotes == null) {
@@ -585,16 +587,15 @@ abstract class StringRep : CharSequence {
             while (i < length) {
                 val c = get(i)
 
-                if (quote) {
-                    if (c == '\\') {
-                        i++ /* skip next char */
-                    } else if (c == '"') {
-                        quote = false
+                when {
+                    quote -> when (c) {
+                        '\\' -> i++ /* skip next char */
+                        '"' -> quote = false
                     }
-                } else if (c == char) {
-                    return i
-                } else if (c == '"') {
-                    quote = true
+
+                    c == char -> return i
+
+                    c == '"' -> quote = true
                 }
                 i++
             }

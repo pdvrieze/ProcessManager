@@ -75,7 +75,7 @@ open class DBHandleMap<TMP, V : Any, TR : MonadicDBTransaction<DB>, DB : Databas
         dbReceiver.transaction {
             val tr = this
             if (pendingCreates.containsKey(handle)) {
-                throw IllegalArgumentException("Pending create") // XXX This is not the best way
+                error("Pending create")
             }
 
             val factory = elementFactory

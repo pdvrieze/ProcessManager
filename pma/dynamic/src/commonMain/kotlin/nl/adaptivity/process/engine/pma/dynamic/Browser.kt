@@ -26,10 +26,12 @@ import kotlin.random.Random
 
 class Browser private constructor(private val authService: AuthService, val auth: IdSecretAuthInfo) {
     val user: PrincipalCompat get() = auth.principal
-    private val tokens=mutableListOf<AuthToken>()
+    private val tokens = mutableListOf<AuthToken>()
     val logger: LoggerCompat get() = authService.logger
 
-    constructor(authService: AuthService, user: PrincipalCompat): this(authService, authService.registerClient(user, Random.nextString())) {
+    constructor(authService: AuthService, user: PrincipalCompat)
+        : this(authService, authService.registerClient(user, Random.nextString())) {
+        
         addToken(authService.loginDirect(auth))
     }
 
@@ -42,8 +44,9 @@ class Browser private constructor(private val authService: AuthService, val auth
 
     fun addToken(authService: AuthService, authorizationCode: AuthorizationCode) {
         logger.log(Level.INFO, "Browser(${user.name}).addTokenFromAuth($authorizationCode)")
-        val auth = tokens.lastOrNull { it.scope == CommonPMAPermissions.IDENTIFY && it.serviceId == authService.serviceId }
-            ?: this.auth
+        val auth =
+            tokens.lastOrNull { it.scope == CommonPMAPermissions.IDENTIFY && it.serviceId == authService.serviceId }
+                ?: this.auth
 
         addToken(authService.getAuthToken(auth, authorizationCode))
     }
@@ -51,7 +54,10 @@ class Browser private constructor(private val authService: AuthService, val auth
     fun loginToService(service: UIServiceImpl): AuthToken {
         tokens.removeIf { authService.isTokenInvalid(it) }
         tokens.lastOrNull { it.serviceId == service.serviceId }?.let {
-            logger.log(Level.INFO, "Browser(${user.name}).loginToService(${service.serviceId}) = already logged in - $it")
+            logger.log(
+                Level.INFO,
+                "Browser(${user.name}).loginToService(${service.serviceId}) = already logged in - $it"
+            )
             return it
         }
         return service.loginBrowser(this).also {
@@ -62,8 +68,9 @@ class Browser private constructor(private val authService: AuthService, val auth
     fun loginToService(authService: AuthService, service: Service): AuthorizationCode {
         logger.log(Level.INFO, "Browser(${user.name}).loginToService(${service.serviceId})")
         tokens.removeIf { authService.isTokenInvalid(it) }
-        val token = tokens.lastOrNull { it.scope == CommonPMAPermissions.IDENTIFY && it.serviceId == authService.serviceId }
-            ?: throw AuthorizationException("Not logged in to authorization service")
+        val token =
+            tokens.lastOrNull { it.scope == CommonPMAPermissions.IDENTIFY && it.serviceId == authService.serviceId }
+                ?: throw AuthorizationException("Not logged in to authorization service")
         return authService.getAuthorizationCode(token, service, ANYSCOPE)
     }
 }

@@ -21,10 +21,7 @@ import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.MessageSendingResult
-import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
-import nl.adaptivity.process.engine.ProcessData
-import nl.adaptivity.process.engine.ProcessException
-import nl.adaptivity.process.engine.ProcessInstance
+import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.impl.getClass
 import nl.adaptivity.process.processModel.MessageActivity
 import nl.adaptivity.process.processModel.XmlMessage
@@ -149,7 +146,7 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
             val node =
                 this.node // Create a local copy to prevent races - and shut up Kotlin about the possibilities as it should be immutable
 
-            fun <MSG_T> impl(messageService: IMessageService<MSG_T>): Boolean {
+            fun <MSG_T, C:ActivityInstanceContext> impl(messageService: IMessageService<MSG_T, C>): Boolean {
 
                 val shouldProgress = tryCreateTask { node.provideTask(engineData, this) }
 
@@ -157,7 +154,7 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
                     val preparedMessage = messageService.createMessage(node.message ?: XmlMessage())
                     val sendingResult = tryCreateTask {
                         val aic = createActivityContext(engineData)
-                        messageService.sendMessage(engineData, preparedMessage, aic)
+                        messageService.sendMessage(engineData, preparedMessage, aic as C)// TODO remove cast
                     }
                     when (sendingResult) {
                         MessageSendingResult.SENT -> state = NodeInstanceState.Sent

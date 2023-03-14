@@ -265,7 +265,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
          *
          * @param messageService The message service to use for messenging.
          */
-        fun tickle(engineData: MutableProcessEngineDataAccess, messageService: IMessageService<*>) {
+        fun tickle(engineData: MutableProcessEngineDataAccess, messageService: IMessageService<*, *>) {
             val self = this
             val children = allChildNodeInstances().toList()
             // make a copy as the list may be changed due to tickling.
@@ -284,7 +284,7 @@ class ProcessInstance : MutableHandleAware<SecureObject<ProcessInstance>>, Secur
 
             for (hNodeInstance in nonFinalChildren) {
                 updateChild(hNodeInstance) {
-                    tickle(engineData, messageService)
+                    this.tickle(engineData, messageService)
                 }
                 val newNodeInstance = engineData.nodeInstance(hNodeInstance).withPermission()
                 if (newNodeInstance.state.isFinal) {

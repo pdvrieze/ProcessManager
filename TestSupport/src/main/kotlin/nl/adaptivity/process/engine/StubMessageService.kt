@@ -33,7 +33,7 @@ import java.util.*
 /**
  * Created by pdvrieze on 16/10/16.
  */
-class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMessageService<IXmlMessage> {
+class StubMessageService<C: ActivityInstanceContext>(private val mLocalEndpoint: EndpointDescriptor) : IMessageService<IXmlMessage, C> {
 
     class ExtMessage(val base: IXmlMessage, val source: Handle<SecureObject<ProcessNodeInstance<*>>>) : IXmlMessage by base
 
@@ -58,7 +58,7 @@ class StubMessageService(private val mLocalEndpoint: EndpointDescriptor) : IMess
 
     override fun sendMessage(engineData: ProcessEngineDataAccess,
                              protoMessage: IXmlMessage,
-                             activityInstanceContext: ActivityInstanceContext): MessageSendingResult {
+                             activityInstanceContext: C): MessageSendingResult {
         assert(activityInstanceContext.nodeInstanceHandle.isValid) { "Sending messages from invalid nodes is a bad idea (${activityInstanceContext})" }
 
         val instantiatedContent: ICompactFragment = if (! protoMessage.messageBody.isEmpty) {

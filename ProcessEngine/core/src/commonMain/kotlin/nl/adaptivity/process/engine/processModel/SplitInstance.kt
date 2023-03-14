@@ -20,7 +20,6 @@ import net.devrieze.util.Handle
 import net.devrieze.util.collection.replaceByNotNull
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
-import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.impl.LogLevel
 import nl.adaptivity.process.processModel.Join
@@ -69,10 +68,6 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
         ProcessNodeInstance.ExtBuilder<ExecutableSplit, SplitInstance>(instance, processInstanceBuilder), Builder {
         override var node: ExecutableSplit by overlay { instance.node }
         override fun build() = if (changed) SplitInstance(this).also { invalidateBuilder(it) } else base
-
-        override fun tickle(engineData: MutableProcessEngineDataAccess, messageService: IMessageService<*>) {
-            super<Builder>.tickle(engineData, messageService) // XXX for debugging
-        }
     }
 
     class BaseBuilder(
@@ -88,10 +83,6 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
         handle, state
     ), Builder {
         override fun build() = SplitInstance(this)
-
-        override fun tickle(engineData: MutableProcessEngineDataAccess, messageService: IMessageService<*>) {
-            super<Builder>.tickle(engineData, messageService)
-        }
     }
 
     override val node: ExecutableSplit

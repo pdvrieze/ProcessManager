@@ -46,7 +46,7 @@ interface ProcessEngineDataAccess {
 
 interface MutableProcessEngineDataAccess : ProcessEngineDataAccess {
 
-    fun messageService(): IMessageService<*>
+    fun messageService(): IMessageService<*, *>
 
     override val instances: MutableHandleMap<SecureObject<ProcessInstance>>
 
