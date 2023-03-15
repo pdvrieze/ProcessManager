@@ -41,7 +41,7 @@ open class EngineTestData<C : ActivityInstanceContext>(
             URI.create("http://localhost/")
         )
         val principal = SimplePrincipal("pdvrieze")
-        fun defaultEngine() = StubMessageService<ActivityInstanceContext>(localEndpoint)
+        fun defaultEngine(): EngineTestData<ActivityInstanceContext> = EngineTestData(StubMessageService(localEndpoint))
 
 
         private operator fun invoke(messageService: StubMessageService<ActivityInstanceContext>)= EngineTestData(

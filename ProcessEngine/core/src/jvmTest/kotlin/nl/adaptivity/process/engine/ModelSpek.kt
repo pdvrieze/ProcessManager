@@ -20,30 +20,40 @@ import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 
 data class ModelData(
-    val engineData: () -> EngineTestData,
+    val engineData: () -> EngineTestData<ActivityInstanceContext>,
     val model: ExecutableProcessModel,
     val valid: List<Trace>,
     val invalid: List<Trace>
 ) {
-    internal constructor(model: TestConfigurableModel, valid: List<Trace>, invalid: List<Trace>) :
-        this({ EngineTestData.defaultEngine() }, model.rootModel, valid, invalid)
+
+    internal constructor(
+        model: TestConfigurableModel,
+        valid: List<Trace>,
+        invalid: List<Trace>
+    ) : this(
+        engineData = { EngineTestData.defaultEngine() },
+        model = model.rootModel,
+        valid = valid,
+        invalid = invalid
+    )
+
 
     constructor(model: ProcessModel<*>, valid: List<Trace>, invalid: List<Trace>) :
         this(
-            { EngineTestData.defaultEngine() },
-            model.rootModel as? ExecutableProcessModel ?: ExecutableProcessModel(model.rootModel.builder()),
-            valid,
-            invalid
+            engineData = { EngineTestData.defaultEngine() },
+            model = model.rootModel as? ExecutableProcessModel ?: ExecutableProcessModel(model.rootModel.builder()),
+            valid = valid,
+            invalid = invalid
         )
 
     constructor(
-        engineData: () -> EngineTestData,
-        model: ProcessModel<*>,
+        engineData: () -> EngineTestData<ActivityInstanceContext>,
+        generalModel: ProcessModel<*>,
         valid: List<Trace>,
         invalid: List<Trace>
     ) : this(
         engineData,
-        model.rootModel as? ExecutableProcessModel ?: ExecutableProcessModel(model.rootModel.builder()),
+        model = generalModel.rootModel as? ExecutableProcessModel ?: ExecutableProcessModel(generalModel.rootModel.builder()),
         valid,
         invalid
     )

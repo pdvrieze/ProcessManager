@@ -49,89 +49,97 @@ fun InstanceSupport.testTraceExceptionThrowing(
     hProcessInstance: Handle<SecureObject<ProcessInstance<*>>>,
     trace: Trace
 ) {
-    try {
-        transaction.readableEngineData.instance(hProcessInstance).withPermission().assertTracePossible(trace)
-    } catch (e: AssertionError) {
-        throw ProcessTestingException(e)
-    }
-    for (traceElement in trace) {
+    fun <TR: ContextProcessTransaction<C>, C: ActivityInstanceContext> impl(transaction: TR, engine: ProcessEngine<TR, C>) {
+        try {
+            transaction.readableEngineData.instance(hProcessInstance).withPermission().assertTracePossible(trace)
+        } catch (e: AssertionError) {
+            throw ProcessTestingException(e)
+        }
+        for (traceElement in trace) {
 
-        run {
-            val nodeInstance = traceElement.getNodeInstance(hProcessInstance)
-                ?: throw ProcessTestingException("The node instance (${traceElement}) should exist")
+            run {
+                val nodeInstance = traceElement.getNodeInstance(hProcessInstance)
+                    ?: throw ProcessTestingException("The node instance (${traceElement}) should exist")
 
-            if (nodeInstance.state != NodeInstanceState.Complete) {
-                if (nodeInstance is JoinInstance) {
-                    transaction.writableEngineData.updateNodeInstance(nodeInstance.handle) {
-                        startTask(transaction.writableEngineData)
-                    }
-                } else if (nodeInstance.node !is Split) {
-                    if (nodeInstance is CompositeInstance) {
-                        val childInstance =
-                            transaction.readableEngineData.instance(nodeInstance.hChildInstance).withPermission()
-                        if (childInstance.state != ProcessInstance.State.FINISHED && nodeInstance.state != NodeInstanceState.Complete) {
+                if (nodeInstance.state != NodeInstanceState.Complete) {
+                    if (nodeInstance is JoinInstance) {
+                        transaction.writableEngineData.updateNodeInstance(nodeInstance.handle.coerce()) {
+                            startTask(transaction.writableEngineData)
+                        }
+                    } else if (nodeInstance.node !is Split) {
+                        if (nodeInstance is CompositeInstance) {
+                            val childInstance =
+                                transaction.readableEngineData.instance(nodeInstance.hChildInstance).withPermission()
+                            if (childInstance.state != ProcessInstance.State.FINISHED && nodeInstance.state != NodeInstanceState.Complete) {
+                                try {
+                                    transaction.writableEngineData.updateNodeInstance(nodeInstance.handle.coerce()) {
+                                        finishTask(transaction.writableEngineData, null)
+                                    }
+                                } catch (e: ProcessException) {
+                                    if (e.message?.startsWith(
+                                            "A Composite task cannot be finished until its child process is. The child state is:"
+                                        ) == true
+                                    ) {
+                                        throw ProcessTestingException("The composite instance cannot be finished yet")
+                                    } else throw e
+                                }
+                            }
+                        } else if (nodeInstance.state.isFinal && nodeInstance.state != NodeInstanceState.Complete) {
                             try {
-                                transaction.writableEngineData.updateNodeInstance(nodeInstance.handle) {
+                                transaction.writableEngineData.updateNodeInstance(nodeInstance.handle.coerce()) {
                                     finishTask(transaction.writableEngineData, null)
                                 }
+                                engine.processTickleQueue(transaction)
                             } catch (e: ProcessException) {
-                                if (e.message?.startsWith(
-                                        "A Composite task cannot be finished until its child process is. The child state is:"
-                                    ) == true
-                                ) {
-                                    throw ProcessTestingException("The composite instance cannot be finished yet")
-                                } else throw e
+                                assertNotNull(e.message)
+                                assertTrue(
+                                    e.message!!.startsWith("instance ${nodeInstance.node.id}") &&
+                                        e.message!!.endsWith(" cannot be finished as it is already in a final state.")
+                                )
                             }
+                            throw ProcessTestingException("The node is final but not complete (failed, skipped): ${nodeInstance}")
                         }
-                    } else if (nodeInstance.state.isFinal && nodeInstance.state != NodeInstanceState.Complete) {
                         try {
-                            transaction.writableEngineData.updateNodeInstance(nodeInstance.handle) {
-                                finishTask(transaction.writableEngineData, null)
+                            transaction.writableEngineData.updateNodeInstance(nodeInstance.handle.coerce()) {
+                                finishTask(transaction.writableEngineData, traceElement.resultPayload)
                             }
-                            engine.processTickleQueue(transaction)
                         } catch (e: ProcessException) {
-                            assertNotNull(e.message)
-                            assertTrue(
-                                e.message!!.startsWith("instance ${nodeInstance.node.id}") &&
-                                    e.message!!.endsWith(" cannot be finished as it is already in a final state.")
-                            )
+                            throw ProcessTestingException(e)
                         }
-                        throw ProcessTestingException("The node is final but not complete (failed, skipped): ${nodeInstance}")
-                    }
-                    try {
-                        transaction.writableEngineData.updateNodeInstance(nodeInstance.handle) {
-                            finishTask(transaction.writableEngineData, traceElement.resultPayload)
-                        }
-                    } catch (e: ProcessException) {
-                        throw ProcessTestingException(e)
                     }
                 }
+                try {
+                    transaction.readableEngineData.instance(hProcessInstance).withPermission().assertTracePossible(trace)
+                } catch (e: AssertionError) {
+                    throw ProcessTestingException(e)
+                }
+
             }
             try {
-                transaction.readableEngineData.instance(hProcessInstance).withPermission().assertTracePossible(trace)
-            } catch (e: AssertionError) {
+                val oldErr = System.err; System.setErr(PrintStream(ByteArrayOutputStream()))
+                engine.processTickleQueue(transaction)
+                System.setErr(oldErr)
+            } catch (e: ProcessException) {
                 throw ProcessTestingException(e)
             }
 
-        }
-        try {
-            val oldErr = System.err; System.setErr(PrintStream(ByteArrayOutputStream()))
-            engine.processTickleQueue(transaction)
-            System.setErr(oldErr)
-        } catch (e: ProcessException) {
-            throw ProcessTestingException(e)
+            val nodeInstance = traceElement.getNodeInstance(hProcessInstance)
+                ?: throw ProcessTestingException("The node instance should exist")
+
+            if (nodeInstance.state != NodeInstanceState.Complete) {
+                val instance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
+                throw ProcessTestingException(
+                    "At trace $traceElement -  State of node $nodeInstance not complete but ${nodeInstance.state} ${instance.toDebugString()}"
+                )
+            }
         }
 
-        val nodeInstance = traceElement.getNodeInstance(hProcessInstance)
-            ?: throw ProcessTestingException("The node instance should exist")
-
-        if (nodeInstance.state != NodeInstanceState.Complete) {
-            val instance = transaction.readableEngineData.instance(hProcessInstance).withPermission()
-            throw ProcessTestingException(
-                "At trace $traceElement -  State of node $nodeInstance not complete but ${nodeInstance.state} ${instance.toDebugString()}"
-            )
-        }
     }
+    @Suppress("UNCHECKED_CAST")
+    impl(
+        transaction as StubProcessTransaction<ActivityInstanceContext>,
+        engine as ProcessEngine<StubProcessTransaction<ActivityInstanceContext>, ActivityInstanceContext>
+    )
 }
 
 internal class ProcessTestingException(message: String? = null, cause: Throwable? = null) : Exception(message, cause) {

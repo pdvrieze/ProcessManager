@@ -207,22 +207,22 @@ class TestContext(private val config: TraceTest.ConfigBase) {
         return hInstance
     }
 
-    fun getProcessInstance(instanceHandle: Handle<SecureObject<ProcessInstance<*>>> = hInstance): ProcessInstance3 {
+    fun getProcessInstance(instanceHandle: Handle<SecureObject<ProcessInstance<*>>> = hInstance): ProcessInstance<ActivityInstanceContext> {
         return transaction.readableEngineData.instance(instanceHandle).withPermission()
     }
 
-    fun TraceElement.getNodeInstance(): ProcessNodeInstance<*>? {
+    fun TraceElement.getNodeInstance(): ProcessNodeInstance<*, ActivityInstanceContext>? {
         return getNodeInstance(transaction, getProcessInstance())
     }
 
-    fun getNodeInstance(handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>): ProcessNodeInstance<*> {
+    fun getNodeInstance(handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>): ProcessNodeInstance<*, ActivityInstanceContext> {
         return transaction.readableEngineData.nodeInstance(handle).withPermission()
     }
 
     inline fun updateNodeInstance(
         traceElement: TraceElement,
         instanceHandle: Handle<SecureObject<ProcessInstance<*>>> = hInstance,
-        crossinline action: ProcessNodeInstance.Builder<out ExecutableProcessNode, *>.() -> Unit
+        crossinline action: ProcessNodeInstance.Builder<out ExecutableProcessNode, *, ActivityInstanceContext>.() -> Unit
     ) {
 
         val nodeInstance = traceElement.getNodeInstance(transaction, getProcessInstance(instanceHandle))
@@ -234,8 +234,8 @@ class TestContext(private val config: TraceTest.ConfigBase) {
     }
 
     fun updateNodeInstance(
-        nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*, *>>>,
-        action: ProcessNodeInstance.Builder<out ExecutableProcessNode, *>.() -> Unit
+        nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*, ActivityInstanceContext>>>,
+        action: ProcessNodeInstance.Builder<out ExecutableProcessNode, *, ActivityInstanceContext>.() -> Unit
     ) {
         transaction.writableEngineData.updateNodeInstance(nodeInstanceHandle, action)
     }
@@ -247,7 +247,7 @@ class TestContext(private val config: TraceTest.ConfigBase) {
         for (trace in config.modelData.valid) {
             for (element in trace) {
                 nodeData.getOrElse(element.nodeId) {
-                    mutableSetOf<TraceElement>().also {nodeData[element.nodeId] = it }
+                    mutableSetOf<TraceElement>().also { nodeData[element.nodeId] = it }
                 }.add(element)
             }
         }
@@ -255,7 +255,7 @@ class TestContext(private val config: TraceTest.ConfigBase) {
         val trace = mutableListOf<TraceElement>()
 
         try {
-            for(iter in 1.. maxIters)  {
+            for (iter in 1..maxIters) {
                 val processInstance = getProcessInstance()
                 processInstance.allDescendentNodeInstances(transaction.readableEngineData)
                     .asSequence()
@@ -273,6 +273,7 @@ class TestContext(private val config: TraceTest.ConfigBase) {
                             is Join,
                             is Split,
                             is CompositeActivity -> false
+
                             else -> true
                         }
                     }
@@ -297,6 +298,7 @@ class TestContext(private val config: TraceTest.ConfigBase) {
                         }
                         nextNodeInstance = getNodeInstance(nextNodeInstance.handle)
                     }
+
                     is CompositeActivity -> {
                         if (nextNodeInstance.state == NodeInstanceState.Started) {
                             val childInstanceHandle = when (nextNodeInstance) {
@@ -304,7 +306,10 @@ class TestContext(private val config: TraceTest.ConfigBase) {
                                 is CompositeInstance.Builder -> nextNodeInstance.hChildInstance
                                 else -> throw UnsupportedOperationException("Composite activity with unexpected instance type")
                             }
-                            assertTrue(childInstanceHandle.isValid, "When fuzzing sees a composite activity, the child should be started")
+                            assertTrue(
+                                childInstanceHandle.isValid,
+                                "When fuzzing sees a composite activity, the child should be started"
+                            )
 
                             updateNodeInstance(nextNodeInstance.handle) {
                                 startTask(transaction.writableEngineData)
@@ -330,7 +335,7 @@ class TestContext(private val config: TraceTest.ConfigBase) {
 
         for (childNode in getProcessInstance().allDescendentNodeInstances(transaction.readableEngineData)) {
             if (childNode.state.isSkipped) {
-                trace.removeIf { it.nodeId == childNode.node.id && it.instanceNo<0 || it.instanceNo == childNode.entryNo }
+                trace.removeIf { it.nodeId == childNode.node.id && it.instanceNo < 0 || it.instanceNo == childNode.entryNo }
             }
         }
 
@@ -338,7 +343,8 @@ class TestContext(private val config: TraceTest.ConfigBase) {
     }
 
     fun fuzzException(cause: Throwable?, trace: List<TraceElement>): FuzzException {
-        val message = "Error in fuzzing${cause?.message?.let { ": $it - " ?:", "}} - trace: [${trace.joinToString()}]}\n    -${dbgInstance()}"
+        val message =
+            "Error in fuzzing${cause?.message?.let { ": $it - " ?: ", " }} - trace: [${trace.joinToString()}]}\n    -${dbgInstance()}"
         return FuzzException(message, cause, trace)
     }
 
@@ -381,7 +387,7 @@ class TestContext(private val config: TraceTest.ConfigBase) {
     }
 
     @Suppress("unused")
-    inline fun <reified T : ProcessNode> Trace.nodeInstances(): Sequence<ProcessNodeInstance<*>?> {
+    inline fun <reified T : ProcessNode> Trace.nodeInstances(): Sequence<ProcessNodeInstance<*, *>?> {
         return asSequence()
             .filter { model.findNode(it) is T }
             .map { traceElement ->
@@ -389,11 +395,11 @@ class TestContext(private val config: TraceTest.ConfigBase) {
             }
     }
 
-    inline fun <reified T : ProcessNode> Trace.allNodeInstances(): Sequence<ProcessNodeInstance<*>> {
+    inline fun <reified T : ProcessNode> Trace.allNodeInstances(): Sequence<ProcessNodeInstance<*, *>> {
         return allNodeInstances(T::class)
     }
 
-    fun Trace.allNodeInstances(type: KClass<*>): Sequence<ProcessNodeInstance<*>> {
+    fun Trace.allNodeInstances(type: KClass<*>): Sequence<ProcessNodeInstance<*, *>> {
         val processInstance = getProcessInstance()
         return asSequence().mapNotNull { traceElement ->
             val node = model.findNode(traceElement)
@@ -401,6 +407,7 @@ class TestContext(private val config: TraceTest.ConfigBase) {
                 node == null -> kfail("No node with name ${traceElement.nodeId} present in the model")
                 type.isInstance(node) -> traceElement.getNodeInstance(transaction, processInstance)
                     ?: kfail("Nodeinstance $traceElement does not exist; ${dbgInstance()}")
+
                 else -> null
             }
         }
@@ -510,7 +517,7 @@ fun createValidTraceTest(config: TraceTest.ConfigBase, trace: Trace, traceNo: In
         addTest("After starting only start nodes should be finished") {
             val processInstance = getProcessInstance()
 
-            val predicate: (ProcessNodeInstance<*>) -> Boolean =
+            val predicate: (ProcessNodeInstance<*, *>) -> Boolean =
                 { it.state == NodeInstanceState.Skipped || it.node is StartNode || it.node is Split || it.node is Join }
 
             val onlyStartNodesCompleted = processInstance.finishedNodes.all(predicate)
@@ -539,7 +546,7 @@ fun createValidTraceTest(config: TraceTest.ConfigBase, trace: Trace, traceNo: In
                 val actualFinishedNodes = getProcessInstance().transitiveChildren(transaction)
                     .map { it.withPermission() }
                     .filter { it.state.isFinal && it.node !is EndNode }
-                    .onEach(ProcessNodeInstance<*>::assertFinished)
+                    .onEach(ProcessNodeInstance<*, *>::assertFinished)
                     .filterNot { it.state.isSkipped }
                     .map { TraceElement(it.node.id, it.entryNo) }
                     .sorted()
@@ -630,7 +637,7 @@ private fun ContainerContext.createJoinElementTest(trace: Trace, elementIdx: Int
             ?: fail("An element for ${traceElement} shoulld exist")
 
         val activePredecessors =
-            getProcessInstance().getActivePredecessorsFor(transaction.readableEngineData, pni as JoinInstance)
+            getProcessInstance().getActivePredecessorsFor(transaction.readableEngineData, pni as JoinInstance<ActivityInstanceContext>)
 
         if (!(activePredecessors.isEmpty() && pni.canFinish())) {
             assertEquals(NodeInstanceState.Complete, traceElement.getNodeInstance()?.state) {
@@ -770,8 +777,8 @@ fun createInvalidTraceTest(
             var success = false
             try {
                 val instanceSupport = object : InstanceSupport {
-                    override val transaction: StubProcessTransaction<C> get() = this@addTest.transaction
-                    override val engine: ProcessEngine<StubProcessTransaction<C>, *>
+                    override val transaction: StubProcessTransaction<ActivityInstanceContext> get() = this@addTest.transaction
+                    override val engine: ProcessEngine<StubProcessTransaction<ActivityInstanceContext>, ActivityInstanceContext>
                         get() = engineData.engine
 
                 }
@@ -795,7 +802,7 @@ fun createInvalidTraceTest(
     }
 }
 
-fun ProcessNodeInstance<*>.assertFinished() {
+fun ProcessNodeInstance<*, *>.assertFinished() {
     assertTrue(this.state.isFinal) { "The node instance state should be final (but is $state)" }
     assertTrue(this.node !is EndNode) { "Completed nodes should not be endnodes" }
 }
@@ -809,7 +816,7 @@ inline fun TraceTest.ConfigBase.dynamicContainer(
     return dynamicContainer(displayName, children)
 }
 
-fun IProcessNodeInstance.toTraceElement(payload: CompactFragment? = null): TraceElement {
+fun IProcessNodeInstance<*>.toTraceElement(payload: CompactFragment? = null): TraceElement {
     val instanceNo = when {
         node.isMultiInstance -> entryNo
         (node as? Join)?.isMultiMerge == true -> entryNo

@@ -35,17 +35,18 @@ import org.junit.jupiter.api.Assertions.assertTrue
  * Created by pdvrieze on 15/01/17.
  */
 interface InstanceSupport { // TODO add context type parameter
-    val transaction: StubProcessTransaction<*>
-    val engine: ProcessEngine<StubProcessTransaction<*>, *>
+    val transaction: StubProcessTransaction<ActivityInstanceContext>
+    val engine: ProcessEngine<StubProcessTransaction<ActivityInstanceContext>, ActivityInstanceContext>
 
-    fun ProcessInstance<*>.allChildren(): Sequence<ProcessNodeInstance<*,*>> {
-        return transitiveChildren(this@InstanceSupport.transaction)
+    fun <C: ActivityInstanceContext> ProcessInstance<C>.allChildren(): Sequence<ProcessNodeInstance<*,C>> {
+        @Suppress("UNCHECKED_CAST")
+        return transitiveChildren(this@InstanceSupport.transaction as StubProcessTransaction<C>)
     }
 
 
-    fun ProcessInstance<*>.trace(filter: (ProcessNodeInstance<*,*>)->Boolean) = trace(transaction, filter)
+    fun ProcessInstance<ActivityInstanceContext>.trace(filter: (ProcessNodeInstance<*,*>)->Boolean) = trace(transaction, filter)
 
-    val ProcessInstance<*>.trace: Trace get() = trace(transaction)
+    val ProcessInstance<ActivityInstanceContext>.trace: Trace get() = trace(transaction)
 
     fun ProcessInstance<*>.toDebugString():String {
         return toDebugString(this@InstanceSupport.transaction)
@@ -53,7 +54,8 @@ interface InstanceSupport { // TODO add context type parameter
 
 
     fun ProcessInstance<*>.assertTracePossible(trace: Trace) {
-        (this as ProcessInstance<ActivityInstanceContext>).assertTracePossible(transaction as StubProcessTransaction<ActivityInstanceContext>, trace)
+        @Suppress("UNCHECKED_CAST")
+        (this as ProcessInstance<ActivityInstanceContext>).assertTracePossible(transaction, trace)
     }
 
 
@@ -64,7 +66,7 @@ interface InstanceSupport { // TODO add context type parameter
 }
 
 
-fun ProcessInstance<*>.transitiveChildren(transaction: StubProcessTransaction<*>): Sequence<ProcessNodeInstance<*,*>> {
+fun <C: ActivityInstanceContext> ProcessInstance<C>.transitiveChildren(transaction: StubProcessTransaction<C>): Sequence<ProcessNodeInstance<*,C>> {
     return childNodes.asSequence().flatMap {
         when (val child = it.withPermission()) {
             is CompositeInstance ->
@@ -124,10 +126,10 @@ fun ProcessInstance<*>.toDebugString(transaction: StubProcessTransaction<*>): St
     }
 }
 
-fun ProcessInstance<*>.findChild(transaction: StubProcessTransaction<*>, id: String) = transitiveChildren(transaction).firstOrNull { it.node.id==id }
-fun ProcessInstance<*>.findChild(transaction: StubProcessTransaction<*>, id: Identified) = findChild(transaction, id.id)
+fun ProcessInstance<ActivityInstanceContext>.findChild(transaction: StubProcessTransaction<ActivityInstanceContext>, id: String) = transitiveChildren(transaction).firstOrNull { it.node.id==id }
+fun ProcessInstance<ActivityInstanceContext>.findChild(transaction: StubProcessTransaction<ActivityInstanceContext>, id: Identified) = findChild(transaction, id.id)
 
-fun ProcessInstance<*>.trace(transaction: StubProcessTransaction<*>,
+fun ProcessInstance<ActivityInstanceContext>.trace(transaction: StubProcessTransaction<ActivityInstanceContext>,
                            filter: (ProcessNodeInstance<*,*>) -> Boolean): Sequence<TraceElement> {
     return transitiveChildren(transaction)
         .map { it.withPermission() }
@@ -136,22 +138,22 @@ fun ProcessInstance<*>.trace(transaction: StubProcessTransaction<*>,
         .map { TraceElement(it.node.id, it.entryNo) }
 }
 
-fun ProcessInstance<*>.trace(transaction: StubProcessTransaction<*>): Array<TraceElement> {
+fun ProcessInstance<ActivityInstanceContext>.trace(transaction: StubProcessTransaction<ActivityInstanceContext>): Array<TraceElement> {
     return trace(transaction) { true }
         .toList()
         .toTypedArray()
 }
 
-fun <C : ActivityInstanceContext> ProcessInstance<C>.assertTracePossible(transaction: StubProcessTransaction<C>,
+fun ProcessInstance<ActivityInstanceContext>.assertTracePossible(transaction: StubProcessTransaction<ActivityInstanceContext>,
                                          trace: Trace) {
     val nonSeenChildNodes = this.childNodes.asSequence()
-        .map(SecureObject<ProcessNodeInstance<*, C>>::withPermission)
+        .map(SecureObject<ProcessNodeInstance<*, ActivityInstanceContext>>::withPermission)
         .filter { it.state.isFinal &&
             ! (it.state.isSkipped || it.state == NodeInstanceState.AutoCancelled)
         }
         .toMutableSet()
 
-    var nonFinal: ProcessNodeInstance<*,C>? = null
+    var nonFinal: ProcessNodeInstance<*,ActivityInstanceContext>? = null
     for(traceElementPos in trace.indices) {
         val traceElement = trace[traceElementPos]
         val nodeInstance = traceElement.getNodeInstance(transaction, this)?.takeIf { it.state.isFinal }
@@ -182,7 +184,7 @@ fun <C : ActivityInstanceContext> ProcessInstance<C>.assertTracePossible(transac
     }
 }
 
-fun  ProcessInstance<*>.assertComplete(transaction: StubProcessTransaction<*>, vararg nodeIds: String) {
+fun  ProcessInstance<ActivityInstanceContext>.assertComplete(transaction: StubProcessTransaction<ActivityInstanceContext>, vararg nodeIds: String) {
     val complete = transitiveChildren(transaction)
         .filter { it.state.isFinal && it.node is EndNode }
         .mapNotNull { nodeInstance ->

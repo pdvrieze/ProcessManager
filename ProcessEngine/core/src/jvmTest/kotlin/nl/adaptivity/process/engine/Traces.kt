@@ -107,7 +107,10 @@ class TraceElement(val nodeId: String, val instanceNo: Int, val resultPayload: C
         return nodeId.hashCode()
     }
 
-    fun getNodeInstance(transaction: StubProcessTransaction<*>, instance: ProcessInstance<*>): ProcessNodeInstance<*, *>? {
+    fun getNodeInstance(
+        transaction: StubProcessTransaction<ActivityInstanceContext>,
+        instance: ProcessInstance<ActivityInstanceContext>
+    ): ProcessNodeInstance<*, ActivityInstanceContext>? {
         return when (instanceNo) {
             ANYINSTANCE -> instance.transitiveChildren(transaction).firstOrNull { it.node.id == nodeId }
             LASTINSTANCE -> instance.transitiveChildren(transaction).filter { it.node.id == nodeId }
@@ -119,7 +122,7 @@ class TraceElement(val nodeId: String, val instanceNo: Int, val resultPayload: C
             }.singleOrNull()
             else -> instance.transitiveChildren(transaction)
                 .firstOrNull { it.node.id == nodeId && it.entryNo == instanceNo }
-        }
+        }.let { it: ProcessNodeInstance<*, ActivityInstanceContext>? -> it }
     }
 
     override fun compareTo(other: Identifiable): Int = when (other) {

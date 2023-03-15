@@ -24,6 +24,8 @@ import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.getDefines
 import nl.adaptivity.process.engine.test.ProcessEngineTestSupport
+import nl.adaptivity.process.engine.test.testProcess
+import nl.adaptivity.process.engine.test.testRawEngine
 import nl.adaptivity.process.processModel.XmlMessage
 import nl.adaptivity.process.processModel.condition
 import nl.adaptivity.process.processModel.engine.ExecutableCondition
@@ -50,7 +52,7 @@ import kotlin.test.fail
 /**
  * Created by pdvrieze on 18/08/15.
  */
-class TestProcessEngine : ProcessEngineTestSupport() {
+class TestProcessEngine : ProcessEngineTestSupport<ActivityInstanceContext>() {
 
     private fun getXml(name: String): String {
         javaClass.getResourceAsStream("/nl/adaptivity/process/engine/test/" + name)!!.use { reader ->
@@ -163,6 +165,7 @@ class TestProcessEngine : ProcessEngineTestSupport() {
                 processInstance.assertCompleted(end)
 
             }
+            TODO()
         }
     }
 
@@ -174,7 +177,7 @@ class TestProcessEngine : ProcessEngineTestSupport() {
             val ac = activity { id = "ac"; predecessor = start.identifier; condition = ExecutableCondition.FALSE }
             val end = endNode { id = "end"; predecessor = ac }
         }
-        testProcess(model) { processEngine, transaction, model, instanceHandle ->
+        testProcess(model = model) { processEngine, transaction, model, instanceHandle ->
             transaction.readableEngineData.instance(instanceHandle).withPermission().let { instance ->
                 val start = instance.child(transaction, "start")
                 val ac = instance.child(transaction, "ac").apply { assertState(NodeInstanceState.Skipped) }
@@ -207,7 +210,7 @@ class TestProcessEngine : ProcessEngineTestSupport() {
     @Test
     fun testSplitJoin1() {
         testProcess(simpleSplitModel) { processEngine, protoTransaction, model, instanceHandle ->
-            val transaction = protoTransaction as StubProcessTransaction<C>
+            val transaction = protoTransaction as StubProcessTransaction<ActivityInstanceContext>
             val engineData = transaction.writableEngineData
             run {
                 run {
@@ -329,7 +332,7 @@ class TestProcessEngine : ProcessEngineTestSupport() {
                 serializeToXml(stubMessageService.messages[0].base)
             )
 
-            var ac1: ProcessNodeInstance<*> =
+            var ac1: ProcessNodeInstance<*, ActivityInstanceContext> =
                 processEngine.getNodeInstance(transaction, stubMessageService.getMessageNode(0), model.owner)
                     ?: throw AssertionError("Message node not found")// This should be 0 as it's the first activity
 
@@ -398,11 +401,16 @@ class TestProcessEngine : ProcessEngineTestSupport() {
             val ac2 =
                 processEngine.getNodeInstance(transaction, stubMessageService.getMessageNode(0), model.owner)
 
-            val ac2Defines = ac2!!.getDefines(processEngine.getProcessInstance(
-                transaction,
-                ac2.hProcessInstance,
-                model.owner
-            ))
+
+
+            val aic = engineData.processContextFactory.newActivityInstanceContext(engineData, ac2!!)
+            val ac2Defines = aic.getDefines(
+                processEngine.getProcessInstance(
+                    transaction,
+                    ac2.hProcessInstance,
+                    model.owner
+                )
+            )
             assertEquals(1, ac2Defines.size)
 
 

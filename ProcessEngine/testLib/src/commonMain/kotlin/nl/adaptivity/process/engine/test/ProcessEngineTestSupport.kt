@@ -36,7 +36,8 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>() {
             return StubProcessTransaction<C>(engineData)
         }
     }
-    protected val modelOwnerPrincipal = SimplePrincipal("modelOwner")
+    val modelOwnerPrincipal = SimplePrincipal("modelOwner")
+
     private val ProcessInstance<C>.sortedFinished
         get() = finished.sortedBy { it.handleValue }
     private val ProcessInstance<C>.sortedActive
@@ -44,13 +45,13 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>() {
     private val ProcessInstance<C>.sortedCompleted
         get() = completedEndnodes.sortedBy { it.handleValue }
 
-    protected inline fun <R> testProcess(
+    inline fun <R> testProcess(
         model: ExecutableProcessModel,
         payload: CompactFragment? = null,
-        createProcessContextFactory: () -> ProcessContextFactory<C>,
+        noinline createProcessContextFactory: () -> ProcessContextFactory<C>,
         body: (ProcessEngine<StubProcessTransaction<C>, C>, ContextProcessTransaction<C>, ExecutableProcessModel, HProcessInstance) -> R
     ): R {
-        val processEngine = defaultEngineFactory(stubMessageService, stubTransactionFactory, createProcessContextFactory())
+        val processEngine = doCreateRawEngine(createProcessContextFactory)
         processEngine.startTransaction().use { transaction ->
 
             val modelHandle = processEngine.addProcessModel(transaction, model, modelOwnerPrincipal).handle
@@ -73,12 +74,16 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>() {
         }
     }
 
-    protected inline fun <R> testRawEngine(
+    inline fun <R> testRawEngine(
+        noinline createProcessContextFactory: () -> ProcessContextFactory<C>,
         action: (ProcessEngine<StubProcessTransaction<C>, C>) -> R,
-        createProcessContextFactory: () -> ProcessContextFactory<C>
     ): R {
-        val processEngine = defaultEngineFactory(stubMessageService, stubTransactionFactory, createProcessContextFactory())
-        return action(processEngine)
+        return action(doCreateRawEngine(createProcessContextFactory))
+    }
+
+    @PublishedApi
+    internal fun doCreateRawEngine(createProcessContextFactory: () -> ProcessContextFactory<C>): ProcessEngine<StubProcessTransaction<C>, C> {
+        return defaultEngineFactory(stubMessageService, stubTransactionFactory, createProcessContextFactory())
     }
 
     protected fun ContextProcessTransaction<C>.getInstance(instanceHandle: HProcessInstance): ProcessInstance<C> {
@@ -242,6 +247,21 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>() {
 
     }
 
+}
+
+
+inline fun <R> ProcessEngineTestSupport<ActivityInstanceContext>.testRawEngine(
+    action: (ProcessEngine<StubProcessTransaction<ActivityInstanceContext>, ActivityInstanceContext>) -> R,
+): R {
+    return testRawEngine({ ProcessContextFactory.DEFAULT }, action)
+}
+
+inline fun <R> ProcessEngineTestSupport<ActivityInstanceContext>.testProcess(
+    model: ExecutableProcessModel,
+    payload: CompactFragment? = null,
+    body: (ProcessEngine<StubProcessTransaction<ActivityInstanceContext>, ActivityInstanceContext>, ContextProcessTransaction<ActivityInstanceContext>, ExecutableProcessModel, HProcessInstance) -> R
+): R {
+    return testProcess(model, payload, {ProcessContextFactory.DEFAULT}, body)
 }
 
 typealias PNIHandle = Handle<SecureObject<ProcessNodeInstance<*, *>>>
