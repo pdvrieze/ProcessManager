@@ -25,50 +25,78 @@ import nl.adaptivity.process.engine.impl.LoggerCompat
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 
-interface ProcessEngineDataAccess {
-    val processContextFactory: ProcessContextFactory<*>
-    val instances: HandleMap<SecureObject<ProcessInstance>>
+interface ProcessEngineDataAccess<C: ActivityInstanceContext> {
+    val processContextFactory: ProcessContextFactory<C>
+    val instances: HandleMap<SecureObject<ProcessInstance<C>>>
 
-    fun instance(handle: Handle<SecureObject<ProcessInstance>>) = instances[handle].mustExist(handle)
+    fun instance(handle: Handle<SecureObject<ProcessInstance<*>>>): SecureObject<ProcessInstance<C>> = instances[handle].mustExist(handle)
 
-    val nodeInstances: HandleMap<SecureObject<ProcessNodeInstance<*>>>
+    val nodeInstances: HandleMap<SecureObject<ProcessNodeInstance<*, C>>>
 
-    fun nodeInstance(handle: Handle<SecureObject<ProcessNodeInstance<*>>>) =
+    fun nodeInstance(handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>): SecureObject<ProcessNodeInstance<*, C>> =
         nodeInstances[handle].mustExist(handle)
 
     val processModels: IProcessModelMapAccess
 
     fun processModel(handle: Handle<SecureObject<ExecutableProcessModel>>) = processModels[handle].mustExist(handle)
-    fun queueTickle(instanceHandle: Handle<SecureObject<ProcessInstance>>)
+    fun queueTickle(instanceHandle: Handle<SecureObject<ProcessInstance<*>>>)
 
     val logger: LoggerCompat
 }
 
-interface MutableProcessEngineDataAccess : ProcessEngineDataAccess {
+@Suppress("NOTHING_TO_INLINE")
+@JvmName("getPIHandle")
+inline internal operator fun <C: ActivityInstanceContext> HandleMap<SecureObject<ProcessInstance<C>>>.get(handle: Handle<SecureObject<ProcessInstance<*>>>): SecureObject<ProcessInstance<C>>? {
+    @Suppress("UNCHECKED_CAST")
+    return get(handle as Handle<SecureObject<ProcessInstance<C>>>)
+}
 
-    fun messageService(): IMessageService<*, *>
+@Suppress("NOTHING_TO_INLINE")
+@JvmName("getPNIHandle")
+inline internal operator fun <C: ActivityInstanceContext> HandleMap<SecureObject<ProcessNodeInstance<*, C>>>.get(handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>): SecureObject<ProcessNodeInstance<*,C>>? {
+    @Suppress("UNCHECKED_CAST")
+    return get(handle as Handle<SecureObject<ProcessNodeInstance<*, C>>>)
+}
 
-    override val instances: MutableHandleMap<SecureObject<ProcessInstance>>
+@Suppress("NOTHING_TO_INLINE")
+@JvmName("setPIHandle")
+inline internal operator fun <C: ActivityInstanceContext> MutableHandleMap<SecureObject<ProcessInstance<C>>>.set(handle: Handle<SecureObject<ProcessInstance<*>>>, value: ProcessInstance<C>): SecureObject<ProcessInstance<C>>? {
+    @Suppress("UNCHECKED_CAST")
+    return set(handle as Handle<SecureObject<ProcessInstance<C>>>, value)
+}
+
+@Suppress("NOTHING_TO_INLINE")
+@JvmName("setPNIHandle")
+inline internal operator fun <C: ActivityInstanceContext> MutableHandleMap<SecureObject<ProcessNodeInstance<*, C>>>.set(handleCompat: Handle<SecureObject<ProcessNodeInstance<*, *>>>, value: ProcessNodeInstance<*,C>): SecureObject<ProcessNodeInstance<*,C>>? {
+    @Suppress("UNCHECKED_CAST")
+    return set(handle = handleCompat as Handle<SecureObject<ProcessNodeInstance<*, C>>>,value)
+}
+
+interface MutableProcessEngineDataAccess<C: ActivityInstanceContext> : ProcessEngineDataAccess<C> {
+
+    fun messageService(): IMessageService<*, C>
+
+    override val instances: MutableHandleMap<SecureObject<ProcessInstance<C>>>
 
     override val processModels: IMutableProcessModelMapAccess
 
     fun invalidateCachePM(handle: Handle<SecureObject<ExecutableProcessModel>>)
 
-    fun invalidateCachePI(handle: Handle<SecureObject<ProcessInstance>>)
+    fun invalidateCachePI(handle: Handle<SecureObject<ProcessInstance<*>>>)
 
-    fun invalidateCachePNI(handle: Handle<SecureObject<ProcessNodeInstance<*>>>)
+    fun invalidateCachePNI(handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>)
 
     fun commit()
 
     fun rollback()
 
     /** Handle a process instance completing. This allows the policy of deleting or not to be delegated here. */
-    fun handleFinishedInstance(handle: Handle<SecureObject<ProcessInstance>>)
+    fun handleFinishedInstance(handle: Handle<SecureObject<ProcessInstance<*>>>)
 
     @OptIn(ProcessInstanceStorage::class)
     fun updateInstance(
-        hProcessInstance: Handle<SecureObject<ProcessInstance>>,
-        transform: ProcessInstance.ExtBuilder.() -> Unit
+        hProcessInstance: Handle<SecureObject<ProcessInstance<*>>>,
+        transform: ProcessInstance.ExtBuilder<C>.() -> Unit
     ) {
         try {
             (instances[hProcessInstance] ?: throw ProcessException("Unexpected invalid handle: $hProcessInstance"))
@@ -80,11 +108,10 @@ interface MutableProcessEngineDataAccess : ProcessEngineDataAccess {
         }
     }
 
-    @OptIn(ProcessInstanceStorage::class)
     fun updateNodeInstance(
-        hNodeInstance: Handle<SecureObject<ProcessNodeInstance<*>>>,
-        transform: ProcessNodeInstance.Builder<*, *>.() -> Unit
-    ): SecureObject<ProcessNodeInstance<*>> {
+        hNodeInstance: Handle<SecureObject<ProcessNodeInstance<*, C>>>,
+        transform: ProcessNodeInstance.Builder<*, *, C>.() -> Unit
+    ): SecureObject<ProcessNodeInstance<*, C>> {
         updateInstance(nodeInstance(hNodeInstance).shouldExist(hNodeInstance).withPermission().hProcessInstance) {
             try {
                 updateChild(hNodeInstance, transform)

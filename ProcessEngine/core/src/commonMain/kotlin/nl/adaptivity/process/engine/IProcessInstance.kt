@@ -22,14 +22,13 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.engine.ExecutableModelCommon
-import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 
-interface IProcessInstance: ReadableHandleAware<SecureObject<ProcessInstance>> {
+interface IProcessInstance<C: ActivityInstanceContext>: ReadableHandleAware<SecureObject<ProcessInstance<C>>> {
     val processModel: ExecutableModelCommon
 
     val inputs: List<ProcessData>
 
-    fun getChildNodeInstance(handle: Handle<SecureObject<ProcessNodeInstance<*>>>): IProcessNodeInstance
+    fun getChildNodeInstance(handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>): IProcessNodeInstance<C>
 
-    fun allChildNodeInstances(): Sequence<IProcessNodeInstance>
+    fun allChildNodeInstances(): Sequence<IProcessNodeInstance<C>>
 }

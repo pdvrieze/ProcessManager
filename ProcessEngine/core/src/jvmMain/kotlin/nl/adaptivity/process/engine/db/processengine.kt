@@ -38,8 +38,8 @@ object ProcessEngineDB : Database(1) {
 
   val X_UUID = CustomColumnType({ VARCHAR(36) { UNIQUE } }, UUID::toString, UUID::fromString)
   val X_PMHANDLE = CustomColumnType({ BIGINT }, Handle<SecureObject<ExecutableProcessModel>>::handleValue, { Handle<SecureObject<ExecutableProcessModel>>(it) })
-  val X_PIHANDLE = CustomColumnType({ BIGINT }, Handle<SecureObject<ProcessInstance>>::handleValue, {Handle<SecureObject<ProcessInstance>>(it)})
-  val X_PNIHANDLE = CustomColumnType({ BIGINT }, Handle<SecureObject<ProcessNodeInstance<*>>>::handleValue, {Handle<SecureObject<ProcessNodeInstance<*>>>(it)})
+  val X_PIHANDLE = CustomColumnType({ BIGINT }, Handle<SecureObject<ProcessInstance<*>>>::handleValue, {Handle<SecureObject<ProcessInstance<*>>>(it)})
+  val X_PNIHANDLE = CustomColumnType({ BIGINT }, Handle<SecureObject<ProcessNodeInstance<*, *>>>::handleValue, {Handle<SecureObject<ProcessNodeInstance<*, *>>>(it)})
   val X_INSTANCESTATE = CustomColumnType({ VARCHAR(20) }, ProcessInstance.State::toString, ProcessInstance.State::valueOf)
   val X_NODESTATE = CustomColumnType({ VARCHAR(20) { DEFAULT("Sent") } }, NodeInstanceState::toString,
                                { val lcname= it.lowercase(Locale.ENGLISH); NodeInstanceState.values().first { it.lcname == lcname } })

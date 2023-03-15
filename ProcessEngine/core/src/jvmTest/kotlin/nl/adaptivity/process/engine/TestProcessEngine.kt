@@ -207,7 +207,7 @@ class TestProcessEngine : ProcessEngineTestSupport() {
     @Test
     fun testSplitJoin1() {
         testProcess(simpleSplitModel) { processEngine, protoTransaction, model, instanceHandle ->
-            val transaction = protoTransaction as StubProcessTransaction
+            val transaction = protoTransaction as StubProcessTransaction<C>
             val engineData = transaction.writableEngineData
             run {
                 run {

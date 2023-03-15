@@ -52,24 +52,24 @@ import kotlin.contracts.contract
  *                   this may be a higher number. Values below 1 are invalid.
  * @property failureCause For a failure, the cause of the failure
  */
-abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
+abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, C>, C: ActivityInstanceContext>(
     override val node: ExecutableProcessNode,
-    predecessors: Iterable<Handle<SecureObject<ProcessNodeInstance<*>>>>,
-    processInstanceBuilder: ProcessInstance.Builder,
-    override val hProcessInstance: Handle<SecureObject<ProcessInstance>>,
+    predecessors: Iterable<Handle<SecureObject<ProcessNodeInstance<*, C>>>>,
+    processInstanceBuilder: ProcessInstance.Builder<*>,
+    override val hProcessInstance: Handle<SecureObject<ProcessInstance<C>>>,
     final override val owner: PrincipalCompat,
     final override val entryNo: Int,
-    override val handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
+    override val handle: Handle<SecureObject<ProcessNodeInstance<*, C>>> = Handle.invalid(),
     final override val state: NodeInstanceState = Pending,
     results: Iterable<ProcessData> = emptyList(),
     val failureCause: Throwable? = null
-) : SecureObject<ProcessNodeInstance<T>>,
-    ReadableHandleAware<SecureObject<ProcessNodeInstance<*>>>,
-    IProcessNodeInstance {
+) : SecureObject<ProcessNodeInstance<T, C>>,
+    ReadableHandleAware<SecureObject<ProcessNodeInstance<*, *>>>,
+    IProcessNodeInstance<C> {
 
     override val results: List<ProcessData> = results.toList()
 
-    override val predecessors: Set<Handle<SecureObject<ProcessNodeInstance<*>>>> =
+    override val predecessors: Set<Handle<SecureObject<ProcessNodeInstance<*, C>>>> =
         predecessors.asSequence().filter { it.isValid }.toArraySet()
 
     init {
@@ -84,19 +84,24 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         }
     }
 
-    constructor(builder: Builder<*, T>) : this(
-        builder.node, builder.predecessors,
-        builder.processInstanceBuilder,
-        builder.hProcessInstance, builder.owner,
-        builder.entryNo, builder.handle, builder.state,
-        builder.results, builder.failureCause
+    constructor(builder: Builder<*, T, C>) : this(
+        node = builder.node,
+        predecessors = builder.predecessors,
+        processInstanceBuilder = builder.processInstanceBuilder,
+        hProcessInstance = builder.hProcessInstance,
+        owner = builder.owner,
+        entryNo = builder.entryNo,
+        handle = builder.handle,
+        state = builder.state,
+        results = builder.results,
+        failureCause = builder.failureCause
     )
 
-    override fun build(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance<T> = this
+    override fun build(processInstanceBuilder: ProcessInstance.Builder<C>): ProcessNodeInstance<*, C> = this
 
-    override abstract fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder<out ExecutableProcessNode, T>
+    override abstract fun builder(processInstanceBuilder: ProcessInstance.Builder<C>): ExtBuilder<out ExecutableProcessNode, @UnsafeVariance T, C>
 
-    private fun precedingClosure(processData: ProcessEngineDataAccess): Sequence<SecureObject<ProcessNodeInstance<*>>> {
+    private fun precedingClosure(processData: ProcessEngineDataAccess<*>): Sequence<SecureObject<ProcessNodeInstance<*, *>>> {
         return predecessors.asSequence().flatMap { predHandle ->
             val pred = processData.nodeInstance(predHandle).withPermission()
             pred.precedingClosure(processData) + sequenceOf(pred)
@@ -104,8 +109,8 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
     }
 
     fun update(
-        processInstanceBuilder: ProcessInstance.Builder,
-        body: Builder<out ExecutableProcessNode, T>.() -> Unit
+        processInstanceBuilder: ProcessInstance.Builder<C>,
+        body: Builder<out ExecutableProcessNode, T, C>.() -> Unit
     ): Future<out T>? {
         val builder = builder(processInstanceBuilder).apply(body)
 
@@ -117,13 +122,13 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
     private inline val asT
         get() = this as T
 
-    override fun withPermission(): ProcessNodeInstance<T> = this
+    override fun withPermission(): ProcessNodeInstance<T, C> = this
 
-    private fun hasDirectPredecessor(handle: Handle<SecureObject<ProcessNodeInstance<*>>>): Boolean {
+    private fun hasDirectPredecessor(handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>): Boolean {
         return predecessors.any { it.handleValue == handle.handleValue }
     }
 
-    fun resolvePredecessors(engineData: ProcessEngineDataAccess): Collection<ProcessNodeInstance<*>> {
+    fun resolvePredecessors(engineData: ProcessEngineDataAccess<C>): Collection<ProcessNodeInstance<*, C>> {
         return predecessors.asSequence().map {
             engineData.nodeInstance(it).withPermission()
         }.toList()
@@ -137,8 +142,8 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         return "nodeInstance  ($handle, ${node.id}[$entryNo] - $state)"
     }
 
-    fun ActivityInstanceContext.serialize(
-        nodeInstanceSource: IProcessInstance,
+    fun C.serialize(
+        nodeInstanceSource: IProcessInstance<C>,
         out: XmlWriter,
         localEndpoint: EndpointDescriptor
     ) {
@@ -167,8 +172,8 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         }
     }
 
-    fun ActivityInstanceContext.toSerializable(
-        engineData: ProcessEngineDataAccess,
+    fun C.toSerializable(
+        engineData: ProcessEngineDataAccess<C>,
         localEndpoint: EndpointDescriptor
     ): XmlProcessNodeInstance {
         val builder = builder(engineData.instance(hProcessInstance).withPermission().builder())
@@ -187,13 +192,13 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         return builder.toXmlInstance(body)
     }
 
-    interface Builder<N : ExecutableProcessNode, T : ProcessNodeInstance<*>> : IProcessNodeInstance {
+    interface Builder<N : ExecutableProcessNode, out T : ProcessNodeInstance<T, C>, C: ActivityInstanceContext> : IProcessNodeInstance<C> {
         override var node: N
-        override val predecessors: MutableSet<Handle<SecureObject<ProcessNodeInstance<*>>>>
-        val processInstanceBuilder: ProcessInstance.Builder
-        override val hProcessInstance: Handle<SecureObject<ProcessInstance>> get() = processInstanceBuilder.handle
+        override val predecessors: MutableSet<Handle<SecureObject<ProcessNodeInstance<*, C>>>>
+        val processInstanceBuilder: ProcessInstance.Builder<C>
+        override val hProcessInstance: Handle<SecureObject<ProcessInstance<C>>> get() = processInstanceBuilder.handle
         var owner: PrincipalCompat
-        override var handle: Handle<SecureObject<ProcessNodeInstance<*>>>
+        override var handle: Handle<SecureObject<ProcessNodeInstance<*, C>>>
         override var state: NodeInstanceState
         override val results: MutableList<ProcessData>
         fun toXmlInstance(body: ICompactFragment?): XmlProcessNodeInstance
@@ -206,11 +211,12 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
                 require(value == null) { "Only message activities can have assigned users" }
             }
 
-        fun invalidateBuilder(engineData: ProcessEngineDataAccess)
+        fun invalidateBuilder(engineData: ProcessEngineDataAccess<C>)
 
         fun build(): T
 
-        override fun builder(processInstanceBuilder: ProcessInstance.Builder) = this
+        override fun builder(processInstanceBuilder: ProcessInstance.Builder<C>): Builder<*, *, C> =
+            this
 
         fun failTaskCreation(cause: Throwable) {
             failureCause = cause
@@ -225,9 +231,9 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         /**
          * Store the current state of the builder to the database.
          */
-        fun store(engineData: MutableProcessEngineDataAccess) {
+        fun store(engineData: MutableProcessEngineDataAccess<C>) {
             val mutableNodeInstances =
-                engineData.nodeInstances as MutableHandleMap<SecureObject<ProcessNodeInstance<*>>>
+                engineData.nodeInstances as MutableHandleMap<SecureObject<ProcessNodeInstance<*, *>>>
             if (handle.isValid) {
                 mutableNodeInstances[handle] = build()
             } else {
@@ -238,44 +244,47 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             engineData.commit()
         }
 
-        fun failTask(engineData: MutableProcessEngineDataAccess, cause: Throwable)
+        fun failTask(engineData: MutableProcessEngineDataAccess<C>, cause: Throwable)
 
         /** Function that will eventually do progression */
-        fun provideTask(engineData: MutableProcessEngineDataAccess, autoContinue: Boolean = true)
+        fun provideTask(
+            engineData: MutableProcessEngineDataAccess<C>,
+            autoContinue: Boolean = true
+        )
 
         /** Function that will do provision, but not progress. This is where custom implementations live */
-        fun doProvideTask(engineData: MutableProcessEngineDataAccess): Boolean
+        fun doProvideTask(engineData: MutableProcessEngineDataAccess<C>): Boolean
 
         fun canTakeTaskAutomatically(): Boolean
 
         fun takeTask(
-            engineData: MutableProcessEngineDataAccess,
+            engineData: MutableProcessEngineDataAccess<C>,
             assignedUser: PrincipalCompat? = null,
             autoContinue: Boolean = true
         )
 
-        fun doTakeTask(engineData: MutableProcessEngineDataAccess, assignedUser: PrincipalCompat? = null): Boolean
+        fun doTakeTask(engineData: MutableProcessEngineDataAccess<C>, assignedUser: PrincipalCompat? = null): Boolean
 
-        fun startTask(engineData: MutableProcessEngineDataAccess, autoContinue: Boolean = true)
-        fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean
+        fun startTask(engineData: MutableProcessEngineDataAccess<C>, autoContinue: Boolean = true)
+        fun doStartTask(engineData: MutableProcessEngineDataAccess<C>): Boolean
 
-        fun skipTask(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState)
-        fun doSkipTask(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState) {
+        fun skipTask(engineData: MutableProcessEngineDataAccess<C>, newState: NodeInstanceState)
+        fun doSkipTask(engineData: MutableProcessEngineDataAccess<C>, newState: NodeInstanceState) {
             if (state.isFinal && state != newState) {
                 throw ProcessException("Attempting to skip a finalised node ${node.id}($handle-$entryNo)")
             }
             state = newState
         }
 
-        fun invalidateTask(engineData: MutableProcessEngineDataAccess)
+        fun invalidateTask(engineData: MutableProcessEngineDataAccess<C>)
 
-        fun cancel(engineData: MutableProcessEngineDataAccess)
-        fun doCancel(engineData: MutableProcessEngineDataAccess) {
+        fun cancel(engineData: MutableProcessEngineDataAccess<C>)
+        fun doCancel(engineData: MutableProcessEngineDataAccess<C>) {
             state = Cancelled
         }
 
-        fun cancelAndSkip(engineData: MutableProcessEngineDataAccess)
-        fun doCancelAndSkip(engineData: MutableProcessEngineDataAccess) {
+        fun cancelAndSkip(engineData: MutableProcessEngineDataAccess<C>)
+        fun doCancelAndSkip(engineData: MutableProcessEngineDataAccess<C>) {
             @Suppress("NON_EXHAUSTIVE_WHEN")
             when (state) {
                 Pending,
@@ -304,9 +313,9 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             }
         }
 
-        fun finishTask(engineData: MutableProcessEngineDataAccess, resultPayload: ICompactFragment? = null)
+        fun finishTask(engineData: MutableProcessEngineDataAccess<C>, resultPayload: ICompactFragment? = null)
 
-        fun doFinishTask(engineData: MutableProcessEngineDataAccess, resultPayload: ICompactFragment? = null) {
+        fun doFinishTask(engineData: MutableProcessEngineDataAccess<C>, resultPayload: ICompactFragment? = null) {
             if (state.isFinal) {
                 throw ProcessException("instance ${node.id}:${handle.handleValue}($state) cannot be finished as it is already in a final state.")
             }
@@ -315,7 +324,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         }
 
 
-        fun tickle(engineData: MutableProcessEngineDataAccess, messageService: IMessageService<*, *>) {
+        fun tickle(engineData: MutableProcessEngineDataAccess<C>, messageService: IMessageService<*, C>) {
             when (state) {
                 FailRetry,
                 Pending -> provideTask(engineData)
@@ -327,7 +336,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
     }
 
-    abstract class AbstractBuilder<N : ExecutableProcessNode, T : ProcessNodeInstance<*>> : Builder<N, T> {
+    abstract class AbstractBuilder<N : ExecutableProcessNode, T : ProcessNodeInstance<T, C>, C: ActivityInstanceContext> : Builder<N, T, C> {
 
         override fun toXmlInstance(body: ICompactFragment?): XmlProcessNodeInstance {
             return XmlProcessNodeInstance(
@@ -346,7 +355,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         /**
          * Update the state if the current state would indicate that to be the expected action
          */
-        private fun softUpdateState(engineData: MutableProcessEngineDataAccess, targetState: NodeInstanceState) {
+        private fun softUpdateState(engineData: MutableProcessEngineDataAccess<C>, targetState: NodeInstanceState) {
             invalidateBuilder(engineData)
             if (state == targetState) return
             val doSet = when (targetState) {
@@ -372,8 +381,8 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             }
         }
 
-        final override fun provideTask(engineData: MutableProcessEngineDataAccess, autoContinue: Boolean) {
-            if (this !is JoinInstance.Builder) {
+        final override fun provideTask(engineData: MutableProcessEngineDataAccess<C>, autoContinue: Boolean) {
+            if (this !is JoinInstance.Builder<*>) {
                 val predecessors = predecessors.map { engineData.nodeInstance(it).withPermission() }
                 for (predecessor in predecessors) {
                     if (predecessor !is SplitInstance && !predecessor.state.isFinal) {
@@ -389,7 +398,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         }
 
         final override fun takeTask(
-            engineData: MutableProcessEngineDataAccess,
+            engineData: MutableProcessEngineDataAccess<C>,
             assignedUser: PrincipalCompat?,
             autoContinue: Boolean
         ) {
@@ -397,13 +406,13 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
                 startTask(engineData)
         }
 
-        final override fun startTask(engineData: MutableProcessEngineDataAccess, autoContinue: Boolean) {
+        final override fun startTask(engineData: MutableProcessEngineDataAccess<C>, autoContinue: Boolean) {
             if (doStartTask(engineData).also { softUpdateState(engineData, Started) } && autoContinue) {
                 finishTask(engineData)
             }
         }
 
-        final override fun finishTask(engineData: MutableProcessEngineDataAccess, resultPayload: ICompactFragment?) {
+        final override fun finishTask(engineData: MutableProcessEngineDataAccess<C>, resultPayload: ICompactFragment?) {
             if (state.isFinal) {
                 throw ProcessException("instance ${node.id}:${handle.handleValue}($state) cannot be finished as it is already in a final state.")
             }
@@ -423,7 +432,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             processInstanceBuilder.updateState(engineData)
         }
 
-        override fun skipTask(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState) {
+        override fun skipTask(engineData: MutableProcessEngineDataAccess<C>, newState: NodeInstanceState) {
             assert(newState == Skipped || newState == SkippedCancel || newState == SkippedFail) {
                 "Skipping task with unsupported new state $newState"
             }
@@ -436,7 +445,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             processInstanceBuilder.skipSuccessors(engineData, this, newState)
         }
 
-        override fun invalidateTask(engineData: MutableProcessEngineDataAccess) {
+        override fun invalidateTask(engineData: MutableProcessEngineDataAccess<C>) {
             if (!(state.isSkipped || state == Pending || state == Sent)) {
                 throw ProcessException("Attempting to invalidate a non-skipped node $this with state: $state")
             }
@@ -446,7 +455,10 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             processInstanceBuilder.storeChild(this)
         }
 
-        final override fun failTask(engineData: MutableProcessEngineDataAccess, cause: Throwable) {
+        final override fun failTask(
+            engineData: MutableProcessEngineDataAccess<C>,
+            cause: Throwable
+        ) {
             failureCause = cause
             state = if (state == Pending) FailRetry else Failed
             engineData.processContextFactory.onActivityTermination(engineData, this)
@@ -454,7 +466,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             processInstanceBuilder.skipSuccessors(engineData, this, SkippedFail)
         }
 
-        final override fun cancel(engineData: MutableProcessEngineDataAccess) {
+        final override fun cancel(engineData: MutableProcessEngineDataAccess<C>) {
             doCancel(engineData)
             softUpdateState(engineData, Cancelled)
 //            processInstanceBuilder.storeChild(this)
@@ -464,9 +476,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 //            processInstanceBuilder.skipSuccessors(engineData, this, SkippedCancel)
         }
 
-        final override fun cancelAndSkip(
-            engineData: MutableProcessEngineDataAccess
-        ) {
+        final override fun cancelAndSkip(engineData: MutableProcessEngineDataAccess<C>) {
             doCancelAndSkip(engineData)
             engineData.processContextFactory.onActivityTermination(engineData, this)
             processInstanceBuilder.skipSuccessors(engineData, this, Skipped)
@@ -478,15 +488,15 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
     }
 
-    abstract class BaseBuilder<N : ExecutableProcessNode, T : ProcessNodeInstance<T>>(
+    abstract class BaseBuilder<N : ExecutableProcessNode, T : ProcessNodeInstance<T, C>, C: ActivityInstanceContext>(
         final override var node: N,
-        predecessors: Iterable<Handle<SecureObject<ProcessNodeInstance<*>>>>,
-        final override val processInstanceBuilder: ProcessInstance.Builder,
+        predecessors: Iterable<Handle<SecureObject<ProcessNodeInstance<*, C>>>>,
+        final override val processInstanceBuilder: ProcessInstance.Builder<C>,
         final override var owner: PrincipalCompat,
         final override val entryNo: Int,
-        final override var handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
+        final override var handle: Handle<SecureObject<ProcessNodeInstance<*, C>>> = Handle.invalid(),
         state: NodeInstanceState = Pending
-    ) : AbstractBuilder<N, T>() {
+    ) : AbstractBuilder<N, T, C>() {
 
         final override var state = state
             set(value) {
@@ -495,7 +505,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             }
 
 
-        override fun invalidateBuilder(engineData: ProcessEngineDataAccess) {
+        override fun invalidateBuilder(engineData: ProcessEngineDataAccess<C>) {
             engineData.nodeInstances[handle]?.withPermission()?.let { newBase ->
                 @Suppress("UNCHECKED_CAST")
                 node = newBase.node as N
@@ -505,15 +515,15 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
             }
         }
 
-        final override var predecessors: MutableSet<Handle<SecureObject<ProcessNodeInstance<*>>>> =
+        final override var predecessors: MutableSet<Handle<SecureObject<ProcessNodeInstance<*, C>>>> =
             predecessors.asSequence().toMutableArraySet()
         final override val results = mutableListOf<ProcessData>()
     }
 
-    abstract class ExtBuilder<N : ExecutableProcessNode, T : ProcessNodeInstance<*>>(
+    abstract class ExtBuilder<N : ExecutableProcessNode, T : ProcessNodeInstance<T, C>, C: ActivityInstanceContext>(
         protected var base: T,
-        override val processInstanceBuilder: ProcessInstance.Builder
-    ) : AbstractBuilder<N, T>() {
+        override val processInstanceBuilder: ProcessInstance.Builder<C>
+    ) : AbstractBuilder<N, T, C>() {
         private val observer: Observer<Any?> = { newValue -> changed = true; newValue }
 
         @Suppress("UNCHECKED_CAST")
@@ -522,7 +532,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
         final override val predecessors = ObservableSet(base.predecessors.toMutableArraySet(), { changed = true })
 
         final override var owner by overlay(observer()) { base.owner }
-        final override var handle: Handle<SecureObject<ProcessNodeInstance<*>>> by overlay(observer()) { base.handle }
+        final override var handle: Handle<SecureObject<ProcessNodeInstance<*, C>>> by overlay(observer()) { base.handle }
 
         private var _state: NodeInstanceState = base.state
         final override var state
@@ -550,7 +560,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 
         }
 
-        override fun invalidateBuilder(engineData: ProcessEngineDataAccess) {
+        override fun invalidateBuilder(engineData: ProcessEngineDataAccess<C>) {
             @Suppress("UNCHECKED_CAST")
             invalidateBuilder(engineData.nodeInstance(handle).withPermission() as T)
         }
@@ -568,7 +578,7 @@ abstract class ProcessNodeInstance<T : ProcessNodeInstance<T>>(
 private typealias Observer<T> = (T) -> T
 
 @OptIn(ExperimentalContracts::class)
-inline fun <R> ProcessNodeInstance.Builder<*, *>.tryCreateTask(body: () -> R): R {
+inline fun <R> ProcessNodeInstance.Builder<*, *, *>.tryCreateTask(body: () -> R): R {
     contract {
         callsInPlace(body, InvocationKind.EXACTLY_ONCE)
     }
@@ -578,7 +588,7 @@ inline fun <R> ProcessNodeInstance.Builder<*, *>.tryCreateTask(body: () -> R): R
 }
 
 @OptIn(ExperimentalContracts::class)
-inline fun <R> ProcessNodeInstance.Builder<*, *>.tryRunTask(body: () -> R): R {
+inline fun <R> ProcessNodeInstance.Builder<*, *, *>.tryRunTask(body: () -> R): R {
     contract {
         callsInPlace(body, InvocationKind.EXACTLY_ONCE)
     }
@@ -591,10 +601,10 @@ inline fun <R> ProcessNodeInstance.Builder<*, *>.tryRunTask(body: () -> R): R {
 @OptIn(ExperimentalContracts::class)
 @Suppress("unused", "FunctionName")
 @PublishedApi
-internal inline fun <R> _tryHelper(
-    engineData: MutableProcessEngineDataAccess,
-    processInstance: ProcessInstance,
-    body: () -> R, failHandler: (MutableProcessEngineDataAccess, ProcessInstance, Exception) -> Unit
+internal inline fun <R, C: ActivityInstanceContext> _tryHelper(
+    engineData: MutableProcessEngineDataAccess<C>,
+    processInstance: ProcessInstance<C>,
+    body: () -> R, failHandler: (MutableProcessEngineDataAccess<C>, ProcessInstance<C>, Exception) -> Unit
 ): R {
     contract {
         callsInPlace(body, InvocationKind.EXACTLY_ONCE)

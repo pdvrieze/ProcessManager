@@ -16,28 +16,31 @@
 
 package nl.adaptivity.process.engine
 
-import net.devrieze.util.*
+import net.devrieze.util.CachingHandleMap
+import net.devrieze.util.DBTransactionFactory
+import net.devrieze.util.Handle
+import net.devrieze.util.MutableTransactionedHandleMap
 import net.devrieze.util.db.DBHandleMap
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.db.ProcessEngineDB
 
 
-internal class ProcessInstanceMap(
-    transactionFactory: DBTransactionFactory<ProcessDBTransaction, ProcessEngineDB>,
-    processEngine: ProcessEngine<ProcessDBTransaction, *>
-) : DBHandleMap<ProcessInstance.BaseBuilder, SecureObject<ProcessInstance>, ProcessDBTransaction, ProcessEngineDB>(
+internal class ProcessInstanceMap <C: ActivityInstanceContext>(
+    transactionFactory: DBTransactionFactory<ProcessDBTransaction<C>, ProcessEngineDB>,
+    processEngine: ProcessEngine<ProcessDBTransaction<C>, C>
+) : DBHandleMap<ProcessInstance.BaseBuilder<C>, SecureObject<ProcessInstance<C>>, ProcessDBTransaction<C>, ProcessEngineDB>(
     transactionFactory,
     ProcessInstanceElementFactory(processEngine)
 ) {
 
-    class Cache<T : ProcessTransaction>(
-        delegate: ProcessInstanceMap,
+    class Cache<T : ContextProcessTransaction<C>, C : ActivityInstanceContext>(
+        delegate: ProcessInstanceMap<C>,
         cacheSize: Int
-    ) : CachingHandleMap<SecureObject<ProcessInstance>, T>(
-        delegate as MutableTransactionedHandleMap<SecureObject<ProcessInstance>, T>,
+    ) : CachingHandleMap<SecureObject<ProcessInstance<C>>, T>(
+        delegate as MutableTransactionedHandleMap<SecureObject<ProcessInstance<C>>, T>,
         cacheSize
     ) {
-        fun pendingValue(piHandle: Handle<SecureObject<ProcessInstance>>): ProcessInstance.BaseBuilder? {
+        fun pendingValue(piHandle: Handle<SecureObject<ProcessInstance<C>>>): ProcessInstance.BaseBuilder<C>? {
             return (delegate as ProcessInstanceMap).pendingValue(piHandle)
         }
     }

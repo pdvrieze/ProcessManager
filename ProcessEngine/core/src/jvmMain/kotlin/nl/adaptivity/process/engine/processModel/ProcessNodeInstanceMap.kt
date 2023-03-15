@@ -17,20 +17,22 @@
 package nl.adaptivity.process.engine.processModel
 
 import net.devrieze.util.DBTransactionFactory
-import net.devrieze.util.TransactionFactory
 import net.devrieze.util.db.DBHandleMap
 import net.devrieze.util.security.SecureObject
+import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.ProcessDBTransaction
 import nl.adaptivity.process.engine.ProcessEngine
-import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.engine.db.ProcessEngineDB
-import javax.sql.DataSource
+import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 
 
-class ProcessNodeInstanceMap(
-    transactionFactory: DBTransactionFactory<ProcessDBTransaction, ProcessEngineDB>,
-    processEngine: ProcessEngine<ProcessDBTransaction, *>
-) : DBHandleMap<ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>>,
-    SecureObject<ProcessNodeInstance<*>>,
-    ProcessDBTransaction,
-    ProcessEngineDB>(transactionFactory, ProcessNodeInstanceFactory(processEngine))
+class ProcessNodeInstanceMap<C : ActivityInstanceContext>(
+    transactionFactory: DBTransactionFactory<ProcessDBTransaction<C>, ProcessEngineDB>,
+    processEngine: ProcessEngine<ProcessDBTransaction<C>, C>
+) : DBHandleMap<ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*, C>, *>,
+    SecureObject<ProcessNodeInstance<*, C>>,
+    ProcessDBTransaction<C>,
+    ProcessEngineDB>(
+    transactionFactory,
+    ProcessNodeInstanceFactory(processEngine)
+)

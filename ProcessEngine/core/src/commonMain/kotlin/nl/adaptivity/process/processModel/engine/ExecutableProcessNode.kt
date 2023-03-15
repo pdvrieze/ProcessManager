@@ -60,13 +60,13 @@ interface ExecutableProcessNode : ProcessNode, Identified {
      *
      * TODO handle failRetry nodes
      */
-    fun createOrReuseInstance(
-        data: MutableProcessEngineDataAccess,
-        processInstanceBuilder: ProcessInstance.Builder,
-        predecessor: IProcessNodeInstance,
+    fun <C: ActivityInstanceContext> createOrReuseInstance(
+        data: MutableProcessEngineDataAccess<C>,
+        processInstanceBuilder: ProcessInstance.Builder<C>,
+        predecessor: IProcessNodeInstance<C>,
         entryNo: Int,
         allowFinalInstance: Boolean,
-    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
+    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*, C>, C> {
         processInstanceBuilder.getChildNodeInstance(this, entryNo)?.let { return it }
         if (!isMultiInstance && entryNo > 1) {
             processInstanceBuilder.allChildNodeInstances { it.node == this && it.entryNo != entryNo }.forEach {
@@ -95,10 +95,10 @@ interface ExecutableProcessNode : ProcessNode, Identified {
      * @return `true` if the node can be started, `false` if
      *          not.
      */
-    fun evalCondition(
-        nodeInstanceSource: IProcessInstance,
-        predecessor: IProcessNodeInstance,
-        nodeInstance: IProcessNodeInstance
+    fun <C: ActivityInstanceContext> evalCondition(
+        nodeInstanceSource: IProcessInstance<C>,
+        predecessor: IProcessNodeInstance<C>,
+        nodeInstance: IProcessNodeInstance<C>
     ): ConditionResult = when {
         nodeInstance.state==NodeInstanceState.Complete || !nodeInstance.state.isFinal -> ConditionResult.TRUE
         else -> ConditionResult.NEVER
@@ -114,16 +114,19 @@ interface ExecutableProcessNode : ProcessNode, Identified {
      *
      * @return `true` if the task can/must be automatically taken
      */
-    fun provideTask(engineData: ProcessEngineDataAccess, instanceBuilder: ProcessNodeInstance.Builder<*, *>): Boolean
+    fun <C: ActivityInstanceContext> provideTask(
+        engineData: ProcessEngineDataAccess<C>,
+        instanceBuilder: ProcessNodeInstance.Builder<*, *, C>
+    ): Boolean
         = true
 
-    fun takeTask(
-        activityContext: ActivityInstanceContext,
-        instance: ProcessNodeInstance.Builder<*, *>,
+    fun <C: ActivityInstanceContext> takeTask(
+        activityContext: C,
+        instance: ProcessNodeInstance.Builder<*, *, C>,
         assignedUser: PrincipalCompat?
     ): Boolean = true
 
-    fun startTask(instance: ProcessNodeInstance.Builder<*, *>): Boolean = true
+    fun <C: ActivityInstanceContext> startTask(instance: ProcessNodeInstance.Builder<*, *, C>): Boolean = true
 
     private fun preceeds(node: ExecutableProcessNode, reference: ExecutableProcessNode, seenIds: MutableSet<String>):Boolean {
         if (node in reference.predecessors) return true

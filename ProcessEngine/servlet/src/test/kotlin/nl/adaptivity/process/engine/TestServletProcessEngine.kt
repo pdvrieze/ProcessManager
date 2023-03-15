@@ -27,25 +27,25 @@ import java.util.logging.Logger
 /**
  * Created by pdvrieze on 09/12/15.
  */
-class TestServletProcessEngine(localURL: EndpointDescriptorImpl?) : ServletProcessEngine<StubProcessTransaction>() {
+class TestServletProcessEngine(localURL: EndpointDescriptorImpl?) : ServletProcessEngine<StubProcessTransaction<C>>() {
     private val mProcessModels: MemProcessModelMap
-    private val mProcessInstances: MemTransactionedHandleMap<SecureObject<ProcessInstance>, StubProcessTransaction>
-    private val mProcessNodeInstances: MemTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction>
-    val transactionFactory: ProcessTransactionFactory<StubProcessTransaction>
+    private val mProcessInstances: MemTransactionedHandleMap<SecureObject<ProcessInstance3>, StubProcessTransaction<C>>
+    private val mProcessNodeInstances: MemTransactionedHandleMap<SecureObject<ProcessNodeInstance<*, *>>, StubProcessTransaction<C>>
+    val transactionFactory: ProcessTransactionFactory<StubProcessTransaction<C>>
 
     init {
-        transactionFactory = object : ProcessTransactionFactory<StubProcessTransaction> {
+        transactionFactory = object : ProcessTransactionFactory<StubProcessTransaction<C>> {
             override fun startTransaction(
-                engineData: IProcessEngineData<StubProcessTransaction>
-            ): StubProcessTransaction {
-                return StubProcessTransaction(engineData)
+                engineData: IProcessEngineData<StubProcessTransaction<C>>
+            ): StubProcessTransaction<C> {
+                return StubProcessTransaction<C>(engineData)
             }
         }
         mProcessModels = MemProcessModelMap()
         mProcessInstances = MemTransactionedHandleMap()
         mProcessNodeInstances = MemTransactionedHandleMap()
         val messageService = MessageService(localURL!!)
-        val engine = newTestInstance<StubProcessTransaction>(
+        val engine = newTestInstance<StubProcessTransaction<C>>(
             messageService, transactionFactory, mProcessModels, mProcessInstances,
             mProcessNodeInstances, false, Logger.getAnonymousLogger()
         )

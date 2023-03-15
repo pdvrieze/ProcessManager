@@ -99,7 +99,7 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
         predecessor: Identified,
         input: InputRef<I>,
         accessRestrictions: RunnableAccessRestriction? = null,
-        onActivityProvided: OnActivityProvided<I, O> = RunnableActivity.OnActivityProvided.DEFAULT,
+        onActivityProvided: OnActivityProvided<I, O, C> = OnActivityProvided.DEFAULT,
         @BuilderInference
         noinline action: RunnableAction<I, O, C>
     ) : RunnableActivity.Builder<I, O, C> {
@@ -120,7 +120,7 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
         predecessor: Identified,
         input: DefineInputCombiner<I>,
         accessRestrictions: RunnableAccessRestriction? = null,
-        onActivityProvided: OnActivityProvided<I, O> = RunnableActivity.OnActivityProvided.DEFAULT,
+        onActivityProvided: OnActivityProvided<I, O, C> = OnActivityProvided.DEFAULT,
         @BuilderInference
         noinline action: RunnableAction<I, O, C>
     ): RunnableActivity.Builder<I, O, C> {
@@ -134,7 +134,7 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
     inline fun <I : Any, reified O : Any> activity(
         predecessor: NodeHandle<I>,
         accessRestrictions: RunnableAccessRestriction? = null,
-        onActivityProvided: OnActivityProvided<I, O> = RunnableActivity.OnActivityProvided.DEFAULT,
+        onActivityProvided: OnActivityProvided<I, O, C> = OnActivityProvided.DEFAULT,
         @BuilderInference
         noinline action: RunnableAction<I, O, C>
     ): RunnableActivity.Builder<I, O, C> {
@@ -155,7 +155,7 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
         predecessor: ActivityHandle<I>,
         outputSerializer: SerializationStrategy<O>,
         accessRestrictions: RunnableAccessRestriction? = null,
-        onActivityProvided: OnActivityProvided<I, O> = RunnableActivity.OnActivityProvided.DEFAULT,
+        onActivityProvided: OnActivityProvided<I, O, C> = OnActivityProvided.DEFAULT,
         @BuilderInference
         action: RunnableAction<I, O, C>
     ): RunnableActivity.Builder<I, O, C> {
@@ -178,7 +178,7 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
         outputSerializer: SerializationStrategy<O>,
         inputRefNode: Identified? = null,
         accessRestrictions: RunnableAccessRestriction? = null,
-        onActivityProvided: OnActivityProvided<I, O> = RunnableActivity.OnActivityProvided.DEFAULT,
+        onActivityProvided: OnActivityProvided<I, O, C> = OnActivityProvided.DEFAULT,
         @BuilderInference
         action: RunnableAction<I, O, C>
     ): RunnableActivity.Builder<I, O, C> {
@@ -201,7 +201,7 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
         outputSerializer: SerializationStrategy<O>,
         inputRefName: String = "",
         accessRestrictions: RunnableAccessRestriction? = null,
-        onActivityProvided: OnActivityProvided<I, O> = RunnableActivity.OnActivityProvided.DEFAULT,
+        onActivityProvided: OnActivityProvided<I, O, C> = OnActivityProvided.DEFAULT,
         @BuilderInference
         action: RunnableAction<I, O, C>
     ): RunnableActivity.Builder<I, O, C> {
@@ -225,7 +225,7 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
         inputRefNode: Identified?,
         inputRefName: String,
         accessRestrictions: RunnableAccessRestriction? = null,
-        onActivityProvided: OnActivityProvided<I, O> = RunnableActivity.OnActivityProvided.DEFAULT,
+        onActivityProvided: OnActivityProvided<I, O, C> = OnActivityProvided.DEFAULT,
         @BuilderInference
         action: RunnableAction<I, O, C>
     ): RunnableActivity.Builder<I, O, C> {

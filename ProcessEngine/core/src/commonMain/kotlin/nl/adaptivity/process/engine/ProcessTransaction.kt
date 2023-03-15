@@ -22,11 +22,11 @@ import net.devrieze.util.Transaction
  * A transaction interface for processes. This allow access to the process data without having to pass the transaction in
  * as parameter
  */
-interface ProcessTransaction : Transaction {
-  val readableEngineData: ProcessEngineDataAccess
-  val writableEngineData: MutableProcessEngineDataAccess
+interface ContextProcessTransaction<C: ActivityInstanceContext> : Transaction {
+  val readableEngineData: ProcessEngineDataAccess<C>
+  val writableEngineData: MutableProcessEngineDataAccess<C>
 }
 
-interface ProcessTransactionFactory<T: ProcessTransaction> {
-  fun startTransaction(engineData: IProcessEngineData<T>): T
+interface ProcessTransactionFactory<T: ContextProcessTransaction<C>, C: ActivityInstanceContext> {
+  fun startTransaction(engineData: IProcessEngineData<T, C>): T
 }

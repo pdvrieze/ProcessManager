@@ -9,7 +9,7 @@ import nl.adaptivity.process.engine.pma.runtime.PMAProcessInstanceContext
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import java.security.Principal
 
-abstract class DynamicPMAActivityContext<A : DynamicPMAActivityContext<A>>(processNode: IProcessNodeInstance) :
+abstract class DynamicPMAActivityContext<A : DynamicPMAActivityContext<A>>(processNode: IProcessNodeInstance<A>) :
     PMAActivityContext<A>(processNode) {
 
     final override lateinit var taskListService: TaskList

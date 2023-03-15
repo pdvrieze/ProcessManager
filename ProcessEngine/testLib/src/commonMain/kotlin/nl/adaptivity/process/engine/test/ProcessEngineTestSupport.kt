@@ -20,7 +20,7 @@ import nl.adaptivity.xmlutil.QName
 import kotlin.test.BeforeTest
 import nl.adaptivity.xmlutil.util.CompactFragment
 
-typealias ProcessEngineFactory<C> = (StubMessageService<C>, ProcessTransactionFactory<StubProcessTransaction>)-> ProcessEngine<StubProcessTransaction, C>
+typealias ProcessEngineFactory<C> = (StubMessageService<C>, ProcessTransactionFactory<StubProcessTransaction<C>, C>)-> ProcessEngine<StubProcessTransaction<C>, C>
 
 open class ProcessEngineTestSupport<C: ActivityInstanceContext>() {
     private val localEndpoint = EndpointDescriptorImpl(
@@ -31,24 +31,24 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>() {
     protected val stubMessageService: StubMessageService<C> =
         StubMessageService<C>(localEndpoint)
     protected val stubTransactionFactory = object :
-        ProcessTransactionFactory<StubProcessTransaction> {
-        override fun startTransaction(engineData: IProcessEngineData<StubProcessTransaction>): StubProcessTransaction {
-            return StubProcessTransaction(engineData)
+        ProcessTransactionFactory<StubProcessTransaction<C>, C> {
+        override fun startTransaction(engineData: IProcessEngineData<StubProcessTransaction<C>, C>): StubProcessTransaction<C> {
+            return StubProcessTransaction<C>(engineData)
         }
     }
     protected val modelOwnerPrincipal = SimplePrincipal("modelOwner")
-    private val ProcessInstance.sortedFinished
+    private val ProcessInstance<C>.sortedFinished
         get() = finished.sortedBy { it.handleValue }
-    private val ProcessInstance.sortedActive
+    private val ProcessInstance<C>.sortedActive
         get() = active.sortedBy { it.handleValue }
-    private val ProcessInstance.sortedCompleted
+    private val ProcessInstance<C>.sortedCompleted
         get() = completedEndnodes.sortedBy { it.handleValue }
 
     protected inline fun <R> testProcess(
         model: ExecutableProcessModel,
         payload: CompactFragment? = null,
         createProcessContextFactory: () -> ProcessContextFactory<C>,
-        body: (ProcessEngine<StubProcessTransaction, C>, ProcessTransaction, ExecutableProcessModel, HProcessInstance) -> R
+        body: (ProcessEngine<StubProcessTransaction<C>, C>, ContextProcessTransaction<C>, ExecutableProcessModel, HProcessInstance) -> R
     ): R {
         val processEngine = defaultEngineFactory(stubMessageService, stubTransactionFactory, createProcessContextFactory())
         processEngine.startTransaction().use { transaction ->
@@ -61,7 +61,7 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>() {
         }
     }
 
-    protected inline fun <R> testProcess(processEngineFactory: ProcessEngineFactory<C>, model: ExecutableProcessModel, payload: nl.adaptivity.xmlutil.util.CompactFragment? = null, body: (ProcessEngine<StubProcessTransaction, C>, ProcessTransaction, ExecutableProcessModel, HProcessInstance) -> R): R {
+    protected inline fun <R> testProcess(processEngineFactory: ProcessEngineFactory<C>, model: ExecutableProcessModel, payload: nl.adaptivity.xmlutil.util.CompactFragment? = null, body: (ProcessEngine<StubProcessTransaction<C>, C>, ContextProcessTransaction<C>, ExecutableProcessModel, HProcessInstance) -> R): R {
         val processEngine = processEngineFactory(stubMessageService, stubTransactionFactory)
         processEngine.startTransaction().use { transaction ->
 
@@ -74,30 +74,30 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>() {
     }
 
     protected inline fun <R> testRawEngine(
-        action: (ProcessEngine<StubProcessTransaction, C>) -> R,
+        action: (ProcessEngine<StubProcessTransaction<C>, C>) -> R,
         createProcessContextFactory: () -> ProcessContextFactory<C>
     ): R {
         val processEngine = defaultEngineFactory(stubMessageService, stubTransactionFactory, createProcessContextFactory())
         return action(processEngine)
     }
 
-    protected fun ProcessTransaction.getInstance(instanceHandle: HProcessInstance): ProcessInstance {
+    protected fun ContextProcessTransaction<C>.getInstance(instanceHandle: HProcessInstance): ProcessInstance<C> {
         return readableEngineData.instance(instanceHandle).withPermission()
     }
 
-    protected fun StubMessageService<C>.messageNode(transaction: ProcessTransaction, index: Int): ProcessNodeInstance<*> {
+    protected fun StubMessageService<C>.messageNode(transaction: ContextProcessTransaction<C>, index: Int): ProcessNodeInstance<*, C> {
         return transaction.readableEngineData.nodeInstance(this.messages[index].source).withPermission()
     }
 
-    protected fun ProcessInstance.child(transaction: ProcessTransaction, name: String) : ProcessNodeInstance<*> {
+    protected fun ProcessInstance<C>.child(transaction: ContextProcessTransaction<C>, name: String) : ProcessNodeInstance<*, C> {
         return getChild(name, 1)?.withPermission() ?: throw AssertionError("No node instance for node id ${name} found")
     }
 
-    protected fun ProcessInstance.assertFinishedHandles(handles: Array<Handle<SecureObject<ProcessNodeInstance<*>>>>) = apply {
+    protected fun ProcessInstance<C>.assertFinishedHandles(handles: Array<Handle<SecureObject<ProcessNodeInstance<*, *>>>>) = apply {
         assertEquals(handles.sorted(), ArrayList(sortedFinished))
     }
 
-    protected fun ProcessInstance.assertFinished(vararg handles: IProcessNodeInstance) = apply {
+    protected fun ProcessInstance<C>.assertFinished(vararg handles: IProcessNodeInstance<*>) = apply {
         val actual = ArrayList(sortedFinished)
         val expected = handles.asSequence().map { it.handle }.sortedBy { it.handleValue }.toList()
         try {
@@ -107,11 +107,11 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>() {
         }
     }
 
-    private fun ProcessInstance.assertActiveHandles(handles: Array<Handle<SecureObject<ProcessNodeInstance<*>>>>) = apply {
+    private fun ProcessInstance<C>.assertActiveHandles(handles: Array<Handle<SecureObject<ProcessNodeInstance<*, *>>>>) = apply {
         assertEquals(handles.sorted(), ArrayList(sortedActive))
     }
 
-    protected fun ProcessInstance.assertActive(vararg handles: IProcessNodeInstance) = apply {
+    protected fun ProcessInstance<C>.assertActive(vararg handles: IProcessNodeInstance<*>) = apply {
         val actual = ArrayList(sortedActive)
         val expected = handles.asSequence().map { it.handle }.sortedBy { it.handleValue }.toList()
         try {
@@ -121,46 +121,46 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>() {
         }
     }
 
-    private fun ProcessInstance.assertCompletedHandles(handles: Array<Handle<SecureObject<ProcessNodeInstance<*>>>>) = apply {
+    private fun ProcessInstance<C>.assertCompletedHandles(handles: Array<Handle<SecureObject<ProcessNodeInstance<*, *>>>>) = apply {
         assertEquals(handles.sorted(), ArrayList(sortedCompleted))
     }
 
-    protected fun ProcessInstance.assertCompleted(vararg nodes: IProcessNodeInstance): ProcessInstance {
+    protected fun ProcessInstance<C>.assertCompleted(vararg nodes: IProcessNodeInstance<*>): ProcessInstance<C> {
         val actual = ArrayList(sortedCompleted)
         val expected = nodes.asSequence().map { it.handle }.sortedBy { it.handleValue }.toList()
         assertEquals(expected, actual)
         return this
     }
 
-    protected fun IProcessNodeInstance.assertStarted() = apply {
+    protected fun IProcessNodeInstance<C>.assertStarted() = apply {
         assertEquals(NodeInstanceState.Started, this.state)
     }
 
-    protected fun ProcessInstance.assertIsStarted() = apply {
+    protected fun ProcessInstance3.assertIsStarted() = apply {
         assertEquals(ProcessInstance.State.STARTED, this.state)
     }
 
-    protected fun ProcessInstance.assertIsFinished() = apply {
+    protected fun ProcessInstance3.assertIsFinished() = apply {
         assertEquals(ProcessInstance.State.FINISHED, this.state)
     }
 
-    private fun IProcessNodeInstance.assertSent() = apply {
+    private fun IProcessNodeInstance<C>.assertSent() = apply {
         assertState(NodeInstanceState.Sent)
     }
 
-    protected fun IProcessNodeInstance.assertPending() = apply {
+    protected fun IProcessNodeInstance<C>.assertPending() = apply {
         assertState(NodeInstanceState.Pending)
     }
 
-    protected fun IProcessNodeInstance.assertAcknowledged() = apply {
+    protected fun IProcessNodeInstance<C>.assertAcknowledged() = apply {
         assertState(NodeInstanceState.Acknowledged)
     }
 
-    protected fun IProcessNodeInstance.assertComplete() = apply {
+    protected fun IProcessNodeInstance<C>.assertComplete() = apply {
         assertState(NodeInstanceState.Complete)
     }
 
-    protected fun IProcessNodeInstance.assertState(state: NodeInstanceState) {
+    protected fun IProcessNodeInstance<C>.assertState(state: NodeInstanceState) {
         try {
             assertEquals(
                 state, this.state,
@@ -181,16 +181,16 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>() {
         @JvmStatic
         @JvmName("newTestInstance")
         @PublishedApi
-        internal fun <T : ProcessTransaction, A : ActivityInstanceContext> newTestProcessEngineInstance(
-            messageService: IMessageService<*, A>,
-            transactionFactory: ProcessTransactionFactory<T>,
+        internal fun <T : ContextProcessTransaction<C>, C : ActivityInstanceContext> newTestProcessEngineInstance(
+            messageService: IMessageService<*, C>,
+            transactionFactory: ProcessTransactionFactory<T, C>,
             processModels: IMutableProcessModelMap<T>,
-            processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance>, T>,
-            processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, T>,
+            processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance<C>>, T>,
+            processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*, C>>, T>,
             autoTransition: Boolean,
             logger: Logger,
-            processContextFactory: ProcessContextFactory<A>
-        ): ProcessEngine<T, A> {
+            processContextFactory: ProcessContextFactory<C>
+        ): ProcessEngine<T, C> {
 
 
             return ProcessEngine(
@@ -202,44 +202,41 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>() {
         }
 
 
-        fun <C: ActivityInstanceContext> defaultEngineFactory(messageService: StubMessageService<C>, transactionFactory: ProcessTransactionFactory<StubProcessTransaction>, contextFactory: ProcessContextFactory<C>): ProcessEngine<StubProcessTransaction, C> {
+        fun <C: ActivityInstanceContext> defaultEngineFactory(messageService: StubMessageService<C>, transactionFactory: ProcessTransactionFactory<StubProcessTransaction<C>, C>, contextFactory: ProcessContextFactory<C>): ProcessEngine<StubProcessTransaction<C>, C> {
             return newTestProcessEngineInstance(
                 messageService,
                 transactionFactory,
-                cacheModels<Any>(MemProcessModelMap(), 3),
+                cacheModels<Any, C>(MemProcessModelMap(), 3),
                 cacheInstances(
                     nl.adaptivity.process.MemTransactionedHandleMap(),
                     1
                 ),
-                cacheNodes<Any>(
+                cacheNodes<Any, C>(
                     nl.adaptivity.process.MemTransactionedHandleMap(
-                        PNI_SET_HANDLE
+                        ::PNI_SET_HANDLE
                     ), 2
                 ), true, Logger.getAnonymousLogger(),
                 contextFactory
             )
         }
 
-        val PNI_SET_HANDLE = fun(transaction: StubProcessTransaction, pni: SecureObject<ProcessNodeInstance<*>>, handle: PNIHandle): SecureObject<ProcessNodeInstance<*>>? {
+        fun <C: ActivityInstanceContext> PNI_SET_HANDLE(transaction: StubProcessTransaction<C>, pni: SecureObject<ProcessNodeInstance<ProcessNodeInstance<*, C>, C>>, handle: PNIHandle): SecureObject<ProcessNodeInstance<*, C>>? {
             if (pni.withPermission().handle == handle) {
                 return pni
             }
             val piBuilder = transaction.readableEngineData.instance(pni.withPermission().hProcessInstance).withPermission().builder()
-            return pni.withPermission().builder(piBuilder).also { it.handle = handle }.build()
+            return pni.withPermission().builder(piBuilder).also { it.handle = handle.coerce() }.build()
         }
 
-        fun <V:Any> cacheInstances(base: MutableTransactionedHandleMap<V, StubProcessTransaction>, count: Int): MutableTransactionedHandleMap<V, StubProcessTransaction> {
-            return net.devrieze.util.CachingHandleMap<V, StubProcessTransaction>(
-                base,
-                count
-            )
+        fun <V:Any, C : ActivityInstanceContext> cacheInstances(base: MutableTransactionedHandleMap<V, StubProcessTransaction<C>>, count: Int): MutableTransactionedHandleMap<V, StubProcessTransaction<C>> {
+            return net.devrieze.util.CachingHandleMap(base, count)
         }
 
-        fun <V> cacheNodes(base: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction>, count: Int): MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, StubProcessTransaction> {
-            return net.devrieze.util.CachingHandleMap(base, count, PNI_SET_HANDLE)
+        fun <V, C: ActivityInstanceContext> cacheNodes(base: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*, C>>, StubProcessTransaction<C>>, count: Int): MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*, C>>, StubProcessTransaction<C>> {
+            return net.devrieze.util.CachingHandleMap(base, count, ::PNI_SET_HANDLE)
         }
 
-        fun <V> cacheModels(base: IMutableProcessModelMap<StubProcessTransaction>, count: Int): IMutableProcessModelMap<StubProcessTransaction> {
+        fun <V, C: ActivityInstanceContext> cacheModels(base: IMutableProcessModelMap<StubProcessTransaction<C>>, count: Int): IMutableProcessModelMap<StubProcessTransaction<C>> {
             return CachingProcessModelMap(base, count)
         }
 
@@ -247,4 +244,4 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>() {
 
 }
 
-typealias PNIHandle = Handle<SecureObject<ProcessNodeInstance<*>>>
+typealias PNIHandle = Handle<SecureObject<ProcessNodeInstance<*, *>>>

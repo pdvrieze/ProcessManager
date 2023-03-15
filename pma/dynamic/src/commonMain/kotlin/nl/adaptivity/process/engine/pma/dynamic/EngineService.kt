@@ -18,6 +18,7 @@ package nl.adaptivity.process.engine.pma
 
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
+import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.pma.CommonPMAPermissions.GRANT_GLOBAL_PERMISSION
 import nl.adaptivity.process.engine.pma.CommonPMAPermissions.UPDATE_ACTIVITY_STATE
 import nl.adaptivity.process.engine.pma.dynamic.DynamicPMAActivityContext
@@ -118,7 +119,7 @@ class EngineService(
 
     fun createAuthorizationCode(
         clientServiceId: String,
-        handle: Handle<SecureObject<ProcessNodeInstance<*>>>,
+        handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>,
         service: AuthService,
         scope: CommonPMAPermissions.IDENTIFY,
         pendingPermissions: ArrayDeque<DynamicPMAActivityContext.PendingPermission>
@@ -140,8 +141,8 @@ class EngineService(
             }
     }
 
-    fun PMAProcessInstanceContext<*>.onActivityTermination(
-        processNodeInstance: IProcessNodeInstance
+    fun <IC: PMAProcessInstanceContext<C>, C: ActivityInstanceContext> IC.onActivityTermination(
+        processNodeInstance: IProcessNodeInstance<C>
     ) {
         val nodeInstanceHandle = processNodeInstance.handle
         val taskLists = taskLists[nodeInstanceHandle] ?: emptyList()

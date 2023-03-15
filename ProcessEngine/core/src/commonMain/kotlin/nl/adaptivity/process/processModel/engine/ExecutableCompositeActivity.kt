@@ -77,21 +77,21 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableActivity {
     /**
      * Determine whether the process can start.
      */
-    override fun evalCondition(
-        nodeInstanceSource: IProcessInstance,
-        predecessor: IProcessNodeInstance,
-        nodeInstance: IProcessNodeInstance
+    override fun <C : ActivityInstanceContext> evalCondition(
+        nodeInstanceSource: IProcessInstance<C>,
+        predecessor: IProcessNodeInstance<C>,
+        nodeInstance: IProcessNodeInstance<C>
     ): ConditionResult {
         return _condition.evalNodeStartCondition(nodeInstanceSource, predecessor, nodeInstance)
     }
 
-    override fun createOrReuseInstance(
-        data: MutableProcessEngineDataAccess,
-        processInstanceBuilder: ProcessInstance.Builder,
-        predecessor: IProcessNodeInstance,
+    override fun <C : ActivityInstanceContext> createOrReuseInstance(
+        data: MutableProcessEngineDataAccess<C>,
+        processInstanceBuilder: ProcessInstance.Builder<C>,
+        predecessor: IProcessNodeInstance<C>,
         entryNo: Int,
         allowFinalInstance: Boolean
-    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
+    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*, C>, C> {
         return processInstanceBuilder.getChildNodeInstance(this, entryNo) ?: CompositeInstance.BaseBuilder(
             this, predecessor.handle,
             processInstanceBuilder,
@@ -101,10 +101,10 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableActivity {
         )
     }
 
-    override fun provideTask(
-        engineData: ProcessEngineDataAccess,
-        instanceBuilder: ProcessNodeInstance.Builder<*, *>
-    ) = true
+    override fun <C : ActivityInstanceContext> provideTask(
+        engineData: ProcessEngineDataAccess<C>,
+        instanceBuilder: ProcessNodeInstance.Builder<*, *, C>
+    ): Boolean = true
 
     /**
      * Take the task. Tasks are either process aware or finished when a reply is
@@ -112,11 +112,11 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableActivity {
      *
      * @return `false`
      */
-    override fun takeTask(
-        activityContext: ActivityInstanceContext,
-        instance: ProcessNodeInstance.Builder<*, *>,
+    override fun <C : ActivityInstanceContext> takeTask(
+        activityContext: C,
+        instance: ProcessNodeInstance.Builder<*, *, C>,
         assignedUser: PrincipalCompat?
-    ) = true
+    ): Boolean = true
 
     /**
      * Start the task. Tasks are either process aware or finished when a reply is
@@ -124,6 +124,6 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableActivity {
      *
      * @return `false`
      */
-    override fun startTask(instance: ProcessNodeInstance.Builder<*, *>) = false
+    override fun <C : ActivityInstanceContext> startTask(instance: ProcessNodeInstance.Builder<*, *, C>): Boolean = false
 
 }

@@ -34,15 +34,16 @@ import java.io.CharArrayReader
 import java.sql.SQLException
 import javax.xml.xpath.XPathConstants
 
-actual fun IXmlDefineType.applyData(nodeInstanceSource: IProcessInstance, context: ActivityInstanceContext): ProcessData {
+// TODO Check that context can be non-specific
+actual fun <C : ActivityInstanceContext> IXmlDefineType.applyData(nodeInstanceSource: IProcessInstance<C>, context: C): ProcessData {
     val nodeInstance = nodeInstanceSource.getChildNodeInstance(context.nodeInstanceHandle)
     return applyDataImpl(nodeInstanceSource, refNode?.let { nodeInstance.resolvePredecessor(nodeInstanceSource, it)}, context.processContext.processInstanceHandle)
 }
 
 
 @Throws(SQLException::class)
-actual fun IXmlDefineType.applyFromProcessInstance(processInstance: ProcessInstance.Builder): ProcessData {
-    val predecessor: IProcessNodeInstance? = refNode?.let { refNode -> processInstance
+actual fun <C: ActivityInstanceContext> IXmlDefineType.applyFromProcessInstance(processInstance: ProcessInstance.Builder<C>): ProcessData {
+    val predecessor: IProcessNodeInstance<C>? = refNode?.let { refNode -> processInstance
         .allChildNodeInstances { it.node.id == refNode }
         .lastOrNull()
     }
@@ -50,7 +51,7 @@ actual fun IXmlDefineType.applyFromProcessInstance(processInstance: ProcessInsta
 }
 
 @OptIn(XmlUtilInternal::class)
-private fun IXmlDefineType.applyDataImpl(nodeInstanceSource: IProcessInstance, refNodeInstance: IProcessNodeInstance?, hProcessInstance: Handle<SecureObject<ProcessInstance>>): ProcessData {
+private fun IXmlDefineType.applyDataImpl(nodeInstanceSource: IProcessInstance<*>, refNodeInstance: IProcessNodeInstance<*>?, hProcessInstance: Handle<SecureObject<ProcessInstance<*>>>): ProcessData {
     val processData: ProcessData
 
     val predRefName = refNodeInstance?.node?.effectiveRefName(refName)

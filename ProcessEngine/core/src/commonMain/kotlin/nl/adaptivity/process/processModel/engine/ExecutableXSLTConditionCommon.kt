@@ -43,8 +43,7 @@ expect class ExecutableXSLTCondition(condition: String, label: String? = null) :
      * @param nodeInstance The instance to use to evaluate against.
      * @return `true` if the condition holds, `false` if not
      */
-    override fun eval(nodeInstanceSource: IProcessInstance, nodeInstance: IProcessNodeInstance): ConditionResult
-
+    override fun eval(nodeInstanceSource: IProcessInstance<*>, nodeInstance: IProcessNodeInstance<*>): ConditionResult
 }
 
 object ExecutableXSLTConditionSerializer: KSerializer<ExecutableXSLTCondition> {

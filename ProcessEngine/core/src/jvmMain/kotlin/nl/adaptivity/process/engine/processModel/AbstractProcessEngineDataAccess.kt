@@ -16,15 +16,18 @@
 
 package nl.adaptivity.process.engine.processModel
 
+import nl.adaptivity.process.engine.ActivityInstanceContext
+import nl.adaptivity.process.engine.ContextProcessTransaction
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
-import nl.adaptivity.process.engine.ProcessTransaction
 
 /**
  * Base class for the implementation of access to process engine data.
  */
-abstract class AbstractProcessEngineDataAccess<out T:ProcessTransaction>(protected val transaction: T) : MutableProcessEngineDataAccess {
+abstract class AbstractProcessEngineDataAccess<out T : ContextProcessTransaction<C>, C : ActivityInstanceContext>
+constructor(protected val transaction: T) :
+    MutableProcessEngineDataAccess<C> {
 
-  override final fun commit() = transaction.commit()
+    override final fun commit() = transaction.commit()
 
-  override final fun rollback() = transaction.rollback()
+    override final fun rollback() = transaction.rollback()
 }

@@ -33,33 +33,34 @@ import nl.adaptivity.xmlutil.filterSubstream
 /**
  * Simple base interface for process node instances that can also be implemented by builders
  */
-interface IProcessNodeInstance: ReadableHandleAware<SecureObject<ProcessNodeInstance<*>>> {
+interface IProcessNodeInstance<C: ActivityInstanceContext>: ReadableHandleAware<SecureObject<ProcessNodeInstance<*, *>>> {
     val node: ExecutableProcessNode
-    val predecessors: Set<Handle<SecureObject<ProcessNodeInstance<*>>>>
+    val predecessors: Set<Handle<SecureObject<ProcessNodeInstance<*, C>>>>
 //    override val owner: PrincipalCompat
     val assignedUser: PrincipalCompat? get() = null
 
-    override val handle: Handle<SecureObject<ProcessNodeInstance<*>>>
+    override val handle: Handle<SecureObject<ProcessNodeInstance<*, C>>>
 
-    val hProcessInstance: Handle<SecureObject<ProcessInstance>>
+    val hProcessInstance: Handle<SecureObject<ProcessInstance<*>>>
 
     val entryNo: Int
     val state: NodeInstanceState
     val results: List<ProcessData>
 
-    fun builder(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance.Builder<*, *>
+    fun builder(processInstanceBuilder: ProcessInstance.Builder<C>): ProcessNodeInstance.Builder<*, ProcessNodeInstance<*, C>, C>
 
-    fun build(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance<*> =
-        builder(processInstanceBuilder).build()
+    fun build(processInstanceBuilder: ProcessInstance.Builder<C>): ProcessNodeInstance<*, C> {
+        return builder(processInstanceBuilder).build()
+    }
 
-    fun isOtherwiseCondition(predecessor: IProcessNodeInstance) = node.isOtherwiseCondition(predecessor.node)
+    fun isOtherwiseCondition(predecessor: IProcessNodeInstance<C>) = node.isOtherwiseCondition(predecessor.node)
 
     fun condition(
-        nodeInstanceSource: IProcessInstance,
-        predecessor: IProcessNodeInstance
+        nodeInstanceSource: IProcessInstance<C>,
+        predecessor: IProcessNodeInstance<C>
     ) = node.evalCondition(nodeInstanceSource, predecessor, this)
 
-    fun resolvePredecessor(nodeInstanceSource: IProcessInstance, nodeName: String): IProcessNodeInstance? {
+    fun resolvePredecessor(nodeInstanceSource: IProcessInstance<C>, nodeName: String): IProcessNodeInstance<C>? {
         val handle = getPredecessor(nodeInstanceSource, nodeName)
             ?: throw NullPointerException("Missing predecessor with name $nodeName referenced from node ${node.id}")
         return nodeInstanceSource.getChildNodeInstance(handle)
@@ -69,15 +70,15 @@ interface IProcessNodeInstance: ReadableHandleAware<SecureObject<ProcessNodeInst
         return results.firstOrNull { name == it.name }
     }
 
-    fun createActivityContext(engineData: MutableProcessEngineDataAccess) =
+    fun createActivityContext(engineData: MutableProcessEngineDataAccess<C>): C =
         engineData.processContextFactory.newActivityInstanceContext(engineData, this)
 
 }
 
-private fun IProcessNodeInstance.getPredecessor(
-    nodeInstanceSource: IProcessInstance,
+private fun <C: ActivityInstanceContext> IProcessNodeInstance<C>.getPredecessor(
+    nodeInstanceSource: IProcessInstance<C>,
     nodeName: String
-): Handle<SecureObject<ProcessNodeInstance<*>>>? {
+): Handle<SecureObject<ProcessNodeInstance<*, C>>>? {
     // TODO Use process structure knowledge to do this better/faster without as many database lookups.
     predecessors.asSequence()
         .map { hPred -> nodeInstanceSource.getChildNodeInstance(hPred) }
@@ -94,14 +95,14 @@ private fun IProcessNodeInstance.getPredecessor(
     return null
 }
 
-fun ActivityInstanceContext.getDefines(nodeInstanceSource: IProcessInstance): List<ProcessData> {
+fun <C: ActivityInstanceContext> C.getDefines(nodeInstanceSource: IProcessInstance<C>): List<ProcessData> {
     return node.defines.map {
         it.applyData(nodeInstanceSource, this)
     }
 }
 
-fun ActivityInstanceContext.instantiateXmlPlaceholders(
-    nodeInstanceSource: IProcessInstance,
+fun <C : ActivityInstanceContext> C.instantiateXmlPlaceholders(
+    nodeInstanceSource: IProcessInstance<C>,
     xmlReader: XmlReader,
     removeWhitespace: Boolean,
     localEndpoint: EndpointDescriptor
@@ -113,8 +114,8 @@ fun ActivityInstanceContext.instantiateXmlPlaceholders(
     return WritableCompactFragment(emptyList<Namespace>(), charArray)
 }
 
-fun ActivityInstanceContext.instantiateXmlPlaceholders(
-    nodeInstanceSource: IProcessInstance,
+fun <C : ActivityInstanceContext> C.instantiateXmlPlaceholders(
+    nodeInstanceSource: IProcessInstance<C>,
     xmlReader: XmlReader,
     out: XmlWriter,
     removeWhitespace: Boolean,

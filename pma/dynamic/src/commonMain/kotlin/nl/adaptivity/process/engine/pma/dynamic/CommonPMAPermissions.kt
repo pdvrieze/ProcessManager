@@ -24,7 +24,7 @@ import nl.adaptivity.process.engine.pma.models.UnionPermissionScope
 import nl.adaptivity.process.engine.pma.models.UseAuthScope
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 
-internal typealias PNIHandle = Handle<SecureObject<ProcessNodeInstance<*>>>
+internal typealias PNIHandle = Handle<SecureObject<ProcessNodeInstance<*, *>>>
 
 sealed class CommonPMAPermissions : PermissionScope {
     object POST_TASK : CommonPMAPermissions(), UseAuthScope

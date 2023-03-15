@@ -90,7 +90,7 @@ import kotlin.contracts.contract
              interfacePrefix = "pe",
              serviceLocalname = ServletProcessEngine.SERVICE_LOCALNAME)
 */
-open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), GenericEndpoint {
+open class ServletProcessEngine<TR : ContextProcessTransaction<*>> : EndpointServlet(), GenericEndpoint {
 
     private lateinit var processEngine: ProcessEngine<TR, *>
     private lateinit var messageService: MessageService
@@ -116,7 +116,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
         }
 
         override fun sendMessage(
-            engineData: ProcessEngineDataAccess,
+            engineData: ProcessEngineDataAccess<ActivityInstanceContext>,
             protoMessage: NewServletMessage,
             activityInstanceContext: ActivityInstanceContext
         ): MessageSendingResult {
@@ -156,7 +156,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     }
 
     private inner class MessagingCompletionListener(
-        private val handle: Handle<SecureObject<ProcessNodeInstance<*>>>,
+        private val handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>,
         private val owner: Principal
     ) : CompletionListener<DataSource> {
 
@@ -218,18 +218,19 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
         }
 
 
-        fun setHandle(engineData: ProcessEngineDataAccess, activityInstanceContext: ActivityInstanceContext) {
+        fun setHandle(engineData: ProcessEngineDataAccess<*>, activityInstanceContext: ActivityInstanceContext) {
             this.activityInstanceContext = activityInstanceContext
 
             try {
-                val processInstance = engineData.instance(activityInstanceContext.processContext.processInstanceHandle).withPermission()
+                val processInstance =
+                    engineData.instance(activityInstanceContext.processContext.processInstanceHandle).withPermission()
 
                 data = activityInstanceContext.instantiateXmlPlaceholders(processInstance, source, false, localEndpoint)
 
             } catch (e: Exception) {
                 when (e) {
                     is MessagingException -> throw e
-                    else                  -> throw MessagingException(e)
+                    else -> throw MessagingException(e)
                 }
             }
 
@@ -245,7 +246,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
             fun fillInActivityMessage(
                 messageBody: Source,
                 result: Result,
-                nodeInstance: ProcessNodeInstance<*>,
+                nodeInstance: ProcessNodeInstance<*, *>,
                 localEndpoint: EndpointDescriptor
             ) {
                 // TODO use multiplatform api
@@ -266,8 +267,8 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
 
                             when (eName.localPart) {
                                 "attribute" -> writeAttribute(nodeInstance, xer, attributes, xew)
-                                "element"   -> writeElement(nodeInstance, xer, attributes, xew, localEndpoint)
-                                else        -> throw HttpResponseException(
+                                "element" -> writeElement(nodeInstance, xer, attributes, xew, localEndpoint)
+                                else -> throw HttpResponseException(
                                     HttpServletResponse.SC_INTERNAL_SERVER_ERROR,
                                     "Unsupported activity modifier"
                                 )
@@ -319,7 +320,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
 
             @Throws(XMLStreamException::class)
             private fun writeElement(
-                nodeInstance: ProcessNodeInstance<*>,
+                nodeInstance: ProcessNodeInstance<*, *>,
                 `in`: XMLEventReader,
                 attributes: Iterator<Attribute>,
                 out: XMLEventWriter,
@@ -389,7 +390,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
 
             @Throws(XMLStreamException::class)
             private fun writeAttribute(
-                nodeInstance: ProcessNodeInstance<*>,
+                nodeInstance: ProcessNodeInstance<*, *>,
                 `in`: XMLEventReader,
                 attributes: Iterator<Attribute>,
                 out: XMLEventWriter
@@ -431,10 +432,11 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
                     val xef = XMLEventFactory.newInstance()
 
                     when (valueName) {
-                        "handle"         -> out.add(
+                        "handle" -> out.add(
                             xef.createAttribute(paramName ?: "handle", nodeInstance.getHandleValue().toString())
                         )
-                        "owner"          -> out.add(xef.createAttribute(paramName ?: "owner", nodeInstance.owner.name))
+
+                        "owner" -> out.add(xef.createAttribute(paramName ?: "owner", nodeInstance.owner.name))
                         "instancehandle" -> out.add(
                             xef.createAttribute(paramName ?: "instancehandle", nodeInstance.owner.name)
                         )
@@ -670,7 +672,8 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
                     transaction,
                     if (handle < 0) Handle.invalid() else Handle(handle),
                     user
-                )) {
+                )
+            ) {
                 throw HttpResponseException(HttpServletResponse.SC_NOT_FOUND, "The given process does not exist")
             }
             transaction.commit()
@@ -737,7 +740,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     fun getProcessInstance(
         @RestParam(name = "handle", type = RestParamType.VAR) handle: Long,
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal?
-    ): SerializableData<ProcessInstance> = translateExceptions {
+    ): SerializableData<ProcessInstance<*>> = translateExceptions {
         processEngine.startTransaction().use { transaction ->
             return transaction.commitSerializable(
                 processEngine.getProcessInstance(
@@ -779,7 +782,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     fun cancelProcessInstance(
         @RestParam(name = "handle", type = RestParamType.VAR) handle: Long,
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal
-    ): ProcessInstance = translateExceptions {
+    ): ProcessInstance3 = translateExceptions {
         processEngine.startTransaction().use { transaction ->
             return transaction.commit(
                 processEngine.cancelInstance(transaction, if (handle < 0) Handle.invalid() else Handle(handle), user)
@@ -868,15 +871,15 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
         @RestParam(name = "payload", type = RestParamType.QUERY)
         payload: Node,
 
-        @WebParam(name="assignedUser", mode = Mode.IN)
-        @RestParam(name="assignedUser", type=RestParamType.POST)
+        @WebParam(name = "assignedUser", mode = Mode.IN)
+        @RestParam(name = "assignedUser", type = RestParamType.POST)
         assignedUserName: String,
 
         @RestParam(type = RestParamType.PRINCIPAL)
         @WebParam(name = "principal", mode = Mode.IN, header = true)
         user: Principal,
     ): NodeInstanceState = translateExceptions {
-        require(handle>=0L)
+        require(handle >= 0L)
         processEngine.startTransaction().use { transaction ->
             return transaction.commit(processEngine.takeTask(transaction, Handle(handle), assignedUserName, user))
         }
@@ -955,106 +958,110 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
     @Throws(FileNotFoundException::class)
     fun onMessageCompletion(
         future: Future<out DataSource>,
-        handle: Handle<SecureObject<ProcessNodeInstance<*>>>,
+        handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>,
         owner: Principal
-    ) = translateExceptions {
-        // XXX do this better
-        if (future.isCancelled) {
-            processEngine.startTransaction().use { transaction ->
-                processEngine.cancelledTask(transaction, handle, owner)
-                transaction.commit()
-            }
-        } else {
-            try {
-                val result = future.get()
-                processEngine.startTransaction().use { transaction ->
-                    val inst = processEngine.getNodeInstance(transaction, handle, SYSTEMPRINCIPAL)
-                        ?: throw HttpResponseException(
-                            404,
-                            "The process node with handle $handle does not exist or is not visible"
-                        )
-                    assert(inst.state === NodeInstanceState.Pending)
-                    if (inst.state === NodeInstanceState.Pending) {
-                        val processInstance = transaction.readableEngineData.instance(
-                            inst.hProcessInstance
-                        ).withPermission()
-
-                        processInstance.update(transaction.writableEngineData) {
-                            updateChild(inst) {
-                                state = NodeInstanceState.Sent
-                            }
-                        }
+    ) {
+        fun <C : ActivityInstanceContext, TR : ContextProcessTransaction<C>> impl(processEngine: ProcessEngine<TR, C>) {
+            translateExceptions {
+                // XXX do this better
+                if (future.isCancelled) {
+                    processEngine.startTransaction().use { transaction ->
+                        processEngine.cancelledTask(transaction, handle, owner)
+                        transaction.commit()
                     }
-                    transaction.commit()
-                }
-                try {
-                    val domResult = DomUtil.tryParseXml(result.inputStream) ?: throw HttpResponseException(
-                        HttpServletResponse.SC_BAD_REQUEST,
-                        "Content is not an XML document"
-                    )
-                    var rootNode: Element? = domResult.documentElement
-                    // If we are seeing a Soap Envelope, if there is an activity response in the header treat that as the root node.
-                    if (Envelope.NAMESPACE == rootNode!!.namespaceURI && Envelope.ELEMENTLOCALNAME == rootNode.localName) {
-
-                        val header = DomUtil.getFirstChild(
-                            rootNode, Envelope.NAMESPACE,
-                            org.w3.soapEnvelope.Header.ELEMENTLOCALNAME
-                        )
-                        if (header != null) {
-                            rootNode = DomUtil.getFirstChild(
-                                header, Constants.PROCESS_ENGINE_NS,
-                                ActivityResponse.ELEMENTLOCALNAME
-                            )
-                        }
-                    }
-                    if (rootNode != null) {
-                        // If we receive an ActivityResponse, treat that specially.
-                        if (Constants.PROCESS_ENGINE_NS == rootNode.namespaceURI && ActivityResponse.ELEMENTLOCALNAME == rootNode.localName) {
-                            val taskStateAttr = rootNode.getAttribute(ActivityResponse.ATTRTASKSTATE)
-                            try {
-                                processEngine.startTransaction().use { transaction ->
-                                    val nodeInstanceState = NodeInstanceState.valueOf(taskStateAttr)
-                                    processEngine.updateTaskState(transaction, handle, nodeInstanceState, owner)
-                                    transaction.commit()
-                                    return
-                                }
-                            } catch (e: NullPointerException) {
-                                e.printStackTrace()
-                                // ignore
-                            } catch (e: IllegalArgumentException) {
-                                processEngine.startTransaction().use { transaction ->
-                                    processEngine.errorTask(transaction, handle, e, owner)
-                                    transaction.commit()
-                                }
-                            }
-
-                        }
-                    } else {
+                } else {
+                    try {
+                        val result = future.get()
                         processEngine.startTransaction().use { transaction ->
-                            // XXX By default assume that we have finished the task
-                            processEngine.finishedTask(transaction, handle, result, owner)
+                            val inst = processEngine.getNodeInstance(transaction, handle, SYSTEMPRINCIPAL)
+                                ?: throw HttpResponseException(
+                                    404,
+                                    "The process node with handle $handle does not exist or is not visible"
+                                )
+                            assert(inst.state === NodeInstanceState.Pending)
+                            if (inst.state === NodeInstanceState.Pending) {
+                                val processInstance = transaction.readableEngineData.instance(inst.hProcessInstance).withPermission()
+
+                                processInstance.update(transaction.writableEngineData) {
+                                    updateChild(inst) {
+                                        state = NodeInstanceState.Sent
+                                    }
+                                }
+                            }
+                            transaction.commit()
+                        }
+                        try {
+                            val domResult = DomUtil.tryParseXml(result.inputStream) ?: throw HttpResponseException(
+                                HttpServletResponse.SC_BAD_REQUEST,
+                                "Content is not an XML document"
+                            )
+                            var rootNode: Element? = domResult.documentElement
+                            // If we are seeing a Soap Envelope, if there is an activity response in the header treat that as the root node.
+                            if (Envelope.NAMESPACE == rootNode!!.namespaceURI && Envelope.ELEMENTLOCALNAME == rootNode.localName) {
+
+                                val header = DomUtil.getFirstChild(
+                                    rootNode, Envelope.NAMESPACE,
+                                    org.w3.soapEnvelope.Header.ELEMENTLOCALNAME
+                                )
+                                if (header != null) {
+                                    rootNode = DomUtil.getFirstChild(
+                                        header, Constants.PROCESS_ENGINE_NS,
+                                        ActivityResponse.ELEMENTLOCALNAME
+                                    )
+                                }
+                            }
+                            if (rootNode != null) {
+                                // If we receive an ActivityResponse, treat that specially.
+                                if (Constants.PROCESS_ENGINE_NS == rootNode.namespaceURI && ActivityResponse.ELEMENTLOCALNAME == rootNode.localName) {
+                                    val taskStateAttr = rootNode.getAttribute(ActivityResponse.ATTRTASKSTATE)
+                                    try {
+                                        processEngine.startTransaction().use { transaction ->
+                                            val nodeInstanceState = NodeInstanceState.valueOf(taskStateAttr)
+                                            processEngine.updateTaskState(transaction, handle, nodeInstanceState, owner)
+                                            transaction.commit()
+                                            return
+                                        }
+                                    } catch (e: NullPointerException) {
+                                        e.printStackTrace()
+                                        // ignore
+                                    } catch (e: IllegalArgumentException) {
+                                        processEngine.startTransaction().use { transaction ->
+                                            processEngine.errorTask(transaction, handle, e, owner)
+                                            transaction.commit()
+                                        }
+                                    }
+
+                                }
+                            } else {
+                                processEngine.startTransaction().use { transaction ->
+                                    // XXX By default assume that we have finished the task
+                                    processEngine.finishedTask(transaction, handle, result, owner)
+                                    transaction.commit()
+                                }
+                            }
+
+                        } catch (e: NullPointerException) {
+                            // ignore
+                        } catch (e: IOException) {
+                            // It's not xml or has more than one xml element ignore that and fall back to handling unknown services
+                        }
+
+                    } catch (e: ExecutionException) {
+                        logger.log(Level.INFO, "Task $handle: Error in messaging", e.cause)
+                        processEngine.startTransaction().use { transaction ->
+                            processEngine.errorTask(transaction, handle, e.cause ?: e, owner)
+                            transaction.commit()
+                        }
+                    } catch (e: InterruptedException) {
+                        logger.log(Level.INFO, "Task $handle: Interrupted", e)
+                        processEngine.startTransaction().use { transaction ->
+                            processEngine.cancelledTask(transaction, handle, owner)
                             transaction.commit()
                         }
                     }
 
-                } catch (e: NullPointerException) {
-                    // ignore
-                } catch (e: IOException) {
-                    // It's not xml or has more than one xml element ignore that and fall back to handling unknown services
                 }
 
-            } catch (e: ExecutionException) {
-                logger.log(Level.INFO, "Task $handle: Error in messaging", e.cause)
-                processEngine.startTransaction().use { transaction ->
-                    processEngine.errorTask(transaction, handle, e.cause ?: e, owner)
-                    transaction.commit()
-                }
-            } catch (e: InterruptedException) {
-                logger.log(Level.INFO, "Task $handle: Interrupted", e)
-                processEngine.startTransaction().use { transaction ->
-                    processEngine.cancelledTask(transaction, handle, owner)
-                    transaction.commit()
-                }
             }
 
         }
@@ -1112,7 +1119,7 @@ open class ServletProcessEngine<TR : ProcessTransaction> : EndpointServlet(), Ge
 
 }
 
-private inline fun <TR: ProcessTransaction, R> TR.use(block: (TR) -> R): R {
+private inline fun <TR : ContextProcessTransaction<*>, R> TR.use(block: (TR) -> R): R {
     return (this as Closeable).use { block(this) }
 }
 

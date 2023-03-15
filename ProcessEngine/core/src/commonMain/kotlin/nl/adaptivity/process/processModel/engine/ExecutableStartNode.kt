@@ -62,7 +62,10 @@ class ExecutableStartNode(
 
     override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
-    fun createOrReuseInstance(processInstanceBuilder: ProcessInstance.Builder, entryNo: Int) =
+    fun <C : ActivityInstanceContext> createOrReuseInstance(
+        processInstanceBuilder: ProcessInstance.Builder<C>,
+        entryNo: Int
+    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*, C>, C> =
         processInstanceBuilder.getChildNodeInstance(this, entryNo)
             ?: DefaultProcessNodeInstance.BaseBuilder(
                 this, emptyList(),
@@ -71,15 +74,18 @@ class ExecutableStartNode(
                 entryNo
             )
 
-    override fun provideTask(engineData: ProcessEngineDataAccess,
-                             instanceBuilder: ProcessNodeInstance.Builder<*, *>) = true
+    override fun <C : ActivityInstanceContext> provideTask(
+        engineData: ProcessEngineDataAccess<C>,
+        instanceBuilder: ProcessNodeInstance.Builder<*, *, C>
+    ): Boolean = true
 
-    override fun takeTask(
-        activityContext: ActivityInstanceContext,
-        instance: ProcessNodeInstance.Builder<*, *>,
+    override fun <C : ActivityInstanceContext> takeTask(
+        activityContext: C,
+        instance: ProcessNodeInstance.Builder<*, *, C>,
         assignedUser: PrincipalCompat?
-    ) = true
+    ): Boolean = true
 
-    override fun startTask(instance: ProcessNodeInstance.Builder<*, *>) = true
+    override fun <C : ActivityInstanceContext> startTask(instance: ProcessNodeInstance.Builder<*, *, C>): Boolean =
+        true
 
 }

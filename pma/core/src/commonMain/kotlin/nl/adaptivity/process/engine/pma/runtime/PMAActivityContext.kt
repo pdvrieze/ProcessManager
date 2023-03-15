@@ -10,7 +10,7 @@ import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-abstract class PMAActivityContext<A : PMAActivityContext<A>>(private val processNode: IProcessNodeInstance) :
+abstract class PMAActivityContext<A : PMAActivityContext<A>>(private val processNode: IProcessNodeInstance<A>) :
     ActivityInstanceContext {
     abstract override val processContext: PMAProcessInstanceContext<A>
 
@@ -20,7 +20,7 @@ abstract class PMAActivityContext<A : PMAActivityContext<A>>(private val process
 
     override val state: NodeInstanceState get() = processNode.state
 
-    override val nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>
+    override val nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*, *>>>
         get() = processNode.handle
 
     override val assignedUser: PrincipalCompat?

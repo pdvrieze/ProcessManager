@@ -45,14 +45,14 @@ inline fun <T: ProcessNode> ProcessModel<T>.requireNode(id:String):T = requireNo
  * @return The node
  * @throws IllegalStateException If it doesn't
  */
-fun <T: ProcessTransaction, N: ProcessNodeInstance<*>> N?.mustExist(handle: Handle<SecureObject<ProcessNodeInstance<*>>>): N = this ?: throw IllegalStateException("Node instance missing: $handle")
+fun <T : ContextProcessTransaction<*>, N : ProcessNodeInstance<*, *>> N?.mustExist(handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>): N = this ?: throw IllegalStateException("Node instance missing: $handle")
 
 /**
  * Verify that the node exists. Non-existance could be user errror.
  * @return The node
  * @throws HandleNotFoundException If it doesn't.
  */
-fun <T: ProcessTransaction, N: ProcessNodeInstance<*>> N?.shouldExist(handle: Handle<SecureObject<ProcessNodeInstance<*>>>): N = this ?: throw HandleNotFoundException("Node instance missing: $handle")
+fun <T : ContextProcessTransaction<*>, N : ProcessNodeInstance<*, *>> N?.shouldExist(handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>): N = this ?: throw HandleNotFoundException("Node instance missing: $handle")
 
 /**
  * Verify that the object instance exists. If it doesn't exist this is an internal error
@@ -73,14 +73,14 @@ fun <N:SecureObject<V>, V:Any> N?.shouldExist(handle: Handle<SecureObject<V>>): 
  * @return The node
  * @throws IllegalStateException If it doesn't
  */
-fun <T: ProcessTransaction> ProcessInstance?.mustExist(handle: Handle<SecureObject<ProcessInstance>>): ProcessInstance = this ?: throw IllegalStateException("Node instance missing: $handle")
+fun <T : ContextProcessTransaction<*>, C : ActivityInstanceContext> ProcessInstance<C>?.mustExist(handle: Handle<SecureObject<ProcessInstance<*>>>): ProcessInstance<C> = this ?: throw IllegalStateException("Node instance missing: $handle")
 
 /**
  * Verify that the node exists. Non-existance could be user errror.
  * @return The node
  * @throws HandleNotFoundException If it doesn't.
  */
-fun <T: ProcessTransaction> ProcessInstance?.shouldExist(handle: Handle<SecureObject<ProcessInstance>>): ProcessInstance = this ?: throw HandleNotFoundException("Node instance missing: $handle")
+fun <T : ContextProcessTransaction<*>, C : ActivityInstanceContext> ProcessInstance<C>?.shouldExist(handle: Handle<SecureObject<ProcessInstance<*>>>): ProcessInstance<C> = this ?: throw HandleNotFoundException("Node instance missing: $handle")
 
 /**
  * Verify that the node instance exists. If it doesn't exist this is an internal error

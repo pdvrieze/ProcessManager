@@ -21,7 +21,7 @@ import nl.adaptivity.process.engine.pma.dynamic.DynamicPMAActivityContext
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-class LoanActivityContext(override val processContext: LoanProcessContext, processNode: IProcessNodeInstance) :
+class LoanActivityContext(override val processContext: LoanProcessContext, processNode: IProcessNodeInstance<LoanActivityContext>) :
     DynamicPMAActivityContext<LoanActivityContext>(processNode) {
 
     override fun canBeAccessedBy(principal: PrincipalCompat?): Boolean {

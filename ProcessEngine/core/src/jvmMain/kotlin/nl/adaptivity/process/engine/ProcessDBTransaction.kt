@@ -21,23 +21,28 @@ import net.devrieze.util.Handle
 import net.devrieze.util.db.MonadicDBTransaction
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.db.ProcessEngineDB
+import nl.adaptivity.util.multiplatform.Runnable
 
 /**
  * A process transaction that uses the database to store the data.
  */
-class ProcessDBTransaction(
+class ProcessDBTransaction<C: ActivityInstanceContext>(
     dbTransactionContext: DBTransactionContext<ProcessEngineDB>,
-    private val engineData: IProcessEngineData<ProcessDBTransaction>
-) : MonadicDBTransaction<ProcessEngineDB>(dbTransactionContext), ProcessTransaction {
+    private val engineData: IProcessEngineData<ProcessDBTransaction<C>, C>
+) : MonadicDBTransaction<ProcessEngineDB>(dbTransactionContext), ContextProcessTransaction<C> {
     private val pendingProcessInstances =
-        mutableMapOf<Handle<SecureObject<ProcessInstance>>, ProcessInstance.ExtBuilder>()
+        mutableMapOf<Handle<SecureObject<ProcessInstance<*>>>, ProcessInstance.ExtBuilder<C>>()
 
-    fun pendingProcessInstance(pihandle: Handle<SecureObject<ProcessInstance>>): ProcessInstance.ExtBuilder? {
+    fun pendingProcessInstance(pihandle: Handle<SecureObject<ProcessInstance<*>>>): ProcessInstance.ExtBuilder<C>? {
         return pendingProcessInstances[pihandle]
     }
 
-    override val readableEngineData: ProcessEngineDataAccess
+    override fun addRollbackHandler(runnable: Runnable) { // Compilation error otherwise
+        super<MonadicDBTransaction>.addRollbackHandler(runnable)
+    }
+
+    override val readableEngineData: ProcessEngineDataAccess<C>
         get() = engineData.createReadDelegate(this)
-    override val writableEngineData: MutableProcessEngineDataAccess
+    override val writableEngineData: MutableProcessEngineDataAccess<C>
         get() = engineData.createWriteDelegate(this)
 }

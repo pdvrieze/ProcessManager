@@ -64,10 +64,10 @@ class ExecutableMessageActivity(
     /**
      * Determine whether the process can start.
      */
-    override fun evalCondition(
-        nodeInstanceSource: IProcessInstance,
-        predecessor: IProcessNodeInstance,
-        nodeInstance: IProcessNodeInstance
+    override fun <C : ActivityInstanceContext> evalCondition(
+        nodeInstanceSource: IProcessInstance<C>,
+        predecessor: IProcessNodeInstance<C>,
+        nodeInstance: IProcessNodeInstance<C>
     ): ConditionResult {
         return _condition.evalNodeStartCondition(nodeInstanceSource, predecessor, nodeInstance)
     }
@@ -76,20 +76,20 @@ class ExecutableMessageActivity(
         return _condition?.isOtherwise == true
     }
 
-    override fun createOrReuseInstance(
-        data: MutableProcessEngineDataAccess,
-        processInstanceBuilder: ProcessInstance.Builder,
-        predecessor: IProcessNodeInstance,
+    override fun <C : ActivityInstanceContext> createOrReuseInstance(
+        data: MutableProcessEngineDataAccess<C>,
+        processInstanceBuilder: ProcessInstance.Builder<C>,
+        predecessor: IProcessNodeInstance<C>,
         entryNo: Int,
         allowFinalInstance: Boolean
-    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
+    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*, C>, C> {
         return super.createOrReuseInstance(data, processInstanceBuilder, predecessor, entryNo, allowFinalInstance)
     }
 
-    override fun provideTask(
-        engineData: ProcessEngineDataAccess,
-        instanceBuilder: ProcessNodeInstance.Builder<*, *>
-    ) = false
+    override fun <C : ActivityInstanceContext> provideTask(
+        engineData: ProcessEngineDataAccess<C>,
+        instanceBuilder: ProcessNodeInstance.Builder<*, *, C>
+    ): Boolean = false
 
     /**
      * Take the task. Tasks are either process aware or finished when a reply is
@@ -97,9 +97,9 @@ class ExecutableMessageActivity(
      *
      * @return `false`
      */
-    override fun takeTask(
-        activityContext: ActivityInstanceContext,
-        instance: ProcessNodeInstance.Builder<*, *>,
+    override fun <C : ActivityInstanceContext> takeTask(
+        activityContext: C,
+        instance: ProcessNodeInstance.Builder<*, *, C>,
         assignedUser: PrincipalCompat?
     ): Boolean {
         if (assignedUser==null) throw ProcessException("Message activities must have a user assigned for 'taking' them")
@@ -117,7 +117,7 @@ class ExecutableMessageActivity(
      *
      * @return `false`
      */
-    override fun startTask(instance: ProcessNodeInstance.Builder<*, *>): Boolean = false
+    override fun <C : ActivityInstanceContext> startTask(instance: ProcessNodeInstance.Builder<*, *, C>): Boolean = false
 
     @Throws(XmlException::class)
     fun serializeCondition(out: XmlWriter) {

@@ -51,7 +51,7 @@ interface IMessageService<MSG_T, in C: ActivityInstanceContext> {
    * @return `true` or lack of failure, `false` on failure.
    *
    */
-  fun sendMessage(engineData: ProcessEngineDataAccess, protoMessage: MSG_T, activityInstanceContext: C): MessageSendingResult
+  fun sendMessage(engineData: ProcessEngineDataAccess<@UnsafeVariance C>, protoMessage: MSG_T, activityInstanceContext: C): MessageSendingResult
 
   /**
    * Get the endpoint belonging to the messenger. (Where can replies go)

@@ -185,7 +185,7 @@ class TestContext(private val config: TraceTest.ConfigBase) {
         }
     }
 
-    var hInstance: Handle<SecureObject<ProcessInstance>> =
+    var hInstance: Handle<SecureObject<ProcessInstance<*>>> =
         Handle.invalid()
         get() {
             if (!field.isValid) {
@@ -201,13 +201,13 @@ class TestContext(private val config: TraceTest.ConfigBase) {
         return getProcessInstance().toDebugString(transaction)
     }
 
-    fun startProcess(): Handle<SecureObject<ProcessInstance>> {
+    fun startProcess(): Handle<SecureObject<ProcessInstance<*>>> {
         val name = "${model.name} instance"
         hInstance = engineData.engine.startProcess(transaction, principal, hmodel, name, instanceUuid, null)
         return hInstance
     }
 
-    fun getProcessInstance(instanceHandle: Handle<SecureObject<ProcessInstance>> = hInstance): ProcessInstance {
+    fun getProcessInstance(instanceHandle: Handle<SecureObject<ProcessInstance<*>>> = hInstance): ProcessInstance3 {
         return transaction.readableEngineData.instance(instanceHandle).withPermission()
     }
 
@@ -215,13 +215,13 @@ class TestContext(private val config: TraceTest.ConfigBase) {
         return getNodeInstance(transaction, getProcessInstance())
     }
 
-    fun getNodeInstance(handle: Handle<SecureObject<ProcessNodeInstance<*>>>): ProcessNodeInstance<*> {
+    fun getNodeInstance(handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>): ProcessNodeInstance<*> {
         return transaction.readableEngineData.nodeInstance(handle).withPermission()
     }
 
     inline fun updateNodeInstance(
         traceElement: TraceElement,
-        instanceHandle: Handle<SecureObject<ProcessInstance>> = hInstance,
+        instanceHandle: Handle<SecureObject<ProcessInstance<*>>> = hInstance,
         crossinline action: ProcessNodeInstance.Builder<out ExecutableProcessNode, *>.() -> Unit
     ) {
 
@@ -234,7 +234,7 @@ class TestContext(private val config: TraceTest.ConfigBase) {
     }
 
     fun updateNodeInstance(
-        nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>,
+        nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*, *>>>,
         action: ProcessNodeInstance.Builder<out ExecutableProcessNode, *>.() -> Unit
     ) {
         transaction.writableEngineData.updateNodeInstance(nodeInstanceHandle, action)
@@ -349,9 +349,9 @@ class TestContext(private val config: TraceTest.ConfigBase) {
     fun runTrace(
         trace: Trace,
         lastElement: Int = -1,
-        instanceHandle: Handle<SecureObject<ProcessInstance>> = hInstance
-    ): Handle<SecureObject<ProcessNodeInstance<*>>> {
-        var lastInstance: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid()
+        instanceHandle: Handle<SecureObject<ProcessInstance<*>>> = hInstance
+    ): Handle<SecureObject<ProcessNodeInstance<*, *>>> {
+        var lastInstance: Handle<SecureObject<ProcessNodeInstance<*, *>>> = Handle.invalid()
         for (idx in 0 until (if (lastElement < 0) trace.size else lastElement)) {
             val traceElement = trace[idx]
             when (model.findNode(traceElement)) {
@@ -770,8 +770,8 @@ fun createInvalidTraceTest(
             var success = false
             try {
                 val instanceSupport = object : InstanceSupport {
-                    override val transaction: StubProcessTransaction get() = this@addTest.transaction
-                    override val engine: ProcessEngine<StubProcessTransaction, *>
+                    override val transaction: StubProcessTransaction<C> get() = this@addTest.transaction
+                    override val engine: ProcessEngine<StubProcessTransaction<C>, *>
                         get() = engineData.engine
 
                 }
@@ -833,9 +833,9 @@ class FuzzException(override val message: String?, cause: Throwable?, val trace:
         )
     }
 
-fun IProcessInstance.allDescendentNodeInstances(engineData: ProcessEngineDataAccess): List<IProcessNodeInstance> {
-    val result = mutableListOf<IProcessNodeInstance>()
-    val procQueue = ArrayDeque<IProcessInstance>().also { it.add(this) }
+fun <C: ActivityInstanceContext> IProcessInstance<C>.allDescendentNodeInstances(engineData: ProcessEngineDataAccess<C>): List<IProcessNodeInstance<C>> {
+    val result = mutableListOf<IProcessNodeInstance<C>>()
+    val procQueue = ArrayDeque<IProcessInstance<C>>().also { it.add(this) }
     while (procQueue.isNotEmpty()) {
         val inst = procQueue.removeFirst()
         for (nodeInst in inst.allChildNodeInstances()) {

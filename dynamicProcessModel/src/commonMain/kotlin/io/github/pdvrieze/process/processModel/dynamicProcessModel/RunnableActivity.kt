@@ -56,7 +56,7 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
     internal val outputSerializer: SerializationStrategy<O>? = builder.outputSerializer
     override val condition: ExecutableCondition? = builder.condition?.toExecutableCondition()
     override val accessRestrictions: RunnableAccessRestriction? = builder.accessRestrictions
-    val onActivityProvided: OnActivityProvided<I, O> = builder.onActivityProvided
+    val onActivityProvided: OnActivityProvided<I, O, C> = builder.onActivityProvided
 
     override val ownerModel: ExecutableModelCommon
         get() = super.ownerModel as ExecutableModelCommon
@@ -75,22 +75,22 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
         return visitor.visitGenericActivity(this)
     }
 
-    override fun provideTask(
-        engineData: ProcessEngineDataAccess,
-        instanceBuilder: ProcessNodeInstance.Builder<*, *>
+    override fun <C : ActivityInstanceContext> provideTask(
+        engineData: ProcessEngineDataAccess<C>,
+        instanceBuilder: ProcessNodeInstance.Builder<*, *, C>
     ): Boolean {
 
 
         return true
     }
 
-    override fun createOrReuseInstance(
-        data: MutableProcessEngineDataAccess,
-        processInstanceBuilder: ProcessInstance.Builder,
-        predecessor: IProcessNodeInstance,
+    override fun <C : ActivityInstanceContext> createOrReuseInstance(
+        data: MutableProcessEngineDataAccess<C>,
+        processInstanceBuilder: ProcessInstance.Builder<C>,
+        predecessor: IProcessNodeInstance<C>,
         entryNo: Int,
         allowFinalInstance: Boolean
-    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, out ProcessNodeInstance<*>> {
+    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*, C>, C> {
         processInstanceBuilder.getChildNodeInstance(this, entryNo)?.let { return it }
         if (!isMultiInstance && entryNo > 1) {
             processInstanceBuilder.allChildNodeInstances { it.node == this && it.entryNo != entryNo }.forEach {
@@ -100,15 +100,15 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
             }
         }
         return RunnableActivityInstance.BaseBuilder(
-            this as RunnableActivity<I, O, ActivityInstanceContext>, predecessor.handle,
+            this as RunnableActivity<I, O, C>, predecessor.handle,
             processInstanceBuilder,
             processInstanceBuilder.owner, entryNo
         )
     }
 
-    override fun takeTask(
-        activityContext: ActivityInstanceContext,
-        instance: ProcessNodeInstance.Builder<*, *>,
+    override fun <C : ActivityInstanceContext> takeTask(
+        activityContext: C,
+        instance: ProcessNodeInstance.Builder<*, *, C>,
         assignedUser: PrincipalCompat?
     ): Boolean {
 //        if (assignedUser == null) throw ProcessException("Message activities must have a user assigned for 'taking' them")
@@ -123,10 +123,10 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
         return condition?.isOtherwise == true
     }
 
-    override fun evalCondition(
-        nodeInstanceSource: IProcessInstance,
-        predecessor: IProcessNodeInstance,
-        nodeInstance: IProcessNodeInstance
+    override fun <C : ActivityInstanceContext> evalCondition(
+        nodeInstanceSource: IProcessInstance<C>,
+        predecessor: IProcessNodeInstance<C>,
+        nodeInstance: IProcessNodeInstance<C>
     ): ConditionResult {
         return condition.evalNodeStartCondition(nodeInstanceSource, predecessor, nodeInstance)
     }
@@ -145,10 +145,11 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
         return inputCombiner(mappedData)
     }
 
-    fun interface OnActivityProvided<out I: Any, in O: Any>: (MutableProcessEngineDataAccess, RunnableActivityInstance.Builder<@UnsafeVariance I, @UnsafeVariance O>) -> Boolean {
+    fun interface OnActivityProvided<out I: Any, in O: Any, in C: ActivityInstanceContext>:
+            (MutableProcessEngineDataAccess<@UnsafeVariance C>, RunnableActivityInstance.Builder<@UnsafeVariance I, @UnsafeVariance O, @UnsafeVariance C>) -> Boolean {
         companion object {
 
-            val DEFAULT = OnActivityProvided<Nothing, Any> { engineData, instance ->
+            val DEFAULT = OnActivityProvided<Nothing, Any, ActivityInstanceContext> { engineData, instance ->
 /*
                 engineData.updateNodeInstance(instance.handle) {
                     takeTask(engineData)
@@ -167,7 +168,7 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
 
         var accessRestrictions: RunnableAccessRestriction? = null
 
-        var onActivityProvided: OnActivityProvided<I, O> = OnActivityProvided.DEFAULT
+        var onActivityProvided: OnActivityProvided<I, O, C> = OnActivityProvided.DEFAULT
 
         override val defines: MutableCollection<IXmlDefineType>
             get() = TypecheckingCollection(DefineType::class, super.defines)

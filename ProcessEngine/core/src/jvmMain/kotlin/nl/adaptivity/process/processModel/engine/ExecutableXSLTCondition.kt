@@ -17,6 +17,7 @@ package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.Serializable
 import nl.adaptivity.process.ProcessConsts.Engine
+import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.IProcessInstance
 import nl.adaptivity.process.engine.impl.dom.toDocumentFragment
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
@@ -54,7 +55,7 @@ actual class ExecutableXSLTCondition actual constructor(condition: String, overr
      * @return `true` if the condition holds, `false` if not
      */
     @OptIn(XmlUtilInternal::class)
-    actual override fun eval(nodeInstanceSource: IProcessInstance, nodeInstance: IProcessNodeInstance): ConditionResult {
+    actual override fun eval(nodeInstanceSource: IProcessInstance<*>, nodeInstance: IProcessNodeInstance<*>): ConditionResult {
         if (condition.isBlank()) return ConditionResult.TRUE
 
         val documentBuilder =
@@ -84,11 +85,25 @@ actual class ExecutableXSLTCondition actual constructor(condition: String, overr
 
 private fun Boolean.toResult(resolver: ConditionResolver) = ConditionResult(this)
 
-private class ConditionResolver(val nodeSource: IProcessInstance, val nodeInstance: IProcessNodeInstance, val document: Document) :
+private class ConditionResolver(nodeSource: IProcessInstance<*>, nodeInstance: IProcessNodeInstance<*>, val document: Document) :
     XPathFunctionResolver, XPathVariableResolver {
-    override fun resolveVariable(variableName: QName): Any? {
-        // Actually resolve variables
-        return null
+
+
+    @Suppress("UNCHECKED_CAST")
+    val aNodeInstance: IProcessNodeInstance<ActivityInstanceContext> = nodeInstance as IProcessNodeInstance<ActivityInstanceContext>
+
+    @Suppress("UNCHECKED_CAST")
+    val aNodeSource: IProcessInstance<ActivityInstanceContext> = nodeSource as IProcessInstance<ActivityInstanceContext>
+
+    private val defaultNodeFunction: XPathFunction = object : XPathFunction {
+        override fun evaluate(args: List<*>): Any? {
+            val pred = aNodeInstance.resolvePredecessor(aNodeSource, args.single().toString())
+            return when {
+                pred == null -> null
+                pred.results.size == 1 -> pred.results.single().content.toDocumentFragment()
+                else -> pred.results.firstOrNull { it.name == "result" }?.content?.toDocumentFragment()
+            }
+        }
     }
 
     override fun resolveFunction(functionName: QName, arity: Int): XPathFunction? {
@@ -102,20 +117,14 @@ private class ConditionResolver(val nodeSource: IProcessInstance, val nodeInstan
         return null
     }
 
-    private val defaultNodeFunction: XPathFunction = object : XPathFunction {
-        override fun evaluate(args: List<*>): Any? {
-            val pred = nodeInstance.resolvePredecessor(nodeSource, args.single().toString())
-            return when {
-                pred == null -> null
-                pred.results.size==1 -> pred.results.single().content.toDocumentFragment()
-                else -> pred.results.firstOrNull { it.name=="result" }?.content?.toDocumentFragment()
-            }
-        }
+    override fun resolveVariable(variableName: QName): Any? {
+        // Actually resolve variables
+        return null
     }
 
     private val resultNodeFunction: XPathFunction = object : XPathFunction {
         override fun evaluate(args: List<*>): Any? {
-            val pred = nodeInstance.resolvePredecessor(nodeSource, args[0].toString())
+            val pred = aNodeInstance.resolvePredecessor(aNodeSource, args[0].toString())
             val resultName = args[1].toString()
             return when {
                 pred == null -> null

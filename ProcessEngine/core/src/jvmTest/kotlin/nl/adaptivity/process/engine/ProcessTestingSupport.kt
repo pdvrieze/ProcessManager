@@ -36,7 +36,7 @@ import java.io.PrintStream
 @DslMarker
 annotation class ProcessTestingDslMarker
 
-typealias PNIHandle = Handle<SecureObject<ProcessNodeInstance<*>>>
+typealias PNIHandle = Handle<SecureObject<ProcessNodeInstance<*, *>>>
 
 fun ExecutableProcessModel.findNode(nodeIdentified: Identified): ExecutableProcessNode? {
     val nodeId = nodeIdentified.id
@@ -46,7 +46,7 @@ fun ExecutableProcessModel.findNode(nodeIdentified: Identified): ExecutableProce
 
 @Throws(ProcessTestingException::class)
 fun InstanceSupport.testTraceExceptionThrowing(
-    hProcessInstance: Handle<SecureObject<ProcessInstance>>,
+    hProcessInstance: Handle<SecureObject<ProcessInstance<*>>>,
     trace: Trace
 ) {
     try {
@@ -158,6 +158,6 @@ fun kfail(message: String): Nothing {
 internal fun Boolean.toXPath() = if (this) "true()" else "false()"
 internal fun Boolean.toCondition() = if (this) ExecutableCondition.TRUE else ExecutableCondition.FALSE
 
-operator fun ProcessTransaction.get(handle: Handle<SecureObject<ProcessInstance>>): ProcessInstance {
+operator fun <C : ActivityInstanceContext> ContextProcessTransaction<C>.get(handle: Handle<SecureObject<ProcessInstance<*>>>): ProcessInstance<C> {
     return this.readableEngineData.instance(handle).withPermission()
 }

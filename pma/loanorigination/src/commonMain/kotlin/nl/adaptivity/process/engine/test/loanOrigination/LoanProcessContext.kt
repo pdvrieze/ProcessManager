@@ -20,7 +20,10 @@ import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
-import nl.adaptivity.process.engine.pma.*
+import nl.adaptivity.process.engine.pma.AuthService
+import nl.adaptivity.process.engine.pma.Browser
+import nl.adaptivity.process.engine.pma.EngineService
+import nl.adaptivity.process.engine.pma.GeneralClientService
 import nl.adaptivity.process.engine.pma.dynamic.DynamicPMAProcessInstanceContext
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
@@ -48,9 +51,9 @@ interface LoanProcessContext : DynamicPMAProcessInstanceContext<LoanActivityCont
 
 
 class LoanProcessContextImpl(
-    protected val engineData: ProcessEngineDataAccess,
+    protected val engineData: ProcessEngineDataAccess<LoanActivityContext>,
     override val contextFactory: LoanContextFactory,
-    override val processInstanceHandle: Handle<SecureObject<ProcessInstance>>
+    override val processInstanceHandle: Handle<SecureObject<ProcessInstance<*>>>
 ) : LoanProcessContext {
 
     override val customerData: CustomerData get() = contextFactory.customerData
@@ -71,7 +74,7 @@ class LoanProcessContextImpl(
 
     override val log: Logger get() = contextFactory.log
 
-    override fun instancesForName(name: Identified): List<IProcessNodeInstance> {
+    override fun instancesForName(name: Identified): List<IProcessNodeInstance<LoanActivityContext>> {
         return engineData.instance(processInstanceHandle).withPermission().allChildNodeInstances()
             .filter { it.node.id == name.id }
             .toList()

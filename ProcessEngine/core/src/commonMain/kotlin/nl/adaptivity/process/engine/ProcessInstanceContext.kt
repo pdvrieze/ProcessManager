@@ -29,41 +29,41 @@ import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 interface ProcessInstanceContext {
-    val processInstanceHandle : Handle<SecureObject<ProcessInstance>>
-    fun instancesForName(name: Identified): List<IProcessNodeInstance>
+    val processInstanceHandle : Handle<SecureObject<ProcessInstance<*>>>
+    fun instancesForName(name: Identified): List<IProcessNodeInstance<*>>
 }
 
 interface ActivityInstanceContext {
     val processContext: ProcessInstanceContext
     val node: ProcessNode
     val state: NodeInstanceState
-    val nodeInstanceHandle : Handle<SecureObject<ProcessNodeInstance<*>>>
+    val nodeInstanceHandle : Handle<SecureObject<ProcessNodeInstance<*, *>>>
     val owner: PrincipalCompat
     val assignedUser: PrincipalCompat?
 
     fun canBeAccessedBy(principal: PrincipalCompat?): Boolean
 }
 
-interface ProcessContextFactory<out A : ActivityInstanceContext> {
+interface ProcessContextFactory<C : ActivityInstanceContext> {
 
     fun newActivityInstanceContext(
-        engineDataAccess: ProcessEngineDataAccess,
-        processNodeInstance: IProcessNodeInstance
-    ): A
+        engineDataAccess: ProcessEngineDataAccess<C>,
+        processNodeInstance: IProcessNodeInstance<C>
+    ): C
 
     /**
      * Called to inform the factory that the activity is no longer active: completed, failed, cancelled etc.
      * This means any resources can be released.
      */
-    fun onActivityTermination(engineDataAccess: ProcessEngineDataAccess, processNodeInstance: IProcessNodeInstance) {}
+    fun onActivityTermination(engineDataAccess: ProcessEngineDataAccess<C>, processNodeInstance: IProcessNodeInstance<C>) {}
 
     /**
      * Called to inform the factory that the process is no longer active: completed, failed, cancelled etc.
      * This means any resources can be released.
      */
     fun onProcessFinished(
-        engineDataAccess: ProcessEngineDataAccess,
-        processInstance: Handle<SecureObject<ProcessInstance>>
+        engineDataAccess: ProcessEngineDataAccess<C>,
+        processInstance: Handle<SecureObject<ProcessInstance<*>>>
     ) {
     }
 
@@ -71,8 +71,8 @@ interface ProcessContextFactory<out A : ActivityInstanceContext> {
 
     companion object DEFAULT : ProcessContextFactory<ActivityInstanceContext> {
         override fun newActivityInstanceContext(
-            engineDataAccess: ProcessEngineDataAccess,
-            processNodeInstance: IProcessNodeInstance
+            engineDataAccess: ProcessEngineDataAccess<ActivityInstanceContext>,
+            processNodeInstance: IProcessNodeInstance<ActivityInstanceContext>
         ): ActivityInstanceContext {
             val processContext:ProcessInstanceContext = SimpleProcessContext(engineDataAccess.instance(processNodeInstance.hProcessInstance).withPermission())
             return SimpleActivityContext(processNodeInstance, processContext)
@@ -81,25 +81,25 @@ interface ProcessContextFactory<out A : ActivityInstanceContext> {
         override fun getPrincipal(userName: String): PrincipalCompat = SimplePrincipal(userName)
     }
 
-    private class SimpleProcessContext(
-        private val processInstance: IProcessInstance
+    private class SimpleProcessContext<C: ActivityInstanceContext>(
+        private val processInstance: IProcessInstance<C>
     ) : ProcessInstanceContext {
-        override val processInstanceHandle: Handle<SecureObject<ProcessInstance>>
+        override val processInstanceHandle: Handle<SecureObject<ProcessInstance<*>>>
             get() = processInstance.handle
 
-        override fun instancesForName(name: Identified): List<IProcessNodeInstance> {
+        override fun instancesForName(name: Identified): List<IProcessNodeInstance<C>> {
             val id = name.id
             return processInstance.allChildNodeInstances().filter { it.node.id == id }.toList()
         }
     }
 
     private class SimpleActivityContext(
-        private val nodeInstance: IProcessNodeInstance,
+        private val nodeInstance: IProcessNodeInstance<out ActivityInstanceContext>,
         override val processContext: ProcessInstanceContext
     ) : ActivityInstanceContext {
         override val node: ExecutableActivity get() = nodeInstance.node as ExecutableActivity
         override val state: NodeInstanceState get() = nodeInstance.state
-        override val nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*>>>
+        override val nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*, *>>>
             get() = nodeInstance.handle
 
         override val owner: PrincipalCompat

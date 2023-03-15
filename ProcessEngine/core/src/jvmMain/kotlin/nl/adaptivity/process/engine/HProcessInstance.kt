@@ -19,7 +19,7 @@ package nl.adaptivity.process.engine
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 
-typealias HProcessInstance = Handle<SecureObject<ProcessInstance>>
+typealias HProcessInstance = Handle<SecureObject<ProcessInstance<*>>>
 //@Serializable
 //@XmlSerialName(HProcessInstance.ELEMENTLOCALNAME, Engine.NAMESPACE, Engine.NSPREFIX)
 //class HProcessInstance : XmlHandle<@UseContextualSerialization SecureObject<@UseContextualSerialization ProcessInstance>> {

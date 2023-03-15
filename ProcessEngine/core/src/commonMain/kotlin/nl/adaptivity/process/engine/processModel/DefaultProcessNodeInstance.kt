@@ -34,7 +34,7 @@ import nl.adaptivity.xmlutil.XmlReader
 /**
  * Class to represent the instanciation of a node. Subclasses may add behaviour.
  */
-class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstance> {
+class DefaultProcessNodeInstance<C: ActivityInstanceContext> : ProcessNodeInstance<DefaultProcessNodeInstance<C>, C> {
 
     /**
      * @param node The node that this is an instance of.
@@ -50,13 +50,13 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
      */
     constructor(
         node: ExecutableProcessNode,
-        predecessors: Collection<Handle<SecureObject<ProcessNodeInstance<*>>>>,
-        processInstanceBuilder: ProcessInstance.Builder,
-        hProcessInstance: Handle<SecureObject<ProcessInstance>>,
+        predecessors: Collection<Handle<SecureObject<ProcessNodeInstance<*, C>>>>,
+        processInstanceBuilder: ProcessInstance.Builder<C>,
+        hProcessInstance: Handle<SecureObject<ProcessInstance<C>>>,
         owner: PrincipalCompat,
         entryNo: Int,
         assignedUser: PrincipalCompat?,
-        handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
+        handle: Handle<SecureObject<ProcessNodeInstance<*, C>>> = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending,
         results: Iterable<ProcessData> = emptyList(),
         failureCause: Throwable? = null
@@ -77,8 +77,8 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
 
     constructor(
         node: ExecutableProcessNode,
-        predecessor: Handle<SecureObject<ProcessNodeInstance<*>>>,
-        processInstance: ProcessInstance,
+        predecessor: Handle<SecureObject<ProcessNodeInstance<*, C>>>,
+        processInstance: ProcessInstance<C>,
         entryNo: Int,
         assignedUser: PrincipalCompat?
     ) : this(
@@ -91,7 +91,7 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
         assignedUser = assignedUser
     )
 
-    constructor(builder: Builder) : super(builder) {
+    constructor(builder: Builder<C>) : super(builder) {
         assignedUser = builder.assignedUser
     }
 
@@ -99,7 +99,7 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
 
     override fun withPermission() = this
 
-    override fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder<out ExecutableProcessNode, DefaultProcessNodeInstance> {
+    override fun builder(processInstanceBuilder: ProcessInstance.Builder<C>): ExtBuilder<out ExecutableProcessNode, DefaultProcessNodeInstance<C>, C> {
         return ExtBuilderImpl(this, processInstanceBuilder)
     }
 
@@ -107,7 +107,7 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
         if (this === other) return true
         if (other?.getClass() != getClass()) return false
 
-        other as DefaultProcessNodeInstance
+        other as DefaultProcessNodeInstance<*>
 
         if (hProcessInstance != other.hProcessInstance) return false
         if (state != other.state) return false
@@ -133,12 +133,12 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
         return result
     }
 
-    interface Builder :
-        ProcessNodeInstance.Builder<ExecutableProcessNode, DefaultProcessNodeInstance> {
+    interface Builder<C: ActivityInstanceContext>:
+        ProcessNodeInstance.Builder<ExecutableProcessNode, DefaultProcessNodeInstance<C>, C> {
 
         override var assignedUser: PrincipalCompat?
 
-        override fun doProvideTask(engineData: MutableProcessEngineDataAccess): Boolean {
+        override fun doProvideTask(engineData: MutableProcessEngineDataAccess<C>): Boolean {
 
             if (!handle.isValid) store(engineData)
             assert(handle.isValid)
@@ -146,7 +146,7 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
             val node =
                 this.node // Create a local copy to prevent races - and shut up Kotlin about the possibilities as it should be immutable
 
-            fun <MSG_T, C:ActivityInstanceContext> impl(messageService: IMessageService<MSG_T, C>): Boolean {
+            fun <MSG_T> impl(messageService: IMessageService<MSG_T, C>): Boolean {
 
                 val shouldProgress = tryCreateTask { node.provideTask(engineData, this) }
 
@@ -154,7 +154,7 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
                     val preparedMessage = messageService.createMessage(node.message ?: XmlMessage())
                     val sendingResult = tryCreateTask {
                         val aic = createActivityContext(engineData)
-                        messageService.sendMessage(engineData, preparedMessage, aic as C)// TODO remove cast
+                        messageService.sendMessage(engineData, preparedMessage, aic)// TODO remove cast
                     }
                     when (sendingResult) {
                         MessageSendingResult.SENT -> state = NodeInstanceState.Sent
@@ -176,34 +176,37 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
             return n !is MessageActivity || n.accessRestrictions==null
         }
 
-        override fun doTakeTask(engineData: MutableProcessEngineDataAccess, assignedUser: PrincipalCompat?): Boolean {
+        override fun doTakeTask(
+            engineData: MutableProcessEngineDataAccess<C>,
+            assignedUser: PrincipalCompat?
+        ): Boolean {
             return node.takeTask(createActivityContext(engineData), this, assignedUser)
         }
 
-        override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {
+        override fun doStartTask(engineData: MutableProcessEngineDataAccess<C>): Boolean {
             return node.startTask(this)
         }
 
 
     }
 
-    private class ExtBuilderImpl(base: DefaultProcessNodeInstance, processInstanceBuilder: ProcessInstance.Builder) :
-        ExtBuilder<ExecutableProcessNode, DefaultProcessNodeInstance>(base, processInstanceBuilder), Builder {
+    private class ExtBuilderImpl<C: ActivityInstanceContext>(base: DefaultProcessNodeInstance<C>, processInstanceBuilder: ProcessInstance.Builder<C>) :
+        ExtBuilder<ExecutableProcessNode, DefaultProcessNodeInstance<C>, C>(base, processInstanceBuilder), Builder<C> {
         override var node: ExecutableProcessNode by overlay { base.node }
-        override fun build() = if (changed) DefaultProcessNodeInstance(this).also { invalidateBuilder(it) } else base
+        override fun build() = if (changed) DefaultProcessNodeInstance<C>(this).also { invalidateBuilder(it) } else base
         override var assignedUser: PrincipalCompat? = base.assignedUser
     }
 
-    class BaseBuilder(
+    class BaseBuilder<C: ActivityInstanceContext>(
         node: ExecutableProcessNode,
-        predecessors: Iterable<Handle<SecureObject<ProcessNodeInstance<*>>>>,
-        processInstanceBuilder: ProcessInstance.Builder,
+        predecessors: Iterable<Handle<SecureObject<ProcessNodeInstance<*, C>>>>,
+        processInstanceBuilder: ProcessInstance.Builder<C>,
         owner: PrincipalCompat,
         entryNo: Int,
         override var assignedUser: PrincipalCompat? = null,
-        handle: Handle<SecureObject<DefaultProcessNodeInstance>> = Handle.invalid(),
+        handle: Handle<SecureObject<DefaultProcessNodeInstance<C>>> = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
-    ) : ProcessNodeInstance.BaseBuilder<ExecutableProcessNode, DefaultProcessNodeInstance>(
+    ) : ProcessNodeInstance.BaseBuilder<ExecutableProcessNode, DefaultProcessNodeInstance<C>, C>(
         node,
         predecessors,
         processInstanceBuilder,
@@ -211,9 +214,9 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
         entryNo,
         handle,
         state
-    ), Builder {
+    ), Builder<C> {
 
-        override fun build() = DefaultProcessNodeInstance(this)
+        override fun build(): DefaultProcessNodeInstance<C> = DefaultProcessNodeInstance(this)
     }
 
     class Factory : XmlDeserializerFactory<XmlProcessNodeInstance> {
@@ -225,16 +228,16 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
 
     companion object {
 
-        fun build(
+        fun <C: ActivityInstanceContext> build(
             node: ExecutableProcessNode,
-            predecessors: Set<Handle<SecureObject<ProcessNodeInstance<*>>>>,
-            processInstanceBuilder: ProcessInstance.Builder,
-            handle: Handle<SecureObject<DefaultProcessNodeInstance>> = Handle.invalid(),
+            predecessors: Set<Handle<SecureObject<ProcessNodeInstance<*, C>>>>,
+            processInstanceBuilder: ProcessInstance.Builder<C>,
+            handle: Handle<SecureObject<DefaultProcessNodeInstance<C>>> = Handle.invalid(),
             state: NodeInstanceState = NodeInstanceState.Pending,
             entryNo: Int,
             assignedUser: PrincipalCompat?,
-            body: Builder.() -> Unit
-        ): DefaultProcessNodeInstance {
+            body: Builder<C>.() -> Unit
+        ): DefaultProcessNodeInstance<C> {
             return DefaultProcessNodeInstance(
                 BaseBuilder(
                     node, predecessors, processInstanceBuilder, processInstanceBuilder.owner,
@@ -244,17 +247,26 @@ class DefaultProcessNodeInstance : ProcessNodeInstance<DefaultProcessNodeInstanc
         }
 
 
-        fun build(
+        fun <C: ActivityInstanceContext> build(
             node: ExecutableProcessNode,
-            predecessors: Set<Handle<SecureObject<ProcessNodeInstance<*>>>>,
-            processInstance: ProcessInstance,
-            handle: Handle<SecureObject<DefaultProcessNodeInstance>> = Handle.invalid(),
+            predecessors: Set<Handle<SecureObject<ProcessNodeInstance<*, C>>>>,
+            processInstance: ProcessInstance<C>,
+            handle: Handle<SecureObject<DefaultProcessNodeInstance<C>>> = Handle.invalid(),
             state: NodeInstanceState = NodeInstanceState.Pending,
             entryNo: Int,
             assignedUser: PrincipalCompat?,
-            body: Builder.() -> Unit
-        ): DefaultProcessNodeInstance {
-            return build(node, predecessors, processInstance.builder(), handle, state, entryNo, assignedUser, body)
+            body: Builder<C>.() -> Unit
+        ): DefaultProcessNodeInstance<C> {
+            return build(
+                node = node,
+                predecessors = predecessors,
+                processInstanceBuilder = processInstance.builder(),
+                handle = handle,
+                state = state,
+                entryNo = entryNo,
+                assignedUser = assignedUser,
+                body = body
+            )
         }
 
 

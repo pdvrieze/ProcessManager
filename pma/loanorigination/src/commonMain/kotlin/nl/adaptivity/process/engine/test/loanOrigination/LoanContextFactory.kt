@@ -41,7 +41,7 @@ class LoanContextFactory(val log: Logger, val random: Random) : DynamicPMAProces
 
     val engineService : EngineService = EngineService(authService)
 
-    private val processContexts = mutableMapOf<Handle<SecureObject<ProcessInstance>>, LoanProcessContext>()
+    private val processContexts = mutableMapOf<Handle<SecureObject<ProcessInstance<*>>>, LoanProcessContext>()
     val customerFile = CustomerInformationFile(authService)
     val outputManagementSystem = OutputManagementSystem(authService)
     val accountManagementSystem = AccountManagementSystem(authService)
@@ -78,8 +78,8 @@ class LoanContextFactory(val log: Logger, val random: Random) : DynamicPMAProces
     val customer: Browser = Browser(authService, principals.customer)
 
     override fun newActivityInstanceContext(
-        engineDataAccess: ProcessEngineDataAccess,
-        processNodeInstance: IProcessNodeInstance
+        engineDataAccess: ProcessEngineDataAccess<LoanActivityContext>,
+        processNodeInstance: IProcessNodeInstance<LoanActivityContext>
     ): LoanActivityContext {
         val instanceHandle = processNodeInstance.hProcessInstance
         nodes[processNodeInstance.handle] = processNodeInstance.node.id
@@ -88,24 +88,24 @@ class LoanContextFactory(val log: Logger, val random: Random) : DynamicPMAProces
     }
 
     private fun getProcessContext(
-        engineDataAccess: ProcessEngineDataAccess,
-        instanceHandle: Handle<SecureObject<ProcessInstance>>
+        engineDataAccess: ProcessEngineDataAccess<LoanActivityContext>,
+        instanceHandle: Handle<SecureObject<ProcessInstance<*>>>
     ) =
         processContexts.getOrPut(instanceHandle) { LoanProcessContextImpl(engineDataAccess, this, instanceHandle) }
 
     override fun onProcessFinished(
-        engineDataAccess: ProcessEngineDataAccess,
-        processInstance: Handle<SecureObject<ProcessInstance>>
+        engineDataAccess: ProcessEngineDataAccess<LoanActivityContext>,
+        processInstance: Handle<SecureObject<ProcessInstance<*>>>
     ) {
         processContexts.remove(processInstance)
     }
 
     override fun onActivityTermination(
-        engineDataAccess: ProcessEngineDataAccess,
-        processNodeInstance: IProcessNodeInstance
+        engineDataAccess: ProcessEngineDataAccess<LoanActivityContext>,
+        processNodeInstance: IProcessNodeInstance<LoanActivityContext>
     ) {
 
-        val context = getProcessContext(engineDataAccess, processNodeInstance.hProcessInstance)
+        val context: LoanProcessContext = getProcessContext(engineDataAccess, processNodeInstance.hProcessInstance)
 
         with(engineService) { context.onActivityTermination(processNodeInstance) }
     }

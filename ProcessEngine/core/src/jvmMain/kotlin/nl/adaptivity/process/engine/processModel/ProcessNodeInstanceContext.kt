@@ -25,7 +25,12 @@ import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.util.CompactFragment
 import java.util.*
 
-actual class ProcessNodeInstanceContext actual constructor(private val processNodeInstance: IProcessNodeInstance, private val defines: List<ProcessData>, private val provideResults: Boolean, private val localEndpoint: EndpointDescriptor) : AbstractDataContext() {
+actual class ProcessNodeInstanceContext actual constructor(
+    private val processNodeInstance: IProcessNodeInstance<*>,
+    private val defines: List<ProcessData>,
+    private val provideResults: Boolean,
+    private val localEndpoint: EndpointDescriptor
+) : AbstractDataContext() {
 
     override fun getData(valueName: String): ProcessData? {
         when (valueName) {

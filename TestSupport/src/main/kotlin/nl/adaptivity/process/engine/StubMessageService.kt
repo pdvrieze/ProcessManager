@@ -35,7 +35,7 @@ import java.util.*
  */
 class StubMessageService<C: ActivityInstanceContext>(private val mLocalEndpoint: EndpointDescriptor) : IMessageService<IXmlMessage, C> {
 
-    class ExtMessage(val base: IXmlMessage, val source: Handle<SecureObject<ProcessNodeInstance<*>>>) : IXmlMessage by base
+    class ExtMessage(val base: IXmlMessage, val source: Handle<SecureObject<ProcessNodeInstance<*, *>>>) : IXmlMessage by base
 
     private var _messages = mutableListOf<ExtMessage>()
 
@@ -49,14 +49,14 @@ class StubMessageService<C: ActivityInstanceContext>(private val mLocalEndpoint:
         _messages.clear()
     }
 
-    fun getMessageNode(i: Int): Handle<SecureObject<ProcessNodeInstance<*>>> {
+    fun getMessageNode(i: Int): Handle<SecureObject<ProcessNodeInstance<*, *>>> {
         return _messages[i].source
     }
 
     override val localEndpoint: EndpointDescriptor
         get() = mLocalEndpoint
 
-    override fun sendMessage(engineData: ProcessEngineDataAccess,
+    override fun sendMessage(engineData: ProcessEngineDataAccess<C>,
                              protoMessage: IXmlMessage,
                              activityInstanceContext: C): MessageSendingResult {
         assert(activityInstanceContext.nodeInstanceHandle.isValid) { "Sending messages from invalid nodes is a bad idea (${activityInstanceContext})" }

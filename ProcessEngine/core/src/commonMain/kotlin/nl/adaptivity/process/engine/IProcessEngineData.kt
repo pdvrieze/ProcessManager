@@ -29,10 +29,10 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
-abstract class IProcessEngineData<T : ProcessTransaction> : TransactionFactory<T> {
+abstract class IProcessEngineData<T : ContextProcessTransaction<C>, C: ActivityInstanceContext> : TransactionFactory<T> {
     protected abstract val processModels: IMutableProcessModelMap<T>
-    protected abstract val processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance>, T>
-    protected abstract val processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*>>, T>
+    protected abstract val processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance<C>>, T>
+    protected abstract val processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*, C>>, T>
 
     abstract val logger: LoggerCompat
 
@@ -42,34 +42,34 @@ abstract class IProcessEngineData<T : ProcessTransaction> : TransactionFactory<T
         }
     }
 
-    fun invalidateCachePI(handle: Handle<SecureObject<ProcessInstance>>) {
+    fun invalidateCachePI(handle: Handle<SecureObject<ProcessInstance<*>>>) {
         processInstances.apply {
-            if (handle.isValid) invalidateCache(handle) else invalidateCache()
+            if (handle.isValid) invalidateCache(handle.coerce()) else invalidateCache()
         }
     }
 
-    fun invalidateCachePNI(handle: Handle<SecureObject<ProcessNodeInstance<*>>>) {
+    fun invalidateCachePNI(handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>) {
         processNodeInstances.apply {
-            if (handle.isValid) invalidateCache(handle) else invalidateCache()
+            if (handle.isValid) invalidateCache(handle.coerce()) else invalidateCache()
         }
     }
 
 
-    inline fun <R> inReadonlyTransaction(transaction: T, body: ProcessEngineDataAccess.() -> R): R {
+    inline fun <R> inReadonlyTransaction(transaction: T, body: ProcessEngineDataAccess<C>.() -> R): R {
         return body(createReadDelegate(transaction))
     }
 
-    open fun createReadDelegate(transaction: T): ProcessEngineDataAccess = createWriteDelegate(transaction)
+    open fun createReadDelegate(transaction: T): ProcessEngineDataAccess<C> = createWriteDelegate(transaction)
 
-    abstract fun createWriteDelegate(transaction: T): MutableProcessEngineDataAccess
+    abstract fun createWriteDelegate(transaction: T): MutableProcessEngineDataAccess<C>
 
-    abstract fun queueTickle(instanceHandle: Handle<SecureObject<ProcessInstance>>)
+    abstract fun queueTickle(instanceHandle: Handle<SecureObject<ProcessInstance<*>>>)
 
     @Suppress("UNUSED_PARAMETER")
     inline fun <R> inReadonlyTransaction(
         principal: PrincipalCompat,
         permissionResult: SecurityProvider.PermissionResult,
-        body: ProcessEngineDataAccess.() -> R
+        body: ProcessEngineDataAccess<*>.() -> R
     ): R {
         val tr = startTransaction()
         try {
@@ -83,7 +83,7 @@ abstract class IProcessEngineData<T : ProcessTransaction> : TransactionFactory<T
     inline fun <R> inWriteTransaction(
         principal: PrincipalCompat,
         permissionResult: SecurityProvider.PermissionResult,
-        body: MutableProcessEngineDataAccess.() -> R
+        body: MutableProcessEngineDataAccess<C>.() -> R
     ): R {
         val tr = startTransaction()
         try {
@@ -97,12 +97,21 @@ abstract class IProcessEngineData<T : ProcessTransaction> : TransactionFactory<T
 
 
 @OptIn(ExperimentalContracts::class)
-inline fun <T : ProcessTransaction, R> IProcessEngineData<T>.inWriteTransaction(
+inline fun <T : ContextProcessTransaction<C>, R, C: ActivityInstanceContext> IProcessEngineData<T, C>.inWriteTransaction(
     transaction: T,
-    body: MutableProcessEngineDataAccess.() -> R
+    body: MutableProcessEngineDataAccess<C>.() -> R
 ): R {
     contract {
         callsInPlace(body, InvocationKind.EXACTLY_ONCE)
     }
     return body(createWriteDelegate(transaction))
 }
+
+@Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
+inline fun <C : ActivityInstanceContext> Handle<SecureObject<ProcessNodeInstance<*, *>>>.coerce() =
+    this as Handle<SecureObject<ProcessNodeInstance<*, C>>>
+
+@Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
+@JvmName("coerceInstance")
+inline fun <C : ActivityInstanceContext> Handle<SecureObject<ProcessInstance<*>>>.coerce() =
+    this as Handle<SecureObject<ProcessInstance<C>>>

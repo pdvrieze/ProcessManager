@@ -27,16 +27,16 @@ import nl.adaptivity.process.processModel.engine.XmlProcessModel
 import java.util.*
 
 
-internal class ProcessModelMap(
-    transactionFactory: DBTransactionFactory<ProcessDBTransaction, ProcessEngineDB>,
+internal class ProcessModelMap <C : ActivityInstanceContext>(
+    transactionFactory: DBTransactionFactory<ProcessDBTransaction<C>, ProcessEngineDB>,
     stringCache: StringCache = StringCache.NOPCACHE
-) : DBHandleMap<XmlProcessModel.Builder, SecureObject<ExecutableProcessModel>, ProcessDBTransaction, ProcessEngineDB>(
+) : DBHandleMap<XmlProcessModel.Builder, SecureObject<ExecutableProcessModel>, ProcessDBTransaction<C>, ProcessEngineDB>(
     transactionFactory,
     ProcessModelFactory()
-), IMutableProcessModelMap<ProcessDBTransaction> {
+), IMutableProcessModelMap<ProcessDBTransaction<C>> {
 
     override fun getModelWithUuid(
-        transaction: ProcessDBTransaction,
+        transaction: ProcessDBTransaction<C>,
         uuid: UUID
     ): Handle<SecureObject<ExecutableProcessModel>>? {
         return with(transaction) {

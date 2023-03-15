@@ -31,30 +31,36 @@ import nl.adaptivity.xmlutil.util.ICompactFragment
 /**
  * Specialisation of process node instance for splits
  */
-class SplitInstance : ProcessNodeInstance<SplitInstance> {
+class SplitInstance<C : ActivityInstanceContext>  : ProcessNodeInstance<SplitInstance<C>, C> {
 
-    interface Builder : ProcessNodeInstance.Builder<ExecutableSplit, SplitInstance> {
-        override fun build(): SplitInstance
-        var predecessor: Handle<SecureObject<ProcessNodeInstance<*>>>?
+    interface Builder<C : ActivityInstanceContext> : ProcessNodeInstance.Builder<ExecutableSplit, SplitInstance<C>, C> {
+        override fun build(): SplitInstance<C>
+        var predecessor: Handle<SecureObject<ProcessNodeInstance<*, C>>>?
             get() = predecessors.firstOrNull()
             set(value) = predecessors.replaceByNotNull(value)
 
-        override fun doProvideTask(engineData: MutableProcessEngineDataAccess): Boolean {
+        override fun doProvideTask(engineData: MutableProcessEngineDataAccess<C>): Boolean {
             return node.provideTask(engineData, this)
         }
 
         override fun canTakeTaskAutomatically(): Boolean = true
 
-        override fun doTakeTask(engineData: MutableProcessEngineDataAccess, assignedUser: PrincipalCompat?): Boolean {
+        override fun doTakeTask(
+            engineData: MutableProcessEngineDataAccess<C>,
+            assignedUser: PrincipalCompat?
+        ): Boolean {
             return node.takeTask(createActivityContext(engineData), this, assignedUser)
         }
 
-        override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {
+        override fun doStartTask(engineData: MutableProcessEngineDataAccess<C>): Boolean {
             state = NodeInstanceState.Started
             return updateState(engineData)
         }
 
-        override fun doFinishTask(engineData: MutableProcessEngineDataAccess, resultPayload: ICompactFragment?) {
+        override fun doFinishTask(
+            engineData: MutableProcessEngineDataAccess<C>,
+            resultPayload: ICompactFragment?
+        ) {
             val committedSuccessors = processInstanceBuilder.allChildNodeInstances { it.state.isCommitted }
             if (committedSuccessors.count() < node.min) {
                 throw ProcessException("A split can only be finished once the minimum amount of children is committed")
@@ -64,41 +70,41 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
 
     }
 
-    class ExtBuilder(private val instance: SplitInstance, processInstanceBuilder: ProcessInstance.Builder) :
-        ProcessNodeInstance.ExtBuilder<ExecutableSplit, SplitInstance>(instance, processInstanceBuilder), Builder {
+    class ExtBuilder<C : ActivityInstanceContext>(private val instance: SplitInstance<C>, processInstanceBuilder: ProcessInstance.Builder<C>) :
+        ProcessNodeInstance.ExtBuilder<ExecutableSplit, SplitInstance<C>, C>(instance, processInstanceBuilder), Builder<C> {
         override var node: ExecutableSplit by overlay { instance.node }
-        override fun build() = if (changed) SplitInstance(this).also { invalidateBuilder(it) } else base
+        override fun build() = if (changed) SplitInstance<C>(this).also { invalidateBuilder(it) } else base
     }
 
-    class BaseBuilder(
+    class BaseBuilder<C : ActivityInstanceContext>(
         node: ExecutableSplit,
-        predecessor: Handle<SecureObject<ProcessNodeInstance<*>>>,
-        processInstanceBuilder: ProcessInstance.Builder,
+        predecessor: Handle<SecureObject<ProcessNodeInstance<*, C>>>,
+        processInstanceBuilder: ProcessInstance.Builder<C>,
         owner: PrincipalCompat,
         entryNo: Int,
-        handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
+        handle: Handle<SecureObject<ProcessNodeInstance<*, C>>> = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
-    ) : ProcessNodeInstance.BaseBuilder<ExecutableSplit, SplitInstance>(
+    ) : ProcessNodeInstance.BaseBuilder<ExecutableSplit, SplitInstance<C>, C>(
         node, listOf(predecessor), processInstanceBuilder, owner, entryNo,
         handle, state
-    ), Builder {
-        override fun build() = SplitInstance(this)
+    ), Builder<C> {
+        override fun build(): SplitInstance<C> = SplitInstance(this)
     }
 
     override val node: ExecutableSplit
         get() = super.node as ExecutableSplit
 
     @Suppress("UNCHECKED_CAST")
-    override val handle: Handle<SecureObject<SplitInstance>>
-        get() = super.handle as Handle<SecureObject<SplitInstance>>
+    override val handle: Handle<SecureObject<SplitInstance<C>>>
+        get() = super.handle as Handle<SecureObject<SplitInstance<C>>>
 
     constructor(
         node: ExecutableSplit,
-        predecessor: Handle<SecureObject<ProcessNodeInstance<*>>>,
-        processInstanceBuilder: ProcessInstance.Builder,
-        hProcessInstance: Handle<SecureObject<ProcessInstance>>,
+        predecessor: Handle<SecureObject<ProcessNodeInstance<*, C>>>,
+        processInstanceBuilder: ProcessInstance.Builder<C>,
+        hProcessInstance: Handle<SecureObject<ProcessInstance<C>>>,
         owner: PrincipalCompat,
-        handle: Handle<SecureObject<ProcessNodeInstance<*>>> = Handle.invalid(),
+        handle: Handle<SecureObject<ProcessNodeInstance<*, C>>> = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending,
         results: Iterable<ProcessData> = emptyList(),
         entryNo: Int
@@ -114,7 +120,7 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
         results
     )
 
-    constructor(builder: Builder) : this(
+    constructor(builder: Builder<C>) : this(
         builder.node,
         builder.predecessor ?: throw NullPointerException("Missing predecessor node instance"),
         builder.processInstanceBuilder,
@@ -126,11 +132,11 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
         builder.entryNo
     )
 
-    override fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder {
+    override fun builder(processInstanceBuilder: ProcessInstance.Builder<C>): ExtBuilder<C> {
         return ExtBuilder(this, processInstanceBuilder)
     }
 
-    private fun successorInstances(engineData: ProcessEngineDataAccess): Sequence<ProcessNodeInstance<*>> {
+    private fun successorInstances(engineData: ProcessEngineDataAccess<C>): Sequence<ProcessNodeInstance<*, C>> {
         val instance = engineData.instance(hProcessInstance).withPermission()
         return node.successors
             .asSequence()
@@ -140,7 +146,7 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
 
     companion object {
 
-        internal fun isActiveOrCompleted(it: IProcessNodeInstance): Boolean {
+        internal fun <C : ActivityInstanceContext> isActiveOrCompleted(it: IProcessNodeInstance<C>): Boolean {
             return when (it.state) {
                 NodeInstanceState.Started,
                 NodeInstanceState.Complete,
@@ -164,7 +170,7 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
  *
  * TODO Review this algorithm
  */
-internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineDataAccess): Boolean {
+internal fun <C : ActivityInstanceContext> SplitInstance.Builder<C>.updateState(engineData: MutableProcessEngineDataAccess<C>): Boolean {
 
     if (state.isFinal) return true
 
@@ -175,7 +181,7 @@ internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineD
     var activeCount = 0
     var committedCount = 0
 
-    var otherwiseNode: ProcessNodeInstance.Builder<*, *>? = null
+    var otherwiseNode: ProcessNodeInstance.Builder<*, *, C>? = null
 
     for (successorNode in successorNodes) {
         if (committedCount >= node.max) break // stop the loop when we are at the maximum successor count
