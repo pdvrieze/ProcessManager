@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel
 
+import nl.adaptivity.process.processModel.engine.XmlAccessRestriction
 import nl.adaptivity.process.util.Identifiable
 
 abstract class MessageActivityBase(
@@ -59,10 +60,10 @@ abstract class MessageActivityBase(
         return result
     }
 
-    open class Builder : BaseBuilder, MessageActivity.Builder {
+    open class Builder : BaseBuilder, MessageActivity.RWBuilder {
 
         final override var message: IXmlMessage?
-        final override var authRestrictions: AccessRestriction<Nothing?>?
+        override var accessRestrictions: AccessRestriction?
 
         constructor(): this(
             null,
@@ -93,7 +94,7 @@ abstract class MessageActivityBase(
             x: Double,
             y: Double,
             isMultiInstance: Boolean,
-            authRestrictions: AccessRestriction<Nothing?>? = null
+            accessRestrictions: AccessRestriction? = null
         ) : super(
             id,
             predecessor,
@@ -108,7 +109,7 @@ abstract class MessageActivityBase(
             isMultiInstance
         ) {
             this.message = message
-            this.authRestrictions = authRestrictions
+            this.accessRestrictions = accessRestrictions
         }
 
 //        @Suppress("DEPRECATION")
@@ -139,7 +140,8 @@ abstract class MessageActivityBase(
             name = serialDelegate.name,
             x = serialDelegate.x,
             y = serialDelegate.y,
-            isMultiInstance = serialDelegate.isMultiInstance
+            isMultiInstance = serialDelegate.isMultiInstance,
+            accessRestrictions = serialDelegate.accessRestrictions?.let(::XmlAccessRestriction)
         )
     }
 }

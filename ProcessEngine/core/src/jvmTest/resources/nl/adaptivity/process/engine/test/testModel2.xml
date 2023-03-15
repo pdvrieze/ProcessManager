@@ -18,7 +18,7 @@
 <processModel xmlns="http://adaptivity.nl/ProcessEngine/"
               xmlns:umh="http://adaptivity.nl/userMessageHandler" owner="pdvrieze" name="testModel2" uuid="a6ee62fa-3ae1-49cf-b091-ed6014fd5fad">
   <start id="start" x="NaN" y="NaN"/>
-  <activity name="ac1" predecessor="start" id="ac1" x="NaN" y="NaN">
+  <activity name="ac1" predecessor="start" id="ac1" x="NaN" y="NaN" accessRestrictions="pdvrieze">
     <result name="name" path="/umh:result/umh:value[@name='user']/text()"/>
     <result name="user">
       <user xmlns=""
@@ -40,7 +40,7 @@
               <task summary="Task Foo">
                 <jbi:attribute name="remotehandle" value="handle"/>
                 <jbi:attribute name="instancehandle" value="instancehandle"/>
-                <jbi:attribute name="owner" value="owner"/>
+                <jbi:attribute name="restrictTo" value="accessrestriction"/>
                 <item name="lbl1" type="label" value="Please enter some info for task foo"/>
                 <item label="Your name" name="user" type="text"/>
               </task>

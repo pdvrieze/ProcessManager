@@ -32,6 +32,7 @@ import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.process.client.ServletProcessEngineClient
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
+import nl.adaptivity.process.processModel.AccessRestriction
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.xmlutil.*
@@ -82,6 +83,11 @@ class XmlTask : UserTask<XmlTask> {
     override var summary: String? = null
 
     private var endPoint: EndpointDescriptorImpl? = null
+
+    @Serializable(AccessRestrictionSerializer::class)
+    @SerialName("restrictTo")
+    @XmlElement(false)
+    override var accessRestriction: AccessRestriction? = null
 
     @Serializable(PrincipalNameSerializer::class)
     override var owner: PrincipalCompat? = null
@@ -272,4 +278,37 @@ class XmlTask : UserTask<XmlTask> {
             return SimplePrincipal(decoder.decodeString())
         }
     }
+
+    internal class AccessRestrictionSerializer: KSerializer<AccessRestriction> {
+        override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("AccessRestriction", PrimitiveKind.STRING)
+
+        override fun serialize(encoder: Encoder, value: AccessRestriction) {
+            encoder.encodeString(value.serializeToString())
+        }
+
+        override fun deserialize(decoder: Decoder): AccessRestriction {
+            val str = decoder.decodeString().trim()
+            return when(str[0]) {
+                '@' -> when(str[1]) {
+                    '[' -> {
+                        check(str.last()==']')
+                        str.substring(2, str.length-1).splitToSequence(",").map { it.trim() }.let { roles ->
+                            RoleRestriction(roles.toSet())
+                        }
+                    }
+
+                    else -> RoleRestriction(str.substring(1).trimStart())
+                }
+                '[' -> {
+                    check(str.last()==']')
+                    str.substring(1, str.length-1).splitToSequence(",").map { it.trim() }.let { users ->
+                        UserRestriction(users.toSet())
+                    }
+                }
+                else -> UserRestriction(str)
+            }
+        }
+    }
+
 }
+

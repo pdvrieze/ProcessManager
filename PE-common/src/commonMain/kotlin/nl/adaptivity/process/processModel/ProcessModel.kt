@@ -55,7 +55,7 @@ interface ProcessModel<out NodeT : ProcessNode> {
 
         fun joinBuilder(): Join.Builder = JoinBase.Builder()
 
-        fun activityBuilder(): MessageActivity.Builder = MessageActivityBase.Builder()
+        fun activityBuilder(): MessageActivity.RWBuilder = MessageActivityBase.Builder()
 
         fun compositeActivityBuilder(): CompositeActivity.ModelBuilder =
             ActivityBase.CompositeActivityBuilder(rootBuilder = this.rootBuilder)
@@ -93,7 +93,7 @@ interface ProcessModel<out NodeT : ProcessNode> {
 
         fun join(id: String) = nodes.firstOrNull { it.id == id }?.let { it as Join.Builder }
 
-        fun activity(body: MessageActivity.Builder.() -> Unit): Identifiable {
+        fun activity(body: MessageActivity.RWBuilder.() -> Unit): Identifiable {
             return nodeHelper(activityBuilder(), body)
         }
 

@@ -160,13 +160,15 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
         }
     }
 
-    class Builder<I : Any, O : Any, C: ActivityInstanceContext> : MessageActivityBase.Builder, ExecutableProcessNode.Builder {
+    class Builder<I : Any, O : Any, C: ActivityInstanceContext> : BaseBuilder, ExecutableProcessNode.Builder, MessageActivity.Builder {
 
         var inputCombiner: InputCombiner<I> = InputCombiner()
         val outputSerializer: SerializationStrategy<O>?
         var action: RunnableAction<I, O, C>
 
-        var accessRestrictions: RunnableAccessRestriction? = null
+        override var message: IXmlMessage? = null
+
+        override var accessRestrictions: RunnableAccessRestriction? = null
 
         var onActivityProvided: OnActivityProvided<I, O, C> = OnActivityProvided.DEFAULT
 

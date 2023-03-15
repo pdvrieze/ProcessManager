@@ -25,7 +25,7 @@
                     <endpointDescriptor xmlns="http://adaptivity.nl/jbi" endpointLocation="http://localhost/" endpointName="processEngine" serviceLocalName="processEngine" serviceNS=""/>
                 </repliesParam>
                 <taskParam>
-                    <task summary="Task Foo" owner="pdvrieze" remotehandle="1" instancehandle="0">
+                    <task summary="Task Foo" restrictTo="pdvrieze" remotehandle="1" instancehandle="0">
                         <item name="lbl1" type="label" value="Please enter some info for task foo"/>
                         <item label="Your name" name="user" type="text"/>
                     </task>

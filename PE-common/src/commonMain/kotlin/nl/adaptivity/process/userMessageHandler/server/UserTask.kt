@@ -20,6 +20,7 @@ import net.devrieze.util.Handle
 import net.devrieze.util.MutableHandleAware
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
+import nl.adaptivity.process.processModel.AccessRestriction
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 
@@ -47,6 +48,8 @@ interface UserTask<T : UserTask<T>> : MutableHandleAware<T> {
     fun setState(newState: NodeInstanceState, user: PrincipalCompat)
 
     fun setEndpoint(endPoint: EndpointDescriptorImpl)
+
+    val accessRestriction: AccessRestriction?
 
     val owner: PrincipalCompat?
 

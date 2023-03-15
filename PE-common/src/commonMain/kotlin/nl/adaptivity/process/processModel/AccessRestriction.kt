@@ -2,7 +2,8 @@ package nl.adaptivity.process.processModel
 
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-interface AccessRestriction<in C> {
+interface AccessRestriction {
 //    fun isAuthorized(principal: PrincipalCompat): Boolean
-    fun hasAccess(context: C, principal: PrincipalCompat): Boolean
+    fun hasAccess(context: Any?, principal: PrincipalCompat): Boolean
+    fun serializeToString(): String
 }

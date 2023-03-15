@@ -19,6 +19,7 @@ package nl.adaptivity.process.engine.processModel
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.engine.PETransformer.AbstractDataContext
 import nl.adaptivity.process.engine.ProcessData
+import nl.adaptivity.process.processModel.MessageActivity
 import nl.adaptivity.process.processModel.name
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.xmlutil.*
@@ -33,14 +34,31 @@ actual class ProcessNodeInstanceContext actual constructor(
 ) : AbstractDataContext() {
 
     override fun getData(valueName: String): ProcessData? {
-        when (valueName) {
-            "handle"         -> return ProcessData(valueName, CompactFragment(
-                processNodeInstance.handle.handleValue.toString()))
-            "instancehandle" -> return ProcessData(valueName, CompactFragment(
-                processNodeInstance.hProcessInstance.handleValue.toString()))
-            "endpoint"       -> return ProcessData(valueName, createEndpoint())
-            "owner"          -> return ProcessData(valueName, CompactFragment(
-                processNodeInstance.assignedUser?.name?.xmlEncode() ?: ""))
+        when (valueName.lowercase()) {
+            "handle" -> return ProcessData(
+                valueName, CompactFragment(
+                    processNodeInstance.handle.handleValue.toString()
+                )
+            )
+
+            "instancehandle" -> return ProcessData(
+                valueName, CompactFragment(
+                    processNodeInstance.hProcessInstance.handleValue.toString()
+                )
+            )
+
+            "endpoint" -> return ProcessData(valueName, createEndpoint())
+            "owner" -> return ProcessData(
+                valueName, CompactFragment(
+                    processNodeInstance.assignedUser?.name?.xmlEncode() ?: ""
+                )
+            )
+
+            "accessrestriction" -> {
+                return (processNodeInstance.node as? MessageActivity)?.accessRestrictions?.serializeToString()?.let { ar ->
+                    ProcessData(valueName, CompactFragment(ar))
+                }
+            }
         }
 
         defines.firstOrNull { valueName == it.name }?.let { return it }

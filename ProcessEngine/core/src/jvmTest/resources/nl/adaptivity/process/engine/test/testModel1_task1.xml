@@ -24,7 +24,7 @@
         <Body>
             <umh:postTask xmlns="http://adaptivity.nl/userMessageHandler">
                 <repliesParam><jbi:endpointDescriptor endpointLocation="http://localhost/" endpointName="processEngine" serviceLocalName="processEngine" serviceNS=""/>
-                </repliesParam><taskParam><task instancehandle="0" owner="pdvrieze" remotehandle="1" summary="Task Bar"><item type="label" value="Hi! . Welcome!">
+                </repliesParam><taskParam><task instancehandle="0" restrictTo="pdvrieze" remotehandle="1" summary="Task Bar"><item type="label" value="Hi! . Welcome!">
                         </item>
                     </task>
                 </taskParam>

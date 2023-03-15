@@ -147,6 +147,11 @@ abstract class ActivityBase(
             get() = field ?: rawCondition?.let { XmlCondition(it)}
             private set
 
+        @XmlSerialName("accessRestrictions", "", "")
+        @XmlElement(false)
+        var accessRestrictions: String? = null
+            private set
+
         var name: String? = null
             private set
 
@@ -163,6 +168,7 @@ abstract class ActivityBase(
             childId: Identifier?,
             condition: XmlCondition?,
             name: String?,
+            accessRestrictions: String? = null
         ) : super(
             id = id,
             label = label,
@@ -180,6 +186,7 @@ abstract class ActivityBase(
                 else -> elementCondition
             }
             this.name = name
+            this.accessRestrictions = accessRestrictions
         }
 
         @Suppress("DEPRECATION")
@@ -195,7 +202,8 @@ abstract class ActivityBase(
             message = XmlMessage.from(node.message),
             condition = node.condition?.let { XmlCondition(it.condition, it.label) },
             name = node.name,
-            childId = null
+            childId = null,
+            accessRestrictions = node.accessRestrictions?.serializeToString()
         )
 
         @Suppress("DEPRECATION")
@@ -211,7 +219,8 @@ abstract class ActivityBase(
             message = XmlMessage.from(node.message),
             condition = node.condition?.let { XmlCondition(it.condition, it.label) },
             name = node.name,
-            childId = null
+            childId = null,
+            accessRestrictions = node.accessRestrictions?.serializeToString(),
         )
 
         @Suppress("DEPRECATION")

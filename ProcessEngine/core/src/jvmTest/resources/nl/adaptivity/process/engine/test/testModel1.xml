@@ -18,7 +18,7 @@
 <processModel xmlns="http://adaptivity.nl/ProcessEngine/" owner="pdvrieze" uuid="a6ee62fa-3ae1-49cf-b091-ed6014fd5fad"
               name="testModel 1">
     <start id="start" x="NaN" y="NaN"/>
-    <activity name="ac2" predecessor="start" id="ac2" x="NaN" y="NaN">
+    <activity name="ac2" predecessor="start" id="ac2" x="NaN" y="NaN" accessRestrictions="pdvrieze">
         <define name="mylabel">Hi! . Welcome!</define>
         <message type="application/soap+xml" endpoint="internal" operation="postTask"
                  serviceNS="http://adaptivity.nl/userMessageHandler" serviceName="userMessageHandler"
@@ -37,7 +37,7 @@
                             <task summary="Task Bar">
                                 <jbi:attribute name="remotehandle" value="handle"/>
                                 <jbi:attribute name="instancehandle" value="instancehandle"/>
-                                <jbi:attribute name="owner" value="owner"/>
+                                <jbi:attribute name="restrictTo" value="accessrestriction"/>
                                 <item type="label">
                                     <jbi:attribute name="value" value="mylabel"/>
                                 </item>

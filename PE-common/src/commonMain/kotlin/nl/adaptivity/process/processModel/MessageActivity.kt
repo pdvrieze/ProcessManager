@@ -24,7 +24,7 @@ interface MessageActivity : Activity {
      */
     val message: IXmlMessage?
 
-    val accessRestrictions: AccessRestriction<Nothing?>?
+    val accessRestrictions: AccessRestriction?
 
     interface Builder : Activity.Builder, ProcessNode.Builder {
         var message: IXmlMessage?
@@ -33,7 +33,12 @@ interface MessageActivity : Activity {
 
         override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitActivity(this)
 
-        var authRestrictions: AccessRestriction<Nothing?>?
+        val accessRestrictions: AccessRestriction?
 
     }
+
+    interface RWBuilder: Builder {
+        override var accessRestrictions: AccessRestriction?
+    }
+
 }

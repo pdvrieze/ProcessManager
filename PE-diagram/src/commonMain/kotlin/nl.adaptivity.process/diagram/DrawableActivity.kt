@@ -122,11 +122,11 @@ open class DrawableActivity @JvmOverloads constructor(
         override var state: DrawableState = Drawable.STATE_DEFAULT,
         isMultiInstance: Boolean = false,
         override var isCompat: Boolean = false,
-        override var authRestrictions: AccessRestriction? = null
+        override var accessRestrictions: AccessRestriction? = null
     ) : BaseBuilder(
         id, predecessor, successor, label, defines, results,
         condition, name, x, y, isMultiInstance
-    ), MessageActivity.Builder, CompositeActivity.ReferenceBuilder,
+    ), MessageActivity.RWBuilder, CompositeActivity.ReferenceBuilder,
         DrawableProcessNode.Builder<DrawableActivity>,
         IDrawableActivity {
 

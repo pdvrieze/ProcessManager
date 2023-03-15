@@ -59,7 +59,7 @@ class ExecutableMessageActivity(
         }
 */
 
-    override val accessRestrictions: AccessRestriction<Nothing?>? = builder.authRestrictions
+    override val accessRestrictions: AccessRestriction? = builder.accessRestrictions
 
     /**
      * Determine whether the process can start.

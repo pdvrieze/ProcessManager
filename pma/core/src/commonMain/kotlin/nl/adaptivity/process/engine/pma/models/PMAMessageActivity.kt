@@ -52,7 +52,7 @@ class PMAMessageActivity(
 
     override val successor: Identifiable get() = successors.single()
 
-    override val accessRestrictions: AccessRestriction<Nothing?>? = builder.authRestrictions
+    override val accessRestrictions: AccessRestriction? = builder.accessRestrictions
 
     val authorizations: List<AuthScope> get() = TODO("IMPLEMENT")
 
