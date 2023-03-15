@@ -15,7 +15,7 @@ import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xmlutil.Namespace
 import kotlin.experimental.ExperimentalTypeInference
 
-abstract class CompositeModelBuilderContext<C : ActivityInstanceContext> : ModelBuilderContext<C>() {
+abstract class CompositeModelBuilderContext<AIC : ActivityInstanceContext> : ModelBuilderContext<AIC>() {
     abstract override val modelBuilder: ActivityBase.CompositeActivityBuilder
 
     @PublishedApi
@@ -67,13 +67,13 @@ abstract class CompositeModelBuilderContext<C : ActivityInstanceContext> : Model
         return InputRefImpl(name, deserializer)
     }
 
-    fun <I : Any, O : Any> RunnableActivity.Builder<I, O, C>.defineInput(
+    fun <I : Any, O : Any> RunnableActivity.Builder<I, O, AIC>.defineInput(
         reference: InputRef<I>
     ): InputCombiner.InputValue<I> {
         return defineInput(reference.nodeRef, reference.propertyName, reference.serializer)
     }
 
-    fun <T : Any, I : Any, O : Any> RunnableActivity.Builder<I, O, C>.defineInput(
+    fun <T : Any, I : Any, O : Any> RunnableActivity.Builder<I, O, AIC>.defineInput(
         name: String,
         reference: InputRef<T>
     ): InputCombiner.InputValue<T> {
@@ -140,8 +140,8 @@ abstract class CompositeModelBuilderContext<C : ActivityInstanceContext> : Model
         input: InputRef<I>,
         outputSerializer: SerializationStrategy<O>,
         @BuilderInference
-        action: RunnableAction<I, O, C>
-    ): RunnableActivity.Builder<I, O, C> {
+        action: RunnableAction<I, O, AIC>
+    ): RunnableActivity.Builder<I, O, AIC> {
         return RunnableActivity.Builder(
             predecessor,
             input.nodeRef,
@@ -169,15 +169,15 @@ abstract class CompositeModelBuilderContext<C : ActivityInstanceContext> : Model
 
 }
 
-internal class CompositeModelBuilderContextImpl<C: ActivityInstanceContext>(
+internal class CompositeModelBuilderContextImpl<AIC: ActivityInstanceContext>(
     predecessor: Identified,
-    private val owner: RootModelBuilderContextImpl<C>
-): CompositeModelBuilderContext<C>() {
+    private val owner: RootModelBuilderContextImpl<AIC>
+): CompositeModelBuilderContext<AIC>() {
     override val modelBuilder = ActivityBase.CompositeActivityBuilder(owner.modelBuilder).apply {
         this.predecessor = predecessor
     }
 
-    override fun compositeActivityContext(predecessor: Identified): CompositeModelBuilderContext<C> {
+    override fun compositeActivityContext(predecessor: Identified): CompositeModelBuilderContext<AIC> {
         return CompositeModelBuilderContextImpl(predecessor, owner)
     }
 }

@@ -21,7 +21,7 @@ import kotlin.experimental.ExperimentalTypeInference
 import kotlin.reflect.KProperty
 import nl.adaptivity.xmlutil.Namespace
 
-abstract class ModelBuilderContext<C : ActivityInstanceContext> {
+abstract class ModelBuilderContext<AIC : ActivityInstanceContext> {
     protected abstract val modelBuilder: ProcessModel.Builder
 //    private val modelBuilder: RootProcessModel.Builder = RootProcessModelBase.Builder()
 
@@ -99,10 +99,10 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
         predecessor: Identified,
         input: InputRef<I>,
         accessRestrictions: RunnableAccessRestriction? = null,
-        onActivityProvided: OnActivityProvided<I, O, C> = OnActivityProvided.DEFAULT,
+        onActivityProvided: OnActivityProvided<I, O, AIC> = OnActivityProvided.DEFAULT,
         @BuilderInference
-        noinline action: RunnableAction<I, O, C>
-    ) : RunnableActivity.Builder<I, O, C> {
+        noinline action: RunnableAction<I, O, AIC>
+    ) : RunnableActivity.Builder<I, O, AIC> {
         return RunnableActivity.Builder(
             predecessor,
             input.nodeRef,
@@ -120,10 +120,10 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
         predecessor: Identified,
         input: DefineInputCombiner<I>,
         accessRestrictions: RunnableAccessRestriction? = null,
-        onActivityProvided: OnActivityProvided<I, O, C> = OnActivityProvided.DEFAULT,
+        onActivityProvided: OnActivityProvided<I, O, AIC> = OnActivityProvided.DEFAULT,
         @BuilderInference
-        noinline action: RunnableAction<I, O, C>
-    ): RunnableActivity.Builder<I, O, C> {
+        noinline action: RunnableAction<I, O, AIC>
+    ): RunnableActivity.Builder<I, O, AIC> {
         return configuredActivityBuilder<I, O>(predecessor, input, serializer()).apply {
             this.action = action
             this.accessRestrictions = accessRestrictions
@@ -134,10 +134,10 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
     inline fun <I : Any, reified O : Any> activity(
         predecessor: NodeHandle<I>,
         accessRestrictions: RunnableAccessRestriction? = null,
-        onActivityProvided: OnActivityProvided<I, O, C> = OnActivityProvided.DEFAULT,
+        onActivityProvided: OnActivityProvided<I, O, AIC> = OnActivityProvided.DEFAULT,
         @BuilderInference
-        noinline action: RunnableAction<I, O, C>
-    ): RunnableActivity.Builder<I, O, C> {
+        noinline action: RunnableAction<I, O, AIC>
+    ): RunnableActivity.Builder<I, O, AIC> {
         return RunnableActivity.Builder(
             predecessor,
             predecessor.identifier,
@@ -155,10 +155,10 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
         predecessor: ActivityHandle<I>,
         outputSerializer: SerializationStrategy<O>,
         accessRestrictions: RunnableAccessRestriction? = null,
-        onActivityProvided: OnActivityProvided<I, O, C> = OnActivityProvided.DEFAULT,
+        onActivityProvided: OnActivityProvided<I, O, AIC> = OnActivityProvided.DEFAULT,
         @BuilderInference
-        action: RunnableAction<I, O, C>
-    ): RunnableActivity.Builder<I, O, C> {
+        action: RunnableAction<I, O, AIC>
+    ): RunnableActivity.Builder<I, O, AIC> {
         return RunnableActivity.Builder(
             predecessor,
             predecessor,
@@ -178,10 +178,10 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
         outputSerializer: SerializationStrategy<O>,
         inputRefNode: Identified? = null,
         accessRestrictions: RunnableAccessRestriction? = null,
-        onActivityProvided: OnActivityProvided<I, O, C> = OnActivityProvided.DEFAULT,
+        onActivityProvided: OnActivityProvided<I, O, AIC> = OnActivityProvided.DEFAULT,
         @BuilderInference
-        action: RunnableAction<I, O, C>
-    ): RunnableActivity.Builder<I, O, C> {
+        action: RunnableAction<I, O, AIC>
+    ): RunnableActivity.Builder<I, O, AIC> {
         return RunnableActivity.Builder(
             predecessor,
             inputRefNode,
@@ -201,10 +201,10 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
         outputSerializer: SerializationStrategy<O>,
         inputRefName: String = "",
         accessRestrictions: RunnableAccessRestriction? = null,
-        onActivityProvided: OnActivityProvided<I, O, C> = OnActivityProvided.DEFAULT,
+        onActivityProvided: OnActivityProvided<I, O, AIC> = OnActivityProvided.DEFAULT,
         @BuilderInference
-        action: RunnableAction<I, O, C>
-    ): RunnableActivity.Builder<I, O, C> {
+        action: RunnableAction<I, O, AIC>
+    ): RunnableActivity.Builder<I, O, AIC> {
         return RunnableActivity.Builder(
             predecessor,
             null,
@@ -225,10 +225,10 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
         inputRefNode: Identified?,
         inputRefName: String,
         accessRestrictions: RunnableAccessRestriction? = null,
-        onActivityProvided: OnActivityProvided<I, O, C> = OnActivityProvided.DEFAULT,
+        onActivityProvided: OnActivityProvided<I, O, AIC> = OnActivityProvided.DEFAULT,
         @BuilderInference
-        action: RunnableAction<I, O, C>
-    ): RunnableActivity.Builder<I, O, C> {
+        action: RunnableAction<I, O, AIC>
+    ): RunnableActivity.Builder<I, O, AIC> {
         return RunnableActivity.Builder(
             predecessor,
             inputRefNode,
@@ -243,9 +243,9 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
     }
 
     @PublishedApi
-    internal abstract fun compositeActivityContext(predecessor: Identified) : CompositeModelBuilderContext<C>
+    internal abstract fun compositeActivityContext(predecessor: Identified) : CompositeModelBuilderContext<AIC>
 
-    operator fun <I: Any, O: Any> RunnableActivity.Builder<I, O, C>.provideDelegate(
+    operator fun <I: Any, O: Any> RunnableActivity.Builder<I, O, AIC>.provideDelegate(
         thisRef: Nothing?,
         property: KProperty<*>
     ): ActivityHandle<O> {
@@ -283,8 +283,8 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
     inline fun <I : Any, reified O : Any> configuredActivity(
         predecessor: Identified,
         @BuilderInference
-        noinline config: @ConfigurationDsl RunnableActivity.Builder<I, O, C>.() -> Unit
-    ): RunnableActivity.Builder<I, O, C> {
+        noinline config: @ConfigurationDsl RunnableActivity.Builder<I, O, AIC>.() -> Unit
+    ): RunnableActivity.Builder<I, O, AIC> {
         contract {
             callsInPlace(config, InvocationKind.EXACTLY_ONCE)
         }
@@ -295,8 +295,8 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
         predecessor: Identified,
         input: DefineInputCombiner<I>,
         @BuilderInference
-        noinline config: @ConfigurationDsl RunnableActivity.Builder<I, O, C>.() -> Unit
-    ): RunnableActivity.Builder<I, O, C> {
+        noinline config: @ConfigurationDsl RunnableActivity.Builder<I, O, AIC>.() -> Unit
+    ): RunnableActivity.Builder<I, O, AIC> {
         contract {
             callsInPlace(config, InvocationKind.EXACTLY_ONCE)
         }
@@ -308,9 +308,9 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
     internal fun <I : Any, O : Any> configuredActivityBuilder(
         predecessor: Identified,
         input: DefineInputCombiner<I>,
-        outputSerializer: SerializationStrategy<O>): RunnableActivity.Builder<I, O, C> {
+        outputSerializer: SerializationStrategy<O>): RunnableActivity.Builder<I, O, AIC> {
 
-        return RunnableActivity.Builder<I, O, C>(
+        return RunnableActivity.Builder<I, O, AIC>(
             predecessor = predecessor,
             outputSerializer = outputSerializer,
             inputCombiner = input.combiner
@@ -323,12 +323,12 @@ abstract class ModelBuilderContext<C : ActivityInstanceContext> {
         predecessor: Identified,
         outputSerializer: SerializationStrategy<O>?,
         @BuilderInference
-        config: @ConfigurationDsl RunnableActivity.Builder<I, O, C>.() -> Unit
-    ): RunnableActivity.Builder<I, O, C> {
+        config: @ConfigurationDsl RunnableActivity.Builder<I, O, AIC>.() -> Unit
+    ): RunnableActivity.Builder<I, O, AIC> {
         contract {
             callsInPlace(config, InvocationKind.EXACTLY_ONCE)
         }
-        return RunnableActivity.Builder<I, O, C>(predecessor, outputSerializer = outputSerializer).apply(config)
+        return RunnableActivity.Builder<I, O, AIC>(predecessor, outputSerializer = outputSerializer).apply(config)
     }
 
 /*

@@ -15,29 +15,29 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.experimental.ExperimentalTypeInference
 
 
-fun <C : ActivityInstanceContext> runnableProcess(
+fun <AIC : ActivityInstanceContext> runnableProcess(
     name: String,
     owner: PrincipalCompat = SYSTEMPRINCIPAL,
     uuid: UUID = UUID.randomUUID(),
     @ConfigurationDsl
-    configureAction: ModelBuilderContext<C>.() -> Unit
+    configureAction: ModelBuilderContext<AIC>.() -> Unit
 ): ExecutableProcessModel {
-    val context = RootModelBuilderContextImpl<C>(name, owner, uuid).apply(configureAction)
+    val context = RootModelBuilderContextImpl<AIC>(name, owner, uuid).apply(configureAction)
     return ExecutableProcessModel(context.modelBuilder, true)
 }
 
-internal class RootModelBuilderContextImpl<C: ActivityInstanceContext>(
+internal class RootModelBuilderContextImpl<AIC: ActivityInstanceContext>(
     name: String,
     owner: PrincipalCompat,
     uuid: UUID,
-) : ModelBuilderContext<C>() {
+) : ModelBuilderContext<AIC>() {
     public override val modelBuilder: RootProcessModel.Builder = RootProcessModelBase.Builder().apply {
         this.name = name
         this.owner = owner
         this.uuid = uuid
     }
 
-    override fun compositeActivityContext(predecessor: Identified): CompositeModelBuilderContext<C> {
+    override fun compositeActivityContext(predecessor: Identified): CompositeModelBuilderContext<AIC> {
         return CompositeModelBuilderContextImpl(predecessor, this)
     }
 }

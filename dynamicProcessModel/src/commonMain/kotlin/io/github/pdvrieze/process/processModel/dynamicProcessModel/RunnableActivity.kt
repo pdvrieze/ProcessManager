@@ -42,7 +42,7 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
     builder: Builder<I, O, C>,
     newOwner: ProcessModel<*>,
     otherNodes: Iterable<ProcessNode.Builder>
-) : ActivityBase(builder.checkDefines(), newOwner, otherNodes), ExecutableActivity {
+) : MessageActivityBase(builder.checkDefines(), newOwner, otherNodes), ExecutableActivity {
     init {
         checkPredSuccCounts()
     }
@@ -67,7 +67,7 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
 
     override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
-    override fun builder(): Activity.Builder {
+    override fun builder(): MessageActivity.Builder {
         return Builder(this)
     }
 
@@ -160,7 +160,7 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
         }
     }
 
-    class Builder<I : Any, O : Any, C: ActivityInstanceContext> : BaseBuilder, ExecutableProcessNode.Builder {
+    class Builder<I : Any, O : Any, C: ActivityInstanceContext> : MessageActivityBase.Builder, ExecutableProcessNode.Builder {
 
         var inputCombiner: InputCombiner<I> = InputCombiner()
         val outputSerializer: SerializationStrategy<O>?
