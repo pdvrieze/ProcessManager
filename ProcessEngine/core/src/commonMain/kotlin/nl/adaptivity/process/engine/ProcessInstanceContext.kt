@@ -23,6 +23,7 @@ import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.processModel.MessageActivity
 import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.process.util.Identified
@@ -115,7 +116,7 @@ interface ProcessContextFactory<C : ActivityInstanceContext> {
             }
 
         override fun canBeAccessedBy(principal: PrincipalCompat?): Boolean {
-            val ar = (node.accessRestrictions ?: return true)
+            val ar = ((node as? MessageActivity)?.accessRestrictions ?: return true)
             return principal != null && ar.hasAccess(null, principal)
         }
     }

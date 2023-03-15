@@ -48,8 +48,8 @@ annotation class ProcessInstanceStorage
 
 typealias ProcessInstance3 = ProcessInstance<ActivityInstanceContext>
 
-class ProcessInstance<C : ActivityInstanceContext> : MutableHandleAware<SecureObject<ProcessInstance<C>>>,
-    SecureObject<ProcessInstance<C>>, IProcessInstance<C> {
+class ProcessInstance<AIC : ActivityInstanceContext> : MutableHandleAware<SecureObject<ProcessInstance<AIC>>>,
+    SecureObject<ProcessInstance<AIC>>, IProcessInstance<AIC> {
 
     private class InstanceFuture<T : ProcessNodeInstance<T,C>, N : ExecutableProcessNode, C : ActivityInstanceContext>(val origBuilder: ProcessNodeInstance.Builder<out ExecutableProcessNode, T, C>) :
         Future<T> {
@@ -820,7 +820,7 @@ class ProcessInstance<C : ActivityInstanceContext> : MutableHandleAware<SecureOb
 
     override val processModel: ExecutableModelCommon
 
-    val childNodes: Collection<SecureObject<ProcessNodeInstance<*, C>>>
+    val childNodes: Collection<SecureObject<ProcessNodeInstance<*, AIC>>>
 
     val parentActivity: Handle<SecureObject<ProcessNodeInstance<*, *>>>
 
@@ -860,15 +860,15 @@ class ProcessInstance<C : ActivityInstanceContext> : MutableHandleAware<SecureOb
     private val pendingJoinNodes
         get() = childNodes.asSequence()
             .map { it.withPermission() }
-            .filterIsInstance<JoinInstance<C>>()
+            .filterIsInstance<JoinInstance<AIC>>()
             .filter { !it.state.isFinal }
 
-    private val pendingJoins: Map<ExecutableJoin, JoinInstance<C>>
+    private val pendingJoins: Map<ExecutableJoin, JoinInstance<AIC>>
         get() =
             pendingJoinNodes.associateBy { it.node }
 
     //    private var _handle: Handle<SecureObject<ProcessInstance>>
-    override var handle: Handle<SecureObject<ProcessInstance<C>>>
+    override var handle: Handle<SecureObject<ProcessInstance<AIC>>>
         private set
 
     /**
@@ -890,7 +890,7 @@ class ProcessInstance<C : ActivityInstanceContext> : MutableHandleAware<SecureOb
     val ref: ProcessInstanceRef
         get() = ProcessInstanceRef(this)
 
-    private constructor(data: MutableProcessEngineDataAccess<C>, builder: Builder<C>) {
+    private constructor(data: MutableProcessEngineDataAccess<AIC>, builder: Builder<AIC>) {
         generation = builder.generation
         name = builder.instancename
         owner = builder.owner
@@ -900,10 +900,10 @@ class ProcessInstance<C : ActivityInstanceContext> : MutableHandleAware<SecureOb
         handle = builder.handle
         parentActivity = builder.parentActivity
 
-        val pending = builder.pendingChildren.asSequence().map { it as InstanceFuture<ProcessNodeInstance<*,C>, *, C> }
+        val pending = builder.pendingChildren.asSequence().map { it as InstanceFuture<ProcessNodeInstance<*,AIC>, *, AIC> }
 
-        val createdNodes = mutableListOf<ProcessNodeInstance<*, C>>()
-        val updatedNodes = mutableMapOf<Handle<SecureObject<ProcessNodeInstance<*, *>>>, ProcessNodeInstance<*, C>>()
+        val createdNodes = mutableListOf<ProcessNodeInstance<*, AIC>>()
+        val updatedNodes = mutableMapOf<Handle<SecureObject<ProcessNodeInstance<*, *>>>, ProcessNodeInstance<*, AIC>>()
         for (future in pending) {
             if (!future.origBuilder.handle.isValid) {
                 // Set the handle on the builder so that lookups in the future will be more correct.
@@ -932,23 +932,23 @@ class ProcessInstance<C : ActivityInstanceContext> : MutableHandleAware<SecureOb
     }
 
     constructor(
-        data: MutableProcessEngineDataAccess<C>,
+        data: MutableProcessEngineDataAccess<AIC>,
         processModel: ExecutableModelCommon,
         parentActivity: Handle<SecureObject<ProcessNodeInstance<*, *>>>,
-        body: Builder<C>.() -> Unit
-    ) : this(data, BaseBuilder<C>(processModel = processModel, parentActivity = parentActivity).apply(body))
+        body: Builder<AIC>.() -> Unit
+    ) : this(data, BaseBuilder<AIC>(processModel = processModel, parentActivity = parentActivity).apply(body))
 
     override fun withPermission() = this
 
-    private fun checkOwnership(node: ProcessNodeInstance<*, C>) {
+    private fun checkOwnership(node: ProcessNodeInstance<*, AIC>) {
         if (node.hProcessInstance != handle) throw ProcessException("The node is not owned by this instance")
     }
 
     @ProcessInstanceStorage
     inline fun update(
-        writableEngineData: MutableProcessEngineDataAccess<C>,
-        body: ExtBuilder<C>.() -> Unit
-    ): ProcessInstance<C> {
+        writableEngineData: MutableProcessEngineDataAccess<AIC>,
+        body: ExtBuilder<AIC>.() -> Unit
+    ): ProcessInstance<AIC> {
         val newValue = builder().apply(body)
         return newValue.__storeNewValueIfNeeded(writableEngineData, newValue).apply {
             assert(writableEngineData.instances[newValue.handle]?.withPermission() == this) {
@@ -957,11 +957,11 @@ class ProcessInstance<C : ActivityInstanceContext> : MutableHandleAware<SecureOb
         }
     }
 
-    fun builder() = ExtBuilder<C>(this)
+    fun builder() = ExtBuilder<AIC>(this)
 
     @OptIn(ProcessInstanceStorage::class)
     @Synchronized
-    fun finish(engineData: MutableProcessEngineDataAccess<C>): ProcessInstance<C> {
+    fun finish(engineData: MutableProcessEngineDataAccess<AIC>): ProcessInstance<AIC> {
         // This needs to update first as at this point the node state may not be valid.
         // TODO reduce the need to do a double update.
         update(engineData) {}.let { newInstance ->
@@ -991,24 +991,24 @@ class ProcessInstance<C : ActivityInstanceContext> : MutableHandleAware<SecureOb
         }
     }
 
-    override fun getChildNodeInstance(handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>): ProcessNodeInstance<*, C> {
+    override fun getChildNodeInstance(handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>): ProcessNodeInstance<*, AIC> {
         return childNodes
             .asSequence()
             .map { it.withPermission() }
             .first { it.handle == handle }
     }
 
-    override fun allChildNodeInstances(): Sequence<IProcessNodeInstance<C>> {
+    override fun allChildNodeInstances(): Sequence<IProcessNodeInstance<AIC>> {
         return childNodes.asSequence().map { it.withPermission() }
     }
 
     @Synchronized
-    fun getNodeInstances(identified: Identified): Sequence<ProcessNodeInstance<*, C>> {
+    fun getNodeInstances(identified: Identified): Sequence<ProcessNodeInstance<*, AIC>> {
         return childNodes.asSequence().map { it.withPermission() }.filter { it.node.id == identified.id }
     }
 
     @Synchronized
-    fun getNodeInstance(identified: Identified, entryNo: Int): ProcessNodeInstance<*, C>? {
+    fun getNodeInstance(identified: Identified, entryNo: Int): ProcessNodeInstance<*, AIC>? {
         return childNodes.asSequence().map { it.withPermission() }
             .firstOrNull { it.node.id == identified.id && it.entryNo == entryNo }
     }
@@ -1024,7 +1024,7 @@ class ProcessInstance<C : ActivityInstanceContext> : MutableHandleAware<SecureOb
         }
     }
 
-    fun getChild(nodeId: String, entryNo: Int): SecureObject<ProcessNodeInstance<*, C>>? {
+    fun getChild(nodeId: String, entryNo: Int): SecureObject<ProcessNodeInstance<*, AIC>>? {
         return childNodes.firstOrNull { it.withPermission().run { node.id == nodeId && this.entryNo == entryNo } }
     }
 
@@ -1047,9 +1047,9 @@ class ProcessInstance<C : ActivityInstanceContext> : MutableHandleAware<SecureOb
 
     @Synchronized
     fun getActivePredecessorsFor(
-        engineData: ProcessEngineDataAccess<C>,
-        join: JoinInstance<C>
-    ): Collection<ProcessNodeInstance<*, C>> {
+        engineData: ProcessEngineDataAccess<AIC>,
+        join: JoinInstance<AIC>
+    ): Collection<ProcessNodeInstance<*, AIC>> {
         return active.asSequence()
             .map { engineData.nodeInstance(it).withPermission() }
             .filter { it.node.isPredecessorOf(join.node) }
@@ -1058,15 +1058,15 @@ class ProcessInstance<C : ActivityInstanceContext> : MutableHandleAware<SecureOb
 
     @Synchronized
     fun getDirectSuccessors(
-        engineData: ProcessEngineDataAccess<C>,
-        predecessor: ProcessNodeInstance<*, C>
+        engineData: ProcessEngineDataAccess<AIC>,
+        predecessor: ProcessNodeInstance<*, AIC>
     ): Collection<Handle<SecureObject<ProcessNodeInstance<*, *>>>> {
         checkOwnership(predecessor)
         // TODO rewrite, this can be better with the children in the instance
         val result = ArrayList<Handle<SecureObject<ProcessNodeInstance<*, *>>>>(predecessor.node.successors.size)
 
         fun addDirectSuccessor(
-            candidate: ProcessNodeInstance<*, C>,
+            candidate: ProcessNodeInstance<*, AIC>,
             predecessor: Handle<SecureObject<ProcessNodeInstance<*, *>>>
         ) {
 

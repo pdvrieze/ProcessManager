@@ -24,6 +24,8 @@ interface MessageActivity : Activity {
      */
     val message: IXmlMessage?
 
+    val accessRestrictions: AccessRestriction<Nothing?>?
+
     interface Builder : Activity.Builder, ProcessNode.Builder {
         var message: IXmlMessage?
         @Deprecated("Names are not used anymore")
