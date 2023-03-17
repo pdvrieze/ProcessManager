@@ -171,7 +171,7 @@ class TestProcessEngine : ProcessEngineTestSupport<ActivityInstanceContext>() {
     @Test
     fun testConditionFalse() {
         val model = ExecutableProcessModel.build {
-            owner = modelOwnerPrincipal
+            owner = testModelOwnerPrincipal
             val start = startNode { id = "start" }
             val ac = activity { id = "ac"; predecessor = start.identifier; condition = ExecutableCondition.FALSE }
             val end = endNode { id = "end"; predecessor = ac }
@@ -190,7 +190,7 @@ class TestProcessEngine : ProcessEngineTestSupport<ActivityInstanceContext>() {
     @Test
     fun testConditionTrue() {
         val model = ExecutableProcessModel.build {
-            owner = modelOwnerPrincipal
+            owner = testModelOwnerPrincipal
             val start = startNode { id = "start" }
             val ac = activity { id = "ac"; predecessor = start.identifier; condition("true()") }
             val end = endNode { id = "end"; predecessor = ac }
@@ -422,7 +422,7 @@ class TestProcessEngine : ProcessEngineTestSupport<ActivityInstanceContext>() {
     private val simpleSplitModel: ExecutableProcessModel
         get() {
             return ExecutableProcessModel.build {
-                owner = modelOwnerPrincipal
+                owner = testModelOwnerPrincipal
                 val start = startNode {
                     id = "start"
                 }

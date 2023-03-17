@@ -148,7 +148,7 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode> {
 val XML_BUILDER_VISITOR = object : ProcessNode.Visitor<ProcessNode.Builder> {
     override fun visitStartNode(startNode: StartNode) = StartNodeBase.Builder(startNode)
 
-    override fun visitActivity(compositeActivity: CompositeActivity) =
+    override fun visitCompositeActivity(compositeActivity: CompositeActivity) =
         CompositeActivityBase.ReferenceBuilder(compositeActivity)
 
     override fun visitActivity(messageActivity: MessageActivity) = MessageActivityBase.Builder(messageActivity)

@@ -36,7 +36,7 @@ class TestLoanOrigination : ProcessEngineTestSupport<LoanActivityContext>() {
 
     @Test
     fun testCreateObjectModel() {
-        assertEquals("inputCustomerMasterData", LoanOriginationModel(modelOwnerPrincipal).inputCustomerMasterData.id)
+        assertEquals("inputCustomerMasterData", LoanOriginationModel(testModelOwnerPrincipal).inputCustomerMasterData.id)
     }
 
     @Test
@@ -48,7 +48,7 @@ class TestLoanOrigination : ProcessEngineTestSupport<LoanActivityContext>() {
 
     @Test
     fun testRunObjectModel() {
-        val model = ExecutableProcessModel(LoanOriginationModel(modelOwnerPrincipal).configurationBuilder)
+        val model = ExecutableProcessModel(LoanOriginationModel(testModelOwnerPrincipal).configurationBuilder)
         testRunModel(model)
     }
 

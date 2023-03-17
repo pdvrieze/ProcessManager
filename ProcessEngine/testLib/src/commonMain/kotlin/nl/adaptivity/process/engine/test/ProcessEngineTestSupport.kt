@@ -2,8 +2,7 @@ package nl.adaptivity.process.engine.test
 
 import net.devrieze.util.Handle
 import net.devrieze.util.MutableTransactionedHandleMap
-import net.devrieze.util.security.SecureObject
-import net.devrieze.util.security.SimplePrincipal
+import net.devrieze.util.security.*
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
@@ -36,7 +35,11 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>() {
             return StubProcessTransaction<C>(engineData)
         }
     }
-    val modelOwnerPrincipal = SimplePrincipal("modelOwner")
+    val testModelOwnerPrincipal = object : RolePrincipal {
+        override fun hasRole(role: String): Boolean = role == "admin"
+
+        override fun getName(): String = "modelOwner"
+    }
 
     private val ProcessInstance<C>.sortedFinished
         get() = finished.sortedBy { it.handleValue }
@@ -49,25 +52,25 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>() {
         model: ExecutableProcessModel,
         payload: CompactFragment? = null,
         noinline createProcessContextFactory: () -> ProcessContextFactory<C>,
-        body: (ProcessEngine<StubProcessTransaction<C>, C>, ContextProcessTransaction<C>, ExecutableProcessModel, HProcessInstance) -> R
+        body: (ProcessEngine<StubProcessTransaction<C>, C>, StubProcessTransaction<C>, ExecutableProcessModel, HProcessInstance) -> R
     ): R {
         val processEngine = doCreateRawEngine(createProcessContextFactory)
         processEngine.startTransaction().use { transaction ->
 
-            val modelHandle = processEngine.addProcessModel(transaction, model, modelOwnerPrincipal).handle
-            val instanceHandle = processEngine.startProcess(transaction, modelOwnerPrincipal, modelHandle, "testInstance",
+            val modelHandle = processEngine.addProcessModel(transaction, model, testModelOwnerPrincipal).handle
+            val instanceHandle = processEngine.startProcess(transaction, testModelOwnerPrincipal, modelHandle, "testInstance",
                 UUID.randomUUID(), payload)
 
             return body(processEngine, transaction, transaction.readableEngineData.processModel(modelHandle).mustExist(modelHandle).withPermission(), instanceHandle)
         }
     }
 
-    protected inline fun <R> testProcess(processEngineFactory: ProcessEngineFactory<C>, model: ExecutableProcessModel, payload: nl.adaptivity.xmlutil.util.CompactFragment? = null, body: (ProcessEngine<StubProcessTransaction<C>, C>, ContextProcessTransaction<C>, ExecutableProcessModel, HProcessInstance) -> R): R {
+    protected inline fun <R> testProcess(processEngineFactory: ProcessEngineFactory<C>, model: ExecutableProcessModel, payload: nl.adaptivity.xmlutil.util.CompactFragment? = null, body: (ProcessEngine<StubProcessTransaction<C>, C>, StubProcessTransaction<C>, ExecutableProcessModel, HProcessInstance) -> R): R {
         val processEngine = processEngineFactory(stubMessageService, stubTransactionFactory)
         processEngine.startTransaction().use { transaction ->
 
-            val modelHandle = processEngine.addProcessModel(transaction, model, modelOwnerPrincipal).handle
-            val instanceHandle = processEngine.startProcess(transaction, modelOwnerPrincipal, modelHandle, "testInstance",
+            val modelHandle = processEngine.addProcessModel(transaction, model, testModelOwnerPrincipal).handle
+            val instanceHandle = processEngine.startProcess(transaction, testModelOwnerPrincipal, modelHandle, "testInstance",
                 UUID.randomUUID(), payload)
 
             return body(processEngine, transaction, transaction.readableEngineData.processModel(modelHandle).mustExist(modelHandle).withPermission(), instanceHandle)
@@ -88,6 +91,10 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>() {
 
     protected fun ContextProcessTransaction<C>.getInstance(instanceHandle: HProcessInstance): ProcessInstance<C> {
         return readableEngineData.instance(instanceHandle).withPermission()
+    }
+
+    protected fun <R> ContextProcessTransaction<C>.withInstance(instanceHandle: HProcessInstance, body: ContextProcessTransaction<C>.(ProcessInstance<C>) -> R): R {
+        return body(getInstance(instanceHandle))
     }
 
     protected fun StubMessageService<C>.messageNode(transaction: ContextProcessTransaction<C>, index: Int): ProcessNodeInstance<*, C> {
@@ -203,7 +210,9 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>() {
                 processInstances, processNodeInstances,
                 autoTransition, logger,
                 processContextFactory
-            )
+            ).apply {
+                setSecurityProvider(OwnerOrObjectSecurityProvider(setOf("admin")))
+            }
         }
 
 
@@ -259,7 +268,7 @@ inline fun <R> ProcessEngineTestSupport<ActivityInstanceContext>.testRawEngine(
 inline fun <R> ProcessEngineTestSupport<ActivityInstanceContext>.testProcess(
     model: ExecutableProcessModel,
     payload: CompactFragment? = null,
-    body: (ProcessEngine<StubProcessTransaction<ActivityInstanceContext>, ActivityInstanceContext>, ContextProcessTransaction<ActivityInstanceContext>, ExecutableProcessModel, HProcessInstance) -> R
+    body: (ProcessEngine<StubProcessTransaction<ActivityInstanceContext>, ActivityInstanceContext>, StubProcessTransaction<ActivityInstanceContext>, ExecutableProcessModel, HProcessInstance) -> R
 ): R {
     return testProcess(model, payload, {ProcessContextFactory.DEFAULT}, body)
 }

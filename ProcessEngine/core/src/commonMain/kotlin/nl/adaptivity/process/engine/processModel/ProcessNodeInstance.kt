@@ -63,7 +63,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, C>, C: Activit
     final override val state: NodeInstanceState = Pending,
     results: Iterable<ProcessData> = emptyList(),
     val failureCause: Throwable? = null
-) : SecureObject<ProcessNodeInstance<T, C>>,
+) : SecureObject<T/*ProcessNodeInstance<T, C>*/>,
     ReadableHandleAware<SecureObject<ProcessNodeInstance<*, *>>>,
     IProcessNodeInstance<C> {
 
@@ -122,7 +122,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, C>, C: Activit
     private inline val asT
         get() = this as T
 
-    override fun withPermission(): ProcessNodeInstance<T, C> = this
+    override fun withPermission(): T = asT
 
     private fun hasDirectPredecessor(handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>): Boolean {
         return predecessors.any { it.handleValue == handle.handleValue }

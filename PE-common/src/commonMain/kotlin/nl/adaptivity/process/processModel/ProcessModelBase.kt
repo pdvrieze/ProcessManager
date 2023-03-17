@@ -16,27 +16,13 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.*
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.descriptors.PolymorphicKind
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.SerialKind
 import kotlinx.serialization.encoding.*
-import kotlinx.serialization.modules.EmptySerializersModule
-import kotlinx.serialization.modules.SerializersModule
 import net.devrieze.util.collection.ArrayAccess
-import net.devrieze.util.collection.replaceBy
-import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.process.util.MutableIdentifyableSet
-import nl.adaptivity.serialutil.decodeElements
-import nl.adaptivity.serialutil.simpleSerialClassDesc
-import nl.adaptivity.xmlutil.serialization.XmlPolyChildren
-import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import kotlin.jvm.JvmStatic
 
 /**
@@ -193,8 +179,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode> : ProcessModel<NodeT> {
                 it.visit(object : ProcessNode.Visitor<ProcessNode.Builder> {
                     override fun visitStartNode(startNode: StartNode) = startNodeBuilder(startNode)
                     override fun visitActivity(messageActivity: MessageActivity) = activityBuilder(messageActivity)
-                    override fun visitActivity(compositeActivity: CompositeActivity) =
-                        activityBuilder(compositeActivity)
+                    override fun visitCompositeActivity(compositeActivity: CompositeActivity) = activityBuilder(compositeActivity)
 
                     override fun visitSplit(split: Split) = splitBuilder(split)
                     override fun visitJoin(join: Join) = joinBuilder(join)

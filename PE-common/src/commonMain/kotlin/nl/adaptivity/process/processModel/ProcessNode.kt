@@ -118,17 +118,18 @@ interface ProcessNode : Positioned, Identifiable {
     }
 
     interface Visitor<R> {
-        fun visitStartNode(startNode: StartNode): R
+        fun visitStartNode(startNode: StartNode): R = visitGeneralNode(startNode)
         fun visitActivity(messageActivity: MessageActivity): R = visitGenericActivity(messageActivity)
-        fun visitActivity(compositeActivity: CompositeActivity): R = visitGenericActivity(compositeActivity)
+        fun visitCompositeActivity(compositeActivity: CompositeActivity): R = visitGenericActivity(compositeActivity)
 
-        fun visitGenericActivity(activity: Activity): R {
-            throw UnsupportedOperationException("This visitor does not support handling generic activities")
+        fun visitGenericActivity(activity: Activity): R = visitGeneralNode(activity)
+
+        fun visitSplit(split: Split): R = visitGeneralNode(split)
+        fun visitJoin(join: Join): R = visitGeneralNode(join)
+        fun visitEndNode(endNode: EndNode): R = visitGeneralNode(endNode)
+        fun visitGeneralNode(node: ProcessNode): R {
+            error("Unsupported node type: ${node}")
         }
-
-        fun visitSplit(split: Split): R
-        fun visitJoin(join: Join): R
-        fun visitEndNode(endNode: EndNode): R
     }
 }
 

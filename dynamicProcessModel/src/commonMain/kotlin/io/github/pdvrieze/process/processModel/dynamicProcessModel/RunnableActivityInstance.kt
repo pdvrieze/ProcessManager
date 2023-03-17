@@ -41,25 +41,20 @@ class RunnableActivityInstance<I : Any, O : Any, C: ActivityInstanceContext>(bui
             return node.onActivityProvided(engineData, this)
         }
 
-
         override fun doStartTask(engineData: MutableProcessEngineDataAccess<C>): Boolean {
             val shouldProgress = tryCreateTask { node.canStartTaskAutoProgress(this) }
 
             if (shouldProgress) {
-                val n: RunnableActivity<I, O, C> = node
 
                 val resultFragment = tryRunTask {
                     val build = build()
                     val icontext = engineData.processContextFactory.newActivityInstanceContext(engineData, this)
                     val input: I = with(build) { icontext.getInputData(processInstanceBuilder) }
-                    val action: RunnableAction<I, O, C> = n.action
+                    val action: RunnableAction<I, O, C> = node.action
                     val context = engineData.processContextFactory.newActivityInstanceContext(engineData, this)
                     val result: O = context.action(input)
 
-//                engineData.instance(hChildInstance)
-//                    .withPermission()
-//                    .start(engineData, build().getPayload(engineData))
-                    n.outputSerializer?.let { os ->
+                    node.outputSerializer?.let { os ->
                         CompactFragment { writer ->
                             XML.defaultInstance.encodeToWriter(writer, os, result)
                         }

@@ -315,24 +315,6 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
     }
 
 
-    enum class Permissions : SecurityProvider.Permission {
-        /** Attempt to find a model */
-        FIND_MODEL,
-        ADD_MODEL,
-        ASSIGN_OWNERSHIP,
-        VIEW_ALL_INSTANCES,
-        CANCEL_ALL,
-        UPDATE_MODEL,
-        LIST_MODELS,
-        CHANGE_OWNERSHIP,
-        VIEW_INSTANCE,
-        CANCEL,
-        LIST_INSTANCES,
-        TICKLE_INSTANCE,
-        TICKLE_NODE,
-        START_PROCESS;
-    }
-
     fun invalidateModelCache(handle: Handle<SecureObject<ExecutableProcessModel>>) {
         engineData.invalidateCachePM(handle)
     }
@@ -348,7 +330,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
         engineData: ProcessEngineDataAccess<*>,
         user: Principal
     ): Iterable<SecuredObject<ExecutableProcessModel>> {
-        securityProvider.ensurePermission(Permissions.LIST_MODELS, user)
+        securityProvider.ensurePermission(ProcessEnginePermissions.LIST_MODELS, user)
         if (user == SYSTEMPRINCIPAL) return engineData.processModels
         return engineData.processModels.mapNotNull {
             it.ifPermitted(securityProvider, SecureObject.Permissions.READ, user)
@@ -371,7 +353,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
         basepm: RootProcessModel.Builder,
         user: Principal
     ): IProcessModelRef<ExecutableProcessNode, ExecutableProcessModel> {
-        securityProvider.ensurePermission(Permissions.ADD_MODEL, user)
+        securityProvider.ensurePermission(ProcessEnginePermissions.ADD_MODEL, user)
 
         return engineData.inWriteTransaction(transaction) {
             val pastHandle = basepm.uuid?.let { uuid ->
@@ -384,7 +366,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
                 val uuid = basepm.uuid ?: UUID.randomUUID().also { basepm.uuid = it }
 
                 basepm.owner.let { baseOwner ->
-                    securityProvider.ensurePermission(Permissions.ASSIGN_OWNERSHIP, user, baseOwner)
+                    securityProvider.ensurePermission(ProcessEnginePermissions.ASSIGN_OWNERSHIP, user, baseOwner)
                 }
 
                 val pm = ExecutableProcessModel(basepm, false)
@@ -401,7 +383,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
         pm: ExecutableProcessModel,
         user: Principal
     ): IProcessModelRef<ExecutableProcessNode, ExecutableProcessModel> {
-        securityProvider.ensurePermission(Permissions.ADD_MODEL, user)
+        securityProvider.ensurePermission(ProcessEnginePermissions.ADD_MODEL, user)
 
         return engineData.inWriteTransaction(transaction) {
             val pastHandle = pm.uuid?.let { uuid ->
@@ -414,7 +396,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
                 val uuid = pm.uuid ?: throw ProcessException("Missing UUID for process model")
 
                 pm.owner.let { baseOwner ->
-                    securityProvider.ensurePermission(Permissions.ASSIGN_OWNERSHIP, user, baseOwner)
+                    securityProvider.ensurePermission(ProcessEnginePermissions.ASSIGN_OWNERSHIP, user, baseOwner)
                 }
 
                 ProcessModelRef<ExecutableProcessNode, ExecutableProcessModel>(pm.name, processModels.put(pm), uuid)
@@ -473,7 +455,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
      * @param newName The new name
      */
     fun renameProcessModel(user: Principal, handle: Handle<ExecutableProcessModel>, newName: String) {
-        engineData.inWriteTransaction(user, securityProvider.ensurePermission(Permissions.FIND_MODEL, user)) {
+        engineData.inWriteTransaction(user, securityProvider.ensurePermission(ProcessEnginePermissions.FIND_MODEL, user)) {
             processModels[handle].shouldExist(handle).withPermission(
                 securityProvider, SecureObject.Permissions.RENAME,
                 user
@@ -509,12 +491,12 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
         if (oldModel.owner == SYSTEMPRINCIPAL) throw IllegalStateException("The old model has no owner")
 
         securityProvider.ensurePermission(SecureObject.Permissions.READ, user, oldModel)
-        securityProvider.ensurePermission(Permissions.UPDATE_MODEL, user, oldModel)
+        securityProvider.ensurePermission(ProcessEnginePermissions.UPDATE_MODEL, user, oldModel)
 
         if (processModel.owner == SYSTEMPRINCIPAL) { // If no owner was set, use the old one.
             ExecutableProcessModel(processModel.builder().apply { owner = oldModel.owner })
         } else if (oldModel.owner.name != processModel.owner.name) {
-            securityProvider.ensurePermission(Permissions.CHANGE_OWNERSHIP, user, oldModel)
+            securityProvider.ensurePermission(ProcessEnginePermissions.CHANGE_OWNERSHIP, user, oldModel)
         }
         if (!engineData.processModels.contains(handle)) {
             throw HandleNotFoundException("The process model with handle $handle could not be found")
@@ -552,7 +534,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
      * @return All instances.
      */
     fun getOwnedProcessInstances(transaction: TR, user: Principal): Iterable<ProcessInstance<C>> {
-        securityProvider.ensurePermission(Permissions.LIST_INSTANCES, user)
+        securityProvider.ensurePermission(ProcessEnginePermissions.LIST_INSTANCES, user)
         // If security allows this, return an empty list.
         engineData.inReadonlyTransaction(transaction) {
             return instances.map {
@@ -585,7 +567,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
         user: Principal
     ): ProcessInstance<C> {
         return engineData.inReadonlyTransaction(transaction) {
-            instances[handle].shouldExist(handle).withPermission(securityProvider, Permissions.VIEW_INSTANCE, user) {
+            instances[handle].shouldExist(handle).withPermission(securityProvider, ProcessEnginePermissions.VIEW_INSTANCE, user) {
                 it
             }
         }
@@ -612,7 +594,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
                 invalidateCachePI(Handle.invalid())
                 invalidateCachePNI(Handle.invalid())
 
-                securityProvider.ensurePermission(Permissions.TICKLE_INSTANCE, user, (instances[handle.coerce<C>()]?: return false))
+                securityProvider.ensurePermission(ProcessEnginePermissions.TICKLE_INSTANCE, user, (instances[handle.coerce<C>()]?: return false))
 
                 updateInstance(handle) {
                     tickle(this@run, messageService)
@@ -768,7 +750,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
     ): ProcessInstance<C> {
         engineData.inWriteTransaction(transaction) {
             instances[handle].shouldExist(handle).withPermission(
-                securityProvider, Permissions.CANCEL,
+                securityProvider, ProcessEnginePermissions.CANCEL,
                 user
             ) { instance ->
                 try {
@@ -791,7 +773,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
      */
     @Throws(SQLException::class)
     fun cancelAll(transaction: TR, user: Principal) {
-        securityProvider.ensurePermission(Permissions.CANCEL_ALL, user)
+        securityProvider.ensurePermission(ProcessEnginePermissions.CANCEL_ALL, user)
         engineData.inWriteTransaction(transaction) {
             (nodeInstances as MutableHandleMap).clear()
             instances.clear()
@@ -899,7 +881,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
     @Throws(SQLException::class)
     fun finishTask(
         transaction: TR,
-        handle: Handle<SecureObject<ProcessNodeInstance<*, C>>>,
+        handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>,
         payload: ICompactFragment?,
         user: Principal
     ): ProcessNodeInstance<*, C> {

@@ -54,14 +54,14 @@ abstract class BaseSecurityProvider : SecurityProvider {
 
     override fun ensurePermission(permission: SecurityProvider.Permission,
                                   subject: Principal?,
-                                  secureObject: SecureObject<*>): SecurityProvider.PermissionResult {
+                                  secureObject: SecuredObject<*>): SecurityProvider.PermissionResult {
         return ensurePermission(getPermission(permission, subject, secureObject),
                                 " denied permission to ${subject?.name} to perform $permission on $secureObject. To allow this set a security provider.")
     }
 
     override fun hasPermission(permission: SecurityProvider.Permission,
                                subject: Principal,
-                               secureObject: SecureObject<*>): Boolean {
+                               secureObject: SecuredObject<*>): Boolean {
         return getPermission(permission, subject, secureObject) === GRANTED
     }
 

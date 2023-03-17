@@ -109,7 +109,7 @@ interface MutableProcessEngineDataAccess<C: ActivityInstanceContext> : ProcessEn
     }
 
     fun updateNodeInstance(
-        hNodeInstance: Handle<SecureObject<ProcessNodeInstance<*, C>>>,
+        hNodeInstance: Handle<SecureObject<ProcessNodeInstance<*, *>>>,
         transform: ProcessNodeInstance.Builder<*, *, C>.() -> Unit
     ): SecureObject<ProcessNodeInstance<*, C>> {
         updateInstance(nodeInstance(hNodeInstance).shouldExist(hNodeInstance).withPermission().hProcessInstance) {

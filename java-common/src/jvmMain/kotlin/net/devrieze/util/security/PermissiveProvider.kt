@@ -26,20 +26,26 @@ import java.security.Principal
  */
 class PermissiveProvider : BaseSecurityProvider() {
 
-    override fun getPermission(permission: SecurityProvider.Permission,
-                               subject: Principal?,
-                               secureObject: SecureObject<*>): SecurityProvider.PermissionResult {
+    override fun getPermission(
+        permission: SecurityProvider.Permission,
+        subject: Principal?,
+        secureObject: SecuredObject<*>
+    ): SecurityProvider.PermissionResult {
         return SecurityProvider.PermissionResult.GRANTED
     }
 
-    override fun getPermission(permission: SecurityProvider.Permission,
-                               subject: Principal?): SecurityProvider.PermissionResult {
+    override fun getPermission(
+        permission: SecurityProvider.Permission,
+        subject: Principal?
+    ): SecurityProvider.PermissionResult {
         return SecurityProvider.PermissionResult.GRANTED
     }
 
-    override fun getPermission(permission: SecurityProvider.Permission,
-                               subject: Principal?,
-                               objectPrincipal: Principal): SecurityProvider.PermissionResult {
+    override fun getPermission(
+        permission: SecurityProvider.Permission,
+        subject: Principal?,
+        objectPrincipal: Principal
+    ): SecurityProvider.PermissionResult {
         return SecurityProvider.PermissionResult.GRANTED
     }
 

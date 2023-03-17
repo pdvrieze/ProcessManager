@@ -90,7 +90,7 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
 
     override fun <R> visit(visitor: ProcessNode.Visitor<R>): R = when {
         childModel == null -> visitor.visitActivity(messageActivity = this)
-        else               -> visitor.visitActivity(compositeActivity = this)
+        else               -> visitor.visitCompositeActivity(compositeActivity = this)
     }
 
 }

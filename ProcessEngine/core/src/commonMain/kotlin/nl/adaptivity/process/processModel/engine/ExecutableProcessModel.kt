@@ -160,7 +160,7 @@ val EXEC_BUILDER_VISITOR = object : ProcessNode.Visitor<ProcessNode.Builder> {
 
     override fun visitActivity(messageActivity: MessageActivity) = MessageActivityBase.Builder(messageActivity)
 
-    override fun visitActivity(compositeActivity: CompositeActivity) =
+    override fun visitCompositeActivity(compositeActivity: CompositeActivity) =
         CompositeActivityBase.ReferenceBuilder(compositeActivity)
 
     override fun visitSplit(split: Split) = ExecutableSplit.Builder(split)

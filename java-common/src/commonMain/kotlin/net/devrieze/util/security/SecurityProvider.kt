@@ -45,6 +45,52 @@ interface SecurityProvider {
         UNAUTHENTICATED
     }
 
+
+    /**
+     * Result type for intermediate decisions.
+     */
+    enum class IntermediatePermissionDecision {
+        ALWAYS_ALLOW,
+        ALLOW,
+        PASS,
+        DENY,
+        ALWAYS_DENY;
+
+        infix fun and(otherProducer: () -> IntermediatePermissionDecision) = when(this) {
+            ALWAYS_ALLOW, ALWAYS_DENY, DENY -> this
+            ALLOW, PASS -> otherProducer()
+        }
+
+        infix fun andBool(otherProducer: () -> Boolean?) = when(this) {
+            ALWAYS_ALLOW, ALWAYS_DENY, DENY -> this
+            ALLOW, PASS -> when (otherProducer()) {
+                true -> ALLOW
+                null -> this // This is a pass
+                else -> DENY
+            }
+        }
+
+        infix fun or(otherProducer: () -> IntermediatePermissionDecision) = when(this) {
+            ALWAYS_ALLOW, ALWAYS_DENY, ALLOW -> this
+            PASS, DENY -> otherProducer()
+        }
+
+        infix fun orBool(otherProducer: () -> Boolean?) = when(this) {
+            ALWAYS_ALLOW, ALWAYS_DENY, ALLOW -> this
+            PASS, DENY -> when(otherProducer()) {
+                true -> ALLOW
+                else -> this // even null either stays pass or deny
+            }
+        }
+
+        fun toPermissionResult(): PermissionResult = when(this) {
+            ALLOW, ALWAYS_ALLOW -> PermissionResult.GRANTED
+            else -> PermissionResult.DENIED
+        }
+    }
+
+
+
     /**
      * Ensure that the user has the given permission.
      *
@@ -79,7 +125,7 @@ interface SecurityProvider {
      * @throws AuthenticationNeededException Thrown if the user has no permission.
      * @return The result. This should always be [PermissionResult.GRANTED].
      */
-    fun ensurePermission(permission: Permission, subject: Principal?, secureObject: SecureObject<*>): PermissionResult
+    fun ensurePermission(permission: Permission, subject: Principal?, secureObject: SecuredObject<*>): PermissionResult
 
     /**
      * Determine whether the user has the permission given
@@ -90,9 +136,9 @@ interface SecurityProvider {
      * @return `true` if the user has the permission,
      * `false` if not.
      */
-    fun hasPermission(permission: Permission, subject: Principal, secureObject: SecureObject<*>): Boolean
+    fun hasPermission(permission: Permission, subject: Principal, secureObject: SecuredObject<*>): Boolean
 
-    fun getPermission(permission: Permission, subject: Principal?, secureObject: SecureObject<*>): PermissionResult
+    fun getPermission(permission: Permission, subject: Principal?, secureObject: SecuredObject<*>): PermissionResult
 
     /**
      * Determine whether the user has the given permission.
@@ -104,6 +150,9 @@ interface SecurityProvider {
      */
     fun hasPermission(permission: Permission, subject: Principal): Boolean
 
+    /**
+     * Determine whether the given permission is held by the subject
+     */
     fun getPermission(permission: Permission, subject: Principal?): PermissionResult
 
     /**
@@ -118,6 +167,9 @@ interface SecurityProvider {
      */
     fun hasPermission(permission: Permission, subject: Principal, objectPrincipal: Principal): Boolean
 
+    /**
+     * Determine whether the subject has the given permission in relation to the specific object
+     */
     fun getPermission(permission: Permission, subject: Principal?, objectPrincipal: Principal): PermissionResult
 
     companion object {

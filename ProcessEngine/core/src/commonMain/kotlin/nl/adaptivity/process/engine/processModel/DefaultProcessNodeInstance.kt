@@ -19,22 +19,26 @@ package nl.adaptivity.process.engine.processModel
 import net.devrieze.util.Handle
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
+import net.devrieze.util.security.SecurityProvider
+import net.devrieze.util.security.SecurityProvider.IntermediatePermissionDecision
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.MessageSendingResult
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.impl.getClass
 import nl.adaptivity.process.processModel.MessageActivity
+import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.XmlMessage
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.assert
+import nl.adaptivity.util.net.devrieze.util.security.ActiveSecureObject
 import nl.adaptivity.xmlutil.XmlDeserializerFactory
 import nl.adaptivity.xmlutil.XmlReader
 
 /**
  * Class to represent the instanciation of a node. Subclasses may add behaviour.
  */
-class DefaultProcessNodeInstance<C: ActivityInstanceContext> : ProcessNodeInstance<DefaultProcessNodeInstance<C>, C> {
+class DefaultProcessNodeInstance<C: ActivityInstanceContext> : ProcessNodeInstance<DefaultProcessNodeInstance<C>, C>, ActiveSecureObject<DefaultProcessNodeInstance<C>> {
 
     /**
      * @param node The node that this is an instance of.
@@ -99,6 +103,20 @@ class DefaultProcessNodeInstance<C: ActivityInstanceContext> : ProcessNodeInstan
 
     override fun withPermission() = this
 
+    override fun hasPermission(
+        subject: PrincipalCompat,
+        permission: SecurityProvider.Permission
+    ): IntermediatePermissionDecision {
+        if (node !is MessageActivity) return IntermediatePermissionDecision.PASS
+        val ar = node.accessRestrictions ?: return IntermediatePermissionDecision.PASS
+        return when {
+            ar.hasAccess(this, subject, permission) ->
+                IntermediatePermissionDecision.ALLOW
+            else ->
+                IntermediatePermissionDecision.DENY
+        }
+    }
+
     override fun builder(processInstanceBuilder: ProcessInstance.Builder<C>): ExtBuilder<out ExecutableProcessNode, DefaultProcessNodeInstance<C>, C> {
         return ExtBuilderImpl(this, processInstanceBuilder)
     }
@@ -150,21 +168,26 @@ class DefaultProcessNodeInstance<C: ActivityInstanceContext> : ProcessNodeInstan
 
                 val shouldProgress = tryCreateTask { node.canProvideTaskAutoProgress(engineData, this) }
 
-                if (node is MessageActivity) {
-                    val preparedMessage = messageService.createMessage(node.message ?: XmlMessage())
-                    val sendingResult = tryCreateTask {
-                        val aic = createActivityContext(engineData)
-                        messageService.sendMessage(engineData, preparedMessage, aic)// TODO remove cast
+                return node.visit(object : ProcessNode.Visitor<Boolean> {
+                    override fun visitGeneralNode(node: ProcessNode): Boolean {
+                        return shouldProgress
                     }
-                    when (sendingResult) {
-                        MessageSendingResult.SENT -> state = NodeInstanceState.Sent
-                        MessageSendingResult.ACKNOWLEDGED -> state = NodeInstanceState.Acknowledged
-                        MessageSendingResult.FAILED -> failTaskCreation(ProcessException("Failure to send message"))
-                    }
-                    store(engineData)
-                }
 
-                return shouldProgress
+                    override fun visitActivity(messageActivity: MessageActivity): Boolean {
+                        val preparedMessage = messageService.createMessage(messageActivity.message ?: XmlMessage())
+                        val sendingResult = tryCreateTask {
+                            val aic = createActivityContext(engineData)
+                            messageService.sendMessage(engineData, preparedMessage, aic)// TODO remove cast
+                        }
+                        when (sendingResult) {
+                            MessageSendingResult.SENT -> state = NodeInstanceState.Sent
+                            MessageSendingResult.ACKNOWLEDGED -> state = NodeInstanceState.Acknowledged
+                            MessageSendingResult.FAILED -> failTaskCreation(ProcessException("Failure to send message"))
+                        }
+                        store(engineData)
+                        return false
+                    }
+                })
 
             }
 

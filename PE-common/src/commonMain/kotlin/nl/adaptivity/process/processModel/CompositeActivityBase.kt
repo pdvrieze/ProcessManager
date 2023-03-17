@@ -47,7 +47,7 @@ abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
         return ReferenceBuilder(this)
     }
 
-    override fun <R> visit(visitor: ProcessNode.Visitor<R>): R = visitor.visitActivity(this)
+    override fun <R> visit(visitor: ProcessNode.Visitor<R>): R = visitor.visitCompositeActivity(this)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true

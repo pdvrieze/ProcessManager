@@ -17,7 +17,7 @@
 package net.devrieze.util.security
 
 import net.devrieze.util.security.SecurityProvider.PermissionResult
-import java.security.Principal
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 /**
  * SecurityProvider that is sensible in allowing only owners and admins to perform operations.
@@ -26,12 +26,13 @@ class OwnerOnlySecurityProvider(val adminRoles:Set<String>) : BaseSecurityProvid
 
   constructor(vararg adminRoles: String): this(setOf(*adminRoles))
 
-  override fun getPermission(permission: SecurityProvider.Permission, subject: Principal?, secureObject: SecureObject<*>): PermissionResult {
+  override fun getPermission(permission: SecurityProvider.Permission, subject: PrincipalCompat?, securedObject: SecuredObject<*>): PermissionResult {
     if (subject==null) return PermissionResult.UNAUTHENTICATED
     if (subject is SYSTEMPRINCIPAL) { return PermissionResult.GRANTED }
-    val owner = secureObject.owner
+    val owner = (securedObject as? SecureObject<*>)?.owner ?: return PermissionResult.DENIED
     if (owner is SYSTEMPRINCIPAL) {
-      if (subject is RolePrincipal && adminRoles.any { subject.hasRole(it) }) return PermissionResult.GRANTED
+      if (subject is RolePrincipal && adminRoles.any { subject.hasRole(it) })
+          return PermissionResult.GRANTED
 
       return PermissionResult.DENIED
     }
@@ -41,15 +42,20 @@ class OwnerOnlySecurityProvider(val adminRoles:Set<String>) : BaseSecurityProvid
   }
 
   override fun getPermission(permission: SecurityProvider.Permission,
-                             subject: Principal?): PermissionResult {
+                             subject: PrincipalCompat?): PermissionResult {
     return if (subject==null) PermissionResult.UNAUTHENTICATED else PermissionResult.GRANTED
   }
 
-  override fun getPermission(permission: SecurityProvider.Permission, subject: Principal?, objectPrincipal: Principal): PermissionResult {
+  override fun getPermission(permission: SecurityProvider.Permission, subject: PrincipalCompat?, objectPrincipal: Principal): PermissionResult {
     if (subject==null) return PermissionResult.UNAUTHENTICATED
-    if (subject== net.devrieze.util.security.SYSTEMPRINCIPAL) { return PermissionResult.GRANTED }
+
+    if (subject== SYSTEMPRINCIPAL) { return PermissionResult.GRANTED }
+
     if (subject == objectPrincipal) { return PermissionResult.GRANTED }
-    if (subject is RolePrincipal) { if (adminRoles.any { subject.hasRole(it) }) return PermissionResult.GRANTED }
+
+    if (subject is RolePrincipal && adminRoles.any { subject.hasRole(it) })
+        return PermissionResult.GRANTED
+
     return PermissionResult.DENIED
   }
 }

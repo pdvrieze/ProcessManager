@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.Serializable
 import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.CompositeDecoder
@@ -326,7 +325,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
                 it.visit(object : ProcessNode.Visitor<ProcessNode.Builder> {
                     override fun visitStartNode(startNode: StartNode) = startNodeBuilder(startNode)
                     override fun visitActivity(messageActivity: MessageActivity) = activityBuilder(messageActivity)
-                    override fun visitActivity(compositeActivity: CompositeActivity) =
+                    override fun visitCompositeActivity(compositeActivity: CompositeActivity) =
                         activityBuilder(compositeActivity)
 
                     override fun visitSplit(split: Split) = splitBuilder(split)

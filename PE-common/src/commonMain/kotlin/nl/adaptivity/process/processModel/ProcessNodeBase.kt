@@ -291,8 +291,7 @@ abstract class ProcessNodeBase : ProcessNode {
 
         companion object {
             operator fun invoke(source: ProcessNode): SerialDelegate {
-                return source.visit(object :
-                                        ProcessNode.Visitor<SerialDelegate> {
+                return source.visit(object : ProcessNode.Visitor<SerialDelegate> {
                     override fun visitStartNode(startNode: StartNode): SerialDelegate {
                         return StartNodeBase.SerialDelegate(startNode)
                     }
@@ -301,7 +300,7 @@ abstract class ProcessNodeBase : ProcessNode {
                         return ActivityBase.SerialDelegate(messageActivity)
                     }
 
-                    override fun visitActivity(compositeActivity: CompositeActivity): SerialDelegate {
+                    override fun visitCompositeActivity(compositeActivity: CompositeActivity): SerialDelegate {
                         return ActivityBase.SerialDelegate(compositeActivity)
                     }
 

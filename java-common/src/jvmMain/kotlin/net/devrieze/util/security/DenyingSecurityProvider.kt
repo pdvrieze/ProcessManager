@@ -21,27 +21,33 @@ import java.security.Principal
 
 class DenyingSecurityProvider : BaseSecurityProvider() {
 
-  override fun getPermission(permission: SecurityProvider.Permission,
-                             subject: Principal?,
-                             secureObject: SecureObject<*>) = when(subject) {
-                               net.devrieze.util.security.SYSTEMPRINCIPAL -> SecurityProvider.PermissionResult.GRANTED
-                               null                                       -> SecurityProvider.PermissionResult.UNAUTHENTICATED
-                               else                                       -> SecurityProvider.PermissionResult.DENIED
-                             }
+    override fun getPermission(
+        permission: SecurityProvider.Permission,
+        subject: Principal?,
+        secureObject: SecuredObject<*>
+    ) = when (subject) {
+        SYSTEMPRINCIPAL -> SecurityProvider.PermissionResult.GRANTED
+        null -> SecurityProvider.PermissionResult.UNAUTHENTICATED
+        else -> SecurityProvider.PermissionResult.DENIED
+    }
 
-  override fun getPermission(permission: SecurityProvider.Permission,
-                             subject: Principal?) = when(subject) {
-    net.devrieze.util.security.SYSTEMPRINCIPAL -> SecurityProvider.PermissionResult.GRANTED
-    null                                       -> SecurityProvider.PermissionResult.UNAUTHENTICATED
-    else                                       -> SecurityProvider.PermissionResult.DENIED
-  }
+    override fun getPermission(
+        permission: SecurityProvider.Permission,
+        subject: Principal?
+    ) = when (subject) {
+        SYSTEMPRINCIPAL -> SecurityProvider.PermissionResult.GRANTED
+        null -> SecurityProvider.PermissionResult.UNAUTHENTICATED
+        else -> SecurityProvider.PermissionResult.DENIED
+    }
 
-  override fun getPermission(permission: SecurityProvider.Permission,
-                             subject: Principal?,
-                             objectPrincipal: Principal) = when(subject) {
-    net.devrieze.util.security.SYSTEMPRINCIPAL -> SecurityProvider.PermissionResult.GRANTED
-    null                                       -> SecurityProvider.PermissionResult.UNAUTHENTICATED
-    else                                       -> SecurityProvider.PermissionResult.DENIED
-  }
+    override fun getPermission(
+        permission: SecurityProvider.Permission,
+        subject: Principal?,
+        objectPrincipal: Principal
+    ) = when (subject) {
+        SYSTEMPRINCIPAL -> SecurityProvider.PermissionResult.GRANTED
+        null -> SecurityProvider.PermissionResult.UNAUTHENTICATED
+        else -> SecurityProvider.PermissionResult.DENIED
+    }
 
 }

@@ -70,36 +70,19 @@ kotlin {
                 implementation(libs.xmlutil.core)
                 implementation(kotlin("test"))
                 implementation(kotlin("test-annotations-common"))
+                implementation(project(":ProcessEngine:testLib"))
             }
         }
-        val javaMain by creating {
-            dependsOn(commonMain)
+        val jvmMain by getting {
             dependencies {
                 implementation(libs.xmlutil.xmlserializable)
             }
         }
-        val jvmMain by getting {
-            dependsOn(javaMain)
-            dependencies {
-            }
-        }
         val jvmTest by getting {
             dependencies {
-
+                implementation(kotlin("test-junit5"))
             }
         }
-/*
-        val androidMain by getting {
-            dependsOn(javaMain)
-            dependencies {
-            }
-        }
-        val androidTest by getting {
-            dependencies {
-                runtimeOnly(libs.kxml2)
-            }
-        }
-*/
     }
 
 }

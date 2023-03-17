@@ -117,7 +117,7 @@ interface ProcessContextFactory<C : ActivityInstanceContext> {
 
         override fun canBeAccessedBy(principal: PrincipalCompat?): Boolean {
             val ar = ((node as? MessageActivity)?.accessRestrictions ?: return true)
-            return principal != null && ar.hasAccess(null, principal)
+            return principal != null && ar.hasAccess(null, principal, ProcessEnginePermissions.ASSIGNED_TO_ACTIVITY)
         }
     }
 }
