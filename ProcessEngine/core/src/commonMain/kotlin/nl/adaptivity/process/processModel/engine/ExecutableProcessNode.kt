@@ -114,19 +114,18 @@ interface ExecutableProcessNode : ProcessNode, Identified {
      *
      * @return `true` if the task can/must be automatically taken
      */
-    fun <C: ActivityInstanceContext> provideTask(
+    fun <C: ActivityInstanceContext> canProvideTaskAutoProgress(
         engineData: ProcessEngineDataAccess<C>,
         instanceBuilder: ProcessNodeInstance.Builder<*, *, C>
-    ): Boolean
-        = true
+    ): Boolean = true
 
-    fun <C: ActivityInstanceContext> takeTask(
+    fun <C: ActivityInstanceContext> canTakeTaskAutoProgress(
         activityContext: C,
         instance: ProcessNodeInstance.Builder<*, *, C>,
         assignedUser: PrincipalCompat?
     ): Boolean = true
 
-    fun <C: ActivityInstanceContext> startTask(instance: ProcessNodeInstance.Builder<*, *, C>): Boolean = true
+    fun <C: ActivityInstanceContext> canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *, C>): Boolean = true
 
     private fun preceeds(node: ExecutableProcessNode, reference: ExecutableProcessNode, seenIds: MutableSet<String>):Boolean {
         if (node in reference.predecessors) return true

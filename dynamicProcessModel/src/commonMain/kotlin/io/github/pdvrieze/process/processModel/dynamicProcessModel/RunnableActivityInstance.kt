@@ -24,7 +24,6 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.impl.CompactFragment
 import nl.adaptivity.process.engine.processModel.*
-import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.xmlutil.serialization.XML
 
@@ -38,13 +37,13 @@ class RunnableActivityInstance<I : Any, O : Any, C: ActivityInstanceContext>(bui
         override var assignedUser: PrincipalCompat?
 
         override fun doProvideTask(engineData: MutableProcessEngineDataAccess<C>): Boolean {
-            node.provideTask(engineData, this)
+            node.canProvideTaskAutoProgress(engineData, this)
             return node.onActivityProvided(engineData, this)
         }
 
 
         override fun doStartTask(engineData: MutableProcessEngineDataAccess<C>): Boolean {
-            val shouldProgress = tryCreateTask { node.startTask(this) }
+            val shouldProgress = tryCreateTask { node.canStartTaskAutoProgress(this) }
 
             if (shouldProgress) {
                 val n: RunnableActivity<I, O, C> = node
@@ -78,7 +77,7 @@ class RunnableActivityInstance<I : Any, O : Any, C: ActivityInstanceContext>(bui
             engineData: MutableProcessEngineDataAccess<C>,
             assignedUser: PrincipalCompat?
         ): Boolean {
-            return node.takeTask(createActivityContext(engineData), this, assignedUser)
+            return node.canTakeTaskAutoProgress(createActivityContext(engineData), this, assignedUser)
         }
     }
 

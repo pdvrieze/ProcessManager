@@ -75,7 +75,7 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
         return visitor.visitGenericActivity(this)
     }
 
-    override fun <C : ActivityInstanceContext> provideTask(
+    override fun <C : ActivityInstanceContext> canProvideTaskAutoProgress(
         engineData: ProcessEngineDataAccess<C>,
         instanceBuilder: ProcessNodeInstance.Builder<*, *, C>
     ): Boolean {
@@ -106,7 +106,7 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
         )
     }
 
-    override fun <C : ActivityInstanceContext> takeTask(
+    override fun <C : ActivityInstanceContext> canTakeTaskAutoProgress(
         activityContext: C,
         instance: ProcessNodeInstance.Builder<*, *, C>,
         assignedUser: PrincipalCompat?
@@ -150,11 +150,6 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
         companion object {
 
             val DEFAULT = OnActivityProvided<Nothing, Any, ActivityInstanceContext> { engineData, instance ->
-/*
-                engineData.updateNodeInstance(instance.handle) {
-                    takeTask(engineData)
-                }
-*/
                 true
             }
         }

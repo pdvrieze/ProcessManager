@@ -39,7 +39,7 @@ class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : Proc
         var hChildInstance: Handle<SecureObject<ProcessInstance<*>>>
 
         override fun doProvideTask(engineData: MutableProcessEngineDataAccess<C>): Boolean {
-            val shouldProgress = node.provideTask(engineData, this)
+            val shouldProgress = node.canProvideTaskAutoProgress(engineData, this)
 
             val childHandle = engineData.instances.put(ProcessInstance(engineData, node.childModel, handle) {})
             hChildInstance = childHandle
@@ -53,7 +53,7 @@ class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : Proc
 
         @OptIn(ProcessInstanceStorage::class)
         override fun doStartTask(engineData: MutableProcessEngineDataAccess<C>): Boolean {
-            val shouldProgress = tryCreateTask { node.startTask(this) }
+            val shouldProgress = tryCreateTask { node.canStartTaskAutoProgress(this) }
 
             assert(hChildInstance.isValid) { "The task can only be started if the child instance already exists" }
             tryCreateTask {

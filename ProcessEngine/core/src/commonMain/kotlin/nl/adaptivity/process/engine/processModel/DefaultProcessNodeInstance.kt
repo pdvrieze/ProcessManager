@@ -148,7 +148,7 @@ class DefaultProcessNodeInstance<C: ActivityInstanceContext> : ProcessNodeInstan
 
             fun <MSG_T> impl(messageService: IMessageService<MSG_T, C>): Boolean {
 
-                val shouldProgress = tryCreateTask { node.provideTask(engineData, this) }
+                val shouldProgress = tryCreateTask { node.canProvideTaskAutoProgress(engineData, this) }
 
                 if (node is MessageActivity) {
                     val preparedMessage = messageService.createMessage(node.message ?: XmlMessage())
@@ -180,11 +180,11 @@ class DefaultProcessNodeInstance<C: ActivityInstanceContext> : ProcessNodeInstan
             engineData: MutableProcessEngineDataAccess<C>,
             assignedUser: PrincipalCompat?
         ): Boolean {
-            return node.takeTask(createActivityContext(engineData), this, assignedUser)
+            return node.canTakeTaskAutoProgress(createActivityContext(engineData), this, assignedUser)
         }
 
         override fun doStartTask(engineData: MutableProcessEngineDataAccess<C>): Boolean {
-            return node.startTask(this)
+            return node.canStartTaskAutoProgress(this)
         }
 
 

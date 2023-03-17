@@ -40,8 +40,8 @@ class ExecutableJoin(
 
     override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
-    override fun <C : ActivityInstanceContext> startTask(instance: ProcessNodeInstance.Builder<*, *, C>): Boolean {
-        return super.startTask(instance)
+    override fun <C : ActivityInstanceContext> canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *, C>): Boolean {
+        return super.canStartTaskAutoProgress(instance)
     }
 
     fun <C : ActivityInstanceContext> getExistingInstance(

@@ -58,7 +58,7 @@ class ExecutableSplit(
             )
     }
 
-    override fun <C : ActivityInstanceContext> startTask(instance: ProcessNodeInstance.Builder<*, *, C>): Boolean = false
+    override fun <C : ActivityInstanceContext> canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *, C>): Boolean = false
 
     class Builder : SplitBase.Builder, ExecutableProcessNode.Builder {
         constructor(

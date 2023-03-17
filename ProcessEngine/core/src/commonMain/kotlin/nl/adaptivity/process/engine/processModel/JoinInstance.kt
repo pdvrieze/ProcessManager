@@ -39,7 +39,7 @@ class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstanc
 
         override fun doProvideTask(engineData: MutableProcessEngineDataAccess<C>): Boolean {
             if (!isFinished) {
-                val shouldProgress = node.provideTask(engineData, this)
+                val shouldProgress = node.canProvideTaskAutoProgress(engineData, this)
                 if (shouldProgress) {
                     val directSuccessors = processInstanceBuilder.getDirectSuccessorsFor(this.handle)
 
@@ -63,11 +63,11 @@ class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstanc
             assignedUser: PrincipalCompat?
         ): Boolean {
 
-            return node.takeTask(createActivityContext(engineData), this, assignedUser)
+            return node.canTakeTaskAutoProgress(createActivityContext(engineData), this, assignedUser)
         }
 
         override fun doStartTask(engineData: MutableProcessEngineDataAccess<C>): Boolean {
-            if (node.startTask(this)) {
+            if (node.canStartTaskAutoProgress(this)) {
                 return updateTaskState(engineData, cancelState = NodeInstanceState.Cancelled)
             } else {
                 return false

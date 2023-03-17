@@ -40,7 +40,7 @@ class SplitInstance<C : ActivityInstanceContext>  : ProcessNodeInstance<SplitIns
             set(value) = predecessors.replaceByNotNull(value)
 
         override fun doProvideTask(engineData: MutableProcessEngineDataAccess<C>): Boolean {
-            return node.provideTask(engineData, this)
+            return node.canProvideTaskAutoProgress(engineData, this)
         }
 
         override fun canTakeTaskAutomatically(): Boolean = true
@@ -49,7 +49,7 @@ class SplitInstance<C : ActivityInstanceContext>  : ProcessNodeInstance<SplitIns
             engineData: MutableProcessEngineDataAccess<C>,
             assignedUser: PrincipalCompat?
         ): Boolean {
-            return node.takeTask(createActivityContext(engineData), this, assignedUser)
+            return node.canTakeTaskAutoProgress(createActivityContext(engineData), this, assignedUser)
         }
 
         override fun doStartTask(engineData: MutableProcessEngineDataAccess<C>): Boolean {

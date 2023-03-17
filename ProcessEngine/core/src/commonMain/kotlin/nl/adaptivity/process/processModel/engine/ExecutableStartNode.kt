@@ -74,18 +74,18 @@ class ExecutableStartNode(
                 entryNo
             )
 
-    override fun <C : ActivityInstanceContext> provideTask(
+    override fun <C : ActivityInstanceContext> canProvideTaskAutoProgress(
         engineData: ProcessEngineDataAccess<C>,
         instanceBuilder: ProcessNodeInstance.Builder<*, *, C>
     ): Boolean = true
 
-    override fun <C : ActivityInstanceContext> takeTask(
+    override fun <C : ActivityInstanceContext> canTakeTaskAutoProgress(
         activityContext: C,
         instance: ProcessNodeInstance.Builder<*, *, C>,
         assignedUser: PrincipalCompat?
     ): Boolean = true
 
-    override fun <C : ActivityInstanceContext> startTask(instance: ProcessNodeInstance.Builder<*, *, C>): Boolean =
+    override fun <C : ActivityInstanceContext> canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *, C>): Boolean =
         true
 
 }

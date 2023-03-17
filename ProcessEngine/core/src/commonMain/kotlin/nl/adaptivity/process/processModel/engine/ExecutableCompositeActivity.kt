@@ -101,7 +101,7 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableActivity {
         )
     }
 
-    override fun <C : ActivityInstanceContext> provideTask(
+    override fun <C : ActivityInstanceContext> canProvideTaskAutoProgress(
         engineData: ProcessEngineDataAccess<C>,
         instanceBuilder: ProcessNodeInstance.Builder<*, *, C>
     ): Boolean = true
@@ -112,7 +112,7 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableActivity {
      *
      * @return `false`
      */
-    override fun <C : ActivityInstanceContext> takeTask(
+    override fun <C : ActivityInstanceContext> canTakeTaskAutoProgress(
         activityContext: C,
         instance: ProcessNodeInstance.Builder<*, *, C>,
         assignedUser: PrincipalCompat?
@@ -124,6 +124,6 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableActivity {
      *
      * @return `false`
      */
-    override fun <C : ActivityInstanceContext> startTask(instance: ProcessNodeInstance.Builder<*, *, C>): Boolean = false
+    override fun <C : ActivityInstanceContext> canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *, C>): Boolean = false
 
 }

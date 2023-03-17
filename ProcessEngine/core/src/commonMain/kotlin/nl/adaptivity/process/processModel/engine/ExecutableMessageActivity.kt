@@ -86,7 +86,7 @@ class ExecutableMessageActivity(
         return super.createOrReuseInstance(data, processInstanceBuilder, predecessor, entryNo, allowFinalInstance)
     }
 
-    override fun <C : ActivityInstanceContext> provideTask(
+    override fun <C : ActivityInstanceContext> canProvideTaskAutoProgress(
         engineData: ProcessEngineDataAccess<C>,
         instanceBuilder: ProcessNodeInstance.Builder<*, *, C>
     ): Boolean = false
@@ -97,7 +97,7 @@ class ExecutableMessageActivity(
      *
      * @return `false`
      */
-    override fun <C : ActivityInstanceContext> takeTask(
+    override fun <C : ActivityInstanceContext> canTakeTaskAutoProgress(
         activityContext: C,
         instance: ProcessNodeInstance.Builder<*, *, C>,
         assignedUser: PrincipalCompat?
@@ -117,7 +117,7 @@ class ExecutableMessageActivity(
      *
      * @return `false`
      */
-    override fun <C : ActivityInstanceContext> startTask(instance: ProcessNodeInstance.Builder<*, *, C>): Boolean = false
+    override fun <C : ActivityInstanceContext> canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *, C>): Boolean = false
 
     @Throws(XmlException::class)
     fun serializeCondition(out: XmlWriter) {
