@@ -16,32 +16,30 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.*
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.serialutil.DelegatingSerializer
 import nl.adaptivity.xml.QName
 import nl.adaptivity.xmlutil.util.ICompactFragment
 
-//@Serializer(IXmlMessage.Companion::class)
 interface IXmlMessage {
 
-    var serviceName: String?
+    val serviceName: String?
 
-    var serviceNS: String?
+    val serviceNS: String?
 
-    var service: QName?
+    val service: QName?
 
-    var endpoint: String?
+    val endpoint: String?
 
     val endpointDescriptor: EndpointDescriptor?
 
-    var operation: String?
+    val operation: String?
 
     val messageBody: ICompactFragment
 
-    var url: String?
+    val url: String?
 
-    var method: String?
+    val method: String?
 
     val contentType: String
 
