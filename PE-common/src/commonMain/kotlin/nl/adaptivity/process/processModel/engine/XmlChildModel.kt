@@ -20,14 +20,12 @@ import kotlinx.serialization.*
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.ChildProcessModel
 import nl.adaptivity.process.processModel.ChildProcessModelBase
 import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
 import nl.adaptivity.process.processModel.RootProcessModel
-import nl.adaptivity.util.multiplatform.name
-import nl.adaptivity.xmlutil.serialization.XmlSerialName
+import nl.adaptivity.util.multiplatform.nameCompat
 
 @Serializable(XmlChildModel.Companion::class)
 class XmlChildModel : ChildProcessModelBase<XmlProcessNode>, ChildProcessModel<XmlProcessNode> {
@@ -51,9 +49,8 @@ class XmlChildModel : ChildProcessModelBase<XmlProcessNode>, ChildProcessModel<X
 
         @OptIn(ExperimentalSerializationApi::class)
         override val descriptor: SerialDescriptor =
-            SerialDescriptor(XmlChildModel::class.name, delegateSerializer.descriptor)
+            SerialDescriptor(XmlChildModel::class.nameCompat, delegateSerializer.descriptor)
 
-        @Suppress("RedundantOverride")
         override fun serialize(encoder: Encoder, value: XmlChildModel) {
             delegateSerializer.serialize(encoder, SerialDelegate(value))
         }

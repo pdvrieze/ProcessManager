@@ -21,9 +21,7 @@ import kotlin.reflect.KClass
 
 actual typealias Class<T> = java.lang.Class<T>
 
-actual val KClass<*>.name get() = java.canonicalName
-
-actual typealias Throws = kotlin.jvm.Throws
+actual val KClass<*>.nameCompat get() = java.canonicalName
 
 actual typealias UUID = java.util.UUID
 actual fun randomUUID(): UUID = UUID.randomUUID()
@@ -34,15 +32,6 @@ actual typealias URI = java.net.URI
 actual inline fun createUri(s: String): URI = URI.create(s)
 
 actual fun String.toUUID(): UUID = UUID.fromString(this)
-
-@Suppress("NOTHING_TO_INLINE")
-actual fun <T> fill(array: Array<T>, element: T, fromIndex: Int, toIndex: Int) {
-    java.util.Arrays.fill(array, fromIndex, toIndex, element)
-}
-
-@Suppress("NOTHING_TO_INLINE")
-actual fun arraycopy(src: Any, srcPos:Int, dest:Any, destPos:Int, length:Int) =
-    java.lang.System.arraycopy(src, srcPos, dest, destPos, length)
 
 actual inline fun <reified T:Any> isTypeOf(value: Any):Boolean = value::class.java == T::class.java
 

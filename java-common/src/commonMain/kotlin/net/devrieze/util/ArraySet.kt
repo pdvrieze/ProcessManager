@@ -16,9 +16,6 @@
 
 package net.devrieze.util
 
-import nl.adaptivity.util.multiplatform.arraycopy
-import nl.adaptivity.util.multiplatform.fill
-
 /**
  * Created by pdvrieze on 11/10/16.
  */
@@ -180,11 +177,11 @@ class ArraySet<T>(initCapacity: Int = 10) : AbstractMutableSet<T>() {
         val newBuffer = arrayOfNulls<Any?>(reservation.coerceAtLeast(8)) as Array<T?>
 
         if (firstElemIdx <= nextElemIdx) {
-            arraycopy(buffer, firstElemIdx, newBuffer, 0, nextElemIdx - firstElemIdx)
+            buffer.copyInto(newBuffer, 0, firstElemIdx, nextElemIdx - firstElemIdx)
             nextElemIdx -= firstElemIdx
         } else {
-            arraycopy(buffer, firstElemIdx, newBuffer, 0, buffer.size - firstElemIdx)
-            arraycopy(buffer, 0, newBuffer, buffer.size - firstElemIdx, nextElemIdx)
+            buffer.copyInto(newBuffer, 0, firstElemIdx, buffer.size - firstElemIdx)
+            buffer.copyInto(newBuffer, buffer.size - firstElemIdx, 0, nextElemIdx)
             nextElemIdx += buffer.size - firstElemIdx
         }
         buffer = newBuffer
@@ -244,13 +241,13 @@ class ArraySet<T>(initCapacity: Int = 10) : AbstractMutableSet<T>() {
             buffer[firstElemIdx++] = null
             if (firstElemIdx >= bufferSize) firstElemIdx -= bufferSize
         } else if (firstElemIdx < nextElemIdx) { // Default non-wrapped case, don't attempt to optimize smallest copy ___EEEOEEEE___
-            arraycopy(buffer, offset + 1, buffer, offset, nextElemIdx - offset - 1)
+            buffer.copyInto(buffer, offset, offset + 1, nextElemIdx - offset - 1)
             buffer[--nextElemIdx] = null
         } else if (offset < nextElemIdx && offset < firstElemIdx) { // The offset is wrapped as well  EOE_____EEE
-            arraycopy(buffer, offset + 1, buffer, offset, nextElemIdx - offset - 1)
+            buffer.copyInto(buffer, offset, offset + 1, nextElemIdx - offset - 1)
             buffer[--nextElemIdx] = null
         } else { // ofset>tail -> tail wrapped, we are in the head section EEE_____EOE
-            arraycopy(buffer, firstElemIdx, buffer, firstElemIdx + 1, offset - firstElemIdx)
+            buffer.copyInto(buffer, firstElemIdx + 1, firstElemIdx, offset - firstElemIdx)
             buffer[firstElemIdx++] = null
         }
         return result
@@ -279,9 +276,8 @@ class ArraySet<T>(initCapacity: Int = 10) : AbstractMutableSet<T>() {
     }
 
     override fun clear() {
+        buffer.fill(null)
 
-
-        fill(buffer, null)
         firstElemIdx = 0
         nextElemIdx = 0
     }

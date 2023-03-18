@@ -41,11 +41,7 @@ fun Appendable.append(i: Int) = append(i.toString())
 @Suppress("unused")
 expect class Class<T : Any?>
 
-expect val KClass<*>.name: String
-
-expect fun arraycopy(src: Any, srcPos: Int, dest: Any, destPos: Int, length: Int)
-
-expect fun <T> fill(array: Array<T>, element: T, fromIndex: Int = 0, toIndex: Int = array.size)
+expect val KClass<*>.nameCompat: String
 
 expect fun assert(value: Boolean, lazyMessage: () -> String)
 

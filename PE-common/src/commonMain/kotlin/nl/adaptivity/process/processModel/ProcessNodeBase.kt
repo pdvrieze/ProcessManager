@@ -22,7 +22,7 @@ import kotlinx.serialization.modules.SerializersModule
 import kotlinx.serialization.serializer
 import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.util.*
-import nl.adaptivity.util.multiplatform.name
+import nl.adaptivity.util.multiplatform.nameCompat
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.serialization.XmlDefault
 
@@ -164,7 +164,7 @@ abstract class ProcessNodeBase : ProcessNode {
 
 
     override fun toString(): String {
-        var name: String = this::class.name.substringAfterLast('.')
+        var name: String = this::class.simpleName ?: "<anonymous type>"
         if (name.endsWith("Impl")) {
             name = name.substring(0, name.length - 4)
         }
@@ -392,7 +392,7 @@ abstract class ProcessNodeBase : ProcessNode {
         )
 
         override fun toString(): String {
-            val className = this::class.name
+            val className = this::class.nameCompat
             val pkgPos = className.lastIndexOf('.', className.lastIndexOf('.') - 1)
             return "${className.substring(pkgPos + 1)}(id=$id, label=$label, x=$x, y=$y, predecessors=$predecessors, successors=$successors, defines=$defines, results=$results)"
         }

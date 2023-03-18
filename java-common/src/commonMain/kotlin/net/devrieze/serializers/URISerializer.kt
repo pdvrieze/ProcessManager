@@ -23,11 +23,12 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.util.multiplatform.URI
-import nl.adaptivity.util.multiplatform.name
+import nl.adaptivity.util.multiplatform.nameCompat
 import nl.adaptivity.util.multiplatform.toUri
 
-object URISerializer: KSerializer<URI> {
-    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor(URISerializer::class.name, PrimitiveKind.STRING)
+object URISerializer : KSerializer<URI> {
+    override val descriptor: SerialDescriptor =
+        PrimitiveSerialDescriptor(URI::class.nameCompat, PrimitiveKind.STRING)
 
     override fun serialize(encoder: Encoder, value: URI) {
         encoder.encodeString(value.toString())

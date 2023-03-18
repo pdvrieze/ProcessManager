@@ -22,7 +22,6 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.processModel.Condition
 import nl.adaptivity.process.processModel.engine.ConditionResult.*
-import nl.adaptivity.util.multiplatform.name
 
 
 /**
@@ -45,7 +44,7 @@ abstract class ExecutableCondition : Condition, ((IProcessInstance<*>, IProcessN
     final override operator fun invoke(nodeInstanceSource: IProcessInstance<*>, instance: IProcessNodeInstance<*>): ConditionResult =
         eval(nodeInstanceSource, instance)
 
-    override val condition: String get() = "class:${this::class.name}"
+    override val condition: String get() = "class:${this::class.qualifiedName}"
 
     object TRUE: ExecutableCondition() {
         override fun eval(nodeInstanceSource: IProcessInstance<*>, nodeInstance: IProcessNodeInstance<*>): ConditionResult = ConditionResult.TRUE
@@ -71,7 +70,6 @@ abstract class ExecutableCondition : Condition, ((IProcessInstance<*>, IProcessN
     }
 }
 
-@Suppress("UNCHECKED_CAST")
 fun Condition.toExecutableCondition(): ExecutableCondition = when (this) {
     is ExecutableCondition -> this
     else                   -> ExecutableXSLTCondition(this)
