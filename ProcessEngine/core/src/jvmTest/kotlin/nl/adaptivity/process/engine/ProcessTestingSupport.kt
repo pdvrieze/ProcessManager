@@ -63,7 +63,7 @@ fun InstanceSupport.testTraceExceptionThrowing(
 
                 if (nodeInstance.state != NodeInstanceState.Complete) {
                     if (nodeInstance is JoinInstance) {
-                        transaction.writableEngineData.updateNodeInstance(nodeInstance.handle.coerce()) {
+                        transaction.writableEngineData.updateNodeInstance(nodeInstance.handle) {
                             startTask(transaction.writableEngineData)
                         }
                     } else if (nodeInstance.node !is Split) {
@@ -72,7 +72,7 @@ fun InstanceSupport.testTraceExceptionThrowing(
                                 transaction.readableEngineData.instance(nodeInstance.hChildInstance).withPermission()
                             if (childInstance.state != ProcessInstance.State.FINISHED && nodeInstance.state != NodeInstanceState.Complete) {
                                 try {
-                                    transaction.writableEngineData.updateNodeInstance(nodeInstance.handle.coerce()) {
+                                    transaction.writableEngineData.updateNodeInstance(nodeInstance.handle) {
                                         finishTask(transaction.writableEngineData, null)
                                     }
                                 } catch (e: ProcessException) {
@@ -86,7 +86,7 @@ fun InstanceSupport.testTraceExceptionThrowing(
                             }
                         } else if (nodeInstance.state.isFinal && nodeInstance.state != NodeInstanceState.Complete) {
                             try {
-                                transaction.writableEngineData.updateNodeInstance(nodeInstance.handle.coerce()) {
+                                transaction.writableEngineData.updateNodeInstance(nodeInstance.handle) {
                                     finishTask(transaction.writableEngineData, null)
                                 }
                                 engine.processTickleQueue(transaction)
@@ -100,7 +100,7 @@ fun InstanceSupport.testTraceExceptionThrowing(
                             throw ProcessTestingException("The node is final but not complete (failed, skipped): ${nodeInstance}")
                         }
                         try {
-                            transaction.writableEngineData.updateNodeInstance(nodeInstance.handle.coerce()) {
+                            transaction.writableEngineData.updateNodeInstance(nodeInstance.handle) {
                                 finishTask(transaction.writableEngineData, traceElement.resultPayload)
                             }
                         } catch (e: ProcessException) {
