@@ -16,8 +16,6 @@
 
 package net.devrieze.util.security
 
-import nl.adaptivity.util.multiplatform.JvmField
-
 actual object SYSTEMPRINCIPAL : RolePrincipal {
 
     public actual val NS: String  = "urn:SYSTEMPRINCIPAL"

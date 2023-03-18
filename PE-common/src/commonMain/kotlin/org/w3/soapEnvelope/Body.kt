@@ -33,6 +33,7 @@ import kotlinx.serialization.encoding.*
 import nl.adaptivity.serialutil.decodeElements
 import nl.adaptivity.util.multiplatform.URI
 import nl.adaptivity.util.multiplatform.createUri
+import nl.adaptivity.util.multiplatform.toUri
 import nl.adaptivity.util.net.devrieze.serializers.URISerializer
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.core.impl.multiplatform.name
@@ -103,7 +104,7 @@ class Body<T: Any>(
                             it.prefix == XMLConstants.XMLNS_ATTRIBUTE ||
                                 (it.prefix=="" && it.localName == XMLConstants.XMLNS_ATTRIBUTE) -> false
                             it.namespaceUri!= Envelope.NAMESPACE -> true
-                            it.localName == "encodingStyle" -> { encodingStyle = URI(it.value); false }
+                            it.localName == "encodingStyle" -> { encodingStyle = it.value.toUri(); false }
                             else -> true
                         }
                     }.associate { QName(it.namespaceUri, it.localName, it.prefix) to it.value }

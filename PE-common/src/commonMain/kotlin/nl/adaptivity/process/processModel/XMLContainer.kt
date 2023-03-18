@@ -17,12 +17,11 @@
 package nl.adaptivity.process.processModel
 
 import nl.adaptivity.util.MyGatheringNamespaceContext
-import nl.adaptivity.util.multiplatform.Throws
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.util.xml.CombinedNamespaceContext
+import nl.adaptivity.util.xml.NamespaceAddingStreamReader
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.util.ICompactFragment
-import nl.adaptivity.util.xml.NamespaceAddingStreamReader
 import nl.adaptivity.xmlutil.util.XMLFragmentStreamReader
 
 
@@ -120,7 +119,6 @@ private constructor(
         visitNamespacesInContent(xsr, null)
     }
 
-    @Throws(XmlException::class)
     private fun visitNamespacesInContent(xsr: XmlReader, parent: QName?) {
         while (xsr.hasNext()) {
             @Suppress("NON_EXHAUSTIVE_WHEN")
@@ -137,7 +135,6 @@ private constructor(
         }
     }
 
-    @Throws(XmlException::class)
     private fun serializeBody(out: XmlWriter) {
         if (content.isNotEmpty()) {
             val contentReader = getXmlReader().asSubstream()
@@ -149,15 +146,12 @@ private constructor(
 
     }
 
-    @Throws(XmlException::class)
     protected open fun serializeAttributes(out: XmlWriter) {
         // No attributes by default
     }
 
-    @Throws(XmlException::class)
     protected abstract fun serializeStartElement(out: XmlWriter)
 
-    @Throws(XmlException::class)
     protected abstract fun serializeEndElement(out: XmlWriter)
 
     override fun getXmlReader(): XmlReader = XMLFragmentStreamReader.from(this)
@@ -185,7 +179,6 @@ private constructor(
 
     companion object {
 
-        @Throws(XmlException::class)
         protected fun visitNamespace(reader: XmlReader, prefix: CharSequence?) {
             if (prefix != null) {
                 reader.namespaceContext.getNamespaceURI(prefix.toString())

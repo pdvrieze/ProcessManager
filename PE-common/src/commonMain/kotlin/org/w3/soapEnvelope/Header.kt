@@ -26,20 +26,18 @@ package org.w3.soapEnvelope
 
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.MapSerializer
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.*
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.util.multiplatform.URI
+import nl.adaptivity.util.multiplatform.toUri
 import nl.adaptivity.util.net.devrieze.serializers.URISerializer
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.core.impl.multiplatform.name
 import nl.adaptivity.xmlutil.serialization.CompactFragmentSerializer
 import nl.adaptivity.xmlutil.serialization.XML
-import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import nl.adaptivity.xmlutil.util.CompactFragment
 
 
@@ -127,7 +125,7 @@ class Header(
                             it.prefix == XMLConstants.XMLNS_ATTRIBUTE ||
                                 (it.prefix=="" && it.localName == XMLConstants.XMLNS_ATTRIBUTE) -> false
                             it.namespaceUri!= Envelope.NAMESPACE -> true
-                            it.localName == "encodingStyle" -> { encodingStyle = URI(it.value); false }
+                            it.localName == "encodingStyle" -> { encodingStyle = it.value.toUri(); false }
                             else -> true
                         }
                     }.associate { QName(it.namespaceUri, it.localName, it.prefix) to it.value }

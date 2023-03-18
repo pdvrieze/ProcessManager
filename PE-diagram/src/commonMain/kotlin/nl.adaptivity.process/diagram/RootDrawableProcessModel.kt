@@ -30,7 +30,6 @@ import nl.adaptivity.process.processModel.engine.ProcessModelRef
 import nl.adaptivity.process.processModel.engine.XmlCondition
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identifier
-import nl.adaptivity.util.multiplatform.JvmOverloads
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.xmlutil.XmlReader

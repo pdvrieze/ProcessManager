@@ -18,8 +18,8 @@ package nl.adaptivity.process.diagram
 
 import net.devrieze.util.collection.maxIndex
 import nl.adaptivity.diagram.Positioned
-import nl.adaptivity.util.multiplatform.JvmField
-import nl.adaptivity.util.multiplatform.fill
+import kotlin.jvm.JvmField
+import kotlin.jvm.JvmStatic
 import kotlin.math.abs
 import kotlin.math.max
 import kotlin.math.min
@@ -826,7 +826,7 @@ open class LayoutAlgorithm {
         val NULLALGORITHM = NullAlgorithm
 
         // We know that nullalgorithm does nothing and doesn't care about types.
-        @kotlin.jvm.JvmStatic
+        @JvmStatic
         fun <T : Positioned> nullalgorithm(): LayoutAlgorithm = NullAlgorithm
 
         const val TOLERANCE = 0.1

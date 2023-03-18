@@ -27,6 +27,8 @@ import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.ProcessConsts.Engine
+import nl.adaptivity.process.messaging.RESTService
+import nl.adaptivity.process.messaging.SOAPService
 import nl.adaptivity.serialutil.readNullableString
 import nl.adaptivity.util.multiplatform.toUri
 import nl.adaptivity.xmlutil.*
@@ -138,6 +140,28 @@ class XmlMessage : XMLContainer, IXmlMessage {
             content = it.content
         }
     }
+
+    constructor(
+        service: SOAPService,
+        operation: String,
+        messageBody: ICompactFragment? = null
+    ) : this(
+        service = service.serviceName,
+        endpoint = service.endpointName,
+        operation = operation,
+        url = service.url,
+        messageBody = messageBody
+    )
+
+    constructor(
+        service: RESTService,
+        messageBody: ICompactFragment? = null
+    ) : this(
+        url = service.url,
+        method = service.method,
+        contentType = service.contentType,
+        messageBody = messageBody
+    )
 
     override fun serializeAttributes(out: XmlWriter) {
         super.serializeAttributes(out)

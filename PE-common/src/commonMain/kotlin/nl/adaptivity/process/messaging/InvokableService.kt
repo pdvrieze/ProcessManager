@@ -4,13 +4,18 @@ import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.xmlutil.QName
 
 /** Abstract base interface for all services */
-interface WebService {
+interface InvokableService {
 }
 
 /** Interface for SOAP services */
-interface SOAPService: EndpointDescriptor {
+interface SOAPService: InvokableService, EndpointDescriptor {
     override val serviceName: QName
-
-    val serviceNamespace: String
     override val endpointName: String
+    val url: String?
+}
+
+interface RESTService: InvokableService, EndpointDescriptor {
+    val method: String
+    val url: String
+    val contentType: String
 }

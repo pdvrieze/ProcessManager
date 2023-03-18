@@ -16,40 +16,12 @@
 
 package nl.adaptivity.util.multiplatform
 
-@Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY, AnnotationTarget.PROPERTY_GETTER,
-        AnnotationTarget.PROPERTY_SETTER)
-@Retention(AnnotationRetention.SOURCE)
-actual annotation class JvmStatic
-
-@Retention(AnnotationRetention.SOURCE)
-actual annotation class JvmField actual constructor()
-
-@Retention(AnnotationRetention.SOURCE)
-@Target(AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER,
-        AnnotationTarget.FILE)
-actual annotation class JvmName actual constructor(actual val name: String)
-
-@Target(AnnotationTarget.FUNCTION, AnnotationTarget.CONSTRUCTOR)
-@Retention(AnnotationRetention.SOURCE)
-@MustBeDocumented
-actual annotation class JvmOverloads
-
-@Target(AnnotationTarget.TYPE)
-@Retention(AnnotationRetention.SOURCE)
-@MustBeDocumented
-actual annotation class JvmWildcard
-
-
-@Retention(AnnotationRetention.SOURCE)
-@Target(AnnotationTarget.FILE)
-actual annotation class JvmMultifileClass
-
 
 open external class URL (url:String, base:String= definedExternally) {
     val pathName: String
 }
 
-actual class URI actual constructor(str: String):URL(str) {
+actual class URI(str: String):URL(str) {
     @Suppress("NOTHING_TO_INLINE")
     actual inline fun getPath(): String = pathName
 }

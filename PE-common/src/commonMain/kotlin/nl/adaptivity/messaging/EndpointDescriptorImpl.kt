@@ -21,8 +21,6 @@ import nl.adaptivity.util.multiplatform.URI
 import nl.adaptivity.util.multiplatform.createUri
 import nl.adaptivity.util.net.devrieze.serializers.URISerializer
 import nl.adaptivity.xmlutil.QName
-import nl.adaptivity.xml.localPart
-import nl.adaptivity.xml.namespaceURI
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import nl.adaptivity.xmlutil.QName as XmlQName

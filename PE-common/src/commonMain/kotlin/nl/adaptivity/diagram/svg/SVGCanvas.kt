@@ -21,7 +21,7 @@ import nl.adaptivity.diagram.Rectangle
 import nl.adaptivity.diagram.Theme
 import nl.adaptivity.diagram.svg.TextMeasurer.MeasureInfo
 import nl.adaptivity.util.multiplatform.toHex
-import nl.adaptivity.xml.XMLConstants.DEFAULT_NS_PREFIX
+import nl.adaptivity.xmlutil.XMLConstants.DEFAULT_NS_PREFIX
 import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlWriter
 import nl.adaptivity.xmlutil.smartStartTag

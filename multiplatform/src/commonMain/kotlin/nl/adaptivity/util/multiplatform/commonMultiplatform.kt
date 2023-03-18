@@ -18,62 +18,7 @@ package nl.adaptivity.util.multiplatform
 
 import kotlin.reflect.KClass
 
-//@ExperimentalMultiplatform
-//@OptionalExpectation
-@Deprecated("Use 1.2.70 optional annotation", ReplaceWith("JvmStatic", "kotlin.jvm.JvmStatic"))
-@Target(
-    AnnotationTarget.FUNCTION,
-    AnnotationTarget.PROPERTY,
-    AnnotationTarget.PROPERTY_GETTER,
-    AnnotationTarget.PROPERTY_SETTER
-)
-expect annotation class JvmStatic()
-
-@Deprecated("Use 1.2.70 optional annotation", ReplaceWith("JvmWildcard", "kotlin.jvm.JvmWildcard"))
-@Target(AnnotationTarget.TYPE)
-@MustBeDocumented
-//@ExperimentalMultiplatform
-//@OptionalExpectation
-expect annotation class JvmWildcard()
-
-@Deprecated("Use 1.2.70 optional annotation", ReplaceWith("JvmField", "kotlin.jvm.JvmField"))
-//@ExperimentalMultiplatform
-//@OptionalExpectation
-expect annotation class JvmField()
-
-@Deprecated("Use 1.2.70 optional annotation", ReplaceWith("JvmName", "kotlin.jvm.JvmName"))
-//@ExperimentalMultiplatform
-//@OptionalExpectation
-@Target(
-    AnnotationTarget.FUNCTION, AnnotationTarget.PROPERTY_GETTER, AnnotationTarget.PROPERTY_SETTER,
-    AnnotationTarget.FILE
-)
-expect annotation class JvmName(val name: String)
-
-@Deprecated("Use 1.2.70 optional annotation", ReplaceWith("JvmOverloads", "kotlin.jvm.JvmOverloads"))
-//@ExperimentalMultiplatform
-//@OptionalExpectation
-@Target(AnnotationTarget.FUNCTION, AnnotationTarget.CONSTRUCTOR)
-@MustBeDocumented
-expect annotation class JvmOverloads()
-
-@Deprecated("Use 1.2.70 optional annotation", ReplaceWith("JvmMultifileClass", "kotlin.jvm.JvmMultifileClass"))
-//@ExperimentalMultiplatform
-//@OptionalExpectation
-@Target(AnnotationTarget.FILE)
-expect annotation class JvmMultifileClass()
-
-//@ExperimentalMultiplatform
-//@OptionalExpectation
-@Target(
-    AnnotationTarget.FUNCTION,
-    AnnotationTarget.PROPERTY_GETTER,
-    AnnotationTarget.PROPERTY_SETTER,
-    AnnotationTarget.CONSTRUCTOR
-)
-expect annotation class Throws(vararg val exceptionClasses: KClass<out Throwable>)
-
-expect class URI constructor(str: String) {
+expect class URI {
     fun getPath(): String
 }
 
