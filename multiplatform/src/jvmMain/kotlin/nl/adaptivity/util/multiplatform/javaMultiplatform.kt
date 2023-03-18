@@ -19,8 +19,6 @@ package nl.adaptivity.util.multiplatform
 import java.util.UUID
 import kotlin.reflect.KClass
 
-actual typealias Class<T> = java.lang.Class<T>
-
 actual val KClass<*>.nameCompat get() = java.canonicalName
 
 actual typealias UUID = java.util.UUID

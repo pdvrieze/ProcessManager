@@ -22,9 +22,7 @@
 
 package net.devrieze.util
 
-import nl.adaptivity.util.multiplatform.Class
 import java.util.*
-import kotlin.NoSuchElementException
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.contract
 
@@ -39,9 +37,13 @@ val EMPTYSORTEDSET: SortedSet<*> = EmptySortedSet
 
 
 private open class CombiningIterable<T, U : MutableIterable<T>>(
-    internal var first: U,
-    internal var others: Array<out U>
+    internal  var lists: List<U>
 ) : MutableIterable<T> {
+
+    constructor(
+        first: U,
+        others: Array<out U>
+    ) : this (listOf(first, *others))
 
     override fun iterator(): MutableIterator<T> {
         return CombiningIterator(this)
@@ -49,216 +51,143 @@ private open class CombiningIterable<T, U : MutableIterable<T>>(
 
 }
 
-private class ConcatenatedList<T>(first: MutableList<T>, others: Array<out MutableList<T>>) :
-    CombiningIterable<T, MutableList<T>>(first, others), MutableList<T> {
+private class ConcatenatedList<T> :
+    CombiningIterable<T, MutableList<T>>, MutableList<T> {
+
+    constructor(first: MutableList<T>, others: Array<out MutableList<T>>) : super(first, others)
+    constructor(lists: List<MutableList<T>>) : super(lists)
 
     private fun first(): MutableList<T> {
-        return first
+        return lists.first()
     }
 
-    private fun others(): Array<out MutableList<T>> {
-        return others
+    private fun others(): List<MutableList<T>> {
+        return lists.subList(0, lists.size)
     }
 
     override val size: Int
-        get() {
-            var size = first().size
-            for (other in others()) {
-                size += other.size
-            }
-            return size
-        }
+        get() = lists.sumOf { it.size }
 
     override fun isEmpty(): Boolean {
-        if (!first().isEmpty()) {
-            return false
-        }
-        for (other in others()) {
-            if (!other.isEmpty()) {
-                return false
-            }
-        }
-        return true
+        return lists.all { it.isEmpty() }
     }
 
     override operator fun contains(element: T): Boolean {
-        if (!first().contains(element)) {
-            return true
-        }
-        for (other in others()) {
-            if (other.contains(element)) {
-                return true
-            }
-        }
-        return false
+        return lists.any { element in it }
     }
-
-/*
-    override fun toArray(): Array<T> {
-        val result = arrayOfNulls<Any>(size)
-        return toArrayHelper<Any>(result)
-    }
-
-    private fun <V> toArrayHelper(result: Array<V>): Array<V> {
-        var i = 0
-        for (elem in this) {
-            result[i] = elem as V
-            ++i
-        }
-        return result
-    }
-
-    override fun <V> toArray(init: Array<V>): Array<V> {
-        val size = size
-        var result = init
-        if (init.size < size) {
-            result = Array.newInstance(init.javaClass.getComponentType(), size) as Array<V>
-        } else if (init.size > size) {
-            result[size] = null
-        }
-        return toArrayHelper<V>(result)
-    }
-*/
 
     override fun add(element: T): Boolean {
-        throw UnsupportedOperationException()
+        return lists.last().add(element) // will always have 1 element
     }
 
     override fun remove(element: T): Boolean {
-        if (first.remove(element)) {
-            return true
-        }
-        for (other in others()) {
-            if (other.remove(element)) {
-                return true
-            }
-        }
-        return false
+        return lists.any { it.remove(element) } // any shortcircuits
     }
 
     override fun containsAll(elements: Collection<T>): Boolean {
-        val all: MutableSet<T> = HashSet(elements)
-        all.removeAll(first())
-        if (all.isEmpty()) {
-            return true
-        }
-        for (other in others()) {
-            all.removeAll(other)
-            if (all.isEmpty()) {
-                return true
-            }
-        }
-        return all.isEmpty()
+        val stillToFind: MutableSet<T> = elements.toMutableSet()
+        return lists.firstOrNull { stillToFind.removeAll(it); stillToFind.isEmpty() } != null
     }
 
     override fun addAll(elements: Collection<T>): Boolean {
-        throw UnsupportedOperationException()
+        return lists.last().addAll(elements)
+    }
+
+    internal data class IntPair(val listIdx: Int, val indexInList: Int)
+
+    internal fun listNoAtIndex(index: Int): IntPair {
+        var idx = index
+        for (listIdx in lists.indices) {
+            val list = lists[listIdx]
+            when {
+                idx < list.size -> return IntPair(listIdx, idx)
+                else -> idx -= list.size
+            }
+        }
+        throw IndexOutOfBoundsException("The index $index is beyond the bounds of the contained lists (size: $size)")
+    }
+
+    internal fun listNoBeforeIndex(index: Int): IntPair {
+        if (index==0) return IntPair(0,0)
+        return listNoAtIndex(index-1).let { (l, i) -> IntPair(l, i + 1)}
+    }
+
+    internal fun listAtIndex(index: Int): Pair<MutableList<T>, Int> {
+        var idx = index
+        for (list in lists) {
+            when {
+                idx < list.size -> return Pair(list, idx)
+                else -> idx -= list.size
+            }
+        }
+        throw IndexOutOfBoundsException("The index $index is beyond the bounds of the contained lists (size: $size)")
+    }
+
+    internal fun listBeforeIndex(index: Int): Pair<MutableList<T>, Int> {
+        if (index == 0) return Pair(lists.first(), 0)
+        val (l, i) = listAtIndex(index - 1)
+        return Pair(l, i + 1)
     }
 
     override fun addAll(index: Int, elements: Collection<T>): Boolean {
-        throw UnsupportedOperationException()
+        val (l, i) = listBeforeIndex(index)
+        return l.addAll(i, elements)
     }
 
     override fun removeAll(elements: Collection<T>): Boolean {
-        var result = first().removeAll(elements)
-        for (other in others()) {
-            result = other.removeAll(elements) || result
+        return lists.fold(false) { prev, list ->
+            list.removeAll(elements) ||prev // don't shortcircuit
         }
-        return result
     }
 
     override fun retainAll(elements: Collection<T>): Boolean {
-        var result = first().retainAll(elements)
-        for (other in others()) {
-            result = other.retainAll(elements) || result
+        return lists.fold(false) { prev, list ->
+            list.retainAll(elements) || prev // don't shortcircuit
         }
-        return result
     }
 
     override fun clear() {
-        first = mutableListOf()
-        others = emptyArray()
+        lists = listOf(mutableListOf())
     }
 
     override fun get(index: Int): T {
-        var offset = first().size
-        if (index < offset) {
-            return first()[index]
-        }
-        for (other in others()) {
-            val oldOffset = offset
-            offset += other.size
-            if (index < offset) {
-                return other.get(index - oldOffset)
-            }
-        }
-        throw IndexOutOfBoundsException()
+        val (l, i) = listAtIndex(index)
+        return l[i]
     }
 
     override operator fun set(index: Int, element: T): T {
-        throw UnsupportedOperationException()
-        //      int offset = first().size();
-        //      if (index<offset) {
-        //        return first().set(index, element);
-        //      }
-        //      for(List<? extends T> other:others()) {
-        //        int oldOffset = offset;
-        //        offset+=other.size();
-        //        if (index<offset) {
-        //          return other.set(index - oldOffset, element);
-        //        }
-        //      }
-        //      throw new IndexOutOfBoundsException();
+        val (l, i) = listAtIndex(index)
+        return l.set(i, element)
     }
 
     override fun add(index: Int, element: T) {
-        throw UnsupportedOperationException()
+        val (l, i) = listBeforeIndex(index)
+        l.add(index, element)
     }
 
     override fun removeAt(index: Int): T {
-        var offset = first().size
-        if (index < offset) {
-            return first().removeAt(index)
-        }
-        for (other in others()) {
-            val oldOffset = offset
-            offset += other.size
-            if (index < offset) {
-                return other.removeAt(index - oldOffset)
-            }
-        }
-        throw IndexOutOfBoundsException()
+        val (l, i) = listAtIndex(index)
+        return l.removeAt(i)
     }
 
     override fun indexOf(element: T): Int {
-        run {
-            val idx = first().indexOf(element)
-            if (idx >= 0) {
-                return idx
-            }
+        var offset = 0
+        for (list in lists) {
+            val idx = list.indexOf(element)
+            if (idx>=0) return offset + idx
+            offset += list.size
         }
-        var offset = first().size
-        for (other in others()) {
-            val idx = other.indexOf(element)
-            if (idx >= 0) {
-                return offset + idx
-            }
-            offset += other.size
-        }
-        throw IndexOutOfBoundsException()
+        return -1
     }
 
     override fun lastIndexOf(element: T): Int {
-        var offset = size - others()[others.size - 1].size
-        for (i in others.indices.reversed()) {
-            val other = others()[i]
-            offset -= other.size
-            val idx = other.lastIndexOf(element)
-            if (idx >= 0) {
-                return offset + idx
-            }
+        var offset = size
+        for (list in lists.reversed()) {
+            offset -= list.size
+            val idx = list.lastIndexOf(element)
+            if (idx >=0) return offset + idx
         }
-        return first().lastIndexOf(element)
+        return -1
     }
 
     override fun listIterator(): MutableListIterator<T> {
@@ -270,52 +199,57 @@ private class ConcatenatedList<T>(first: MutableList<T>, others: Array<out Mutab
     }
 
     override fun subList(fromIndex: Int, toIndex: Int): MutableList<T> {
-        throw UnsupportedOperationException()
+        require(toIndex>=0 && fromIndex in 0 until toIndex)
+
+        val (firstListNo, firstListIdx) = listNoAtIndex(fromIndex)
+        val (lastListNo, lastListIdx) = listNoBeforeIndex(toIndex)
+        return when {
+            firstListNo == lastListNo -> lists[firstListNo].subList(firstListIdx, lastListIdx)
+            else -> {
+                val newLists = mutableListOf<MutableList<T>>()
+
+                newLists.add(lists[firstListNo].run { subList(firstListNo, size) })
+                newLists.addAll(lists.subList(firstListNo+1, lastListNo-1))
+                newLists.add(lists[lastListNo].subList(0, lastListIdx))
+
+                ConcatenatedList(newLists)
+            }
+        }
     }
 
 }
 
 private class CombiningIterator<T>(iterable: CombiningIterable<T, out MutableIterable<T>>) : MutableIterator<T> {
 
-    private var mIteratorIdx = 0
-    private val mIterators: List<MutableIterator<T>>
+    private var iteratorIdx = 0
+    private val iterators: List<MutableIterator<T>>
 
     init {
-        mIterators = toIterators(iterable.first, iterable.others)
-    }
-
-    private fun <T> toIterators(
-        first: MutableIterable<T>,
-        others: Array<out MutableIterable<T>>
-    ): List<MutableIterator<T>> {
-        return ArrayList<MutableIterator<T>>(others.size + 1).apply {
-            add(first.iterator())
-            others.mapTo(this) { it.iterator() }
-        }
+        iterators = iterable.lists.map { it.iterator() }
     }
 
     override fun hasNext(): Boolean {
-        while (mIteratorIdx < mIterators.size) {
-            if (mIterators[mIteratorIdx].hasNext()) {
+        while (iteratorIdx < iterators.size) {
+            if (iterators[iteratorIdx].hasNext()) {
                 return true
             }
-            ++mIteratorIdx
+            ++iteratorIdx
         }
         return false
     }
 
     override fun next(): T {
-        while (mIteratorIdx < mIterators.size) {
-            if (mIterators[mIteratorIdx].hasNext()) {
-                return mIterators[mIteratorIdx].next()
+        while (iteratorIdx < iterators.size) {
+            if (iterators[iteratorIdx].hasNext()) {
+                return iterators[iteratorIdx].next()
             }
-            ++mIteratorIdx
+            ++iteratorIdx
         }
         throw NoSuchElementException()
     }
 
     override fun remove() {
-        mIterators[mIteratorIdx].remove()
+        iterators[iteratorIdx].remove()
     }
 
 }
@@ -327,46 +261,20 @@ private class CombiningListIterator<T> : MutableListIterator<T> {
     private val iterators: List<MutableListIterator<T>>
 
     constructor(list: ConcatenatedList<T>) {
-        iterators = toIterators(list.first, list.others)
+        iterators = list.lists.map { it.listIterator() }
     }
 
     constructor(list: ConcatenatedList<T>, index: Int) {
-        val first = list.first
-        val others = list.others
-        iteratorIdx = -1
-
-        iterators = ArrayList(others.size + 1)
-        if (index < first.size) {
-            iteratorIdx = 0
-            iterators.add(first.listIterator(index))
-        } else {
-            iterators.add(first.listIterator())
-        }
-
-        val offset = first.size
-        for (other in others) {
-            if (iteratorIdx < 0 && index - offset < other.size) {
-                iterators.add(other.listIterator(index - offset))
-                iteratorIdx = iterators.size - 1
-            } else {
-                iterators.add(other.listIterator())
+        val (positionedList, offset) = list.listNoAtIndex(index)
+        iterators = list.lists.mapIndexed { idx, elemList ->
+            when {
+                positionedList > idx -> elemList.listIterator(elemList.size) // move to end
+                positionedList == idx -> elemList.listIterator(offset)
+                else -> elemList.listIterator()
             }
         }
-        if (iteratorIdx < 0) {
-            throw IndexOutOfBoundsException()
-        }
-    }
-
-    private fun <T> toIterators(
-        first: MutableList<T>,
-        others: Array<out MutableList<T>>
-    ): List<MutableListIterator<T>> {
-        val result = ArrayList<MutableListIterator<T>>(others.size + 1)
-        result.add(first.listIterator())
-        for (other in others) {
-            result.add(other.listIterator())
-        }
-        return result
+        iteratorIdx = positionedList
+        itemIdx = offset
     }
 
     override fun hasNext(): Boolean {
@@ -582,12 +490,6 @@ fun <T> toArrayList(values: Iterable<T>): ArrayList<T> {
     return result
 }
 
-
-@Suppress("UNCHECKED_CAST")
-@Deprecated("Use {@link Collections#emptySortedSet()} when on Java 1.8")
-fun <T> emptySortedSet(): SortedSet<T> {
-    return EMPTYSORTEDSET as SortedSet<T>
-}
 
 @Suppress("UNCHECKED_CAST")
 fun <T> emptyLinkedHashSet(): LinkedHashSet<T> {

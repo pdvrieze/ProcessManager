@@ -18,8 +18,6 @@ package nl.adaptivity.util.multiplatform
 
 import kotlin.reflect.KClass
 
-actual class Class<T:Any?>(val name:String)
-
 actual val KClass<*>.nameCompat get() = js.name
 
 actual class UUID(val text:String) {

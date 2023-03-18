@@ -16,8 +16,6 @@
 
 package nl.adaptivity.process.engine.impl
 
-import nl.adaptivity.util.multiplatform.Class
-import nl.adaptivity.xmlutil.XmlStreaming
 import nl.adaptivity.xmlutil.XmlWriter
 
 expect enum class TimeUnit

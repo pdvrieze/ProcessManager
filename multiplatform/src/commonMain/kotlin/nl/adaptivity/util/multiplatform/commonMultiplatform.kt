@@ -38,9 +38,6 @@ inline fun String.toUri(): URI = createUri(this)
 fun Appendable.append(d: Double) = append(d.toString())
 fun Appendable.append(i: Int) = append(i.toString())
 
-@Suppress("unused")
-expect class Class<T : Any?>
-
 expect val KClass<*>.nameCompat: String
 
 expect fun assert(value: Boolean, lazyMessage: () -> String)
