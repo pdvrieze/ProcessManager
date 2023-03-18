@@ -20,7 +20,7 @@ import kotlinx.serialization.Serializable
 import nl.adaptivity.util.multiplatform.URI
 import nl.adaptivity.util.multiplatform.createUri
 import nl.adaptivity.util.net.devrieze.serializers.URISerializer
-import nl.adaptivity.xml.QName
+import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xml.localPart
 import nl.adaptivity.xml.namespaceURI
 import nl.adaptivity.xmlutil.*

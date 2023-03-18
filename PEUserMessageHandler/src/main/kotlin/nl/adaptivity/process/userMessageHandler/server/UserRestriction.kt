@@ -1,12 +1,13 @@
 package nl.adaptivity.process.userMessageHandler.server
 
+import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.processModel.AccessRestriction
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 class UserRestriction(val allowedPrincipals: Set<String>): AccessRestriction {
     constructor(allowedPrincipal: String) : this(setOf(allowedPrincipal))
 
-    override fun hasAccess(context: Any?, principal: PrincipalCompat): Boolean {
+    override fun hasAccess(context: Any?, principal: PrincipalCompat, permission: SecurityProvider.Permission): Boolean {
         return principal.name in allowedPrincipals
     }
 

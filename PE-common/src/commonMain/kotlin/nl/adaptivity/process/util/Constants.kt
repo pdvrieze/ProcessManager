@@ -17,7 +17,7 @@
 package nl.adaptivity.process.util
 
 import nl.adaptivity.util.multiplatform.createUri
-import nl.adaptivity.xml.QName
+import nl.adaptivity.xmlutil.QName
 
 
 object Constants {

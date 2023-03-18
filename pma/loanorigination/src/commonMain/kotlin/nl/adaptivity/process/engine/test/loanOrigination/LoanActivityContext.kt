@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine.test.loanOrigination
 
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.RunnableActivity
+import nl.adaptivity.process.engine.ProcessEnginePermissions
 import nl.adaptivity.process.engine.pma.dynamic.DynamicPMAActivityContext
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
@@ -24,11 +25,11 @@ import nl.adaptivity.util.multiplatform.PrincipalCompat
 class LoanActivityContext(override val processContext: LoanProcessContext, processNode: IProcessNodeInstance<LoanActivityContext>) :
     DynamicPMAActivityContext<LoanActivityContext>(processNode) {
 
-    override fun canBeAccessedBy(principal: PrincipalCompat?): Boolean {
+    override fun canBeAssignedTo(principal: PrincipalCompat?): Boolean {
 
         val restrictions = (node as? RunnableActivity<*, *, *>)
             ?.accessRestrictions ?: return true
-        return principal != null && restrictions.hasAccess(this, principal)
+        return principal != null && restrictions.hasAccess(this, principal, ProcessEnginePermissions.ASSIGNED_TO_ACTIVITY)
     }
 
 }

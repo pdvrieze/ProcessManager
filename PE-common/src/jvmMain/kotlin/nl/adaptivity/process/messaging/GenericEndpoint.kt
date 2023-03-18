@@ -18,7 +18,7 @@ package nl.adaptivity.process.messaging
 
 import nl.adaptivity.messaging.Endpoint
 import nl.adaptivity.rest.annotations.RestMethod
-import nl.adaptivity.xml.QName
+import nl.adaptivity.xmlutil.QName
 
 import javax.jws.WebMethod
 import jakarta.servlet.Servlet

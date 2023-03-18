@@ -26,7 +26,7 @@ import nl.adaptivity.process.messaging.ActivityResponse
 import nl.adaptivity.process.userMessageHandler.server.XmlTask.Companion.get
 import nl.adaptivity.util.multiplatform.URI
 import nl.adaptivity.ws.soap.SoapSeeAlso
-import nl.adaptivity.xml.QName
+import nl.adaptivity.xmlutil.QName
 import java.net.URISyntaxException
 import java.sql.SQLException
 import java.util.concurrent.ExecutionException

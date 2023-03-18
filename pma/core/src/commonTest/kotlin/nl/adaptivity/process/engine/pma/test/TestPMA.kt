@@ -11,7 +11,7 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.util.multiplatform.PrincipalCompat
-import nl.adaptivity.xml.QName
+import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.util.CompactFragment
 import java.util.*
 import kotlin.test.Test

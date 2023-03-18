@@ -18,7 +18,7 @@ package nl.adaptivity.process.processModel
 
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.serialutil.DelegatingSerializer
-import nl.adaptivity.xml.QName
+import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.util.ICompactFragment
 
 interface IXmlMessage {

@@ -28,15 +28,14 @@ import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.serialutil.readNullableString
-import nl.adaptivity.util.multiplatform.JvmName
 import nl.adaptivity.util.multiplatform.toUri
-import nl.adaptivity.xml.localPart
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
-import nl.adaptivity.xml.QName as DescQName
+import kotlin.jvm.JvmName
+import nl.adaptivity.xmlutil.QName as DescQName
 import nl.adaptivity.xmlutil.QName as XmlQName
 
 

@@ -1,6 +1,7 @@
 package io.github.pdvrieze.process.processModel.dynamicProcessModel
 
 import net.devrieze.util.security.RolePrincipal
+import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
@@ -19,17 +20,21 @@ sealed class RunnableAccessRestriction : AccessRestriction {
         else -> DisjunctiveRestriction(this, other)
     }
 
-    final override fun hasAccess(context: Any?, principal: PrincipalCompat): Boolean {
-        return hasAccess(context as? ActivityInstanceContext, principal)
+    final override fun hasAccess(
+        context: Any?,
+        principal: PrincipalCompat,
+        permission: SecurityProvider.Permission
+    ): Boolean {
+        return hasAccess(context as? ActivityInstanceContext, principal, permission)
     }
 
-    abstract fun hasAccess(context: ActivityInstanceContext?, principal: PrincipalCompat): Boolean
+    abstract fun hasAccess(context: ActivityInstanceContext?, principal: PrincipalCompat, permission: SecurityProvider.Permission): Boolean
 }
 
 class RoleRestriction(val allowedRoles: Collection<String>) : RunnableAccessRestriction() {
     constructor(allowedRole: String) : this(setOf(allowedRole))
 
-    override fun hasAccess(context: ActivityInstanceContext?, principal: PrincipalCompat): Boolean {
+    override fun hasAccess(context: ActivityInstanceContext?, principal: PrincipalCompat, permission: SecurityProvider.Permission): Boolean {
         return principal is RolePrincipal &&
             allowedRoles.any { principal.hasRole(it) }
     }
@@ -53,9 +58,9 @@ class ConjunctiveRestriction internal constructor(vararg val elements: RunnableA
         else -> ConjunctiveRestriction(*this.elements, other)
     }
 
-    override fun hasAccess(context: ActivityInstanceContext?, principal: PrincipalCompat): Boolean {
+    override fun hasAccess(context: ActivityInstanceContext?, principal: PrincipalCompat, permission: SecurityProvider.Permission): Boolean {
         return elements.all {
-            it.hasAccess(context, principal)
+            it.hasAccess(context, principal, permission)
         }
     }
 
@@ -81,8 +86,8 @@ class DisjunctiveRestriction internal constructor(vararg val elements: RunnableA
         else -> DisjunctiveRestriction(*this.elements, other)
     }
 
-    override fun hasAccess(context: ActivityInstanceContext?, principal: PrincipalCompat): Boolean {
-        return elements.any { it.hasAccess(context, principal) }
+    override fun hasAccess(context: ActivityInstanceContext?, principal: PrincipalCompat, permission: SecurityProvider.Permission): Boolean {
+        return elements.any { it.hasAccess(context, principal, permission) }
     }
 
     override fun serializeToString(): String = when (elements.size) {
@@ -104,7 +109,7 @@ class DisjunctiveRestriction internal constructor(vararg val elements: RunnableA
 class PrincipalRestriction(val allowedPrincipals: Set<String>) : RunnableAccessRestriction() {
     constructor(allowedPrincipal: String) : this(setOf(allowedPrincipal))
 
-    override fun hasAccess(context: ActivityInstanceContext?, principal: PrincipalCompat): Boolean {
+    override fun hasAccess(context: ActivityInstanceContext?, principal: PrincipalCompat, permission: SecurityProvider.Permission): Boolean {
         return principal.name in allowedPrincipals
     }
 
@@ -130,7 +135,7 @@ class PrincipalRestriction(val allowedPrincipals: Set<String>) : RunnableAccessR
 }
 
 class BindingOfDutyRestriction(val referenceNode: Identified) : RunnableAccessRestriction() {
-    override fun hasAccess(context: ActivityInstanceContext?, principal: PrincipalCompat): Boolean {
+    override fun hasAccess(context: ActivityInstanceContext?, principal: PrincipalCompat,permission: SecurityProvider.Permission): Boolean {
         val refInst: IProcessNodeInstance<*> = context?.processContext?.instancesForName(referenceNode)
             ?.singleOrNull { it.state == NodeInstanceState.Complete } ?: return false
         val referencePrincipal = refInst.assignedUser
@@ -143,7 +148,7 @@ class BindingOfDutyRestriction(val referenceNode: Identified) : RunnableAccessRe
 }
 
 class SeparationOfDutyRestriction(val referenceNode: Identified) : RunnableAccessRestriction() {
-    override fun hasAccess(context: ActivityInstanceContext?, principal: PrincipalCompat): Boolean {
+    override fun hasAccess(context: ActivityInstanceContext?, principal: PrincipalCompat, permission: SecurityProvider.Permission): Boolean {
         val refInsts: List<IProcessNodeInstance<*>> = context?.processContext?.instancesForName(referenceNode)
             ?.filter { it.state == NodeInstanceState.Complete } ?: emptyList()
 

@@ -105,7 +105,7 @@ class ExecutableMessageActivity(
         if (assignedUser==null) throw ProcessException("Message activities must have a user assigned for 'taking' them")
         if (instance.assignedUser!=null) throw ProcessException("Users should not have been assigned before being taken")
         instance.assignedUser = assignedUser
-        if (! activityContext.canBeAccessedBy(assignedUser))
+        if (! activityContext.canBeAssignedTo(assignedUser))
             throw ProcessException("User $assignedUser has no access to activity: $instance")
 
         return false

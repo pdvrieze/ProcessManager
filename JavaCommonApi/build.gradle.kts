@@ -59,6 +59,7 @@ kotlin {
         val commonMain by getting {
             dependencies {
                 implementation(project(":multiplatform"))
+                implementation(libs.xmlutil.core)
             }
         }
         val jsMain by getting {

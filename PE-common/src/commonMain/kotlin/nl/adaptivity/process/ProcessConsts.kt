@@ -21,7 +21,7 @@ import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.util.Constants
 import kotlin.jvm.JvmField
 import nl.adaptivity.util.multiplatform.URI
-import nl.adaptivity.xml.QName
+import nl.adaptivity.xmlutil.QName
 
 
 class ProcessConsts {

@@ -113,7 +113,7 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
     ): Boolean {
 //        if (assignedUser == null) throw ProcessException("Message activities must have a user assigned for 'taking' them")
         if (instance.assignedUser != null) throw ProcessException("Users should not have been assigned before being taken")
-        if (!activityContext.canBeAccessedBy(assignedUser)) throw ProcessException("User $assignedUser is not valid for activity")
+        if (!activityContext.canBeAssignedTo(assignedUser)) throw ProcessException("User $assignedUser is not valid for activity")
 
         instance.assignedUser = assignedUser
         return true

@@ -19,7 +19,7 @@
 package nl.adaptivity.messaging
 
 import nl.adaptivity.util.multiplatform.URI
-import nl.adaptivity.xml.QName
+import nl.adaptivity.xmlutil.QName
 
 /**
  * Interface describing service endpoints.

@@ -106,6 +106,8 @@ open class DrawableActivity @JvmOverloads constructor(
     otherNodes
 ), DrawableProcessNode {
 
+    override val accessRestrictions: AccessRestriction? = builder.accessRestrictions
+
     class Builder constructor(
         id: String? = null,
         predecessor: Identifiable? = null,

@@ -42,7 +42,7 @@ interface ActivityInstanceContext {
     val owner: PrincipalCompat
     val assignedUser: PrincipalCompat?
 
-    fun canBeAccessedBy(principal: PrincipalCompat?): Boolean
+    fun canBeAssignedTo(principal: PrincipalCompat?): Boolean
 }
 
 interface ProcessContextFactory<C : ActivityInstanceContext> {
@@ -115,7 +115,7 @@ interface ProcessContextFactory<C : ActivityInstanceContext> {
                 else -> null
             }
 
-        override fun canBeAccessedBy(principal: PrincipalCompat?): Boolean {
+        override fun canBeAssignedTo(principal: PrincipalCompat?): Boolean {
             val ar = ((node as? MessageActivity)?.accessRestrictions ?: return true)
             return principal != null && ar.hasAccess(null, principal, ProcessEnginePermissions.ASSIGNED_TO_ACTIVITY)
         }
