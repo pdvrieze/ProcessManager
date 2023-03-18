@@ -27,25 +27,27 @@ import java.util.logging.Logger
 /**
  * Created by pdvrieze on 09/12/15.
  */
-class TestServletProcessEngine(localURL: EndpointDescriptorImpl?) : ServletProcessEngine<StubProcessTransaction<C>>() {
-    private val mProcessModels: MemProcessModelMap
-    private val mProcessInstances: MemTransactionedHandleMap<SecureObject<ProcessInstance3>, StubProcessTransaction<C>>
-    private val mProcessNodeInstances: MemTransactionedHandleMap<SecureObject<ProcessNodeInstance<*, *>>, StubProcessTransaction<C>>
-    val transactionFactory: ProcessTransactionFactory<StubProcessTransaction<C>>
+class TestServletProcessEngine(
+    localURL: EndpointDescriptorImpl?
+) : ServletProcessEngine<StubProcessTransaction<ActivityInstanceContext>, ActivityInstanceContext>() {
+    private val mProcessModels: MemProcessModelMap<ActivityInstanceContext>
+    private val mProcessInstances: MemTransactionedHandleMap<SecureObject<ProcessInstance<ActivityInstanceContext>>, StubProcessTransaction<ActivityInstanceContext>>
+    private val mProcessNodeInstances: MemTransactionedHandleMap<SecureObject<ProcessNodeInstance<*, ActivityInstanceContext>>, StubProcessTransaction<ActivityInstanceContext>>
+    val transactionFactory: ProcessTransactionFactory<StubProcessTransaction<ActivityInstanceContext>, ActivityInstanceContext>
 
     init {
-        transactionFactory = object : ProcessTransactionFactory<StubProcessTransaction<C>> {
+        transactionFactory = object : ProcessTransactionFactory<StubProcessTransaction<ActivityInstanceContext>, ActivityInstanceContext> {
             override fun startTransaction(
-                engineData: IProcessEngineData<StubProcessTransaction<C>>
-            ): StubProcessTransaction<C> {
-                return StubProcessTransaction<C>(engineData)
+                engineData: IProcessEngineData<StubProcessTransaction<ActivityInstanceContext>, ActivityInstanceContext>
+            ): StubProcessTransaction<ActivityInstanceContext> {
+                return StubProcessTransaction(engineData)
             }
         }
         mProcessModels = MemProcessModelMap()
         mProcessInstances = MemTransactionedHandleMap()
         mProcessNodeInstances = MemTransactionedHandleMap()
         val messageService = MessageService(localURL!!)
-        val engine = newTestInstance<StubProcessTransaction<C>>(
+        val engine = newTestInstance(
             messageService, transactionFactory, mProcessModels, mProcessInstances,
             mProcessNodeInstances, false, Logger.getAnonymousLogger()
         )

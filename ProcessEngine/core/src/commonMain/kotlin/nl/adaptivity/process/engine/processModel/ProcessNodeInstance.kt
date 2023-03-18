@@ -52,24 +52,24 @@ import kotlin.contracts.contract
  *                   this may be a higher number. Values below 1 are invalid.
  * @property failureCause For a failure, the cause of the failure
  */
-abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, C>, C: ActivityInstanceContext>(
+abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, AIC>, AIC: ActivityInstanceContext>(
     override val node: ExecutableProcessNode,
-    predecessors: Iterable<Handle<SecureObject<ProcessNodeInstance<*, C>>>>,
+    predecessors: Iterable<Handle<SecureObject<ProcessNodeInstance<*, AIC>>>>,
     processInstanceBuilder: ProcessInstance.Builder<*>,
-    override val hProcessInstance: Handle<SecureObject<ProcessInstance<C>>>,
+    override val hProcessInstance: Handle<SecureObject<ProcessInstance<AIC>>>,
     final override val owner: PrincipalCompat,
     final override val entryNo: Int,
-    override val handle: Handle<SecureObject<ProcessNodeInstance<*, C>>> = Handle.invalid(),
+    override val handle: Handle<SecureObject<ProcessNodeInstance<*, AIC>>> = Handle.invalid(),
     final override val state: NodeInstanceState = Pending,
     results: Iterable<ProcessData> = emptyList(),
     val failureCause: Throwable? = null
 ) : SecureObject<T/*ProcessNodeInstance<T, C>*/>,
     ReadableHandleAware<SecureObject<ProcessNodeInstance<*, *>>>,
-    IProcessNodeInstance<C> {
+    IProcessNodeInstance<AIC> {
 
     override val results: List<ProcessData> = results.toList()
 
-    override val predecessors: Set<Handle<SecureObject<ProcessNodeInstance<*, C>>>> =
+    override val predecessors: Set<Handle<SecureObject<ProcessNodeInstance<*, AIC>>>> =
         predecessors.asSequence().filter { it.isValid }.toArraySet()
 
     init {
@@ -84,7 +84,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, C>, C: Activit
         }
     }
 
-    constructor(builder: Builder<*, T, C>) : this(
+    constructor(builder: Builder<*, T, AIC>) : this(
         node = builder.node,
         predecessors = builder.predecessors,
         processInstanceBuilder = builder.processInstanceBuilder,
@@ -97,9 +97,9 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, C>, C: Activit
         failureCause = builder.failureCause
     )
 
-    override fun build(processInstanceBuilder: ProcessInstance.Builder<C>): ProcessNodeInstance<*, C> = this
+    override fun build(processInstanceBuilder: ProcessInstance.Builder<AIC>): ProcessNodeInstance<*, AIC> = this
 
-    override abstract fun builder(processInstanceBuilder: ProcessInstance.Builder<C>): ExtBuilder<out ExecutableProcessNode, @UnsafeVariance T, C>
+    override abstract fun builder(processInstanceBuilder: ProcessInstance.Builder<AIC>): ExtBuilder<out ExecutableProcessNode, @UnsafeVariance T, AIC>
 
     private fun precedingClosure(processData: ProcessEngineDataAccess<*>): Sequence<SecureObject<ProcessNodeInstance<*, *>>> {
         return predecessors.asSequence().flatMap { predHandle ->
@@ -109,8 +109,8 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, C>, C: Activit
     }
 
     fun update(
-        processInstanceBuilder: ProcessInstance.Builder<C>,
-        body: Builder<out ExecutableProcessNode, T, C>.() -> Unit
+        processInstanceBuilder: ProcessInstance.Builder<AIC>,
+        body: Builder<out ExecutableProcessNode, T, AIC>.() -> Unit
     ): Future<out T>? {
         val builder = builder(processInstanceBuilder).apply(body)
 
@@ -128,7 +128,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, C>, C: Activit
         return predecessors.any { it.handleValue == handle.handleValue }
     }
 
-    fun resolvePredecessors(engineData: ProcessEngineDataAccess<C>): Collection<ProcessNodeInstance<*, C>> {
+    fun resolvePredecessors(engineData: ProcessEngineDataAccess<AIC>): Collection<ProcessNodeInstance<*, AIC>> {
         return predecessors.asSequence().map {
             engineData.nodeInstance(it).withPermission()
         }.toList()
@@ -142,8 +142,8 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, C>, C: Activit
         return "nodeInstance  ($handle, ${node.id}[$entryNo] - $state)"
     }
 
-    fun C.serialize(
-        nodeInstanceSource: IProcessInstance<C>,
+    fun AIC.serialize(
+        nodeInstanceSource: IProcessInstance<AIC>,
         out: XmlWriter,
         localEndpoint: EndpointDescriptor
     ) {
@@ -172,8 +172,8 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, C>, C: Activit
         }
     }
 
-    fun C.toSerializable(
-        engineData: ProcessEngineDataAccess<C>,
+    fun AIC.toSerializable(
+        engineData: ProcessEngineDataAccess<AIC>,
         localEndpoint: EndpointDescriptor
     ): XmlProcessNodeInstance {
         val builder = builder(engineData.instance(hProcessInstance).withPermission().builder())

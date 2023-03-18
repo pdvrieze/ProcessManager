@@ -27,7 +27,6 @@ import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.ProcessConsts.Engine
-import nl.adaptivity.serialutil.DelegatingSerializer
 import nl.adaptivity.serialutil.readNullableString
 import nl.adaptivity.util.multiplatform.JvmName
 import nl.adaptivity.util.multiplatform.toUri
@@ -97,7 +96,8 @@ class XmlMessage : XMLContainer, IXmlMessage {
             this.service = namespace?.let { DescQName(it, service?.getLocalPart() ?: "xx") }
         }
 
-    @OptIn(XmlUtilInternal::class)
+    override var serviceAuthData: ServiceAuthData? = null
+
     override var namespaces: IterableNamespaceContext
         get() = super.namespaces
         set(value) {

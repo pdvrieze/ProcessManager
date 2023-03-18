@@ -16,6 +16,9 @@
 
 package nl.adaptivity.process.engine.servlet
 
+import jakarta.servlet.ServletConfig
+import jakarta.servlet.ServletException
+import jakarta.servlet.http.HttpServletResponse
 import net.devrieze.util.*
 import net.devrieze.util.security.AuthenticationNeededException
 import net.devrieze.util.security.SYSTEMPRINCIPAL
@@ -23,6 +26,7 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.io.Writable
 import nl.adaptivity.io.WritableReader
 import nl.adaptivity.messaging.*
+import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.MessageSendingResult
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.ProcessInstance.ProcessInstanceRef
@@ -47,24 +51,6 @@ import org.w3.soapEnvelope.Envelope
 import org.w3c.dom.Element
 import org.w3c.dom.Node
 import java.io.*
-
-import javax.activation.DataHandler
-import javax.activation.DataSource
-import javax.jws.WebMethod
-import javax.jws.WebParam
-import javax.jws.WebParam.Mode
-import jakarta.servlet.ServletConfig
-import jakarta.servlet.ServletException
-import jakarta.servlet.http.HttpServletResponse
-import nl.adaptivity.process.IMessageService
-import javax.xml.bind.annotation.XmlElementWrapper
-import javax.xml.namespace.QName
-import javax.xml.stream.*
-import javax.xml.stream.events.*
-import javax.xml.stream.events.Namespace
-import javax.xml.transform.Result
-import javax.xml.transform.Source
-
 import java.net.URI
 import java.security.Principal
 import java.sql.SQLException
@@ -73,6 +59,18 @@ import java.util.concurrent.ExecutionException
 import java.util.concurrent.Future
 import java.util.logging.Level
 import java.util.logging.Logger
+import javax.activation.DataHandler
+import javax.activation.DataSource
+import javax.jws.WebMethod
+import javax.jws.WebParam
+import javax.jws.WebParam.Mode
+import javax.xml.bind.annotation.XmlElementWrapper
+import javax.xml.namespace.QName
+import javax.xml.stream.*
+import javax.xml.stream.events.*
+import javax.xml.stream.events.Namespace
+import javax.xml.transform.Result
+import javax.xml.transform.Source
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
@@ -90,9 +88,9 @@ import kotlin.contracts.contract
              interfacePrefix = "pe",
              serviceLocalname = ServletProcessEngine.SERVICE_LOCALNAME)
 */
-open class ServletProcessEngine<TR : ContextProcessTransaction<*>> : EndpointServlet(), GenericEndpoint {
+open class ServletProcessEngine<TR : ContextProcessTransaction<AIC>, AIC: ActivityInstanceContext> : EndpointServlet(), GenericEndpoint {
 
-    private lateinit var processEngine: ProcessEngine<TR, *>
+    private lateinit var processEngine: ProcessEngine<TR, AIC>
     private lateinit var messageService: MessageService
 
     override val serviceName: QName
@@ -105,19 +103,19 @@ open class ServletProcessEngine<TR : ContextProcessTransaction<*>> : EndpointSer
         get() = null
 
     inner class MessageService(localEndpoint: EndpointDescriptor) :
-        IMessageService<NewServletMessage, ActivityInstanceContext> {
+        IMessageService<NewServletMessage<ActivityInstanceContext>, ActivityInstanceContext> {
 
         override var localEndpoint: EndpointDescriptor = localEndpoint
             internal set
 
 
-        override fun createMessage(message: IXmlMessage): NewServletMessage {
+        override fun createMessage(message: IXmlMessage): NewServletMessage<ActivityInstanceContext> {
             return NewServletMessage(message, localEndpoint)
         }
 
         override fun sendMessage(
             engineData: ProcessEngineDataAccess<ActivityInstanceContext>,
-            protoMessage: NewServletMessage,
+            protoMessage: NewServletMessage<ActivityInstanceContext>,
             activityInstanceContext: ActivityInstanceContext
         ): MessageSendingResult {
             val nodeHandle = activityInstanceContext.nodeInstanceHandle
@@ -155,6 +153,11 @@ open class ServletProcessEngine<TR : ContextProcessTransaction<*>> : EndpointSer
 
     }
 
+    /**
+     * Listener for completion of messaging
+     * @property handle The handle to the node instance the message relates to
+     * @property owner
+     */
     private inner class MessagingCompletionListener(
         private val handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>,
         private val owner: Principal
@@ -166,12 +169,12 @@ open class ServletProcessEngine<TR : ContextProcessTransaction<*>> : EndpointSer
 
     }
 
-    class NewServletMessage(
+    class NewServletMessage<AIC: ActivityInstanceContext>(
         private val message: IXmlMessage,
         private val localEndpoint: EndpointDescriptor
     ) : ISendableMessage, Writable {
 
-        private var activityInstanceContext: ActivityInstanceContext? = null
+        private var activityInstanceContext: AIC? = null
 
         private var data: Writable? = null
 
@@ -218,7 +221,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction<*>> : EndpointSer
         }
 
 
-        fun setHandle(engineData: ProcessEngineDataAccess<*>, activityInstanceContext: ActivityInstanceContext) {
+        fun setHandle(engineData: ProcessEngineDataAccess<AIC>, activityInstanceContext: AIC) {
             this.activityInstanceContext = activityInstanceContext
 
             try {
@@ -462,7 +465,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction<*>> : EndpointSer
     }
 
     @TestOnly
-    protected fun init(engine: ProcessEngine<TR, *>) {
+    protected fun init(engine: ProcessEngine<TR, AIC>) {
         processEngine = engine
     }
 
@@ -480,7 +483,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction<*>> : EndpointSer
 
         val logger = Logger.getLogger(ServletProcessEngine::class.java.name)
 
-        processEngine = ProcessEngine.newInstance(messageService, logger) as ProcessEngine<TR, *>
+        processEngine = ProcessEngine.newInstance(messageService, logger) as ProcessEngine<TR, AIC>
 
         MessagingRegistry.messenger.registerEndpoint(this)
     }
@@ -782,7 +785,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction<*>> : EndpointSer
     fun cancelProcessInstance(
         @RestParam(name = "handle", type = RestParamType.VAR) handle: Long,
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal
-    ): ProcessInstance3 = translateExceptions {
+    ): ProcessInstance<out ActivityInstanceContext> = translateExceptions {
         processEngine.startTransaction().use { transaction ->
             return transaction.commit(
                 processEngine.cancelInstance(transaction, if (handle < 0) Handle.invalid() else Handle(handle), user)
@@ -821,17 +824,23 @@ open class ServletProcessEngine<TR : ContextProcessTransaction<*>> : EndpointSer
         @RestParam(name = "handle", type = RestParamType.VAR) handle: Long,
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal
     ): XmlProcessNodeInstance? = translateExceptions {
-
         processEngine.startTransaction().use { transaction ->
-            val nodeInstance = processEngine.getNodeInstance(
+            val nodeInstance: ProcessNodeInstance<ProcessNodeInstance<*, AIC>, AIC> =
+                processEngine.getNodeInstance(
                 transaction,
                 if (handle < 0) Handle.invalid() else Handle(handle),
                 user
-            )
-                ?: return null
+            ) ?: return null
 
-            return transaction.commit(
-                nodeInstance.toSerializable(transaction.readableEngineData, messageService.localEndpoint)
+            val context: AIC = transaction.readableEngineData.processContextFactory.newActivityInstanceContext(
+                transaction.readableEngineData,
+                nodeInstance
+            )
+
+            transaction.commit(
+                with(nodeInstance) {
+                    context.toSerializable(transaction.readableEngineData, messageService.localEndpoint)
+                }
             )
         }
     }
@@ -956,7 +965,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction<*>> : EndpointSer
      */
     @OptIn(ProcessInstanceStorage::class)
     @Throws(FileNotFoundException::class)
-    fun onMessageCompletion(
+    internal fun onMessageCompletion(
         future: Future<out DataSource>,
         handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>,
         owner: Principal

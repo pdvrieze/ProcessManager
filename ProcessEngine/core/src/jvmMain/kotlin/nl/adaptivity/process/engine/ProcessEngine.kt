@@ -916,7 +916,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
      */
     fun finishedTask(
         transaction: TR,
-        handle: Handle<SecureObject<ProcessNodeInstance<*, C>>>,
+        handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>,
         resultSource: DataSource?,
         user: Principal
     ) {
@@ -957,7 +957,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
 
     fun errorTask(
         transaction: TR,
-        handle: Handle<SecureObject<ProcessNodeInstance<*, C>>>,
+        handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>,
         cause: Throwable,
         user: Principal
     ) {

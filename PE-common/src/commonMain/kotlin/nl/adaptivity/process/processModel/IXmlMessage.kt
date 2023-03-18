@@ -37,6 +37,8 @@ interface IXmlMessage {
 
     val messageBody: ICompactFragment
 
+    val serviceAuthData: ServiceAuthData?
+
     val url: String?
 
     val method: String?

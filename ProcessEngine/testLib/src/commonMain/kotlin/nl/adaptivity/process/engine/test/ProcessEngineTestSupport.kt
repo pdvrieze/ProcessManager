@@ -148,11 +148,11 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>() {
         assertEquals(NodeInstanceState.Started, this.state)
     }
 
-    protected fun ProcessInstance3.assertIsStarted() = apply {
+    protected fun ProcessInstance<C>.assertIsStarted() = apply {
         assertEquals(ProcessInstance.State.STARTED, this.state)
     }
 
-    protected fun ProcessInstance3.assertIsFinished() = apply {
+    protected fun ProcessInstance<C>.assertIsFinished() = apply {
         assertEquals(ProcessInstance.State.FINISHED, this.state)
     }
 
