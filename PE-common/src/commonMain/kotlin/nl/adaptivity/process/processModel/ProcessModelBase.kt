@@ -205,7 +205,8 @@ abstract class ProcessModelBase<NodeT : ProcessNode> : ProcessModel<NodeT> {
             buildHelper: ProcessModel.BuildHelper<NodeT, *, *, *>
         ): MutableIdentifyableSet<NodeT> {
             val newNodes = builder.nodes.map {
-                buildHelper.node(it, builder.nodes)
+                val n = buildHelper.node(it, builder.nodes)
+                n
             }.let { IdentifyableSet.processNodeSet(Int.MAX_VALUE, it) }
             return newNodes
         }

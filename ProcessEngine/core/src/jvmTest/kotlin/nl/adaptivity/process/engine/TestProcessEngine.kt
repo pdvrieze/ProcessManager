@@ -121,12 +121,12 @@ class TestProcessEngine : ProcessEngineTestSupport<ActivityInstanceContext>() {
                 null
             )
 
-            assertEquals(1, stubMessageService.messages.size)
-            assertEquals(1L, stubMessageService.getMessageNode(0).handleValue)
+            assertEquals(1, messageService.messages.size)
+            assertEquals(1L, messageService.getMessageNode(0).handleValue)
 
             val expected = getXml("testModel1_task1.xml")
 
-            val receivedChars = serializeToXml(stubMessageService.messages[0].base)
+            val receivedChars = serializeToXml(messageService.messages[0].base)
 
             assertXmlEquals(expected, receivedChars)
 
@@ -142,7 +142,7 @@ class TestProcessEngine : ProcessEngineTestSupport<ActivityInstanceContext>() {
 
                 processInstance.assertCompleted() // no completions
 
-                val taskNode = stubMessageService.messageNode(transaction, 0)
+                val taskNode = messageService.messageNode(transaction, 0)
                 taskNode.assertAcknowledged()
                 processInstance.assertActive(taskNode)
                 engineData.updateInstance(processInstance.handle) {
@@ -223,11 +223,11 @@ class TestProcessEngine : ProcessEngineTestSupport<ActivityInstanceContext>() {
                     instance.assertActive(split, ac1, ac2)
 
                     run {
-                        val messageSources = stubMessageService.messages
+                        val messageSources = messageService.messages
                             .map { transaction.readableEngineData.nodeInstance(it.source).withPermission() }
                             .sortedBy { it.node.id }
                         assertEquals(listOf(ac1, ac2), messageSources)
-                        stubMessageService.messages.forEach { msg ->
+                        messageService.messages.forEach { msg ->
                             msg.source
                         }
                     }
@@ -324,15 +324,15 @@ class TestProcessEngine : ProcessEngineTestSupport<ActivityInstanceContext>() {
                 null
             )
 
-            assertEquals(1, stubMessageService.messages.size)
+            assertEquals(1, messageService.messages.size)
 
             assertXmlEquals(
                 getXml("testModel2_task1.xml"),
-                serializeToXml(stubMessageService.messages[0].base)
+                serializeToXml(messageService.messages[0].base)
             )
 
             var ac1: ProcessNodeInstance<*, ActivityInstanceContext> =
-                processEngine.getNodeInstance(transaction, stubMessageService.getMessageNode(0), model.owner)
+                processEngine.getNodeInstance(transaction, messageService.getMessageNode(0), model.owner)
                     ?: throw AssertionError("Message node not found")// This should be 0 as it's the first activity
 
             ac1.node.results.let { r ->
@@ -370,7 +370,7 @@ class TestProcessEngine : ProcessEngineTestSupport<ActivityInstanceContext>() {
                 assertEquals(result2ExpectedContent, String(r[1].content!!).replace(" />", "/>"))
             }
 
-            stubMessageService.clear() // (Process the message)
+            messageService.clear() // (Process the message)
             assertEquals(0, ac1.results.size)
             ac1 = processEngine.finishTask(
                 transaction,
@@ -392,13 +392,13 @@ class TestProcessEngine : ProcessEngineTestSupport<ActivityInstanceContext>() {
                 val expected = "<user xmlns=''><fullname>Paul</fullname></user>"
                 assertXmlEquals(expected, actual)
             }
-            assertEquals(1, stubMessageService.messages.size)
+            assertEquals(1, messageService.messages.size)
             assertEquals(
                 2L,
-                stubMessageService.getMessageNode(0).handleValue
+                messageService.getMessageNode(0).handleValue
             ) //We should have a new message with the new task (with the data)
             val ac2 =
-                processEngine.getNodeInstance(transaction, stubMessageService.getMessageNode(0), model.owner)
+                processEngine.getNodeInstance(transaction, messageService.getMessageNode(0), model.owner)
 
 
 

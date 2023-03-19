@@ -20,6 +20,7 @@ import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.processModel.IXmlMessage
+import nl.adaptivity.process.processModel.ServiceAuthData
 
 /**
  * Interface signifying that the object can be used to send messages. The message provided is an opaque type
@@ -51,7 +52,12 @@ interface IMessageService<MSG_T, in C: ActivityInstanceContext> {
    * @return `true` or lack of failure, `false` on failure.
    *
    */
-  fun sendMessage(engineData: ProcessEngineDataAccess<@UnsafeVariance C>, protoMessage: MSG_T, activityInstanceContext: C): MessageSendingResult
+  fun sendMessage(
+      engineData: ProcessEngineDataAccess<@UnsafeVariance C>,
+      protoMessage: MSG_T,
+      activityInstanceContext: C,
+      authData: ServiceAuthData? = null
+  ): MessageSendingResult
 
   /**
    * Get the endpoint belonging to the messenger. (Where can replies go)

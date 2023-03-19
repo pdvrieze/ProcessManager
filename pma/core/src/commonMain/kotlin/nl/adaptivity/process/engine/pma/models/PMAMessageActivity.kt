@@ -24,9 +24,6 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.util.multiplatform.PrincipalCompat
-import nl.adaptivity.xmlutil.XmlException
-import nl.adaptivity.xmlutil.XmlWriter
-import nl.adaptivity.xmlutil.serialization.XML
 
 
 /**
@@ -36,7 +33,7 @@ class PMAMessageActivity<C: PMAActivityContext<C>>(
     builder: Builder<C>,
     newOwner: ProcessModel<*>,
     otherNodes: Iterable<ProcessNode.Builder>
-) : MessageActivityBase(builder, newOwner, otherNodes), ExecutableActivity {
+) : ExecutableMessageActivity(builder, newOwner, otherNodes) {
     init {
         checkPredSuccCounts()
     }
@@ -81,16 +78,6 @@ class PMAMessageActivity<C: PMAActivityContext<C>>(
         return _condition?.isOtherwise == true
     }
 
-    override fun <C : ActivityInstanceContext> createOrReuseInstance(
-        data: MutableProcessEngineDataAccess<C>,
-        processInstanceBuilder: ProcessInstance.Builder<C>,
-        predecessor: IProcessNodeInstance<C>,
-        entryNo: Int,
-        allowFinalInstance: Boolean
-    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*, C>, C> {
-        return super.createOrReuseInstance(data, processInstanceBuilder, predecessor, entryNo, allowFinalInstance)
-    }
-
     override fun <C: ActivityInstanceContext> canProvideTaskAutoProgress(
         engineData: ProcessEngineDataAccess<C>,
         instanceBuilder: ProcessNodeInstance.Builder<*, *, C>
@@ -121,13 +108,6 @@ class PMAMessageActivity<C: PMAActivityContext<C>>(
      * @return `false`
      */
     override fun <C: ActivityInstanceContext> canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *, C>): Boolean = false
-
-    @Throws(XmlException::class)
-    fun serializeCondition(out: XmlWriter) {
-        condition?.let {
-            XML.Companion.encodeToWriter(out, XmlCondition(it.condition))
-        }
-    }
 
     open class Builder<C: PMAActivityContext<C>>: MessageActivityBase.Builder, ExecutableProcessNode.Builder {
         constructor() : super() {
@@ -166,7 +146,7 @@ class PMAMessageActivity<C: PMAActivityContext<C>>(
         override fun build(
             buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ProcessModel<ExecutableProcessNode>, *, *>,
             otherNodes: Iterable<ProcessNode.Builder>
-        ): ExecutableProcessNode {
+        ): PMAMessageActivity<C> {
             return PMAMessageActivity(this, buildHelper.newOwner, otherNodes)
         }
     }

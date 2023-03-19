@@ -173,7 +173,7 @@ class ExecutableJoin(
         override fun build(
             buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ProcessModel<ExecutableProcessNode>, *, *>,
             otherNodes: Iterable<ProcessNode.Builder>
-        ): ExecutableProcessNode {
+        ): ExecutableJoin {
             return ExecutableJoin(this, buildHelper, otherNodes)
         }
     }

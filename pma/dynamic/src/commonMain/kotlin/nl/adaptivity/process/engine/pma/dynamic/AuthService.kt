@@ -22,6 +22,7 @@ import nl.adaptivity.process.engine.impl.Level
 import nl.adaptivity.process.engine.impl.LoggerCompat
 import nl.adaptivity.process.engine.pma.CommonPMAPermissions.*
 import nl.adaptivity.process.engine.pma.models.*
+import nl.adaptivity.process.engine.pma.runtime.AuthServiceClient
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.nl.adaptivity.util.kotlin.removeIfTo
 import kotlin.random.Random

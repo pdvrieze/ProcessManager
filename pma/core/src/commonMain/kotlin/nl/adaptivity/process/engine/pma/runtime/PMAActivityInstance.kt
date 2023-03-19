@@ -56,13 +56,13 @@ class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAA
             val message = node.message ?: XmlMessage()
             val aic = createActivityContext(engineData)
             val authorizations = node.authorizationTemplates.map { it.instantiateScope(aic) }
-            aic.requestAuthData(messageService, message.targetService, authorizations)
+            val authData = aic.requestAuthData(messageService, message.targetService, authorizations)
 
             val preparedMessage = messageService.createMessage(message)
 
 
             val sendingResult = tryCreateTask {
-                messageService.sendMessage(engineData, preparedMessage, aic)// TODO remove cast
+                messageService.sendMessage(engineData, preparedMessage, aic, authData)
             }
 
             when (sendingResult) {
@@ -72,9 +72,6 @@ class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAA
             }
             store(engineData)
             return false
-
-
-            TODO("not implemented")
         }
 
         override fun canTakeTaskAutomatically(): Boolean = false
@@ -83,11 +80,11 @@ class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAA
             engineData: MutableProcessEngineDataAccess<C>,
             assignedUser: PrincipalCompat?
         ): Boolean {
-            TODO("not implemented")
+            return node.canTakeTaskAutoProgress(createActivityContext(engineData), this, assignedUser)
         }
 
         override fun doStartTask(engineData: MutableProcessEngineDataAccess<C>): Boolean {
-            TODO("not implemented")
+            return node.canStartTaskAutoProgress(this)
         }
 
     }

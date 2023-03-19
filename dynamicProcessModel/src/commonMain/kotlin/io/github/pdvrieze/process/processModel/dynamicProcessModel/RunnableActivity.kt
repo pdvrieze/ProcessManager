@@ -260,7 +260,7 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
         override fun build(
             buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ProcessModel<ExecutableProcessNode>, *, *>,
             otherNodes: Iterable<ProcessNode.Builder>
-        ): ExecutableProcessNode {
+        ): RunnableActivity {
             return RunnableActivity(this, buildHelper.newOwner, otherNodes)
         }
 

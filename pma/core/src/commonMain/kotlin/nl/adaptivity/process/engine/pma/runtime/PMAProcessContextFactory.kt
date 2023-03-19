@@ -13,7 +13,7 @@ import nl.adaptivity.util.multiplatform.PrincipalCompat
 import java.security.Principal
 
 abstract class PMAProcessContextFactory<AIC : PMAActivityContext<AIC>>: ProcessContextFactory<AIC> {
-    abstract val authService: AuthService
+    abstract val authServiceClient: AuthServiceClient
 
     abstract fun getOrCreateTaskListForUser(principal: Principal): TaskListService
 

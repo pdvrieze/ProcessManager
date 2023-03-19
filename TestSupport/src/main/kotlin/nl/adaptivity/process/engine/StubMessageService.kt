@@ -24,6 +24,7 @@ import nl.adaptivity.process.MessageSendingResult
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.instantiateXmlPlaceholders
 import nl.adaptivity.process.processModel.IXmlMessage
+import nl.adaptivity.process.processModel.ServiceAuthData
 import nl.adaptivity.process.processModel.XmlMessage
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
@@ -33,9 +34,11 @@ import java.util.*
 /**
  * Created by pdvrieze on 16/10/16.
  */
-class StubMessageService<C: ActivityInstanceContext>(private val mLocalEndpoint: EndpointDescriptor) : IMessageService<IXmlMessage, C> {
+open class StubMessageService<C: ActivityInstanceContext>(
+    override val localEndpoint: EndpointDescriptor
+) : IMessageService<IXmlMessage, C> {
 
-    class ExtMessage(val base: IXmlMessage, val source: Handle<SecureObject<ProcessNodeInstance<*, *>>>) : IXmlMessage by base
+    class ExtMessage(val base: IXmlMessage, val source: Handle<SecureObject<ProcessNodeInstance<*, *>>>, val authData: ServiceAuthData?) : IXmlMessage by base
 
     private var _messages = mutableListOf<ExtMessage>()
 
@@ -53,12 +56,12 @@ class StubMessageService<C: ActivityInstanceContext>(private val mLocalEndpoint:
         return _messages[i].source
     }
 
-    override val localEndpoint: EndpointDescriptor
-        get() = mLocalEndpoint
-
-    override fun sendMessage(engineData: ProcessEngineDataAccess<C>,
-                             protoMessage: IXmlMessage,
-                             activityInstanceContext: C): MessageSendingResult {
+    override fun sendMessage(
+        engineData: ProcessEngineDataAccess<C>,
+        protoMessage: IXmlMessage,
+        activityInstanceContext: C,
+        authData: ServiceAuthData?
+    ): MessageSendingResult {
         assert(activityInstanceContext.nodeInstanceHandle.isValid) { "Sending messages from invalid nodes is a bad idea (${activityInstanceContext})" }
 
         val instantiatedContent: ICompactFragment = if (! protoMessage.messageBody.isEmpty) {
@@ -73,15 +76,10 @@ class StubMessageService<C: ActivityInstanceContext>(private val mLocalEndpoint:
         } else {
             CompactFragment(Collections.emptyList(), CharArray(0))
         }
-        val processedMessage = XmlMessage(protoMessage.service,
-                                          protoMessage.endpoint,
-                                          protoMessage.operation,
-                                          protoMessage.url,
-                                          protoMessage.method,
-                                          protoMessage.contentType,
+        val processedMessage = XmlMessage(protoMessage,
                                           instantiatedContent)
 
-        _messages.add(ExtMessage(processedMessage, activityInstanceContext.nodeInstanceHandle))
+        _messages.add(ExtMessage(processedMessage, activityInstanceContext.nodeInstanceHandle, authData))
 
         return MessageSendingResult.ACKNOWLEDGED
     }

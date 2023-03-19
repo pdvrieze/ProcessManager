@@ -16,7 +16,7 @@ interface PMAProcessInstanceContext<A: PMAActivityContext<A>>: ProcessInstanceCo
         targetService: InvokableService,
         authorizations: List<AuthScope>
     ): TokenServiceAuthData {
-        return contextFactory.authService.requestAuthToken(targetService, authorizations)
+        return contextFactory.authServiceClient.requestAuthToken(targetService, authorizations)
     }
 
 }

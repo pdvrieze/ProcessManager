@@ -144,6 +144,13 @@ class XmlMessage : XMLContainer, IXmlMessage {
         }
     }
 
+    constructor(baseMessage: IXmlMessage, newMessageBody: ICompactFragment) {
+        targetService = baseMessage.targetService
+        operation = baseMessage.operation
+        content = newMessageBody.content
+        namespaces = newMessageBody.namespaces
+    }
+
     override fun serializeAttributes(out: XmlWriter) {
         super.serializeAttributes(out)
         out.writeAttribute("type", contentType)
@@ -226,15 +233,7 @@ class XmlMessage : XMLContainer, IXmlMessage {
         }
 
         fun from(message: IXmlMessage): XmlMessage {
-            return message as? XmlMessage ?: XmlMessage(
-                message.service,
-                message.endpoint,
-                message.operation,
-                message.url,
-                message.method,
-                message.contentType,
-                message.messageBody
-            )
+            return message as? XmlMessage ?: XmlMessage(message, message.messageBody)
         }
 
         override fun deserialize(decoder: Decoder): XmlMessage {

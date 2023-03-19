@@ -14,7 +14,7 @@ import nl.adaptivity.process.processModel.TokenServiceAuthData
 import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-abstract class PMAActivityContext<A : PMAActivityContext<A>>(private val processNode: IProcessNodeInstance<A>) :
+abstract class PMAActivityContext<A : PMAActivityContext<A>>(val processNode: IProcessNodeInstance<A>) :
     ActivityInstanceContext {
     fun <MSG_T> requestAuthData(
         messageService: IMessageService<MSG_T, A>,

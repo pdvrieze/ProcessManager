@@ -36,6 +36,7 @@ import nl.adaptivity.process.messaging.EndpointServlet
 import nl.adaptivity.process.messaging.GenericEndpoint
 import nl.adaptivity.process.processModel.IXmlMessage
 import nl.adaptivity.process.processModel.RootProcessModel
+import nl.adaptivity.process.processModel.ServiceAuthData
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.rest.annotations.HttpMethod
@@ -116,7 +117,8 @@ open class ServletProcessEngine<TR : ContextProcessTransaction<AIC>, AIC: Activi
         override fun sendMessage(
             engineData: ProcessEngineDataAccess<ActivityInstanceContext>,
             protoMessage: NewServletMessage<ActivityInstanceContext>,
-            activityInstanceContext: ActivityInstanceContext
+            activityInstanceContext: ActivityInstanceContext,
+            authData: ServiceAuthData?
         ): MessageSendingResult {
             val nodeHandle = activityInstanceContext.nodeInstanceHandle
 
@@ -199,7 +201,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction<AIC>, AIC: Activi
             get() {
                 val contentType = message.contentType
                 return when {
-                    contentType.isEmpty() -> emptyList()
+                    contentType.isNullOrEmpty() -> emptyList()
                     else -> listOf(Header("Content-type", contentType))
                 }
             }
@@ -213,7 +215,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction<AIC>, AIC: Activi
             }
 
         override val contentType: String
-            get() = message.contentType
+            get() = message.contentType?:""
 
         @Throws(IOException::class)
         override fun writeTo(destination: Writer) {
@@ -472,7 +474,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction<AIC>, AIC: Activi
     @Throws(ServletException::class)
     override fun init(config: ServletConfig) {
         super.init(config)
-        val hostname: String? = config.getInitParameter("hostname") ?: "localhost"
+        val hostname: String = config.getInitParameter("hostname") ?: "localhost"
         val port = config.getInitParameter("port")
         val localURL: URI
         localURL = when (port) {

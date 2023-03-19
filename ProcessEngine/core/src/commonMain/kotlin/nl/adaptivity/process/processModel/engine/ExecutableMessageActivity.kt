@@ -30,7 +30,7 @@ import nl.adaptivity.xmlutil.serialization.XML
 /**
  * Activity version that is used for process execution.
  */
-class ExecutableMessageActivity(
+open class ExecutableMessageActivity(
     builder: MessageActivity.Builder,
     newOwner: ProcessModel<*>,
     otherNodes: Iterable<ProcessNode.Builder>

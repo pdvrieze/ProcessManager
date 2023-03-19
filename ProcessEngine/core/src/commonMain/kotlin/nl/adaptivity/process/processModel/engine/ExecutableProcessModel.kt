@@ -182,17 +182,29 @@ object EXEC_NODEFACTORY :
         private val buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ProcessModel<ExecutableProcessNode>, *, *>,
         val otherNodes: Iterable<ProcessNode.Builder>
     ) : ProcessNode.BuilderVisitor<ExecutableProcessNode> {
-        override fun visitStartNode(startNode: StartNode.Builder) =
-            ExecutableStartNode(startNode, buildHelper)
+        override fun visitStartNode(startNode: StartNode.Builder): ExecutableStartNode {
+            return (startNode as? ExecutableStartNode.Builder)
+                ?.build(buildHelper, otherNodes)
+                ?: ExecutableStartNode(startNode, buildHelper)
+        }
 
-        override fun visitActivity(activity: MessageActivity.Builder) =
-            ExecutableMessageActivity(activity, buildHelper.newOwner, otherNodes)
+        override fun visitActivity(activity: MessageActivity.Builder): ExecutableProcessNode {
+            return ((activity as? ExecutableProcessNode.Builder)
+                ?.build(buildHelper, otherNodes))
+                ?: ExecutableMessageActivity(activity, buildHelper.newOwner, otherNodes)
+        }
 
-        override fun visitActivity(activity: CompositeActivity.ModelBuilder) =
-            ExecutableCompositeActivity(activity, buildHelper, otherNodes)
+        override fun visitActivity(activity: CompositeActivity.ModelBuilder): ExecutableCompositeActivity {
+            return (activity as? ExecutableProcessNode.Builder)
+                ?.build(buildHelper, otherNodes) as? ExecutableCompositeActivity
+                ?: ExecutableCompositeActivity(activity, buildHelper, otherNodes)
+        }
 
-        override fun visitActivity(activity: CompositeActivity.ReferenceBuilder) =
-            ExecutableCompositeActivity(activity, buildHelper, otherNodes)
+        override fun visitActivity(activity: CompositeActivity.ReferenceBuilder): ExecutableCompositeActivity {
+            return (activity as? ExecutableProcessNode.Builder)
+                ?.build(buildHelper, otherNodes) as? ExecutableCompositeActivity
+                ?: ExecutableCompositeActivity(activity, buildHelper, otherNodes)
+        }
 
         override fun visitGenericActivity(builder: Activity.Builder): ExecutableProcessNode {
             return when (builder) {
@@ -202,14 +214,23 @@ object EXEC_NODEFACTORY :
             }
         }
 
-        override fun visitSplit(split: Split.Builder) =
-            ExecutableSplit(split, buildHelper.newOwner, otherNodes)
+        override fun visitSplit(split: Split.Builder): ExecutableSplit {
+            return (split as? ExecutableSplit.Builder)
+                ?.build(buildHelper, otherNodes)
+                ?: ExecutableSplit(split, buildHelper.newOwner, otherNodes)
+        }
 
-        override fun visitJoin(join: Join.Builder) =
-            ExecutableJoin(join, buildHelper, otherNodes)
+        override fun visitJoin(join: Join.Builder): ExecutableJoin {
+            return (join as? ExecutableJoin.Builder)
+                ?.build(buildHelper, otherNodes)
+                ?: ExecutableJoin(join, buildHelper, otherNodes)
+        }
 
-        override fun visitEndNode(endNode: EndNode.Builder) =
-            ExecutableEndNode(endNode, buildHelper.newOwner, otherNodes)
+        override fun visitEndNode(endNode: EndNode.Builder): ExecutableEndNode {
+            return (endNode as? ExecutableEndNode.Builder)
+                ?.build(buildHelper, otherNodes)
+                ?: ExecutableEndNode(endNode, buildHelper.newOwner, otherNodes)
+        }
     }
 
     override fun invoke(

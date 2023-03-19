@@ -79,7 +79,7 @@ class ExecutableSplit(
         override fun build(
             buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ProcessModel<ExecutableProcessNode>, *, *>,
             otherNodes: Iterable<ProcessNode.Builder>
-        ): ExecutableProcessNode {
+        ): ExecutableSplit {
             return ExecutableSplit(this, buildHelper.newOwner, otherNodes)
         }
     }
