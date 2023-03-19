@@ -19,6 +19,7 @@ package nl.adaptivity.process.engine.processModel
 import net.devrieze.util.*
 import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.security.SecureObject
+import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.impl.generateXmlString
 import nl.adaptivity.process.processModel.engine.ExecutableCompositeActivity
@@ -38,7 +39,10 @@ class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : Proc
     interface Builder<C : ActivityInstanceContext> : ProcessNodeInstance.Builder<ExecutableCompositeActivity, CompositeInstance<C>, C> {
         var hChildInstance: Handle<SecureObject<ProcessInstance<*>>>
 
-        override fun doProvideTask(engineData: MutableProcessEngineDataAccess<C>): Boolean {
+        override fun <MSG_T> doProvideTask(
+            engineData: MutableProcessEngineDataAccess<C>,
+            messageService: IMessageService<MSG_T, C>
+        ): Boolean {
             val shouldProgress = node.canProvideTaskAutoProgress(engineData, this)
 
             val childHandle = engineData.instances.put(ProcessInstance(engineData, node.childModel, handle) {})

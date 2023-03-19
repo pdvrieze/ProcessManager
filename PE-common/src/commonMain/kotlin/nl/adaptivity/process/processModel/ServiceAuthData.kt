@@ -7,6 +7,11 @@ sealed interface ServiceAuthData {
 
 }
 
-data class PasswordServiceAuthData(val userName: String, val password: String) : ServiceAuthData
+interface PasswordServiceAuthData : ServiceAuthData {
+    val userName: String
+    val password: String
+}
 
-data class TokenServiceAuthData(val token: String) : ServiceAuthData
+interface TokenServiceAuthData : ServiceAuthData {
+    val token: String
+}

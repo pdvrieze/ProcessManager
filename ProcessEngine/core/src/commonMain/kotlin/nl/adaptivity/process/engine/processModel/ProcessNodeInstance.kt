@@ -252,8 +252,14 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, AIC>, AIC: Act
             autoContinue: Boolean = true
         )
 
+
+        fun doProvideTask(engineData: MutableProcessEngineDataAccess<C>): Boolean {
+            return doProvideTask(engineData, engineData.messageService())
+        }
+
         /** Function that will do provision, but not progress. This is where custom implementations live */
-        fun doProvideTask(engineData: MutableProcessEngineDataAccess<C>): Boolean
+        fun <MSG_T> doProvideTask(engineData: MutableProcessEngineDataAccess<C>, messageService: IMessageService<MSG_T, C>): Boolean
+
 
         fun canTakeTaskAutomatically(): Boolean
 
@@ -390,6 +396,9 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, AIC>, AIC: Act
                     }
                 }
             }
+            if (!handle.isValid) store(engineData)
+            assert(handle.isValid)
+
             if (doProvideTask(engineData).also { softUpdateState(engineData, Sent) } &&
                 autoContinue &&
                 canTakeTaskAutomatically()) {

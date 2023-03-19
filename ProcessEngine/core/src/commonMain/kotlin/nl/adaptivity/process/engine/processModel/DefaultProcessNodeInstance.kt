@@ -30,7 +30,6 @@ import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.XmlMessage
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.multiplatform.PrincipalCompat
-import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.util.net.devrieze.util.security.ActiveSecureObject
 import nl.adaptivity.xmlutil.XmlDeserializerFactory
 import nl.adaptivity.xmlutil.XmlReader
@@ -156,42 +155,32 @@ class DefaultProcessNodeInstance<C: ActivityInstanceContext> : ProcessNodeInstan
 
         override var assignedUser: PrincipalCompat?
 
-        override fun doProvideTask(engineData: MutableProcessEngineDataAccess<C>): Boolean {
+        override fun <MSG_T> doProvideTask(engineData: MutableProcessEngineDataAccess<C>, messageService: IMessageService<MSG_T, C>): Boolean {
+            // Create a local copy to prevent races - and shut up Kotlin about the possibilities as it should be immutable
+            val node = this.node
 
-            if (!handle.isValid) store(engineData)
-            assert(handle.isValid)
+            val shouldProgress = tryCreateTask { node.canProvideTaskAutoProgress(engineData, this) }
 
-            val node =
-                this.node // Create a local copy to prevent races - and shut up Kotlin about the possibilities as it should be immutable
+            return node.visit(object : ProcessNode.Visitor<Boolean> {
+                override fun visitGeneralNode(node: ProcessNode): Boolean {
+                    return shouldProgress
+                }
 
-            fun <MSG_T> impl(messageService: IMessageService<MSG_T, C>): Boolean {
-
-                val shouldProgress = tryCreateTask { node.canProvideTaskAutoProgress(engineData, this) }
-
-                return node.visit(object : ProcessNode.Visitor<Boolean> {
-                    override fun visitGeneralNode(node: ProcessNode): Boolean {
-                        return shouldProgress
+                override fun visitActivity(messageActivity: MessageActivity): Boolean {
+                    val preparedMessage = messageService.createMessage(messageActivity.message ?: XmlMessage())
+                    val sendingResult = tryCreateTask {
+                        val aic = createActivityContext(engineData)
+                        messageService.sendMessage(engineData, preparedMessage, aic)// TODO remove cast
                     }
-
-                    override fun visitActivity(messageActivity: MessageActivity): Boolean {
-                        val preparedMessage = messageService.createMessage(messageActivity.message ?: XmlMessage())
-                        val sendingResult = tryCreateTask {
-                            val aic = createActivityContext(engineData)
-                            messageService.sendMessage(engineData, preparedMessage, aic)// TODO remove cast
-                        }
-                        when (sendingResult) {
-                            MessageSendingResult.SENT -> state = NodeInstanceState.Sent
-                            MessageSendingResult.ACKNOWLEDGED -> state = NodeInstanceState.Acknowledged
-                            MessageSendingResult.FAILED -> failTaskCreation(ProcessException("Failure to send message"))
-                        }
-                        store(engineData)
-                        return false
+                    when (sendingResult) {
+                        MessageSendingResult.SENT -> state = NodeInstanceState.Sent
+                        MessageSendingResult.ACKNOWLEDGED -> state = NodeInstanceState.Acknowledged
+                        MessageSendingResult.FAILED -> failTaskCreation(ProcessException("Failure to send message"))
                     }
-                })
-
-            }
-
-            return impl(engineData.messageService())
+                    store(engineData)
+                    return false
+                }
+            })
         }
 
         override fun canTakeTaskAutomatically(): Boolean {

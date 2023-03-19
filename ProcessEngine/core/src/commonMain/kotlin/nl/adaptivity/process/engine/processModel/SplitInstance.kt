@@ -20,6 +20,7 @@ import net.devrieze.util.Handle
 import net.devrieze.util.collection.replaceByNotNull
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
+import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.impl.LogLevel
 import nl.adaptivity.process.processModel.Join
@@ -39,7 +40,10 @@ class SplitInstance<C : ActivityInstanceContext>  : ProcessNodeInstance<SplitIns
             get() = predecessors.firstOrNull()
             set(value) = predecessors.replaceByNotNull(value)
 
-        override fun doProvideTask(engineData: MutableProcessEngineDataAccess<C>): Boolean {
+        override fun <MSG_T> doProvideTask(
+            engineData: MutableProcessEngineDataAccess<C>,
+            messageService: IMessageService<MSG_T, C>
+        ): Boolean {
             return node.canProvideTaskAutoProgress(engineData, this)
         }
 

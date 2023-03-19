@@ -4,9 +4,11 @@ import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.ProcessInstance
+import nl.adaptivity.process.engine.pma.models.PMAMessageActivity
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.test.ProcessEngineTestSupport
 import nl.adaptivity.process.engine.test.testProcess
+import nl.adaptivity.process.messaging.SOAPServiceDesc
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.util.Identifier
@@ -40,18 +42,19 @@ class TestPMA : ProcessEngineTestSupport<ActivityInstanceContext>() {
             }
         }
 
-        val dest = QName("")
+        val dest = SOAPServiceDesc(QName("http://example.org/myservice","myService"),"soap")
         val modelBuilder = RootProcessModelBase.Builder().apply {
             uuid = UUID.randomUUID()
             owner = testModelOwnerPrincipal
             val startNode = StartNodeBase.Builder().apply { id = "startNode" }
             nodes.add(startNode)
 
-            val activity = MessageActivityBase.Builder().apply {
+            val activity = PMAMessageActivity.Builder().apply {
                 predecessor = Identifier("startNode")
                 id = "act"
-                message = XmlMessage(messageBody = CompactFragment("<dummy/>"))
+                message = XmlMessage(dest, operation = "act1", messageBody = CompactFragment("<dummy/>"))
                 accessRestrictions = accessRestriction
+                authorizationTemplates = mutableListOf(EvalMessageScope)
             }
             nodes.add(activity)
 

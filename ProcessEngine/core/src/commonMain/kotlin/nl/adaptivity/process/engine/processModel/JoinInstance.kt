@@ -19,6 +19,7 @@ package nl.adaptivity.process.engine.processModel
 import net.devrieze.util.Handle
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
+import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.Split
 import nl.adaptivity.process.processModel.StartNode
@@ -37,7 +38,10 @@ class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstanc
         val isFinished: Boolean
             get() = state == NodeInstanceState.Complete || state == NodeInstanceState.Failed
 
-        override fun doProvideTask(engineData: MutableProcessEngineDataAccess<C>): Boolean {
+        override fun <MSG_T> doProvideTask(
+            engineData: MutableProcessEngineDataAccess<C>,
+            messageService: IMessageService<MSG_T, C>
+        ): Boolean {
             if (!isFinished) {
                 val shouldProgress = node.canProvideTaskAutoProgress(engineData, this)
                 if (shouldProgress) {

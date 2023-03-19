@@ -24,13 +24,9 @@ import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import nl.adaptivity.messaging.EndpointDescriptor
-import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.ProcessConsts.Engine
-import nl.adaptivity.process.messaging.RESTService
-import nl.adaptivity.process.messaging.SOAPService
+import nl.adaptivity.process.messaging.*
 import nl.adaptivity.serialutil.readNullableString
-import nl.adaptivity.util.multiplatform.toUri
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
@@ -72,32 +68,8 @@ import nl.adaptivity.xmlutil.QName as XmlQName
 @XmlSerialName(XmlMessage.ELEMENTLOCALNAME, Engine.NAMESPACE, Engine.NSPREFIX)
 class XmlMessage : XMLContainer, IXmlMessage {
 
-    override var service: DescQName? = null
-    override var endpoint: String?
     override var operation: String?
-    override var url: String?
-    override var method: String?
     private var type: String? = contentType
-
-    override val endpointDescriptor: EndpointDescriptor
-        get() = EndpointDescriptorImpl(service, endpoint, this.url?.toUri())
-
-    override val contentType: String
-        get() = type ?: "application/soap+xml"
-
-    override var serviceName: String?
-        get() = service?.localPart
-        set(name) {
-            service = name?.let { DescQName(service?.getNamespaceURI() ?: "", it) }
-        }
-
-    override var serviceNS: String?
-        get() = service?.getNamespaceURI()
-        set(namespace) {
-            this.service = namespace?.let { DescQName(it, service?.getLocalPart() ?: "xx") }
-        }
-
-    override var serviceAuthData: ServiceAuthData? = null
 
     override var namespaces: IterableNamespaceContext
         get() = super.namespaces
@@ -111,6 +83,8 @@ class XmlMessage : XMLContainer, IXmlMessage {
             super.content = value
         }
 
+    override val targetService: InvokableService
+
     @OptIn(XmlUtilInternal::class)
     override val messageBody: ICompactFragment
         get() = CompactFragment(namespaces, content)
@@ -119,6 +93,7 @@ class XmlMessage : XMLContainer, IXmlMessage {
     }
 
 
+    @Deprecated("Use one of the functions explicitly taking a service kind")
     @OptIn(XmlUtilInternal::class)
     constructor(
         service: DescQName? = null,
@@ -129,11 +104,14 @@ class XmlMessage : XMLContainer, IXmlMessage {
         contentType: String? = null,
         messageBody: ICompactFragment? = null
     ) {
-        this.service = service
-        this.endpoint = endpoint
+        if (service!=null && endpoint != null) {
+            targetService = SOAPServiceDesc(service, endpoint, url)
+        } else {
+            requireNotNull(method) { "A service must have either soap info or rest info. Method missing."  }
+            requireNotNull(url) { "A service must have either soap info or rest info. url missing."  }
+            targetService = RESTServiceDesc(method, url, "")
+        }
         this.operation = operation
-        this.url = url
-        this.method = method
         this.type = contentType
         messageBody?.let {
             namespaces = SimpleNamespaceContext(it.namespaces)
@@ -145,23 +123,26 @@ class XmlMessage : XMLContainer, IXmlMessage {
         service: SOAPService,
         operation: String,
         messageBody: ICompactFragment? = null
-    ) : this(
-        service = service.serviceName,
-        endpoint = service.endpointName,
-        operation = operation,
-        url = service.url,
-        messageBody = messageBody
-    )
+    ) {
+        this.targetService = service
+        this.operation = operation
+        messageBody ?: CompactFragment("").let {
+            this.content = it.content
+            this.namespaces = it.namespaces
+        }
+    }
 
     constructor(
         service: RESTService,
         messageBody: ICompactFragment? = null
-    ) : this(
-        url = service.url,
-        method = service.method,
-        contentType = service.contentType,
-        messageBody = messageBody
-    )
+    ) {
+        this.targetService = service
+        this.operation = null
+        messageBody ?: CompactFragment("").let {
+            this.content = it.content
+            this.namespaces = it.namespaces
+        }
+    }
 
     override fun serializeAttributes(out: XmlWriter) {
         super.serializeAttributes(out)

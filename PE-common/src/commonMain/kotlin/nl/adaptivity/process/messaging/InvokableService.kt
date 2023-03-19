@@ -14,7 +14,7 @@ interface SOAPService: InvokableService, EndpointDescriptor {
     val url: String?
 }
 
-interface RESTService: InvokableService, EndpointDescriptor {
+interface RESTService: InvokableService {
     val method: String
     val url: String
     val contentType: String

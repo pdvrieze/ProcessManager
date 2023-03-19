@@ -21,6 +21,7 @@ import net.devrieze.util.Handle
 import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.overlay
 import net.devrieze.util.security.SecureObject
+import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.impl.CompactFragment
 import nl.adaptivity.process.engine.processModel.*
@@ -36,7 +37,10 @@ class RunnableActivityInstance<I : Any, O : Any, C: ActivityInstanceContext>(bui
 
         override var assignedUser: PrincipalCompat?
 
-        override fun doProvideTask(engineData: MutableProcessEngineDataAccess<C>): Boolean {
+        override fun <MSG_T> doProvideTask(
+            engineData: MutableProcessEngineDataAccess<C>,
+            messageService: IMessageService<MSG_T, C>
+        ): Boolean {
             node.canProvideTaskAutoProgress(engineData, this)
             return node.onActivityProvided(engineData, this)
         }
@@ -98,6 +102,7 @@ class RunnableActivityInstance<I : Any, O : Any, C: ActivityInstanceContext>(bui
                 predecessors.replaceBy(newBase.predecessors)
                 owner = newBase.owner
                 state = newBase.state
+                assignedUser = newBase.assignedUser
             }
         }
 

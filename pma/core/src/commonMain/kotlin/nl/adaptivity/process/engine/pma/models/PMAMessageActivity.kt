@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine.pma.models
 
 import nl.adaptivity.process.engine.*
+import nl.adaptivity.process.engine.pma.runtime.PMAActivityContext
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
@@ -31,8 +32,8 @@ import nl.adaptivity.xmlutil.serialization.XML
 /**
  * Activity version that is used for process execution.
  */
-class PMAMessageActivity(
-    builder: MessageActivity.Builder,
+class PMAMessageActivity<C: PMAActivityContext<C>>(
+    builder: Builder<C>,
     newOwner: ProcessModel<*>,
     otherNodes: Iterable<ProcessNode.Builder>
 ) : MessageActivityBase(builder, newOwner, otherNodes), ExecutableActivity {
@@ -53,13 +54,17 @@ class PMAMessageActivity(
 
     override val accessRestrictions: AccessRestriction? = builder.accessRestrictions
 
-    val authorizations: List<AuthScope> get() = TODO("IMPLEMENT")
+    val authorizationTemplates: List<AuthScopeTemplate<C>> = builder.authorizationTemplates.toList()
 
     override var condition: Condition?
         get() = _condition
         private set(value) {
             _condition = value?.toExecutableCondition()
         }
+
+    override fun builder(): PMAMessageActivity.Builder<C> {
+        return Builder(this)
+    }
 
     /**
      * Determine whether the process can start.
@@ -124,8 +129,11 @@ class PMAMessageActivity(
         }
     }
 
-    open class Builder: MessageActivityBase.Builder {
-        constructor() : super()
+    open class Builder<C: PMAActivityContext<C>>: MessageActivityBase.Builder, ExecutableProcessNode.Builder {
+        constructor() : super() {
+            authorizationTemplates = emptyList()
+        }
+
         constructor(
             id: String?,
             predecessor: Identifiable?,
@@ -138,11 +146,29 @@ class PMAMessageActivity(
             name: String?,
             x: Double,
             y: Double,
-            isMultiInstance: Boolean
-        ) : super(id, predecessor, successor, label, defines, results, message, condition, name, x, y, isMultiInstance)
+            isMultiInstance: Boolean,
+            authorizations: List<AuthScopeTemplate<C>> = emptyList(),
+        ) : super(id, predecessor, successor, label, defines, results, message, condition, name, x, y, isMultiInstance) {
+            this.authorizationTemplates = authorizations
+        }
 
-        constructor(activity: PMAMessageActivity) : super(activity)
-        constructor(serialDelegate: SerialDelegate) : super(serialDelegate)
+        constructor(activity: PMAMessageActivity<C>) : super(activity) {
+            authorizationTemplates = emptyList()
+        }
+
+        constructor(serialDelegate: SerialDelegate) : super(serialDelegate) {
+            authorizationTemplates = emptyList()
+            // TODO Instantiate templates with some context
+        }
+
+        var authorizationTemplates: List<AuthScopeTemplate<C>>
+
+        override fun build(
+            buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ProcessModel<ExecutableProcessNode>, *, *>,
+            otherNodes: Iterable<ProcessNode.Builder>
+        ): ExecutableProcessNode {
+            return PMAMessageActivity(this, buildHelper.newOwner, otherNodes)
+        }
     }
 
 }
