@@ -26,6 +26,7 @@ import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.MessageActivity
 import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.engine.ExecutableActivity
+import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
@@ -69,6 +70,19 @@ interface ProcessContextFactory<C : ActivityInstanceContext> {
     }
 
     abstract fun getPrincipal(userName: String): PrincipalCompat
+
+    fun createNodeInstance(
+        node: ExecutableProcessNode,
+        predecessors: List<Handle<SecureObject<ProcessNodeInstance<*, C>>>>,
+        processInstanceBuilder: ProcessInstance.Builder<C>,
+        owner: PrincipalCompat,
+        entryNo: Int,
+        assignedUser: PrincipalCompat? = null,
+        handle: Handle<SecureObject<ProcessNodeInstance<*, C>>> = Handle.invalid(),
+        state: NodeInstanceState = NodeInstanceState.Pending
+    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, *, C> {
+        return DefaultProcessNodeInstance.BaseBuilder(node, predecessors, processInstanceBuilder, owner, entryNo, assignedUser, handle, state)
+    }
 
     companion object DEFAULT : ProcessContextFactory<ActivityInstanceContext> {
         override fun newActivityInstanceContext(

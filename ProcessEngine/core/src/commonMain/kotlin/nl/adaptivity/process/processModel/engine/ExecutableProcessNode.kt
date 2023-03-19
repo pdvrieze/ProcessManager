@@ -17,7 +17,6 @@
 package nl.adaptivity.process.processModel.engine
 
 import nl.adaptivity.process.engine.*
-import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
@@ -75,10 +74,13 @@ interface ExecutableProcessNode : ProcessNode, Identified {
                 }
             }
         }
-        return DefaultProcessNodeInstance.BaseBuilder(
-            this, listOf(predecessor.handle),
-            processInstanceBuilder,
-            processInstanceBuilder.owner, entryNo
+        val predecessors = listOf(predecessor.handle)
+        return data.processContextFactory.createNodeInstance(
+            node = this,
+            predecessors = predecessors,
+            processInstanceBuilder = processInstanceBuilder,
+            owner = processInstanceBuilder.owner,
+            entryNo = entryNo
         )
     }
 

@@ -46,8 +46,6 @@ import kotlin.jvm.JvmStatic
 )
 annotation class ProcessInstanceStorage
 
-typealias ProcessInstance3 = ProcessInstance<ActivityInstanceContext>
-
 class ProcessInstance<AIC : ActivityInstanceContext> : MutableHandleAware<SecureObject<ProcessInstance<AIC>>>,
     SecureObject<ProcessInstance<AIC>>, IProcessInstance<AIC> {
 

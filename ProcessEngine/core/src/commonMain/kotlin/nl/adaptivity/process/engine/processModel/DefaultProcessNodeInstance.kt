@@ -227,7 +227,7 @@ class DefaultProcessNodeInstance<C: ActivityInstanceContext> : ProcessNodeInstan
         owner: PrincipalCompat,
         entryNo: Int,
         override var assignedUser: PrincipalCompat? = null,
-        handle: Handle<SecureObject<DefaultProcessNodeInstance<C>>> = Handle.invalid(),
+        handle: Handle<SecureObject<ProcessNodeInstance<*, C>>> = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
     ) : ProcessNodeInstance.BaseBuilder<ExecutableProcessNode, DefaultProcessNodeInstance<C>, C>(
         node,

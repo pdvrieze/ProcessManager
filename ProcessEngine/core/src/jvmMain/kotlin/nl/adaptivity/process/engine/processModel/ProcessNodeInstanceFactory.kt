@@ -135,16 +135,15 @@ internal class ProcessNodeInstanceFactory<C: ActivityInstanceContext>(val proces
                         )
 
                     }
-                    TODO()
                 }
 
                 else -> predecessorHandles.map { predecessors ->
-                    DefaultProcessNodeInstance.BaseBuilder(
-                        node,
-                        predecessors,
-                        processInstanceBuilder,
-                        processInstanceBuilder.owner,
-                        entryNo,
+                    writableEngineData.processContextFactory.createNodeInstance(
+                        node = node,
+                        predecessors = predecessors,
+                        processInstanceBuilder = processInstanceBuilder,
+                        owner = processInstanceBuilder.owner,
+                        entryNo = entryNo,
                         assignedUser = assignedUser,
                         handle = if (pnihandle.handleValue < 0) Handle.invalid() else Handle(pnihandle.handleValue),
                         state = state
