@@ -81,7 +81,6 @@ class TestPMA : ProcessEngineTestSupport<TestPMAActivityContext>() {
             assertEquals(EvalMessageScope, authData.authorizations.single())
             assertEquals(dest, authData.targetService)
 
-//            engine.takeTask(transaction, message.source, activityUser.getName(), activityUser)
             engine.updateTaskState(transaction, message.source, NodeInstanceState.Started, testModelOwnerPrincipal)
             engine.finishTask(transaction, message.source, null, testModelOwnerPrincipal)
 
@@ -92,10 +91,6 @@ class TestPMA : ProcessEngineTestSupport<TestPMAActivityContext>() {
                 assertEquals(ProcessInstance.State.FINISHED, instance.state)
 
             }
-
-            transaction.readableEngineData.instance(hinstance).withPermission().let { instance ->
-            }
-            Unit
         }
     }
 }
