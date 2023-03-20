@@ -23,8 +23,8 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.CompositeEncoder
 import nl.adaptivity.process.util.Constants
-import nl.adaptivity.xmlutil.*
 import nl.adaptivity.util.MyGatheringNamespaceContext
+import nl.adaptivity.xmlutil.*
 
 abstract class XPathHolderSerializer<T : XPathHolder> : XmlContainerSerializer<T>() {
 

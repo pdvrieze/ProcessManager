@@ -245,7 +245,7 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         private class DefineTypeData(
             var refNode: String? = null,
             var refName: String? = null
-        ) : PathHolderData<XmlDefineType>(this) {
+        ) : PathHolderData<XmlDefineType>(XmlDefineType.Companion) {
 
             override fun readAdditionalChild(desc: SerialDescriptor, decoder: CompositeDecoder, index: Int) {
                 val name = desc.getElementName(index)

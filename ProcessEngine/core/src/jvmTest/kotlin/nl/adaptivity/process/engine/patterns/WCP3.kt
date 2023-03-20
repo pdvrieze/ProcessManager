@@ -28,8 +28,8 @@ class WCP3: TraceTest(Companion) {
             "{\"name\":\"WCP3\",\"owner\":\"pdvrieze\",\"roles\":[],\"childModel\":[],\"imports\":[],\"exports\":[],\"nodes\":[" +
                 "{\"type\":\"start\",\"id\":\"start\",\"label\":null}," +
                 "{\"type\":\"split\",\"id\":\"split\",\"label\":null,\"min\":2,\"max\":2,\"predecessor\":\"start\"}," +
-                "{\"type\":\"activity\",\"defines\":[],\"results\":[],\"id\":\"ac1\",\"label\":null,\"predecessor\":\"split\"}," +
-                "{\"type\":\"activity\",\"defines\":[],\"results\":[],\"id\":\"ac2\",\"label\":null,\"predecessor\":\"split\"}," +
+                "{\"type\":\"activity\",\"defines\":[],\"results\":[],${DummyMessage.JSON},\"id\":\"ac1\",\"label\":null,\"predecessor\":\"split\"}," +
+                "{\"type\":\"activity\",\"defines\":[],\"results\":[],${DummyMessage.JSON},\"id\":\"ac2\",\"label\":null,\"predecessor\":\"split\"}," +
                 "{\"type\":\"join\",\"id\":\"join\",\"label\":null,\"min\":2,\"max\":2,\"predecessors\":[{\"predecessor\":\"ac1\"},{\"predecessor\":\"ac2\"}]}," +
                 "{\"type\":\"end\",\"defines\":[],\"results\":[],\"id\":\"end\",\"label\":null,\"predecessor\":\"join\"}]}"
 

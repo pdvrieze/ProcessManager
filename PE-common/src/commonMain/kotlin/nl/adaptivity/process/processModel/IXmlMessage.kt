@@ -17,9 +17,9 @@
 package nl.adaptivity.process.processModel
 
 import nl.adaptivity.messaging.EndpointDescriptor
-import nl.adaptivity.process.messaging.InvokableService
-import nl.adaptivity.process.messaging.RESTService
-import nl.adaptivity.process.messaging.SOAPService
+import nl.adaptivity.process.messaging.InvokableMethod
+import nl.adaptivity.process.messaging.RESTMethod
+import nl.adaptivity.process.messaging.SOAPMethod
 import nl.adaptivity.serialutil.DelegatingSerializer
 import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.namespaceURI
@@ -27,45 +27,44 @@ import nl.adaptivity.xmlutil.util.ICompactFragment
 
 interface IXmlMessage {
 
-    val targetService: InvokableService
+    val targetService: InvokableMethod
 
     @Deprecated("Use targetService")
     val serviceName: String?
-        get() = (targetService as? SOAPService)?.serviceName?.getLocalPart()
+        get() = (targetService as? SOAPMethod)?.serviceName?.getLocalPart()
 
     @Deprecated("Use targetService")
     val serviceNS: String?
-        get() = (targetService as? SOAPService)?.serviceName?.namespaceURI
+        get() = (targetService as? SOAPMethod)?.serviceName?.namespaceURI
 
     @Deprecated("Use targetService")
     val service: QName?
-        get() = (targetService as? SOAPService)?.serviceName
+        get() = (targetService as? SOAPMethod)?.serviceName
 
     @Deprecated("Use targetService")
     val endpoint: String?
-        get() = (targetService as? SOAPService)?.endpointName
+        get() = (targetService as? SOAPMethod)?.endpointName
 
     @Deprecated("Use targetService")
     val endpointDescriptor: EndpointDescriptor?
-        get() = (targetService as? SOAPService)
+        get() = (targetService as? SOAPMethod)
 
     val operation: String?
+        get() = (targetService as? SOAPMethod)?.operation
 
     val messageBody: ICompactFragment
 
-    @Deprecated("Use targetService")
+    @Deprecated("Use targetServicce")
     val url: String?
-        get() = (targetService as? SOAPService)?.url ?: (targetService as? RESTService)?.url
+        get() = targetService.url
 
     @Deprecated("Use targetService")
     val method: String?
-        get() = (targetService as? RESTService)?.method
+        get() = (targetService as? RESTMethod)?.method
 
-    @Deprecated("Use targetService")
+
     val contentType: String?
-        get() = (targetService as? RESTService)?.contentType
-
-    fun setType(type: String)
+        get() = targetService.contentType
 
     override fun toString(): String
 

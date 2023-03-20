@@ -27,8 +27,12 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.processModel.*
 import nl.adaptivity.process.engine.spek.*
 import nl.adaptivity.process.processModel.*
+import nl.adaptivity.process.processModel.configurableModel.ConfigurableNodeContainer
+import nl.adaptivity.process.processModel.configurableModel.ConfigurationDsl
+import nl.adaptivity.process.processModel.configurableModel.activity
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
+import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.assertJsonEquals
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.CompactFragment
@@ -97,7 +101,9 @@ abstract class TraceTest(val config: ConfigBase) {
                         URI("method:${sourceClass}#${methodName}")
                     ) {
                         val actual = format.decodeFromString<ExecutableProcessModel>(expectedSerial)
-                        assertEquals(model, actual, "They should be equal")
+                        assertEquals(model, actual) {
+                            "They should be equal"
+                        }
                     }
                 )
             }
@@ -158,6 +164,21 @@ abstract class TraceTest(val config: ConfigBase) {
 
         open val expectedJson: String? get() = null
         open val expectedXml: String? get() = null
+
+
+        fun ConfigurableNodeContainer<*>.activity(predecessor: Identified): MessageActivity.Builder =
+            MessageActivityBase.Builder().apply {
+                this.message = DummyMessage
+                this.predecessor = predecessor
+            }
+
+
+        fun ConfigurableNodeContainer<*>.activity(
+            predecessor: Identified,
+            config: @ConfigurationDsl MessageActivity.Builder.() -> Unit
+        ): MessageActivity.Builder = activity(predecessor).apply(config)
+
+
     }
 }
 

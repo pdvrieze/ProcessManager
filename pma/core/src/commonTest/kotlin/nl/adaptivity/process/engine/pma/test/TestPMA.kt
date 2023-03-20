@@ -7,7 +7,7 @@ import nl.adaptivity.process.engine.pma.models.PMAMessageActivity
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.test.ProcessEngineFactory
 import nl.adaptivity.process.engine.test.ProcessEngineTestSupport
-import nl.adaptivity.process.messaging.SOAPServiceDesc
+import nl.adaptivity.process.messaging.SOAPMethodDesc
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.util.Identifier
@@ -47,7 +47,7 @@ class TestPMA : ProcessEngineTestSupport<TestPMAActivityContext>() {
             }
         }
 
-        val dest = SOAPServiceDesc(QName("http://example.org/myservice","myService"),"soap")
+        val dest = SOAPMethodDesc(QName("http://example.org/myservice","myService"),"soap", "operation")
         val modelBuilder = RootProcessModelBase.Builder().apply {
             uuid = UUID.randomUUID()
             owner = testModelOwnerPrincipal
@@ -57,7 +57,7 @@ class TestPMA : ProcessEngineTestSupport<TestPMAActivityContext>() {
             val activity = PMAMessageActivity.Builder().apply {
                 predecessor = Identifier("startNode")
                 id = "act"
-                message = XmlMessage(dest, operation = "act1", messageBody = CompactFragment("<dummy/>"))
+                message = XmlMessage(dest, messageBody = CompactFragment("<dummy/>"))
                 accessRestrictions = accessRestriction
                 authorizationTemplates = mutableListOf(EvalMessageScope)
             }

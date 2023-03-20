@@ -18,6 +18,7 @@ package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -80,6 +81,7 @@ abstract class XmlContainerSerializer<T : XMLContainer>: KSerializer<T> {
     }
 
 
+    @Serializable
     protected open class ContainerData<T : XMLContainer> {
 
         var content: CharArray? = null

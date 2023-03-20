@@ -3,7 +3,7 @@ package nl.adaptivity.process.engine.pma.runtime
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.ProcessInstanceContext
 import nl.adaptivity.process.engine.pma.models.AuthScope
-import nl.adaptivity.process.messaging.InvokableService
+import nl.adaptivity.process.messaging.InvokableMethod
 import nl.adaptivity.process.processModel.TokenServiceAuthData
 
 interface PMAProcessInstanceContext<A: PMAActivityContext<A>>: ProcessInstanceContext {
@@ -13,7 +13,7 @@ interface PMAProcessInstanceContext<A: PMAActivityContext<A>>: ProcessInstanceCo
 
     fun <MSG_T> requestAuthData(
         messageService: IMessageService<MSG_T, A>,
-        targetService: InvokableService,
+        targetService: InvokableMethod,
         authorizations: List<AuthScope>
     ): TokenServiceAuthData {
         return contextFactory.authServiceClient.requestAuthToken(targetService, authorizations)

@@ -17,7 +17,6 @@
 package nl.adaptivity.process.engine.patterns
 
 import nl.adaptivity.process.engine.*
-import nl.adaptivity.process.processModel.configurableModel.activity
 import nl.adaptivity.process.processModel.configurableModel.endNode
 import nl.adaptivity.process.processModel.configurableModel.join
 import nl.adaptivity.process.processModel.configurableModel.startNode

@@ -26,12 +26,14 @@ import nl.adaptivity.process.engine.processModel.getDefines
 import nl.adaptivity.process.engine.test.ProcessEngineTestSupport
 import nl.adaptivity.process.engine.test.testProcess
 import nl.adaptivity.process.engine.test.testRawEngine
-import nl.adaptivity.process.processModel.XmlMessage
+import nl.adaptivity.process.processModel.MessageActivity
+import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.condition
 import nl.adaptivity.process.processModel.engine.ExecutableCondition
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableStartNode
-import nl.adaptivity.util.activation.Sources
+import nl.adaptivity.process.util.Identifiable
+import nl.adaptivity.util.activation.writeToResult
 import nl.adaptivity.xmlutil.*
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
@@ -187,12 +189,19 @@ class TestProcessEngine : ProcessEngineTestSupport<ActivityInstanceContext>() {
         }
     }
 
+    inline fun ProcessModel.Builder.dummyActivity(crossinline body: MessageActivity.RWBuilder.() -> Unit): Identifiable {
+        return activity {
+            message = DummyMessage
+            this.body()
+        }
+    }
+
     @Test
     fun testConditionTrue() {
         val model = ExecutableProcessModel.build {
             owner = testModelOwnerPrincipal
             val start = startNode { id = "start" }
-            val ac = activity { id = "ac"; predecessor = start.identifier; condition("true()") }
+            val ac = dummyActivity { id = "ac"; predecessor = start.identifier; condition("true()") }
             val end = endNode { id = "end"; predecessor = ac }
         }
         testProcess(model) { processEngine, transaction, model, instanceHandle ->
@@ -209,7 +218,7 @@ class TestProcessEngine : ProcessEngineTestSupport<ActivityInstanceContext>() {
     @Test
     fun testSplitJoin1() {
         testProcess(simpleSplitModel) { processEngine, protoTransaction, model, instanceHandle ->
-            val transaction = protoTransaction as StubProcessTransaction<ActivityInstanceContext>
+            val transaction = protoTransaction
             val engineData = transaction.writableEngineData
             run {
                 run {
@@ -435,7 +444,7 @@ class TestProcessEngine : ProcessEngineTestSupport<ActivityInstanceContext>() {
                 val ac1 = activity {
                     predecessor = split1.identifier
                     id = "ac1"
-                    message = XmlMessage()
+                    message = DummyMessage
                     result {
                         name = "ac1result"
                         content = "ac1content".toCharArray()
@@ -444,7 +453,7 @@ class TestProcessEngine : ProcessEngineTestSupport<ActivityInstanceContext>() {
                 val ac2 = activity {
                     predecessor = split1.identifier
                     id = "ac2"
-                    message = XmlMessage()
+                    message = DummyMessage
                     result {
                         name = "ac2result"
                         content = "ac2content".toCharArray()
@@ -477,7 +486,7 @@ class TestProcessEngine : ProcessEngineTestSupport<ActivityInstanceContext>() {
         @Throws(TransformerException::class)
         private fun toDocument(node: Node): Document {
             val result = documentBuilder.newDocument()
-            Sources.writeToResult(DOMSource(node), DOMResult(result))
+            DOMSource(node).writeToResult(DOMResult(result))
             return result
         }
     }

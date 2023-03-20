@@ -16,11 +16,7 @@
 
 package nl.adaptivity.process.engine.patterns
 
-import nl.adaptivity.process.engine.ModelData
-import nl.adaptivity.process.engine.TestConfigurableModel
-import nl.adaptivity.process.engine.TraceTest
-import nl.adaptivity.process.engine.trace
-import nl.adaptivity.process.processModel.configurableModel.activity
+import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.configurableModel.endNode
 import nl.adaptivity.process.processModel.configurableModel.startNode
 import org.junit.jupiter.api.Assertions.assertEquals
@@ -54,20 +50,34 @@ class WCP1: TraceTest(Companion) {
             }
         }
 
-        override val expectedJson: String
-            get() = "{\"name\":\"WCP1\",\"owner\":\"pdvrieze\",\"roles\":[],\"childModel\":[],\"imports\":[],\"exports\":[],\"nodes\":[" +
-                "{\"type\":\"start\",\"id\":\"start\",\"label\":null}," +
-                "{\"type\":\"activity\",\"defines\":[],\"results\":[],\"id\":\"ac1\",\"label\":null,\"predecessor\":\"start\"}," +
-                "{\"type\":\"activity\",\"defines\":[],\"results\":[],\"id\":\"ac2\",\"label\":null,\"predecessor\":\"ac1\"}," +
-                "{\"type\":\"end\",\"defines\":[],\"results\":[],\"id\":\"end\",\"label\":null,\"predecessor\":\"ac2\"}" +
-                "]}"
 
-        override val expectedXml: String?
-            get() = "<pe:processModel xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" name=\"WCP1\" owner=\"pdvrieze\">" +
-                "<pe:start id=\"start\"/>" +
-                "<pe:activity id=\"ac1\" predecessor=\"start\"/>" +
-                "<pe:activity id=\"ac2\" predecessor=\"ac1\"/>" +
-                "<pe:end id=\"end\" predecessor=\"ac2\"/>" +
+        override val expectedJson: String
+            get() = "{\"imports\":[],\"exports\":[],\"name\":\"WCP1\",\"owner\":\"pdvrieze\",\"roles\":[],\"childModel\":[],\"nodes\":[" +
+                "{\"type\":\"start\",\"id\":\"start\",\"label\":null}," +
+                "{\"type\":\"activity\",\"id\":\"ac1\",\"label\":null,\"defines\":[],\"results\":[],${DummyMessage.JSON},\"predecessor\":\"start\"}," +
+                "{\"type\":\"activity\",\"id\":\"ac2\",\"label\":null,\"defines\":[],\"results\":[],${DummyMessage.JSON},\"predecessor\":\"ac1\"}," +
+                "{\"type\":\"end\",\"id\":\"end\",\"label\":null,\"defines\":[],\"results\":[],\"predecessor\":\"ac2\"}]}"
+
+        override val expectedXml: String
+            get() = "<pe:processModel xmlns:pe=\"http://adaptivity.nl/ProcessEngine/\" name=\"WCP1\" owner=\"pdvrieze\">\n" +
+                "<pe:start id=\"start\"/>\n" +
+                "<pe:activity id=\"ac1\" predecessor=\"start\">" +
+                DummyMessage.XML +
+                "</pe:activity>\n" +
+                "<pe:activity id=\"ac2\" predecessor=\"ac1\">" +
+                DummyMessage.XML +
+                "</pe:activity>\n" +
+                "<pe:end id=\"end\" predecessor=\"ac2\"/>\n" +
                 "</pe:processModel>"
     }
 }
+
+/*
+    <pe:activity id="ac1" predecessor="start">
+        <pe:message type="application/x-dummy" url="/dummy" method="POST"/>
+    </pe:activity>
+<pe:activity id="ac2" predecessor="ac1">
+<pe:message type="application/x-dummy" url="/dummy" method="POST"/>
+</pe:activity>
+
+ */

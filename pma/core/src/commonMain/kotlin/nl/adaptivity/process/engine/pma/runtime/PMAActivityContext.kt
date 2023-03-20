@@ -9,7 +9,7 @@ import nl.adaptivity.process.engine.pma.models.TaskListService
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
-import nl.adaptivity.process.messaging.InvokableService
+import nl.adaptivity.process.messaging.InvokableMethod
 import nl.adaptivity.process.processModel.TokenServiceAuthData
 import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.util.multiplatform.PrincipalCompat
@@ -18,7 +18,7 @@ abstract class PMAActivityContext<A : PMAActivityContext<A>>(val processNode: IP
     ActivityInstanceContext {
     fun <MSG_T> requestAuthData(
         messageService: IMessageService<MSG_T, A>,
-        targetService: InvokableService,
+        targetService: InvokableMethod,
         authorizations: List<AuthScope>
     ): TokenServiceAuthData {
         return processContext.requestAuthData(messageService, targetService, authorizations)

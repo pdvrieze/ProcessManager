@@ -16,9 +16,13 @@
 
 package nl.adaptivity.process.engine
 
+import nl.adaptivity.process.processModel.MessageActivity
+import nl.adaptivity.process.processModel.MessageActivityBase
 import nl.adaptivity.process.processModel.configurableModel.ConfigurableProcessModel
+import nl.adaptivity.process.processModel.configurableModel.ConfigurationDsl
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
+import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.UUID
 
@@ -39,6 +43,20 @@ internal abstract class TestConfigurableModel(
 
             ExecutableProcessModel(it, false)
         }
+    }
+
+    fun activity(predecessor: Identified): MessageActivity.Builder =
+        MessageActivityBase.Builder().apply {
+            this.message = DummyMessage
+            this.predecessor = predecessor
+        }
+
+
+    fun activity(
+        predecessor: Identified,
+        config: @ConfigurationDsl MessageActivity.Builder.() -> Unit
+    ): MessageActivity.Builder {
+        return activity(predecessor).apply(config)
     }
 
 }
