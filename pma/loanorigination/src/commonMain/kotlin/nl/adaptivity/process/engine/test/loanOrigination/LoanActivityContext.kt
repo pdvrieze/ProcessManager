@@ -17,13 +17,82 @@
 package nl.adaptivity.process.engine.test.loanOrigination
 
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.RunnableActivity
+import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.ProcessEnginePermissions
-import nl.adaptivity.process.engine.pma.dynamic.DynamicPMAActivityContext
+import nl.adaptivity.process.engine.pma.AuthorizationCode
+import nl.adaptivity.process.engine.pma.Browser
+import nl.adaptivity.process.engine.pma.CommonPMAPermissions
+import nl.adaptivity.process.engine.pma.TaskList
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
+import nl.adaptivity.process.engine.pma.models.AuthScope
+import nl.adaptivity.process.engine.pma.models.Service
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.NodeInstanceState
+import nl.adaptivity.process.engine.processModel.PNIHandle
+import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-class LoanActivityContext(override val processContext: LoanProcessContext, processNode: IProcessNodeInstance<LoanActivityContext>) :
-    DynamicPMAActivityContext<LoanActivityContext>(processNode) {
+class LoanActivityContext(
+    override val processContext: LoanProcessContext,
+    val processNode: IProcessNodeInstance
+) : ActivityInstanceContext {
+    override val node: ExecutableActivity
+        get() = processNode.node as ExecutableActivity
+    override val state: NodeInstanceState
+        get() = processNode.state
+    override val nodeInstanceHandle: PNIHandle
+        get() = processNode.handle
+    override val owner: PrincipalCompat
+        get() = TODO("owner doesn't work") //processNode.owner
+    override val assignedUser: PrincipalCompat?
+        get() = processNode.assignedUser
+
+    private val pendingPermissions = ArrayDeque<DynamicPMAActivityContext.PendingPermission>()
+
+    final lateinit var taskListService: TaskList
+        private set
+
+    /**
+     * TODO Function that registers permissions for the task. This should be done based upon task definition
+     *      and in acceptActivity.
+     */
+    fun registerTaskPermission(service: Service, scope: AuthScope) {
+        pendingPermissions.add(DynamicPMAActivityContext.PendingPermission(null, service, scope))
+    }
+
+    /**
+     * TODO Function that registers permissions for the task. This should be done based upon task definition
+     *      and in acceptActivity.
+     */
+    fun registerDelegatePermission(
+        clientService: Service,
+        service: Service,
+        scope: AuthScope
+    ) {
+        val delegateScope =
+            CommonPMAPermissions.DELEGATED_PERMISSION.restrictTo(clientService.serviceId, service, scope)
+        pendingPermissions.add(DynamicPMAActivityContext.PendingPermission(null, clientService, delegateScope))
+    }
+
+    fun serviceTask(): AuthorizationCode {
+        if (::taskListService.isInitialized) {
+            throw UnsupportedOperationException("Attempting to mark as service task an activity that has already been marked for users")
+        }
+        val clientServiceId = processContext.generalClientService.serviceId
+        val serviceAuthorization = with(processContext) {
+            engineService.createAuthorizationCode(
+                clientServiceId,
+                nodeInstanceHandle,
+                authService,
+                CommonPMAPermissions.IDENTIFY,
+                pendingPermissions
+            )
+        }
+
+        check(pendingPermissions.isEmpty()) { "Pending permissions should be empty after a service task is created" }
+
+        return serviceAuthorization
+    }
 
     override fun canBeAssignedTo(principal: PrincipalCompat?): Boolean {
 
@@ -32,4 +101,50 @@ class LoanActivityContext(override val processContext: LoanProcessContext, proce
         return principal != null && restrictions.hasAccess(this, principal, ProcessEnginePermissions.ASSIGNED_TO_ACTIVITY)
     }
 
+    inline fun <R> acceptBrowserActivity(browser: Browser, action: TaskList.Context.() -> R): R {
+        acceptActivityImpl(browser) // This will initialise the task list and then delegate to it
+        return taskListService.contextImpl(browser).action()
+    }
+
+    private fun ensureTaskList(browser: Browser) {
+        val taskUser = browser.user
+        if (::taskListService.isInitialized) {
+            if (taskListService.principal != taskUser) {
+                throw UnsupportedOperationException("Attempting to change the user for an activity after it has already been set")
+            }
+        } else {
+            taskListService = processContext.contextFactory.getOrCreateTaskListForUser(taskUser)
+        }
+    }
+
+    @PublishedApi
+    internal fun acceptActivityImpl(browser: Browser) {
+        ensureTaskList(browser)
+        processContext.engineService.registerActivityToTaskList(taskListService, nodeInstanceHandle)
+
+        val authorizationCode = taskListService.acceptActivity(
+            browser.loginToService(taskListService),
+            browser.user,
+            pendingPermissions,
+            nodeInstanceHandle
+        )
+        browser.addToken(processContext.authService, authorizationCode)
+
+
+        /*
+
+                val hNodeInstance = handle
+                while (pendingPermissions.isNotEmpty()) {
+                    val pendingPermission = pendingPermissions.removeFirst()
+                    processContext.authService.grantPermission(
+                        engineServiceAuth,
+                        taskIdentityToken,
+                        processContext.authService,
+                        LoanPermissions.GRANT_PERMISSION.invoke(pendingPermission.service, pendingPermission.scope))
+                }
+                browser.addToken(taskIdentityToken)
+        */
+    }
+
 }
+

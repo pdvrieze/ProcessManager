@@ -89,7 +89,7 @@ import kotlin.contracts.contract
              interfacePrefix = "pe",
              serviceLocalname = ServletProcessEngine.SERVICE_LOCALNAME)
 */
-open class ServletProcessEngine<TR : ContextProcessTransaction<AIC>, AIC: ActivityInstanceContext> : EndpointServlet(), GenericEndpoint {
+open class ServletProcessEngine<TR : ContextProcessTransaction, AIC: ActivityInstanceContext> : EndpointServlet(), GenericEndpoint {
 
     private lateinit var processEngine: ProcessEngine<TR, AIC>
     private lateinit var messageService: MessageService
@@ -104,7 +104,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction<AIC>, AIC: Activi
         get() = null
 
     inner class MessageService(localEndpoint: EndpointDescriptor) :
-        IMessageService<NewServletMessage<ActivityInstanceContext>, ActivityInstanceContext> {
+        IMessageService<NewServletMessage<ActivityInstanceContext>> {
 
         override var localEndpoint: EndpointDescriptor = localEndpoint
             internal set
@@ -115,7 +115,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction<AIC>, AIC: Activi
         }
 
         override fun sendMessage(
-            engineData: ProcessEngineDataAccess<ActivityInstanceContext>,
+            engineData: ProcessEngineDataAccess<*>,
             protoMessage: NewServletMessage<ActivityInstanceContext>,
             activityInstanceContext: ActivityInstanceContext,
             authData: ServiceAuthData?
@@ -161,7 +161,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction<AIC>, AIC: Activi
      * @property owner
      */
     private inner class MessagingCompletionListener(
-        private val handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>,
+        private val handle: PNIHandle,
         private val owner: Principal
     ) : CompletionListener<DataSource> {
 
@@ -223,7 +223,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction<AIC>, AIC: Activi
         }
 
 
-        fun setHandle(engineData: ProcessEngineDataAccess<AIC>, activityInstanceContext: AIC) {
+        fun setHandle(engineData: ProcessEngineDataAccess<*>, activityInstanceContext: AIC) {
             this.activityInstanceContext = activityInstanceContext
 
             try {
@@ -701,7 +701,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction<AIC>, AIC: Activi
         @WebParam(name = "name") @RestParam(name = "name", type = RestParamType.QUERY) name: String?,
         @WebParam(name = "uuid") @RestParam(name = "uuid", type = RestParamType.QUERY) uuid: String?,
         @WebParam(name = "owner", header = true) @RestParam(type = RestParamType.PRINCIPAL) owner: Principal
-    ): SerializableData<HProcessInstance> = translateExceptions {
+    ): SerializableData<PIHandle> = translateExceptions {
         processEngine.startTransaction().use { transaction ->
             val uuid: UUID = uuid?.let { UUID.fromString(it) } ?: UUID.randomUUID()
             return transaction.commitSerializable(
@@ -827,20 +827,21 @@ open class ServletProcessEngine<TR : ContextProcessTransaction<AIC>, AIC: Activi
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal
     ): XmlProcessNodeInstance? = translateExceptions {
         processEngine.startTransaction().use { transaction ->
-            val nodeInstance: ProcessNodeInstance<ProcessNodeInstance<*, AIC>, AIC> =
+            val nodeInstance: ProcessNodeInstance<*, ActivityInstanceContext> =
                 processEngine.getNodeInstance(
-                transaction,
-                if (handle < 0) Handle.invalid() else Handle(handle),
-                user
-            ) ?: return null
+                    transaction,
+                    if (handle < 0) Handle.invalid() else Handle(handle),
+                    user
+                ) as ProcessNodeInstance<*, ActivityInstanceContext>? ?: return null
 
-            val context: AIC = transaction.readableEngineData.processContextFactory.newActivityInstanceContext(
-                transaction.readableEngineData,
-                nodeInstance
-            )
+            val processContextFactory = transaction.readableEngineData.processContextFactory
 
             transaction.commit(
                 with(nodeInstance) {
+                    val context: ActivityInstanceContext = processContextFactory.newActivityInstanceContext(
+                        transaction.readableEngineData,
+                        nodeInstance
+                    )
                     context.toSerializable(transaction.readableEngineData, messageService.localEndpoint)
                 }
             )
@@ -969,10 +970,10 @@ open class ServletProcessEngine<TR : ContextProcessTransaction<AIC>, AIC: Activi
     @Throws(FileNotFoundException::class)
     internal fun onMessageCompletion(
         future: Future<out DataSource>,
-        handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>,
+        handle: PNIHandle,
         owner: Principal
     ) {
-        fun <C : ActivityInstanceContext, TR : ContextProcessTransaction<C>> impl(processEngine: ProcessEngine<TR, C>) {
+        fun <C : ActivityInstanceContext, TR : ContextProcessTransaction> impl(processEngine: ProcessEngine<TR, C>) {
             translateExceptions {
                 // XXX do this better
                 if (future.isCancelled) {
@@ -1130,7 +1131,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction<AIC>, AIC: Activi
 
 }
 
-private inline fun <TR : ContextProcessTransaction<*>, R> TR.use(block: (TR) -> R): R {
+private inline fun <TR : ContextProcessTransaction, R> TR.use(block: (TR) -> R): R {
     return (this as Closeable).use { block(this) }
 }
 

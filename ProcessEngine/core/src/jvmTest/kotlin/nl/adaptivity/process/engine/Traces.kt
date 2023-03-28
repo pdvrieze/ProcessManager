@@ -108,9 +108,9 @@ class TraceElement(val nodeId: String, val instanceNo: Int, val resultPayload: C
     }
 
     fun getNodeInstance(
-        transaction: StubProcessTransaction<ActivityInstanceContext>,
-        instance: ProcessInstance<ActivityInstanceContext>
-    ): ProcessNodeInstance<*, ActivityInstanceContext>? {
+        transaction: StubProcessTransaction,
+        instance: ProcessInstance<*>
+    ): ProcessNodeInstance<*, *>? {
         return when (instanceNo) {
             ANYINSTANCE -> instance.transitiveChildren(transaction).firstOrNull { it.node.id == nodeId }
             LASTINSTANCE -> instance.transitiveChildren(transaction).filter { it.node.id == nodeId }
@@ -122,7 +122,7 @@ class TraceElement(val nodeId: String, val instanceNo: Int, val resultPayload: C
             }.singleOrNull()
             else -> instance.transitiveChildren(transaction)
                 .firstOrNull { it.node.id == nodeId && it.entryNo == instanceNo }
-        }.let { it: ProcessNodeInstance<*, ActivityInstanceContext>? -> it }
+        }.let { it }
     }
 
     override fun compareTo(other: Identifiable): Int = when (other) {

@@ -87,7 +87,7 @@ class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<Ex
                     defineInput("approval", m.getCustomerApproval, SignedDocument.serializer(Approval.serializer()))
                 inputCombiner = InputCombiner<VerifyCustomerApprovalInput> { it: Map<String, Any?> -> VerifyCustomerApprovalInput(custIn(), approvalIn()) }
                 action = { (customer, approval) ->
-                    registerTaskPermission(customerFile, LoanPermissions.QUERY_CUSTOMER_DATA(customer.customerId))
+                    registerTaskPermission(customerFile, QUERY_CUSTOMER_DATA(customer.customerId))
                     registerTaskPermission(signingService, LoanPermissions.SIGN)
 
                     acceptBrowserActivity(postProcClerk) {
@@ -112,40 +112,40 @@ class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<Ex
             null, "customerId"
         ) { customer ->
 
-            registerTaskPermission(customerFile, LoanPermissions.QUERY_CUSTOMER_DATA(customer.customerId))
-            registerTaskPermission(creditBureau, LoanPermissions.GET_CREDIT_REPORT(customer.taxId))
+            registerTaskPermission(customerFile, QUERY_CUSTOMER_DATA(customer.customerId))
+            registerTaskPermission(creditBureau, GET_CREDIT_REPORT(customer.taxId))
             generalClientService.runWithAuthorization(serviceTask()) { tknTID ->
 
                 assertForbidden {
-                    authService.getAuthTokenDirect(tknTID, customerFile, LoanPermissions.CREATE_CUSTOMER)
+                    authService.getAuthTokenDirect(tknTID, customerFile, CREATE_CUSTOMER)
                 }
                 assertForbidden {
-                    authService.getAuthTokenDirect(tknTID, customerFile, LoanPermissions.QUERY_CUSTOMER_DATA)
+                    authService.getAuthTokenDirect(tknTID, customerFile, QUERY_CUSTOMER_DATA)
                 }
 
                 val custInfoAuthToken = getServiceToken(customerFile,
-                    LoanPermissions.QUERY_CUSTOMER_DATA.invoke(customer.customerId)
+                    QUERY_CUSTOMER_DATA.invoke(customer.customerId)
                 )
 
                 val customerData: CustomerData = customerFile.getCustomerData(custInfoAuthToken, customer.customerId)
                     ?: throw NullPointerException("Missing customer data")
 
                 assertForbidden {
-                    authService.getAuthTokenDirect(tknTID, creditBureau, LoanPermissions.CREATE_CUSTOMER)
+                    authService.getAuthTokenDirect(tknTID, creditBureau, CREATE_CUSTOMER)
                 }
 
                 assertForbidden {
-                    authService.getAuthTokenDirect(tknTID, creditBureau, LoanPermissions.GET_CREDIT_REPORT)
+                    authService.getAuthTokenDirect(tknTID, creditBureau, GET_CREDIT_REPORT)
                 }
                 assertForbidden {
                     authService.getAuthTokenDirect(
                         tknTID,
                         creditBureau,
-                        LoanPermissions.GET_CREDIT_REPORT.invoke("taxId5")
+                        GET_CREDIT_REPORT.invoke("taxId5")
                     )
                 }
                 val creditAuthToken = getServiceToken(creditBureau,
-                    LoanPermissions.GET_CREDIT_REPORT.invoke(customerData.taxId)
+                    GET_CREDIT_REPORT.invoke(customerData.taxId)
                 )
 
 
@@ -173,7 +173,7 @@ class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<Ex
                     registerDelegatePermission(
                         creditApplication,
                         customerFile,
-                        LoanPermissions.QUERY_CUSTOMER_DATA(application.customerId)
+                        QUERY_CUSTOMER_DATA(application.customerId)
                     )
 
                     generalClientService.runWithAuthorization(serviceTask()) { taskIdToken ->

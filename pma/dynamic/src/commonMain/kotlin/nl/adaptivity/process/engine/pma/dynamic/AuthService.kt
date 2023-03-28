@@ -22,7 +22,6 @@ import nl.adaptivity.process.engine.impl.Level
 import nl.adaptivity.process.engine.impl.LoggerCompat
 import nl.adaptivity.process.engine.pma.CommonPMAPermissions.*
 import nl.adaptivity.process.engine.pma.models.*
-import nl.adaptivity.process.engine.pma.runtime.AuthServiceClient
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.nl.adaptivity.util.kotlin.removeIfTo
 import kotlin.random.Random
@@ -42,7 +41,7 @@ class AuthService(
     private val authorizationCodes = mutableMapOf<AuthorizationCode, AuthToken>()
     private val activeTokens = mutableListOf<AuthToken>()
     private val globalPermissions =
-        mutableMapOf<PrincipalCompat, MutableMap<String, MutableList<PermissionScope>>>()
+        mutableMapOf<PrincipalCompat, MutableMap<String, MutableList<AuthScope>>>()
 
     private val tokenPermissions = mutableMapOf<String, MutableList<Permission>>()
 
@@ -167,7 +166,7 @@ class AuthService(
         clientId: String,
         nodeInstanceHandle: PNIHandle,
         service: Service,
-        scope: PermissionScope
+        scope: AuthScope
     ): AuthorizationCode {
         return createAuthorizationCodeImpl(auth, clientId, nodeInstanceHandle, service, scope)
     }
@@ -184,7 +183,7 @@ class AuthService(
         auth: AuthInfo,
         clientId: String,
         service: Service,
-        scope: PermissionScope
+        scope: AuthScope
     ): AuthorizationCode {
         val nodeInstanceHandle = auth.getNodeInstanceHandle()
         return createAuthorizationCodeImpl(auth, clientId, nodeInstanceHandle, service, scope)
@@ -202,7 +201,7 @@ class AuthService(
         auth: AuthToken,
         client: Service,
         service: Service,
-        scope: PermissionScope
+        scope: AuthScope
     ): AuthorizationCode {
         val nodeInstanceHandle = auth.getNodeInstanceHandle()
         return exchangeDelegateCode(auth, client, nodeInstanceHandle, service, scope)
@@ -218,7 +217,7 @@ class AuthService(
         client: Service,
         nodeInstanceHandle: PNIHandle,
         service: Service,
-        scope: PermissionScope
+        scope: AuthScope
     ): AuthorizationCode {
         val clientId = client.serviceId
         // We know the task handle so permission limited to the task handle is sufficient
@@ -257,7 +256,7 @@ class AuthService(
         clientId: String,
         nodeInstanceHandle: PNIHandle,
         service: Service,
-        scope: PermissionScope
+        scope: AuthScope
     ): AuthorizationCode {
         // We know the task handle so permission limited to the task handle is sufficient
         internalValidateAuthInfo(auth, GRANT_ACTIVITY_PERMISSION.context(nodeInstanceHandle, clientId, service, scope))
@@ -310,17 +309,17 @@ class AuthService(
     private fun getAuthCommon(
         identityToken: AuthInfo,
         service: Service,
-        reqScope: PermissionScope
+        reqScope: AuthScope
     ): AuthToken {
         // TODO principal should be authorized
         val serviceId = service.serviceId
         internalValidateAuthInfo(identityToken, IDENTIFY)
         val userPermissions =
             globalPermissions.get(identityToken.principal)?.get(serviceId)
-                ?: emptyList<PermissionScope>()
+                ?: emptyList<AuthScope>()
 
-        val effectiveScope: PermissionScope
-        val tokenAssociatedPermissions: Sequence<PermissionScope> = if (identityToken is AuthToken) {
+        val effectiveScope: AuthScope
+        val tokenAssociatedPermissions: Sequence<AuthScope> = if (identityToken is AuthToken) {
             val scopes = (tokenPermissions[identityToken.tokenValue]
                 ?.asSequence()
                 ?: emptySequence())
@@ -331,7 +330,7 @@ class AuthService(
                     when {
                         // Any child scopes for activity limited grants
                         it is GRANT_ACTIVITY_PERMISSION.ContextScope &&
-                            it.taskInstanceHandle == identityToken.nodeInstanceHandle -> it.childScope ?: ANYSCOPE
+                                it.taskInstanceHandle == identityToken.nodeInstanceHandle -> it.childScope ?: ANYSCOPE
 
                         // As well as global grants
                         it is GRANT_GLOBAL_PERMISSION.ContextScope ->
@@ -353,7 +352,7 @@ class AuthService(
             .ifEmpty {
                 throw AuthorizationException("The token $identityToken has no permission to create delegate tokens for ${service.serviceId}.${reqScope.description}")
             }
-            .reduce<PermissionScope?, PermissionScope> { l, r -> l?.union(r) }
+            .reduce<AuthScope?, AuthScope> { l, r -> l?.union(r) }
             ?: throw AuthorizationException("The token $identityToken permissions cancel to nothing")
 
         if (reqScope == ANYSCOPE) {
@@ -370,9 +369,9 @@ class AuthService(
 
         val existingToken = activeTokens.firstOrNull {
             it.principal == identityToken.principal &&
-                it.nodeInstanceHandle == nodeInstanceHandle &&
-                it.serviceId == serviceId &&
-                it.scope == effectiveScope
+                    it.nodeInstanceHandle == nodeInstanceHandle &&
+                    it.serviceId == serviceId &&
+                    it.scope == effectiveScope
         }
 
         if (existingToken != null) {
@@ -386,7 +385,7 @@ class AuthService(
     fun getAuthorizationCode(
         identityToken: AuthInfo,
         service: Service,
-        reqScope: PermissionScope
+        reqScope: AuthScope
     ): AuthorizationCode {
         val token = getAuthCommon(identityToken, service, reqScope)
         val authorizationCode = AuthorizationCode(Random.nextString(), clientFromId(service.serviceId))
@@ -403,7 +402,7 @@ class AuthService(
     fun getAuthTokenDirect(
         identityToken: AuthInfo,
         service: Service,
-        reqScope: PermissionScope
+        reqScope: AuthScope
     ): AuthToken {
         val token = getAuthCommon(identityToken, service, reqScope)
         if (token in activeTokens) {
@@ -433,7 +432,7 @@ class AuthService(
         auth: AuthInfo,
         authorizationCode: AuthorizationCode,
         service: Service,
-        scope: PermissionScope
+        scope: AuthScope
     ) {
         val authToken =
             authorizationCodes[authorizationCode] ?: throw AuthorizationException("Invalid authorization code")
@@ -444,7 +443,7 @@ class AuthService(
         auth: AuthInfo,
         taskIdToken: AuthToken,
         service: Service,
-        scope: PermissionScope
+        scope: AuthScope
     ) {
         val serviceId = service.serviceId
         val neededClientId = auth.principal.name
@@ -498,7 +497,7 @@ class AuthService(
         authInfo: AuthInfo?,
         principal: PrincipalCompat,
         service: Service,
-        scope: PermissionScope
+        scope: AuthScope
     ) {
         doLog(authInfo, "registerGlobalPermissions($authInfo, $principal, ${service.serviceId}, $scope)")
         if (authInfo != null) {
@@ -514,7 +513,7 @@ class AuthService(
     }
 
 
-    private data class Permission(val scope: PermissionScope) {
+    private data class Permission(val scope: AuthScope) {
         override fun toString(): String {
             return "Permission(${scope.description})"
         }

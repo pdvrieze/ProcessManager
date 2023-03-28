@@ -16,17 +16,17 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination
 
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.RunnableActivityInstance
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.SimpleRolePrincipal
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
-import nl.adaptivity.process.engine.ProcessEngineDataAccess
-import nl.adaptivity.process.engine.ProcessInstance
+import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.pma.*
-import nl.adaptivity.process.engine.pma.dynamic.DynamicPMAProcessContextFactory
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAProcessContextFactory
 import nl.adaptivity.process.engine.pma.runtime.AuthServiceClient
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
-import nl.adaptivity.process.engine.test.PNIHandle
+import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
 import nl.adaptivity.process.engine.test.loanOrigination.systems.*
 import nl.adaptivity.util.multiplatform.PrincipalCompat
@@ -35,16 +35,96 @@ import java.util.logging.Level
 import java.util.logging.Logger
 import kotlin.random.Random
 
-class LoanContextFactory(val log: Logger, val random: Random) : DynamicPMAProcessContextFactory<LoanActivityContext>() {
-    private val nodes = mutableMapOf<PNIHandle, String>()
+class LoanContextFactory(log: Logger, random: Random): AbstractLoanContextFactory<LoanActivityContext>(log, random) {
+
+    private val processContexts = mutableMapOf<PIHandle, LoanProcessContext>()
+
+    override fun newActivityInstanceContext(
+        engineDataAccess: ProcessEngineDataAccess<*>,
+        processNodeInstance: IProcessNodeInstance
+    ): LoanActivityContext {
+        val instanceHandle = processNodeInstance.hProcessInstance
+        nodes[processNodeInstance.handle] = processNodeInstance.node.id
+        val processContext = getProcessContext(engineDataAccess, instanceHandle)
+        return LoanActivityContext(processContext, processNodeInstance)
+    }
+
+    fun getProcessContext(
+        engineDataAccess: ProcessEngineDataAccess<*>,
+        instanceHandle: Handle<SecureObject<ProcessInstance<*>>>
+    ): LoanProcessContext = processContexts.getOrPut(instanceHandle) { LoanProcessContextImpl(engineDataAccess, this, instanceHandle) }
+
+    override fun onProcessFinished(
+        engineDataAccess: ProcessEngineDataAccess<*>,
+        processInstance: Handle<SecureObject<ProcessInstance<*>>>
+    ) {
+        processContexts.remove(processInstance)
+    }
+
+    override fun onActivityTermination(
+        engineDataAccess: ProcessEngineDataAccess<*>,
+        processNodeInstance: IProcessNodeInstance
+    ) {
+
+        val context: LoanProcessContext = getProcessContext(engineDataAccess, processNodeInstance.hProcessInstance)
+
+        with(engineService) { context.onActivityTermination(processNodeInstance) }
+    }
+
+}
+
+
+class LoanPMAContextFactory(log: Logger, random: Random) :
+    AbstractLoanContextFactory<LoanPMAActivityContext>(log, random),
+    DynamicPMAProcessContextFactory<LoanPMAActivityContext> {
+
+    private val processContexts = mutableMapOf<PIHandle, LoanPmaProcessContext>()
+
+    override fun newActivityInstanceContext(
+        engineDataAccess: ProcessEngineDataAccess<*>,
+        processNodeInstance: IProcessNodeInstance
+    ): LoanPMAActivityContext {
+        val instanceHandle = processNodeInstance.hProcessInstance
+        nodes[processNodeInstance.handle] = processNodeInstance.node.id
+        val processContext = getProcessContext(engineDataAccess, instanceHandle)
+        return LoanPMAActivityContext(processContext, processNodeInstance as RunnableActivityInstance<*, *, *>)
+    }
+
+    fun getProcessContext(
+        engineDataAccess: ProcessEngineDataAccess<*>,
+        instanceHandle: Handle<SecureObject<ProcessInstance<*>>>
+    ): LoanPmaProcessContext = processContexts.getOrPut(instanceHandle) { LoanPmaProcessContextImpl(engineDataAccess, this, instanceHandle) }
+
+    override fun onProcessFinished(
+        engineDataAccess: ProcessEngineDataAccess<*>,
+        processInstance: Handle<SecureObject<ProcessInstance<*>>>
+    ) {
+        processContexts.remove(processInstance)
+    }
+
+    override fun onActivityTermination(
+        engineDataAccess: ProcessEngineDataAccess<*>,
+        processNodeInstance: IProcessNodeInstance
+    ) {
+
+        val context: LoanPmaProcessContext = getProcessContext(engineDataAccess, processNodeInstance.hProcessInstance)
+
+        with(engineService) { context.onActivityTermination(processNodeInstance) }
+    }
+
+}
+
+abstract class AbstractLoanContextFactory<AIC: ActivityInstanceContext>(val log: Logger, val random: Random) :
+    ProcessContextFactory<AIC> {
+
+    protected val nodes = mutableMapOf<PNIHandle, String>()
 
     val authService: AuthService = AuthService(log, nodes, random)
-    override val authServiceClient: AuthServiceClient
+    val authServiceClient: AuthServiceClient
         get() = AuthServiceClientImpl(authService)
 
     val engineService : EngineService = EngineService(authService)
 
-    private val processContexts = mutableMapOf<Handle<SecureObject<ProcessInstance<*>>>, LoanProcessContext>()
     val customerFile = CustomerInformationFile(authService)
     val outputManagementSystem = OutputManagementSystem(authService)
     val accountManagementSystem = AccountManagementSystem(authService)
@@ -80,40 +160,7 @@ class LoanContextFactory(val log: Logger, val random: Random) : DynamicPMAProces
     val postProcClerk: Browser = Browser(authService, principals.clerk2)
     val customer: Browser = Browser(authService, principals.customer)
 
-    override fun newActivityInstanceContext(
-        engineDataAccess: ProcessEngineDataAccess<LoanActivityContext>,
-        processNodeInstance: IProcessNodeInstance<LoanActivityContext>
-    ): LoanActivityContext {
-        val instanceHandle = processNodeInstance.hProcessInstance
-        nodes[processNodeInstance.handle] = processNodeInstance.node.id
-        val processContext = getProcessContext(engineDataAccess, instanceHandle)
-        return LoanActivityContext(processContext, processNodeInstance)
-    }
-
-    private fun getProcessContext(
-        engineDataAccess: ProcessEngineDataAccess<LoanActivityContext>,
-        instanceHandle: Handle<SecureObject<ProcessInstance<*>>>
-    ) =
-        processContexts.getOrPut(instanceHandle) { LoanProcessContextImpl(engineDataAccess, this, instanceHandle) }
-
-    override fun onProcessFinished(
-        engineDataAccess: ProcessEngineDataAccess<LoanActivityContext>,
-        processInstance: Handle<SecureObject<ProcessInstance<*>>>
-    ) {
-        processContexts.remove(processInstance)
-    }
-
-    override fun onActivityTermination(
-        engineDataAccess: ProcessEngineDataAccess<LoanActivityContext>,
-        processNodeInstance: IProcessNodeInstance<LoanActivityContext>
-    ) {
-
-        val context: LoanProcessContext = getProcessContext(engineDataAccess, processNodeInstance.hProcessInstance)
-
-        with(engineService) { context.onActivityTermination(processNodeInstance) }
-    }
-
-    override fun getOrCreateTaskListForUser(principal: Principal): TaskList {
+    fun getOrCreateTaskListForUser(principal: Principal): TaskList {
         return taskLists.getOrPut(principal) {
             log.log(Level.INFO, "Creating tasklist service for ${principal.name}")
             val clientAuth = authService.registerClient("TaskList(${principal.name})", Random.nextString())

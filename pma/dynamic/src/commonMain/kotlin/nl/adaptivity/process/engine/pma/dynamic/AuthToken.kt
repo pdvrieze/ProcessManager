@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.engine.pma
 
-import nl.adaptivity.process.engine.pma.models.PermissionScope
+import nl.adaptivity.process.engine.pma.models.AuthScope
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 class AuthToken(
@@ -24,7 +24,7 @@ class AuthToken(
     val nodeInstanceHandle: PNIHandle,
     val tokenValue: String,
     val serviceId: String,
-    val scope: PermissionScope
+    val scope: AuthScope
 ): AuthInfo(principal) {
     override fun toString(): String {
         return "AuthToken($tokenValue - $principal[act=${nodeInstanceHandle.handleValue}] -> $serviceId.${scope.description})"

@@ -12,7 +12,7 @@ interface PMAProcessInstanceContext<A: PMAActivityContext<A>>: ProcessInstanceCo
 
 
     fun <MSG_T> requestAuthData(
-        messageService: IMessageService<MSG_T, A>,
+        messageService: IMessageService<MSG_T>,
         targetService: InvokableMethod,
         authorizations: List<AuthScope>
     ): TokenServiceAuthData {

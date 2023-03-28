@@ -21,18 +21,19 @@ import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.MemTransactionedHandleMap
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 import nl.adaptivity.process.engine.test.ProcessEngineTestSupport.Companion.PNI_SET_HANDLE
 import nl.adaptivity.process.engine.test.ProcessEngineTestSupport.Companion.cacheInstances
 import nl.adaptivity.process.engine.test.ProcessEngineTestSupport.Companion.cacheModels
 import nl.adaptivity.process.engine.test.ProcessEngineTestSupport.Companion.cacheNodes
+import nl.adaptivity.process.processModel.ProcessModel
 import java.net.URI
 import java.util.logging.Logger
 import javax.xml.namespace.QName
 
 open class EngineTestData<C : ActivityInstanceContext>(
-    val messageService: StubMessageService<C>,
-    val engine: ProcessEngine<StubProcessTransaction<C>, C>
+    val messageService: StubMessageService,
+    val engine: ProcessEngine<StubProcessTransaction, C>
 ) {
 
     companion object {
@@ -44,29 +45,27 @@ open class EngineTestData<C : ActivityInstanceContext>(
         fun defaultEngine(): EngineTestData<ActivityInstanceContext> = EngineTestData(StubMessageService(localEndpoint))
 
 
-        private operator fun invoke(messageService: StubMessageService<ActivityInstanceContext>)= EngineTestData(
+        private operator fun invoke(messageService: StubMessageService)= EngineTestData(
             messageService,
-            object : ProcessTransactionFactory<StubProcessTransaction<ActivityInstanceContext>, ActivityInstanceContext> {
-                override fun startTransaction(engineData: IProcessEngineData<StubProcessTransaction<ActivityInstanceContext>, ActivityInstanceContext>): StubProcessTransaction<ActivityInstanceContext> {
+            object : ProcessTransactionFactory<StubProcessTransaction> {
+                override fun startTransaction(engineData: IProcessEngineData<StubProcessTransaction, *>): StubProcessTransaction {
                     return StubProcessTransaction(engineData)
                 }
             },
-            cacheModels<Any, ActivityInstanceContext>(MemProcessModelMap(), 3),
-            cacheInstances(MemTransactionedHandleMap<SecureObject<ProcessInstance<ActivityInstanceContext>>, StubProcessTransaction<ActivityInstanceContext>>(), 3),
-            cacheNodes<Any, ActivityInstanceContext>(
-                MemTransactionedHandleMap<SecureObject<ProcessNodeInstance<*, ActivityInstanceContext>>, StubProcessTransaction<ActivityInstanceContext>>(
-                    ::PNI_SET_HANDLE
-                ), 3
+            cacheModels<SecureObject<ProcessModel<*>>, ActivityInstanceContext>(MemProcessModelMap(), 3),
+            cacheInstances<SecureProcessInstance, ActivityInstanceContext>(MemTransactionedHandleMap(), 3),
+            cacheNodes<SecureProcessNodeInstance, ActivityInstanceContext>(
+                MemTransactionedHandleMap(::PNI_SET_HANDLE), 3
             )
         )
 
 
         private operator fun invoke(
-            messageService: StubMessageService<ActivityInstanceContext>,
-            transactionFactory: ProcessTransactionFactory<StubProcessTransaction<ActivityInstanceContext>, ActivityInstanceContext>,
-            processModels: IMutableProcessModelMap<StubProcessTransaction<ActivityInstanceContext>>,
-            processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance<ActivityInstanceContext>>, StubProcessTransaction<ActivityInstanceContext>>,
-            processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*, ActivityInstanceContext>>, StubProcessTransaction<ActivityInstanceContext>>
+            messageService: StubMessageService,
+            transactionFactory: ProcessTransactionFactory<StubProcessTransaction>,
+            processModels: IMutableProcessModelMap<StubProcessTransaction>,
+            processInstances: MutableTransactionedHandleMap<SecureProcessInstance, StubProcessTransaction>,
+            processNodeInstances: MutableTransactionedHandleMap<SecureProcessNodeInstance, StubProcessTransaction>
         ): EngineTestData<ActivityInstanceContext> {
             return EngineTestData(
                 messageService,

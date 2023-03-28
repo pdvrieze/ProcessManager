@@ -40,17 +40,17 @@ class ExecutableJoin(
 
     override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
-    override fun <C : ActivityInstanceContext> canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *, C>): Boolean {
+    override fun canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *, *>): Boolean {
         return super.canStartTaskAutoProgress(instance)
     }
 
-    fun <C : ActivityInstanceContext> getExistingInstance(
-        data: ProcessEngineDataAccess<C>,
-        processInstanceBuilder: ProcessInstance.Builder<C>,
-        predecessor: IProcessNodeInstance<C>,
+    fun getExistingInstance(
+        data: ProcessEngineDataAccess<*>,
+        processInstanceBuilder: ProcessInstance.Builder<*>,
+        predecessor: IProcessNodeInstance,
         neededEntryNo: Int,
         allowFinalInstance: Boolean
-    ): Pair<JoinInstance.Builder<C>?, Int> {
+    ): Pair<JoinInstance.Builder<*>?, Int> {
         var candidateNo = if (isMultiInstance || isMultiMerge) neededEntryNo else 1
         for (candidate in processInstanceBuilder.getChildren(this).sortedBy { it.entryNo }) {
             if (predecessor.handle in candidate.predecessors) {
@@ -79,10 +79,10 @@ class ExecutableJoin(
         return conditions.get(predecessor.identifier)?.toExecutableCondition()?.isOtherwise == true
     }
 
-    override fun <C : ActivityInstanceContext> evalCondition(
-        nodeInstanceSource: IProcessInstance<C>,
-        predecessor: IProcessNodeInstance<C>,
-        nodeInstance: IProcessNodeInstance<C>
+    override fun evalCondition(
+        nodeInstanceSource: IProcessInstance<*>,
+        predecessor: IProcessNodeInstance,
+        nodeInstance: IProcessNodeInstance
     ): ConditionResult {
         val predCondResult = (conditions[predecessor.node.identifier] as ExecutableCondition?)
             .evalNodeStartCondition(nodeInstanceSource, predecessor, nodeInstance)
@@ -113,13 +113,13 @@ class ExecutableJoin(
         return ConditionResult.MAYBE
     }
 
-    override fun <C : ActivityInstanceContext> createOrReuseInstance(
-        data: MutableProcessEngineDataAccess<C>,
-        processInstanceBuilder: ProcessInstance.Builder<C>,
-        predecessor: IProcessNodeInstance<C>,
+    override fun createOrReuseInstance(
+        data: MutableProcessEngineDataAccess<*>,
+        processInstanceBuilder: ProcessInstance.Builder<*>,
+        predecessor: IProcessNodeInstance,
         entryNo: Int,
         allowFinalInstance: Boolean
-    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*, C>, C> {
+    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*, *>, *> {
         val (existingInstance, candidateNo) = getExistingInstance(
             data,
             processInstanceBuilder,

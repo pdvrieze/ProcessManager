@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
@@ -41,13 +40,13 @@ class ExecutableSplit(
 
     override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
-    override fun <C : ActivityInstanceContext> createOrReuseInstance(
-        data: MutableProcessEngineDataAccess<C>,
-        processInstanceBuilder: ProcessInstance.Builder<C>,
-        predecessor: IProcessNodeInstance<C>,
+    override fun createOrReuseInstance(
+        data: MutableProcessEngineDataAccess<*>,
+        processInstanceBuilder: ProcessInstance.Builder<*>,
+        predecessor: IProcessNodeInstance,
         entryNo: Int,
         allowFinalInstance: Boolean
-    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*, C>, C> {
+    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*, *>, *> {
         // TODO handle reentry
         return processInstanceBuilder.getChildNodeInstance(this, entryNo)
             ?: SplitInstance.BaseBuilder(
@@ -58,7 +57,7 @@ class ExecutableSplit(
             )
     }
 
-    override fun <C : ActivityInstanceContext> canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *, C>): Boolean = false
+    override fun canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *, *>): Boolean = false
 
     class Builder : SplitBase.Builder, ExecutableProcessNode.Builder {
         constructor(

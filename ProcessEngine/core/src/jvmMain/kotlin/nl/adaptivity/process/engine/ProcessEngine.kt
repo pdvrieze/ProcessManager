@@ -28,11 +28,8 @@ import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.ProcessInstance.State
 import nl.adaptivity.process.engine.db.ProcessEngineDB
 import nl.adaptivity.process.engine.impl.LoggerCompat
-import nl.adaptivity.process.engine.processModel.AbstractProcessEngineDataAccess
-import nl.adaptivity.process.engine.processModel.NodeInstanceState
+import nl.adaptivity.process.engine.processModel.*
 import nl.adaptivity.process.engine.processModel.NodeInstanceState.*
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstanceMap
 import nl.adaptivity.process.processModel.RootProcessModel
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.util.multiplatform.PrincipalCompat
@@ -58,7 +55,7 @@ private const val NODE_CACHE_SIZE = 100
 private const val INSTANCE_CACHE_SIZE = 10
 
 
-private fun <T : ContextProcessTransaction<*>, V : Any> wrapInstanceCache(
+private fun <T : ContextProcessTransaction, V : Any> wrapInstanceCache(
     base: MutableTransactionedHandleMap<V, T>,
     cacheSize: Int
 ): MutableTransactionedHandleMap<V, T> {
@@ -68,10 +65,10 @@ private fun <T : ContextProcessTransaction<*>, V : Any> wrapInstanceCache(
     return CachingHandleMap(base, cacheSize)
 }
 
-private fun <C : ActivityInstanceContext> wrapDBInstanceCache(
-    base: ProcessInstanceMap<C>,
+private fun wrapDBInstanceCache(
+    base: ProcessInstanceMap,
     cacheSize: Int
-): MutableTransactionedHandleMap<SecureObject<ProcessInstance<C>>, ProcessDBTransaction<C>> {
+): MutableTransactionedHandleMap<SecureProcessInstance, ProcessDBTransaction> {
     val b:  MutableTransactionedHandleMap<*, *> = base
     if (cacheSize <= 0) {
         return base
@@ -79,27 +76,26 @@ private fun <C : ActivityInstanceContext> wrapDBInstanceCache(
     return ProcessInstanceMap.Cache(base, cacheSize)
 }
 
-private fun <T : ContextProcessTransaction<*>, C : ActivityInstanceContext> wrapNodeCache(
-    base: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*, C>>, T>,
+private fun <T : ContextProcessTransaction> wrapNodeCache(
+    base: MutableTransactionedHandleMap<SecureProcessNodeInstance, T>,
     cacheSize: Int
-): MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*, C>>, T> {
+): MutableTransactionedHandleMap<SecureProcessNodeInstance, T> {
     if (cacheSize <= 0) {
         return base
     }
     return CachingHandleMap(base, cacheSize) { tr, securePNI, handle ->
-        val pni: ProcessNodeInstance<ProcessNodeInstance<*, C>, C> = securePNI.withPermission()
+        val pni = securePNI.withPermission()
         if (pni.handle == handle) {
             securePNI
         } else {
-            val engineData: ProcessEngineDataAccess<C> = tr.readableEngineData as ProcessEngineDataAccess<C>
-            val piBuilder = engineData.instance(pni.hProcessInstance).withPermission().builder()
+            val piBuilder = tr.readableEngineData.instance(pni.hProcessInstance).withPermission().builder()
             pni.builder(piBuilder).also { it.handle = handle }.build()
         }
     }
 
 }
 
-private fun <T : ContextProcessTransaction<*>> wrapModelCache(
+private fun <T : ContextProcessTransaction> wrapModelCache(
     base: IMutableProcessModelMap<T>,
     cacheSize: Int
 ): IMutableProcessModelMap<T> {
@@ -113,16 +109,16 @@ private fun <T : ContextProcessTransaction<*>> wrapModelCache(
 /**
  * This class represents the process engine. XXX make sure this is thread safe!!
  */
-class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceContext> {
+class ProcessEngine<TR : ContextProcessTransaction, C : ActivityInstanceContext> {
 
-    private val messageService: IMessageService<*, C>
+    private val messageService: IMessageService<*>
     private val engineData: IProcessEngineData<TR, C>
-    private val tickleQueue = ArrayDeque<Handle<SecureObject<ProcessInstance<*>>>>()
+    private val tickleQueue = ArrayDeque<PIHandle>()
     private var securityProvider: SecurityProvider = OwnerOnlySecurityProvider("admin")
     private val processContextFactory: ProcessContextFactory<C>
 
     constructor(
-        messageService: IMessageService<*, C>,
+        messageService: IMessageService<*>,
         engineData: IProcessEngineData<TR, C>,
         processContextFactory: ProcessContextFactory<C>
     ) {
@@ -132,11 +128,11 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
     }
 
     constructor(
-        messageService: IMessageService<*, C>,
-        transactionFactory: ProcessTransactionFactory<TR, C>,
+        messageService: IMessageService<*>,
+        transactionFactory: ProcessTransactionFactory<TR>,
         processModels: IMutableProcessModelMap<TR>,
-        processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance<C>>, TR>,
-        processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*, C>>, TR>,
+        processInstances: MutableTransactionedHandleMap<SecureProcessInstance, TR>,
+        processNodeInstances: MutableTransactionedHandleMap<SecureProcessNodeInstance, TR>,
         autoTransition: Boolean,
         logger: LoggerCompat,
         processContextFactory: ProcessContextFactory<C>
@@ -151,22 +147,23 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
         this.processContextFactory = processContextFactory
     }
 
-    class DelegateProcessEngineData<T : ContextProcessTransaction<C>, C: ActivityInstanceContext>(
-        private val transactionFactory: ProcessTransactionFactory<T, C>,
+    class DelegateProcessEngineData<T : ContextProcessTransaction, C : ActivityInstanceContext>(
+        private val transactionFactory: ProcessTransactionFactory<T>,
         override val processModels: IMutableProcessModelMap<T>,
-        override val processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance<C>>, T>,
-        override val processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*, C>>, T>,
-        private val messageService: IMessageService<*, C>,
+        override val processInstances: MutableTransactionedHandleMap<SecureProcessInstance, T>,
+        override val processNodeInstances: MutableTransactionedHandleMap<SecureProcessNodeInstance, T>,
+        private val messageService: IMessageService<*>,
         override val logger: LoggerCompat,
         private val engine: ProcessEngine<T, C>
     ) : IProcessEngineData<T, C>(), TransactionFactory<T> {
 
-        private inner class DelegateEngineDataAccess(transaction: T) : AbstractProcessEngineDataAccess<T, C>(transaction) {
+        private inner class DelegateEngineDataAccess(transaction: T) :
+            AbstractProcessEngineDataAccess<T, C>(transaction) {
             override val processContextFactory: ProcessContextFactory<C>
                 get() = this@DelegateProcessEngineData.engine.processContextFactory
-            override val instances: MutableHandleMap<SecureObject<ProcessInstance<C>>>
+            override val instances: MutableHandleMap<SecureProcessInstance>
                 get() = this@DelegateProcessEngineData.processInstances.withTransaction(transaction)
-            override val nodeInstances: MutableHandleMap<SecureObject<ProcessNodeInstance<*, C>>>
+            override val nodeInstances: MutableHandleMap<SecureProcessNodeInstance>
                 get() = this@DelegateProcessEngineData.processNodeInstances.withTransaction(transaction)
             override val processModels: IMutableProcessModelMapAccess
                 get() = this@DelegateProcessEngineData.processModels.withTransaction(transaction)
@@ -174,7 +171,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
             override val logger: LoggerCompat
                 get() = this@DelegateProcessEngineData.logger
 
-            override fun messageService(): IMessageService<*, C> {
+            override fun messageService(): IMessageService<*> {
                 return messageService
             }
 
@@ -182,20 +179,20 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
                 this@DelegateProcessEngineData.invalidateCachePM(handle)
             }
 
-            override fun invalidateCachePI(handle: Handle<SecureObject<ProcessInstance<*>>>) {
+            override fun invalidateCachePI(handle: PIHandle) {
                 this@DelegateProcessEngineData.invalidateCachePI(handle)
             }
 
-            override fun invalidateCachePNI(handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>) {
+            override fun invalidateCachePNI(handle: PNIHandle) {
                 this@DelegateProcessEngineData.invalidateCachePNI(handle)
             }
 
-            override fun handleFinishedInstance(handle: Handle<SecureObject<ProcessInstance<*>>>) {
+            override fun handleFinishedInstance(handle: PIHandle) {
                 processContextFactory.onProcessFinished(this, handle)
                 // Ignore the completion for now. Just keep it in the engine.
             }
 
-            override fun queueTickle(instanceHandle: Handle<SecureObject<ProcessInstance<*>>>) {
+            override fun queueTickle(instanceHandle: PIHandle) {
                 this@DelegateProcessEngineData.queueTickle(instanceHandle)
             }
         }
@@ -207,27 +204,28 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
         override fun startTransaction(): T = transactionFactory.startTransaction(this)
 
         override fun isValidTransaction(transaction: Transaction): Boolean {
-            return transaction is ContextProcessTransaction<*> && transaction.readableEngineData == this
+            return transaction is ContextProcessTransaction && transaction.readableEngineData == this
         }
 
-        override fun queueTickle(instanceHandle: Handle<SecureObject<ProcessInstance<*>>>) {
+        override fun queueTickle(instanceHandle: PIHandle) {
             engine.queueTickle(instanceHandle)
         }
     }
 
-    class DBProcessEngineData<C: ActivityInstanceContext>(
-        private val messageService: IMessageService<*, C>,
+    class DBProcessEngineData<C : ActivityInstanceContext>(
+        private val messageService: IMessageService<*>,
         override val logger: LoggerCompat
-    ) : IProcessEngineData<ProcessDBTransaction<C>, C>(), DBTransactionFactory<ProcessDBTransaction<C>, ProcessEngineDB> {
+    ) : IProcessEngineData<ProcessDBTransaction, C>(),
+        DBTransactionFactory<ProcessDBTransaction, ProcessEngineDB> {
 
-        private inner class DBEngineDataAccess(transaction: ProcessDBTransaction<C>) :
-            AbstractProcessEngineDataAccess<ProcessDBTransaction<C>, C>(transaction) {
-            
+        private inner class DBEngineDataAccess(transaction: ProcessDBTransaction) :
+            AbstractProcessEngineDataAccess<ProcessDBTransaction, C>(transaction) {
+
             override val processContextFactory: ProcessContextFactory<C>
                 get() = this@DBProcessEngineData.engine.processContextFactory
-            override val instances: MutableHandleMap<SecureObject<ProcessInstance<C>>>
+            override val instances: MutableHandleMap<SecureProcessInstance>
                 get() = this@DBProcessEngineData.processInstances.withTransaction(transaction)
-            override val nodeInstances: MutableHandleMap<SecureObject<ProcessNodeInstance<*, C>>>
+            override val nodeInstances: MutableHandleMap<SecureProcessNodeInstance>
                 get() = this@DBProcessEngineData.processNodeInstances.withTransaction(transaction)
             override val processModels: IMutableProcessModelMapAccess
                 get() = this@DBProcessEngineData.processModels.withTransaction(transaction)
@@ -235,7 +233,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
             override val logger: LoggerCompat
                 get() = this@DBProcessEngineData.logger
 
-            override fun messageService(): IMessageService<*, C> {
+            override fun messageService(): IMessageService<*> {
                 return this@DBProcessEngineData.messageService
             }
 
@@ -243,20 +241,20 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
                 this@DBProcessEngineData.invalidateCachePM(handle)
             }
 
-            override fun invalidateCachePI(handle: Handle<SecureObject<ProcessInstance<*>>>) {
+            override fun invalidateCachePI(handle: PIHandle) {
                 this@DBProcessEngineData.invalidateCachePI(handle)
             }
 
-            override fun invalidateCachePNI(handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>) {
+            override fun invalidateCachePNI(handle: PNIHandle) {
                 this@DBProcessEngineData.invalidateCachePNI(handle)
             }
 
-            override fun handleFinishedInstance(handle: Handle<SecureObject<ProcessInstance<*>>>) {
+            override fun handleFinishedInstance(handle: PIHandle) {
                 processContextFactory.onProcessFinished(this, handle)
                 // Do nothing at this point. In the future, this will probably lead the node intances to be deleted.
             }
 
-            override fun queueTickle(instanceHandle: Handle<SecureObject<ProcessInstance<*>>>) {
+            override fun queueTickle(instanceHandle: PIHandle) {
                 this@DBProcessEngineData.queueTickle(instanceHandle)
             }
         }
@@ -271,45 +269,46 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
             }
         }
 
-        lateinit var engine: ProcessEngine<ProcessDBTransaction<C>, C>
+        lateinit var engine: ProcessEngine<ProcessDBTransaction, C>
 
-        override val processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance<C>>, ProcessDBTransaction<C>> by lazy {
+        override val processInstances: MutableTransactionedHandleMap<SecureProcessInstance, ProcessDBTransaction> by lazy {
             wrapDBInstanceCache(ProcessInstanceMap(this, engine), INSTANCE_CACHE_SIZE)
         }
 
-        override val processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*, C>>, ProcessDBTransaction<C>> by lazy {
+        override val processNodeInstances: MutableTransactionedHandleMap<SecureProcessNodeInstance, ProcessDBTransaction> by lazy {
             wrapNodeCache(ProcessNodeInstanceMap(this, engine), NODE_CACHE_SIZE)
         }
 
         override val processModels = wrapModelCache(ProcessModelMap(this), MODEL_CACHE_SIZE)
 
-        override fun createWriteDelegate(transaction: ProcessDBTransaction<C>): MutableProcessEngineDataAccess<C> {
+        override fun createWriteDelegate(transaction: ProcessDBTransaction): MutableProcessEngineDataAccess<C> {
             return DBEngineDataAccess(transaction)
         }
 
-        override fun startTransaction(): ProcessDBTransaction<C> {
+        override fun startTransaction(): ProcessDBTransaction {
             val conn = MonadicDBConnection(dbResource.connection, ProcessEngineDB)
 
             return ProcessDBTransaction(TransactionBuilder(conn), this)
         }
 
         @OptIn(UnmanagedSql::class)
-        override fun asTransaction(dbReceiver: DBReceiver<ProcessEngineDB>): ProcessDBTransaction<C> {
+        override fun asTransaction(dbReceiver: DBReceiver<ProcessEngineDB>): ProcessDBTransaction {
             return when (dbReceiver) {
                 is ConnectionSource -> {
                     val tb = TransactionBuilder(MonadicDBConnection(dbReceiver.getRawConnection(), dbReceiver.db))
 
                     ProcessDBTransaction(tb, this)
                 }
+
                 is DBTransactionContext -> ProcessDBTransaction(dbReceiver, this@DBProcessEngineData)
             }
         }
 
         override fun isValidTransaction(transaction: Transaction): Boolean {
-            return transaction is ProcessDBTransaction<*>
+            return transaction is ProcessDBTransaction
         }
 
-        override fun queueTickle(instanceHandle: Handle<SecureObject<ProcessInstance<*>>>) {
+        override fun queueTickle(instanceHandle: PIHandle) {
             engine.queueTickle(instanceHandle)
         }
     }
@@ -455,7 +454,10 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
      * @param newName The new name
      */
     fun renameProcessModel(user: Principal, handle: Handle<ExecutableProcessModel>, newName: String) {
-        engineData.inWriteTransaction(user, securityProvider.ensurePermission(ProcessEnginePermissions.FIND_MODEL, user)) {
+        engineData.inWriteTransaction(
+            user,
+            securityProvider.ensurePermission(ProcessEnginePermissions.FIND_MODEL, user)
+        ) {
             processModels[handle].shouldExist(handle).withPermission(
                 securityProvider, SecureObject.Permissions.RENAME,
                 user
@@ -552,7 +554,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
      *
      * @return All instances.
      */
-    fun getVisibleProcessInstances(transaction: TR, user: Principal): Iterable<ProcessInstance<C>> {
+    fun getVisibleProcessInstances(transaction: TR, user: Principal): Iterable<ProcessInstance<*>> {
         engineData.inReadonlyTransaction(transaction) {
             return instances.map { it.withPermission() }.filter {
                 securityProvider.hasPermission(SecureObject.Permissions.READ, user, it)
@@ -563,13 +565,14 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
     @Throws(SQLException::class)
     fun getProcessInstance(
         transaction: TR,
-        handle: Handle<SecureObject<ProcessInstance<*>>>,
+        handle: PIHandle,
         user: Principal
-    ): ProcessInstance<C> {
+    ): ProcessInstance<*> {
         return engineData.inReadonlyTransaction(transaction) {
-            instances[handle].shouldExist(handle).withPermission(securityProvider, ProcessEnginePermissions.VIEW_INSTANCE, user) {
-                it
-            }
+            instances[handle].shouldExist(handle)
+                .withPermission(securityProvider, ProcessEnginePermissions.VIEW_INSTANCE, user) {
+                    it
+                }
         }
     }
 
@@ -577,7 +580,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
         return tickleInstance(transaction, if (handle < 0) Handle.invalid() else Handle(handle), user)
     }
 
-    fun queueTickle(instanceHandle: Handle<SecureObject<ProcessInstance<*>>>) {
+    fun queueTickle(instanceHandle: PIHandle) {
         if (instanceHandle !in tickleQueue) {
             tickleQueue.add(instanceHandle)
         }
@@ -585,7 +588,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
 
     fun tickleInstance(
         transaction: TR,
-        handle: Handle<SecureObject<ProcessInstance<*>>>,
+        handle: PIHandle,
         user: Principal, processingTickles: Boolean = false
     ): Boolean {
         try {
@@ -594,7 +597,11 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
                 invalidateCachePI(Handle.invalid())
                 invalidateCachePNI(Handle.invalid())
 
-                securityProvider.ensurePermission(ProcessEnginePermissions.TICKLE_INSTANCE, user, (instances[handle.coerce<C>()]?: return false))
+                securityProvider.ensurePermission(
+                    ProcessEnginePermissions.TICKLE_INSTANCE,
+                    user,
+                    (instances[handle] ?: return false)
+                )
 
                 updateInstance(handle) {
                     tickle(this@run, messageService)
@@ -638,9 +645,9 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
         model: SecureObject<ExecutableProcessModel>,
         name: String,
         uuid: UUID,
-        parentActivity: Handle<SecureObject<ProcessNodeInstance<*, *>>>,
+        parentActivity: PNIHandle,
         payload: CompactFragment?
-    ): HProcessInstance {
+    ): PIHandle {
 
         if (user == null) {
             throw HttpResponseException(
@@ -650,7 +657,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
         }
         val unstoredInstance =
             model.withPermission(securityProvider, ExecutableProcessModel.Permissions.INSTANTIATE, user) {
-                ProcessInstance(transaction.writableEngineData, it, parentActivity) {
+                ProcessInstance<C>(transaction.writableEngineData, it, parentActivity) {
                     this.instancename = name
                     this.uuid = uuid
                     this.state = State.NEW
@@ -696,7 +703,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
         name: String,
         uuid: UUID,
         payload: CompactFragment?
-    ): HProcessInstance {
+    ): PIHandle {
         engineData.inWriteTransaction(transaction) {
             processModels[handle].shouldExist(handle)
         }.let { processModel ->
@@ -721,9 +728,9 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
     @Throws(SQLException::class)
     fun getNodeInstance(
         transaction: TR,
-        handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>,
+        handle: PNIHandle,
         user: Principal
-    ): ProcessNodeInstance<*, C>? {
+    ): ProcessNodeInstance<*, *>? {
         engineData.inReadonlyTransaction(transaction) {
             return nodeInstances[handle]?.withPermission(securityProvider, SecureObject.Permissions.READ, user) {
                 it
@@ -732,7 +739,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
     }
 
     @Throws(SQLException::class)
-    fun finishInstance(transaction: TR, hProcessInstance: Handle<SecureObject<ProcessInstance<C>>>) {
+    fun finishInstance(transaction: TR, hProcessInstance: PIHandle) {
         // TODO evict these nodes from the cache (not too bad to keep them though)
         //    for (ProcessNodeInstance childNode:pProcessInstance.getProcessNodeInstances()) {
         //      getNodeInstances().invalidateModelCache(childNode);
@@ -745,9 +752,9 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
     @Throws(SQLException::class)
     fun cancelInstance(
         transaction: TR,
-        handle: Handle<SecureObject<ProcessInstance<*>>>,
+        handle: PIHandle,
         user: Principal
-    ): ProcessInstance<C> {
+    ): ProcessInstance<*> {
         engineData.inWriteTransaction(transaction) {
             instances[handle].shouldExist(handle).withPermission(
                 securityProvider, ProcessEnginePermissions.CANCEL,
@@ -792,7 +799,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
      */
     fun updateTaskState(
         transaction: TR,
-        handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>,
+        handle: PNIHandle,
         newState: NodeInstanceState,
         user: Principal
     ): NodeInstanceState {
@@ -802,32 +809,33 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
                 .shouldExist(handle)
                 .withPermission(securityProvider, SecureObject.Permissions.UPDATE, user) { task ->
 
-                var finalState: NodeInstanceState = newState
-                engineData.updateInstance(task.hProcessInstance) {
-                    synchronized(this.base) {
-                        finalState = updateChild(handle) {
-                            when (newState) {
-                                Sent -> throw IllegalArgumentException("Updating task state to initial state not possible")
-                                Acknowledged -> {
-                                    if (state == Taken) {
-                                        assignedUser = null
+                    var finalState: NodeInstanceState = newState
+                    engineData.updateInstance(task.hProcessInstance) {
+                        synchronized(this.base) {
+                            finalState = updateChild(handle) {
+                                when (newState) {
+                                    Sent -> throw IllegalArgumentException("Updating task state to initial state not possible")
+                                    Acknowledged -> {
+                                        if (state == Taken) {
+                                            assignedUser = null
+                                        }
+                                        state = newState
                                     }
-                                    state = newState
-                                }
-                                Taken -> takeTask(engineData, assignedUser)
-                                Started -> startTask(engineData)
-                                Complete -> throw IllegalArgumentException("Finishing a task must be done by a separate method")
-                                // TODO don't just make up a failure cause
-                                Failed -> failTask(engineData, IllegalArgumentException("Missing failure cause"))
-                                Cancelled -> cancel(engineData)
-                                else -> throw IllegalArgumentException("Unsupported state :" + newState)
-                            }
-                        }.state
-                    }
-                }
 
-                return finalState
-            }
+                                    Taken -> takeTask(engineData, assignedUser)
+                                    Started -> startTask(engineData)
+                                    Complete -> throw IllegalArgumentException("Finishing a task must be done by a separate method")
+                                    // TODO don't just make up a failure cause
+                                    Failed -> failTask(engineData, IllegalArgumentException("Missing failure cause"))
+                                    Cancelled -> cancel(engineData)
+                                    else -> throw IllegalArgumentException("Unsupported state :" + newState)
+                                }
+                            }.state
+                        }
+                    }
+
+                    return finalState
+                }
         } finally {
             processTickleQueue(transaction)
         }
@@ -845,7 +853,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
      */
     fun takeTask(
         transaction: TR,
-        handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>,
+        handle: PNIHandle,
         assignedUserName: String,
         user: PrincipalCompat
     ): NodeInstanceState {
@@ -881,10 +889,10 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
     @Throws(SQLException::class)
     fun finishTask(
         transaction: TR,
-        handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>,
+        handle: PNIHandle,
         payload: ICompactFragment?,
         user: Principal
-    ): ProcessNodeInstance<*, C> {
+    ): ProcessNodeInstance<*, *> {
         try {
             securityProvider.ensurePermission(
                 SecureObject.Permissions.UPDATE,
@@ -916,7 +924,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
      */
     fun finishedTask(
         transaction: TR,
-        handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>,
+        handle: PNIHandle,
         resultSource: DataSource?,
         user: Principal
     ) {
@@ -948,7 +956,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
      */
     fun cancelledTask(
         transaction: TR,
-        handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>,
+        handle: PNIHandle,
         user: Principal
     ) {
         updateTaskState(transaction, handle, Cancelled, user)
@@ -957,7 +965,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
 
     fun errorTask(
         transaction: TR,
-        handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>,
+        handle: PNIHandle,
         cause: Throwable,
         user: Principal
     ) {
@@ -976,7 +984,7 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
 
     @Throws(SQLException::class)
     fun updateStorage(transaction: TR, processInstance: ProcessInstance<C>) {
-        val handle: Handle<SecureObject<ProcessInstance<C>>> = processInstance.handle
+        val handle: PIHandle = processInstance.handle
         if (!handle.isValid) {
             throw IllegalArgumentException("You can't update storage state of an unregistered node")
         }
@@ -1004,8 +1012,8 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
 
         @JvmStatic
         @JvmName("newInstance")
-        operator fun <T : ProcessDBTransaction<ActivityInstanceContext>> invoke(
-            messageService: IMessageService<*, ActivityInstanceContext>,
+        operator fun <T : ProcessDBTransaction> invoke(
+            messageService: IMessageService<*>,
             engineData: IProcessEngineData<T, ActivityInstanceContext>
         ): ProcessEngine<T, ActivityInstanceContext> {
             return ProcessEngine(messageService, engineData, ProcessContextFactory.DEFAULT)
@@ -1013,11 +1021,11 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
 
         @JvmStatic
         fun newInstance(
-            messageService: IMessageService<*, ActivityInstanceContext>,
+            messageService: IMessageService<*>,
             logger: LoggerCompat
-        ): ProcessEngine<ProcessDBTransaction<ActivityInstanceContext>, ActivityInstanceContext> {
+        ): ProcessEngine<ProcessDBTransaction, ActivityInstanceContext> {
             // TODO enable optional caching
-            val engineData = DBProcessEngineData(messageService, logger)
+            val engineData = DBProcessEngineData<ActivityInstanceContext>(messageService, logger)
             val pe = ProcessEngine(messageService, engineData)
             engineData.engine = pe // STILL NEEDED to initialize the engine as the factories require the engine
             return pe
@@ -1025,12 +1033,12 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
 
         @JvmStatic
         @JvmName("newTestInstance")
-        fun <T : ContextProcessTransaction<ActivityInstanceContext>> newTestInstance(
-            messageService: IMessageService<*, ActivityInstanceContext>,
-            transactionFactory: ProcessTransactionFactory<T, ActivityInstanceContext>,
+        fun <T : ContextProcessTransaction> newTestInstance(
+            messageService: IMessageService<*>,
+            transactionFactory: ProcessTransactionFactory<T>,
             processModels: IMutableProcessModelMap<T>,
-            processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance<ActivityInstanceContext>>, T>,
-            processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*, ActivityInstanceContext>>, T>,
+            processInstances: MutableTransactionedHandleMap<SecureProcessInstance, T>,
+            processNodeInstances: MutableTransactionedHandleMap<SecureProcessNodeInstance, T>,
             autoTransition: Boolean,
             logger: LoggerCompat
         ): ProcessEngine<T, ActivityInstanceContext> {
@@ -1047,12 +1055,12 @@ class ProcessEngine<TR : ContextProcessTransaction<C>, C : ActivityInstanceConte
         @JvmStatic
         @JvmName("newTestInstance")
         @PublishedApi
-        internal fun <T : ContextProcessTransaction<C>, C : ActivityInstanceContext> newTestInstance(
-            messageService: IMessageService<*, C>,
-            transactionFactory: ProcessTransactionFactory<T, C>,
+        internal fun <T : ContextProcessTransaction, C : ActivityInstanceContext> newTestInstance(
+            messageService: IMessageService<*>,
+            transactionFactory: ProcessTransactionFactory<T>,
             processModels: IMutableProcessModelMap<T>,
-            processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance<C>>, T>,
-            processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*, C>>, T>,
+            processInstances: MutableTransactionedHandleMap<SecureProcessInstance, T>,
+            processNodeInstances: MutableTransactionedHandleMap<SecureProcessNodeInstance, T>,
             autoTransition: Boolean,
             logger: LoggerCompat,
             processContextFactory: ProcessContextFactory<C>

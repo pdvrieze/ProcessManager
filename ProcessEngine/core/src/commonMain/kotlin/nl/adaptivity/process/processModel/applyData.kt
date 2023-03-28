@@ -26,7 +26,7 @@ import nl.adaptivity.xmlutil.util.ICompactFragment
 
 expect fun IPlatformXmlResultType.applyData(payload: ICompactFragment?): ProcessData
 
-expect fun <C: ActivityInstanceContext> IXmlDefineType.applyData(nodeInstanceSource: IProcessInstance<C>, context: C): ProcessData
+expect fun IXmlDefineType.applyData(nodeInstanceSource: IProcessInstance<*>, context: ActivityInstanceContext): ProcessData
 
 expect fun <C: ActivityInstanceContext> IXmlDefineType.applyFromProcessInstance(
     processInstance: ProcessInstance.Builder<C>

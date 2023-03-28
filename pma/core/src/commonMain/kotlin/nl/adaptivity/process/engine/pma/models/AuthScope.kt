@@ -23,26 +23,47 @@ interface AuthScopeTemplate<in C: ActivityInstanceContext> {
     fun instantiateScope(context: C): AuthScope
 }
 
-interface AuthScope {
+interface AuthScope : AuthScopeTemplate<ActivityInstanceContext> {
     val description: String get() = toString()
-}
 
-/**
- * Scope for permissions that are granted
- */
-interface PermissionScope: AuthScope {
+    /**
+     * All authscopes can be templates as well (they just don't need instantiation).
+     */
+    override fun instantiateScope(context: ActivityInstanceContext): AuthScope = this
+
     /**
      * Determine whether this scope is larger than the passed one. In other words, whether the parameter scope
      * is allowed if this scope is allowed.
      */
-    fun includes(useScope: UseAuthScope): Boolean
+    fun includes(useScope: UseAuthScope): Boolean  {
+        return this == useScope
+    }
 
-    fun intersect(otherScope: PermissionScope) : PermissionScope?
-    fun union(otherScope: PermissionScope): PermissionScope
+    /**
+     * This will return a scope (if any) that meets both scopes. This is a narrower permission,
+     * and may very well be nothing.
+     * @return `null` if there is no permission, otherwise a narrower permission.
+     */
+    fun intersect(otherScope: AuthScope): AuthScope? {
+        if (otherScope is UnionPermissionScope) return otherScope.intersect(this)
+        return if (otherScope is UseAuthScope && includes(otherScope)) otherScope else null
+    }
+
+    /**
+     * This will return a scope that combines both permissions. This is a broader permission.
+     */
+    fun union(otherScope: AuthScope): AuthScope {
+        return when (otherScope) {
+            this -> this
+            else -> UnionPermissionScope(listOf(this, otherScope))
+        }
+    }
+
 }
 
-class UnionPermissionScope(members: List<PermissionScope>): PermissionScope {
-    val members: List<PermissionScope> = members.flatMap {
+class UnionPermissionScope(members: List<AuthScope>):
+    AuthScope {
+    val members: List<AuthScope> = members.flatMap {
         (it as? UnionPermissionScope)?.members ?: listOf(it)
     }
 
@@ -50,21 +71,23 @@ class UnionPermissionScope(members: List<PermissionScope>): PermissionScope {
         return members.any { it.includes(useScope) }
     }
 
-    override fun intersect(otherScope: PermissionScope): PermissionScope? {
+    override fun intersect(otherScope: AuthScope): AuthScope? {
         val newMembers = members.mapNotNull {
             it.intersect(otherScope)
         }
-        if(newMembers.isEmpty()) return null
-        if (newMembers.size==1) return newMembers.single()
+        if (newMembers.isEmpty()) return null
+        if (newMembers.size == 1) return newMembers.single()
         return UnionPermissionScope(newMembers)
     }
 
-    override fun union(otherScope: PermissionScope): PermissionScope = when (otherScope) {
-        is UnionPermissionScope -> UnionPermissionScope(members + otherScope.members)
-        else                -> UnionPermissionScope(members + otherScope)
-    }
+    override fun union(otherScope: AuthScope): AuthScope =
+        when (otherScope) {
+            is UnionPermissionScope -> UnionPermissionScope(members + otherScope.members)
+            else -> UnionPermissionScope(members + otherScope)
+        }
+
     override val description: String
-        get() = members.joinToString(" && ",prefix = "(", postfix = ")") { it.description }
+        get() = members.joinToString(" && ", prefix = "(", postfix = ")") { it.description }
 
     override fun toString(): String = description
 
@@ -74,7 +97,7 @@ class UnionPermissionScope(members: List<PermissionScope>): PermissionScope {
 
         other as UnionPermissionScope
 
-        if (members.size!= other.members.size) return false // compare size before comparing
+        if (members.size != other.members.size) return false // compare size before comparing
         val sortedMembers = members.sortedBy { it.description }
         val sortedOtherMembers = other.members.sortedBy { it.description }
         if (sortedMembers != sortedOtherMembers) return false
@@ -96,18 +119,18 @@ interface UseAuthScope: AuthScope {
 
 }
 
-object ANYSCOPE: PermissionScope {
+object ANYSCOPE: AuthScope {
     override val description get() = "*"
     override fun toString() = "AnyScope"
     override fun includes(useScope: UseAuthScope): Boolean {
         throw AuthorizationException("Using the any scope directly is not permitted")
     }
 
-    override fun union(otherScope: PermissionScope): PermissionScope {
+    override fun union(otherScope: AuthScope): AuthScope {
         return this
     }
 
-    override fun intersect(otherScope: PermissionScope): PermissionScope? {
+    override fun intersect(otherScope: AuthScope): AuthScope? {
         return otherScope
     }
 }

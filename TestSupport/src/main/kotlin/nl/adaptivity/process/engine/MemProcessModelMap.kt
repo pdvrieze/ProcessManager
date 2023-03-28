@@ -26,9 +26,9 @@ import nl.adaptivity.util.multiplatform.UUID
 /**
  * Created by pdvrieze on 07/05/16.
  */
-class MemProcessModelMap<C: ActivityInstanceContext> : MemTransactionedHandleMap<SecureObject<ExecutableProcessModel>, StubProcessTransaction<C>>(), IMutableProcessModelMap<StubProcessTransaction<C>> {
+class MemProcessModelMap : MemTransactionedHandleMap<SecureObject<ExecutableProcessModel>, StubProcessTransaction>(), IMutableProcessModelMap<StubProcessTransaction> {
 
-  override fun getModelWithUuid(transaction: StubProcessTransaction<C>,
+  override fun getModelWithUuid(transaction: StubProcessTransaction,
                                 uuid: UUID): Handle<SecureObject<ExecutableProcessModel>>? {
     for (c in this) {
       val candidate = c.withPermission()
@@ -40,7 +40,7 @@ class MemProcessModelMap<C: ActivityInstanceContext> : MemTransactionedHandleMap
   }
 
 
-  override fun withTransaction(transaction: StubProcessTransaction<C>): IMutableProcessModelMapAccess {
+  override fun withTransaction(transaction: StubProcessTransaction): IMutableProcessModelMapAccess {
     return defaultWithTransaction(this, transaction)
   }
 

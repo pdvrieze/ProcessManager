@@ -55,7 +55,7 @@ actual class ExecutableXSLTCondition actual constructor(condition: String, overr
      * @return `true` if the condition holds, `false` if not
      */
     @OptIn(XmlUtilInternal::class)
-    actual override fun eval(nodeInstanceSource: IProcessInstance<*>, nodeInstance: IProcessNodeInstance<*>): ConditionResult {
+    actual override fun eval(nodeInstanceSource: IProcessInstance<*>, nodeInstance: IProcessNodeInstance): ConditionResult {
         if (condition.isBlank()) return ConditionResult.TRUE
 
         val documentBuilder =
@@ -85,12 +85,12 @@ actual class ExecutableXSLTCondition actual constructor(condition: String, overr
 
 private fun Boolean.toResult(resolver: ConditionResolver) = ConditionResult(this)
 
-private class ConditionResolver(nodeSource: IProcessInstance<*>, nodeInstance: IProcessNodeInstance<*>, val document: Document) :
+private class ConditionResolver(nodeSource: IProcessInstance<*>, nodeInstance: IProcessNodeInstance, val document: Document) :
     XPathFunctionResolver, XPathVariableResolver {
 
 
     @Suppress("UNCHECKED_CAST")
-    val aNodeInstance: IProcessNodeInstance<ActivityInstanceContext> = nodeInstance as IProcessNodeInstance<ActivityInstanceContext>
+    val aNodeInstance: IProcessNodeInstance = nodeInstance as IProcessNodeInstance
 
     @Suppress("UNCHECKED_CAST")
     val aNodeSource: IProcessInstance<ActivityInstanceContext> = nodeSource as IProcessInstance<ActivityInstanceContext>

@@ -180,12 +180,13 @@ val loanModel2 = runnableProcess<LoanActivityContext>("foo", SimplePrincipal("mo
     val approvedOfferOut: OutputRef<PricedLoanProductBundle>
 
     val offerPriceLoan by compositeActivity(chooseBundledProduct) {
+        val cmbc: CompositeModelBuilderContext<LoanActivityContext> = this
         val loanEvalInput = input("loanEval", loanEvaluationOut)
         val chosenProductInput = input("chosenProduct", chooseBundledProduct)
 
         val start by startNode
 
-        val priceBundledProduct by activity<PricingInput, PricedLoanProductBundle>(
+        val priceBundledProduct by cmbc.activity<PricingInput, PricedLoanProductBundle>(
             start,
             combine(loanEvalInput named "loanEval", chosenProductInput named "prod") { e, p ->
                 PricingInput(e, p)
@@ -199,7 +200,7 @@ val loanModel2 = runnableProcess<LoanActivityContext>("foo", SimplePrincipal("mo
                 }
             }
         )
-        val approveOffer: ActivityHandle<PricedLoanProductBundle> by activity(
+        val approveOffer: ActivityHandle<PricedLoanProductBundle> by cmbc.activity(
             predecessor = priceBundledProduct,
             input = priceBundledProduct
         ) { draftOffer ->

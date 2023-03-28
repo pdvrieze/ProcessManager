@@ -18,16 +18,15 @@ package nl.adaptivity.process.engine.pma
 
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
-import nl.adaptivity.process.engine.ActivityInstanceContext
+import nl.adaptivity.process.engine.ProcessInstanceContext
 import nl.adaptivity.process.engine.pma.CommonPMAPermissions.GRANT_GLOBAL_PERMISSION
 import nl.adaptivity.process.engine.pma.CommonPMAPermissions.UPDATE_ACTIVITY_STATE
-import nl.adaptivity.process.engine.pma.dynamic.DynamicPMAActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.ServiceImpl
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
+import nl.adaptivity.process.engine.pma.models.AuthScope
 import nl.adaptivity.process.engine.pma.models.AutomatedService
-import nl.adaptivity.process.engine.pma.models.PermissionScope
 import nl.adaptivity.process.engine.pma.models.Service
 import nl.adaptivity.process.engine.pma.models.UnionPermissionScope
-import nl.adaptivity.process.engine.pma.runtime.PMAProcessInstanceContext
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
@@ -141,8 +140,8 @@ class EngineService(
             }
     }
 
-    fun <IC: PMAProcessInstanceContext<C>, C: ActivityInstanceContext> IC.onActivityTermination(
-        processNodeInstance: IProcessNodeInstance<C>
+    fun ProcessInstanceContext.onActivityTermination(
+        processNodeInstance: IProcessNodeInstance
     ) {
         val nodeInstanceHandle = processNodeInstance.handle
         val taskLists = taskLists[nodeInstanceHandle] ?: emptyList()
@@ -159,7 +158,7 @@ class EngineService(
     fun registerGlobalPermission(
         principal: PrincipalCompat,
         service: Service,
-        scope: PermissionScope
+        scope: AuthScope
     ) {
         authService.registerGlobalPermission(serviceAuth, principal, service, scope)
     }

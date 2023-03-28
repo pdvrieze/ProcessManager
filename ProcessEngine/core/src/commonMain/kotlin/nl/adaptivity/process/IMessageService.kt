@@ -29,7 +29,7 @@ import nl.adaptivity.process.processModel.ServiceAuthData
  *
  * @param MSG_T The type signifying a message that can then be sent. This is used to be able to treat the message as opaque
  */
-interface IMessageService<MSG_T, in C: ActivityInstanceContext> {
+interface IMessageService<MSG_T> {
 
   /**
    * Create a message.
@@ -53,9 +53,9 @@ interface IMessageService<MSG_T, in C: ActivityInstanceContext> {
    *
    */
   fun sendMessage(
-      engineData: ProcessEngineDataAccess<@UnsafeVariance C>,
+      engineData: ProcessEngineDataAccess<*>,
       protoMessage: MSG_T,
-      activityInstanceContext: C,
+      activityInstanceContext: ActivityInstanceContext,
       authData: ServiceAuthData? = null
   ): MessageSendingResult
 

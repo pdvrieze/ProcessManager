@@ -20,8 +20,8 @@ import io.github.pdvrieze.xmlutil.testutil.assertXmlEquals
 import net.devrieze.util.InputStreamOutputStream
 import nl.adaptivity.process.engine.ProcessInstance.State
 import nl.adaptivity.process.engine.impl.dom.toFragment
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.getDefines
 import nl.adaptivity.process.engine.test.ProcessEngineTestSupport
 import nl.adaptivity.process.engine.test.testProcess
@@ -340,7 +340,7 @@ class TestProcessEngine : ProcessEngineTestSupport<ActivityInstanceContext>() {
                 serializeToXml(messageService.messages[0].base)
             )
 
-            var ac1: ProcessNodeInstance<*, ActivityInstanceContext> =
+            var ac1: IProcessNodeInstance =
                 processEngine.getNodeInstance(transaction, messageService.getMessageNode(0), model.owner)
                     ?: throw AssertionError("Message node not found")// This should be 0 as it's the first activity
 

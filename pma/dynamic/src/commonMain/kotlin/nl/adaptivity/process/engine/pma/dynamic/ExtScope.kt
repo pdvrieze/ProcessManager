@@ -16,19 +16,19 @@
 
 package nl.adaptivity.process.engine.pma
 
-import nl.adaptivity.process.engine.pma.models.PermissionScope
+import nl.adaptivity.process.engine.pma.models.AuthScope
 import nl.adaptivity.process.engine.pma.models.UnionPermissionScope
 import nl.adaptivity.process.engine.pma.models.UseAuthScope
 
-data class ExtScope<V>(val scope: PermissionScope, val extraData: V) :
-    PermissionScope, UseAuthScope {
+data class ExtScope<V>(val scope: AuthScope, val extraData: V) :
+    AuthScope, UseAuthScope {
     override val description: String get() = toString()
 
     override fun includes(useScope: UseAuthScope): Boolean {
         return this == useScope
     }
 
-    override fun intersect(otherScope: PermissionScope): PermissionScope? =
+    override fun intersect(otherScope: AuthScope): AuthScope? =
         when {
             this == otherScope || otherScope == scope -> this
 
@@ -43,7 +43,7 @@ data class ExtScope<V>(val scope: PermissionScope, val extraData: V) :
             else -> null
         }
 
-    override fun union(otherScope: PermissionScope): PermissionScope =
+    override fun union(otherScope: AuthScope): AuthScope =
         when {
             this == otherScope -> this
             else -> UnionPermissionScope(listOf(this, otherScope))

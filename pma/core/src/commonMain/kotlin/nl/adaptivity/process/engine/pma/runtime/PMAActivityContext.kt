@@ -14,17 +14,12 @@ import nl.adaptivity.process.processModel.TokenServiceAuthData
 import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-abstract class PMAActivityContext<A : PMAActivityContext<A>>(val processNode: IProcessNodeInstance<A>) :
+abstract class PMAActivityContext<A : PMAActivityContext<A>> :
     ActivityInstanceContext {
-    fun <MSG_T> requestAuthData(
-        messageService: IMessageService<MSG_T, A>,
-        targetService: InvokableMethod,
-        authorizations: List<AuthScope>
-    ): TokenServiceAuthData {
-        return processContext.requestAuthData(messageService, targetService, authorizations)
-    }
 
-    abstract override val processContext: PMAProcessInstanceContext<A>
+    abstract val processNode: IProcessNodeInstance
+
+    abstract override val processContext: PMAProcessInstanceContext<*>
 
     abstract val taskListService: TaskListService
 
@@ -40,5 +35,13 @@ abstract class PMAActivityContext<A : PMAActivityContext<A>>(val processNode: IP
 
     override val owner: PrincipalCompat
         get() = (processNode as SecureObject<*>).owner
+
+    fun <MSG_T> requestAuthData(
+        messageService: IMessageService<MSG_T>,
+        targetService: InvokableMethod,
+        authorizations: List<AuthScope>
+    ): TokenServiceAuthData {
+        return processContext.requestAuthData(messageService, targetService, authorizations)
+    }
 
 }

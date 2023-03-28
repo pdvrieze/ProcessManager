@@ -24,7 +24,7 @@ import nl.adaptivity.util.multiplatform.UUID
 /**
  * Map interface that has some additional features/optimizations for process models.
  */
-interface IProcessModelMap<T : ContextProcessTransaction<*>> : TransactionedHandleMap<SecureObject<ExecutableProcessModel>, T> {
+interface IProcessModelMap<T : ContextProcessTransaction> : TransactionedHandleMap<SecureObject<ExecutableProcessModel>, T> {
 
   fun getModelWithUuid(transaction: T, uuid: UUID): Handle<SecureObject<ExecutableProcessModel>>?
 
@@ -33,21 +33,21 @@ interface IProcessModelMap<T : ContextProcessTransaction<*>> : TransactionedHand
   }
 }
 
-interface IMutableProcessModelMap<T : ContextProcessTransaction<*>> : MutableTransactionedHandleMap<SecureObject<ExecutableProcessModel>, T>, IProcessModelMap<T> {
+interface IMutableProcessModelMap<T : ContextProcessTransaction> : MutableTransactionedHandleMap<SecureObject<ExecutableProcessModel>, T>, IProcessModelMap<T> {
 
   override fun withTransaction(transaction: T): IMutableProcessModelMapAccess = defaultWithTransaction(this, transaction)
 
 }
 
-fun <T : ContextProcessTransaction<*>> defaultWithTransaction(map: IMutableProcessModelMap<T>, transaction: T):IMutableProcessModelMapAccess {
+fun <T : ContextProcessTransaction> defaultWithTransaction(map: IMutableProcessModelMap<T>, transaction: T):IMutableProcessModelMapAccess {
   return MutableProcessModelMapForwarder(transaction, map)
 }
 
-inline fun <T : ContextProcessTransaction<*>, R> IProcessModelMap<T>.inReadonlyTransaction(transaction: T, body: IProcessModelMapAccess.()->R):R {
+inline fun <T : ContextProcessTransaction, R> IProcessModelMap<T>.inReadonlyTransaction(transaction: T, body: IProcessModelMapAccess.()->R):R {
   return withTransaction(transaction).body()
 }
 
-private class ProcessModelMapForwarder<T : ContextProcessTransaction<*>>(transaction: T, override val delegate:IProcessModelMap<T>)
+private class ProcessModelMapForwarder<T : ContextProcessTransaction>(transaction: T, override val delegate:IProcessModelMap<T>)
   : HandleMapForwarder<SecureObject<ExecutableProcessModel>, T>(transaction, delegate), IProcessModelMapAccess {
 
   override fun getModelWithUuid(uuid: UUID): Handle<SecureObject<ExecutableProcessModel>>? {
@@ -55,7 +55,7 @@ private class ProcessModelMapForwarder<T : ContextProcessTransaction<*>>(transac
   }
 }
 
-private class MutableProcessModelMapForwarder<T : ContextProcessTransaction<*>>(transaction: T, override val delegate:IMutableProcessModelMap<T>)
+private class MutableProcessModelMapForwarder<T : ContextProcessTransaction>(transaction: T, override val delegate:IMutableProcessModelMap<T>)
   : MutableHandleMapForwarder<SecureObject<ExecutableProcessModel>, T>(transaction, delegate), IMutableProcessModelMapAccess {
 
   override fun getModelWithUuid(uuid: UUID): Handle<SecureObject<ExecutableProcessModel>>? {

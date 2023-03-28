@@ -18,7 +18,6 @@ package nl.adaptivity.process.engine.processModel
 
 import net.devrieze.util.*
 import net.devrieze.util.collection.replaceBy
-import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.impl.generateXmlString
@@ -37,15 +36,14 @@ import nl.adaptivity.xmlutil.util.ICompactFragment
 class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : ProcessNodeInstance<CompositeInstance<C>,C>(builder) {
 
     interface Builder<C : ActivityInstanceContext> : ProcessNodeInstance.Builder<ExecutableCompositeActivity, CompositeInstance<C>, C> {
-        var hChildInstance: Handle<SecureObject<ProcessInstance<*>>>
-
-        override fun <MSG_T> doProvideTask(
-            engineData: MutableProcessEngineDataAccess<C>,
-            messageService: IMessageService<MSG_T, C>
+        var hChildInstance: PIHandle
+        override fun doProvideTask(
+            engineData: MutableProcessEngineDataAccess<*>,
+            messageService: IMessageService<*>
         ): Boolean {
             val shouldProgress = node.canProvideTaskAutoProgress(engineData, this)
 
-            val childHandle = engineData.instances.put(ProcessInstance(engineData, node.childModel, handle) {})
+            val childHandle = engineData.instances.put(ProcessInstance<C>(engineData, node.childModel, handle) {})
             hChildInstance = childHandle
 
             store(engineData)
@@ -56,7 +54,7 @@ class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : Proc
         override fun canTakeTaskAutomatically(): Boolean = true
 
         @OptIn(ProcessInstanceStorage::class)
-        override fun doStartTask(engineData: MutableProcessEngineDataAccess<C>): Boolean {
+        override fun doStartTask(engineData: MutableProcessEngineDataAccess<*>): Boolean {
             val shouldProgress = tryCreateTask { node.canStartTaskAutoProgress(this) }
 
             assert(hChildInstance.isValid) { "The task can only be started if the child instance already exists" }
@@ -71,7 +69,7 @@ class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : Proc
         }
 
         override fun doFinishTask(
-            engineData: MutableProcessEngineDataAccess<C>,
+            engineData: MutableProcessEngineDataAccess<*>,
             resultPayload: ICompactFragment?
         ) {
             val childInstance = engineData.instance(hChildInstance).withPermission()
@@ -82,7 +80,7 @@ class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : Proc
         }
 
         override fun doTakeTask(
-            engineData: MutableProcessEngineDataAccess<C>,
+            engineData: MutableProcessEngineDataAccess<*>,
             assignedUser: PrincipalCompat?
         ): Boolean {
             return true
@@ -91,19 +89,19 @@ class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : Proc
 
     class BaseBuilder<C: ActivityInstanceContext>(
         node: ExecutableCompositeActivity,
-        predecessor: Handle<SecureObject<ProcessNodeInstance<*, C>>>?,
+        predecessor: PNIHandle?,
         processInstanceBuilder: ProcessInstance.Builder<C>,
-        override var hChildInstance: Handle<SecureObject<ProcessInstance<*>>>,
+        override var hChildInstance: PIHandle,
         owner: PrincipalCompat,
         entryNo: Int,
-        handle: Handle<SecureObject<ProcessNodeInstance<*, C>>> = Handle.invalid(),
+        handle: PNIHandle = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
     ) : ProcessNodeInstance.BaseBuilder<ExecutableCompositeActivity, CompositeInstance<C>, C>(
         node, listOfNotNull(predecessor), processInstanceBuilder, owner,
         entryNo, handle, state
     ), Builder<C> {
 
-        override fun invalidateBuilder(engineData: ProcessEngineDataAccess<C>) {
+        override fun invalidateBuilder(engineData: ProcessEngineDataAccess<*>) {
             engineData.nodeInstances[handle]?.withPermission()?.let { n ->
                 val newBase = n as CompositeInstance
                 node = newBase.node
@@ -118,13 +116,13 @@ class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : Proc
         }
     }
 
-    class ExtBuilder<C: ActivityInstanceContext>(base: CompositeInstance<C>, processInstanceBuilder: ProcessInstance.Builder<C>) :
+    class ExtBuilder<C: ActivityInstanceContext>(base: CompositeInstance<C>, processInstanceBuilder: ProcessInstance.Builder<*>) :
         ProcessNodeInstance.ExtBuilder<ExecutableCompositeActivity, CompositeInstance<C>, C>(base, processInstanceBuilder),
         Builder<C> {
 
         override var node: ExecutableCompositeActivity by overlay { base.node }
 
-        override var hChildInstance: Handle<SecureObject<ProcessInstance<*>>> by overlay(
+        override var hChildInstance: PIHandle by overlay(
             observer()
         ) { base.hChildInstance }
 
@@ -133,7 +131,7 @@ class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : Proc
         }
     }
 
-    val hChildInstance: Handle<SecureObject<ProcessInstance<*>>> =
+    val hChildInstance: PIHandle =
         builder.hChildInstance.apply {
             if (! (builder.state==NodeInstanceState.Pending || isValid))
                 throw ProcessException("Child process instance handles must be valid if the state isn't pending")
@@ -141,9 +139,10 @@ class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : Proc
 
     override val node: ExecutableCompositeActivity get() = super.node as ExecutableCompositeActivity
 
-    override fun builder(processInstanceBuilder: ProcessInstance.Builder<C>) = ExtBuilder(this, processInstanceBuilder)
+    override fun builder(processInstanceBuilder: ProcessInstance.Builder<*>): ExtBuilder<C> =
+        ExtBuilder(this, processInstanceBuilder)
 
-    fun <C : ActivityInstanceContext> C.getPayload(nodeInstanceSource: IProcessInstance<C>): CompactFragment? {
+    fun <C : ActivityInstanceContext> C.getPayload(nodeInstanceSource: IProcessInstance<*>): CompactFragment? {
         val defines = getDefines(nodeInstanceSource)
         if (defines.isEmpty()) return null
 

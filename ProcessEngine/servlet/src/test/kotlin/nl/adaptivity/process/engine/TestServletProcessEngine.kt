@@ -15,11 +15,10 @@
  */
 package nl.adaptivity.process.engine
 
-import net.devrieze.util.security.SecureObject
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.MemTransactionedHandleMap
 import nl.adaptivity.process.engine.ProcessEngine.Companion.newTestInstance
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 import nl.adaptivity.process.engine.servlet.ServletProcessEngine
 import java.net.URI
 import java.util.logging.Logger
@@ -29,17 +28,15 @@ import java.util.logging.Logger
  */
 class TestServletProcessEngine(
     localURL: EndpointDescriptorImpl?
-) : ServletProcessEngine<StubProcessTransaction<ActivityInstanceContext>, ActivityInstanceContext>() {
-    private val mProcessModels: MemProcessModelMap<ActivityInstanceContext>
-    private val mProcessInstances: MemTransactionedHandleMap<SecureObject<ProcessInstance<ActivityInstanceContext>>, StubProcessTransaction<ActivityInstanceContext>>
-    private val mProcessNodeInstances: MemTransactionedHandleMap<SecureObject<ProcessNodeInstance<*, ActivityInstanceContext>>, StubProcessTransaction<ActivityInstanceContext>>
-    val transactionFactory: ProcessTransactionFactory<StubProcessTransaction<ActivityInstanceContext>, ActivityInstanceContext>
+) : ServletProcessEngine<StubProcessTransaction, ActivityInstanceContext>() {
+    private val mProcessModels: MemProcessModelMap
+    private val mProcessInstances: MemTransactionedHandleMap<SecureProcessInstance, StubProcessTransaction>
+    private val mProcessNodeInstances: MemTransactionedHandleMap<SecureProcessNodeInstance, StubProcessTransaction>
+    val transactionFactory: ProcessTransactionFactory<StubProcessTransaction>
 
     init {
-        transactionFactory = object : ProcessTransactionFactory<StubProcessTransaction<ActivityInstanceContext>, ActivityInstanceContext> {
-            override fun startTransaction(
-                engineData: IProcessEngineData<StubProcessTransaction<ActivityInstanceContext>, ActivityInstanceContext>
-            ): StubProcessTransaction<ActivityInstanceContext> {
+        transactionFactory = object : ProcessTransactionFactory<StubProcessTransaction> {
+            override fun startTransaction(engineData: IProcessEngineData<StubProcessTransaction, *>): StubProcessTransaction {
                 return StubProcessTransaction(engineData)
             }
         }

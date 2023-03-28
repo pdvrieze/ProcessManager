@@ -18,34 +18,34 @@ package nl.adaptivity.process.engine.test.loanOrigination.auth
 
 import net.devrieze.util.Handle
 import nl.adaptivity.process.engine.pma.ExtScope
-import nl.adaptivity.process.engine.pma.models.PermissionScope
+import nl.adaptivity.process.engine.pma.models.AuthScope
 import nl.adaptivity.process.engine.pma.models.UnionPermissionScope
 import nl.adaptivity.process.engine.pma.models.UseAuthScope
-import nl.adaptivity.process.engine.test.PNIHandle
+import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanApplication
 
-sealed class LoanPermissions : PermissionScope {
+sealed class LoanPermissions {
     object SIGN : LoanPermissions(), UseAuthScope
 
-    object PRICE_LOAN : LoanPermissions() {
+    object PRICE_LOAN : LoanPermissions(), AuthScope {
         fun context(customerId: String, amount: Double): UseAuthScope {
             return MonetaryUseScope(PRICE_LOAN, customerId, amount)
         }
 
-        fun restrictTo(maxAmount: Double): PermissionScope {
+        fun restrictTo(maxAmount: Double): AuthScope {
             return MonetaryRestrictionPermissionScope(PRICE_LOAN, maxAmount = maxAmount)
         }
 
         fun restrictTo(
             customerId: String,
             maxAmount: Double = Double.NaN
-        ): PermissionScope {
+        ): AuthScope {
             return MonetaryRestrictionPermissionScope(PRICE_LOAN, customerId, maxAmount)
         }
     }
 
     object PRINT_OFFER : LoanPermissions(), UseAuthScope
-    object SIGN_LOAN : LoanPermissions() {
+    object SIGN_LOAN : LoanPermissions(), UseAuthScope {
         fun context(customerId: String, offerAmount: Double): UseAuthScope {
             return MonetaryUseScope(SIGN_LOAN, customerId, offerAmount)
         }
@@ -53,7 +53,7 @@ sealed class LoanPermissions : PermissionScope {
         fun restrictTo(
             customerId: String? = null,
             maxAmount: Double = Double.NaN
-        ): PermissionScope {
+        ): AuthScope {
             return MonetaryRestrictionPermissionScope(SIGN_LOAN, customerId, maxAmount)
         }
 
@@ -63,7 +63,7 @@ sealed class LoanPermissions : PermissionScope {
         }
     }
 
-    object INVALIDATE_ACTIVITY : LoanPermissions() {
+    object INVALIDATE_ACTIVITY : LoanPermissions(), AuthScope {
         fun context(hNodeInstance: PNIHandle) =
             UPDATE_ACTIVITY_STATE.contextImpl(hNodeInstance)
 
@@ -75,24 +75,24 @@ sealed class LoanPermissions : PermissionScope {
         }
     }
 
-    object EVALUATE_LOAN : LoanPermissions() {
+    object EVALUATE_LOAN : LoanPermissions(), AuthScope {
         fun context(application: LoanApplication) = context(application.customerId, application.amount)
         fun context(customerId: String, amount: Double) = MonetaryUseScope(EVALUATE_LOAN, customerId, amount)
         operator fun invoke(
             customerId: String? = null,
             maxAmount: Double = Double.NaN
-        ): PermissionScope {
+        ): AuthScope {
             return MonetaryRestrictionPermissionScope(EVALUATE_LOAN, customerId, maxAmount)
         }
     }
 
     object CREATE_CUSTOMER : LoanPermissions(), UseAuthScope
-    object QUERY_CUSTOMER_DATA : LoanPermissions() {
+    object QUERY_CUSTOMER_DATA : LoanPermissions(), AuthScope {
         operator fun invoke(customerId: String) = contextImpl(customerId)
     }
 
     object UPDATE_CUSTOMER_DATA : LoanPermissions(), UseAuthScope
-    object UPDATE_ACTIVITY_STATE : LoanPermissions() {
+    object UPDATE_ACTIVITY_STATE : LoanPermissions(), AuthScope {
 
         operator fun invoke(hNodeInstance: PNIHandle) =
             contextImpl(hNodeInstance)
@@ -101,7 +101,7 @@ sealed class LoanPermissions : PermissionScope {
             return useScope is ExtScope<*> && useScope.scope == this
         }
 
-        override fun intersect(otherScope: PermissionScope): PermissionScope? {
+        override fun intersect(otherScope: AuthScope): AuthScope? {
             return when {
                 otherScope == UPDATE_ACTIVITY_STATE -> this
                 otherScope is ExtScope<*> && otherScope.scope == this -> otherScope
@@ -110,38 +110,21 @@ sealed class LoanPermissions : PermissionScope {
         }
     }
 
-    object GET_CREDIT_REPORT : LoanPermissions() {
+    object GET_CREDIT_REPORT : LoanPermissions(), AuthScope {
         operator fun invoke(taxId: String) = contextImpl(taxId)
     }
 
-    object OPEN_ACCOUNT : LoanPermissions() {
+    object OPEN_ACCOUNT : LoanPermissions(), AuthScope {
         operator fun invoke(customerId: String) = contextImpl(customerId)
     }
 
 
     protected fun <V> contextImpl(contextData: V): ExtScope<V> {
+        require(this is AuthScope) {"${this.javaClass.name} is not an AuthScope"}
         return ExtScope(this, contextData)
     }
 
-    override fun includes(useScope: UseAuthScope): Boolean {
-        return this == useScope
-    }
-
-    override fun intersect(otherScope: PermissionScope): PermissionScope? {
-        if (otherScope is UnionPermissionScope) return otherScope.intersect(this)
-        return if (otherScope is UseAuthScope && includes(otherScope)) otherScope else null
-    }
-
-    override fun union(otherScope: PermissionScope): PermissionScope =
-        when (otherScope) {
-            this -> this
-            else -> UnionPermissionScope(listOf(this, otherScope))
-        }
-
-    override val description: String
-        get() = javaClass.simpleName.substringAfterLast('.')
-
-    override fun toString(): String = description
+    override fun toString(): String = javaClass.simpleName.substringAfterLast('.')
 }
 
 class MonetaryUseScope(val scope: LoanPermissions, val customerId: String, val amount: Double) :
@@ -173,10 +156,10 @@ class MonetaryUseScope(val scope: LoanPermissions, val customerId: String, val a
 }
 
 class MonetaryRestrictionPermissionScope(
-    private val scope: LoanPermissions,
+    private val scope: AuthScope,
     val customerId: String? = null,
     val maxAmount: Double = Double.NaN
-                                        ) : PermissionScope {
+                                        ) : AuthScope {
     override fun includes(useScope: UseAuthScope): Boolean {
         if (useScope !is MonetaryUseScope) return false
         if (customerId != null && useScope.customerId != customerId) return false
@@ -184,7 +167,7 @@ class MonetaryRestrictionPermissionScope(
         return true
     }
 
-    override fun union(otherScope: PermissionScope): PermissionScope {
+    override fun union(otherScope: AuthScope): AuthScope {
         if (otherScope !is MonetaryRestrictionPermissionScope ||
             scope != otherScope.scope ||
             (customerId != null && otherScope.customerId != null && customerId != otherScope.customerId)
@@ -198,7 +181,7 @@ class MonetaryRestrictionPermissionScope(
         return MonetaryRestrictionPermissionScope(scope, effectiveCustomerId, effectiveMax)
     }
 
-    override fun intersect(otherScope: PermissionScope): PermissionScope? {
+    override fun intersect(otherScope: AuthScope): AuthScope? {
         if (otherScope is UnionPermissionScope) return otherScope.intersect(this)
         if (otherScope !is MonetaryRestrictionPermissionScope) return null
         if (scope != otherScope.scope) return null

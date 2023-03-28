@@ -41,7 +41,7 @@ abstract class ServiceImpl(protected val authService: AuthService, protected val
         authService.validateAuthInfo(this, authInfo, scope)
     }
 
-    fun authTokenForService(service: Service, scope: PermissionScope = ANYSCOPE): AuthToken {
+    fun authTokenForService(service: Service, scope: AuthScope = ANYSCOPE): AuthToken {
         logMe(service.serviceId, scope)
 
         tokens.removeAll { authService.isTokenInvalid(it) }

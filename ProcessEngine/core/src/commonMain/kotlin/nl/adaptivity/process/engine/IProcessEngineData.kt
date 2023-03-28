@@ -22,17 +22,18 @@ import net.devrieze.util.TransactionFactory
 import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.engine.impl.LoggerCompat
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.PNIHandle
+import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
-abstract class IProcessEngineData<T : ContextProcessTransaction<C>, C: ActivityInstanceContext> : TransactionFactory<T> {
+abstract class IProcessEngineData<T : ContextProcessTransaction, C: ActivityInstanceContext> : TransactionFactory<T> {
     protected abstract val processModels: IMutableProcessModelMap<T>
-    protected abstract val processInstances: MutableTransactionedHandleMap<SecureObject<ProcessInstance<C>>, T>
-    protected abstract val processNodeInstances: MutableTransactionedHandleMap<SecureObject<ProcessNodeInstance<*, C>>, T>
+    protected abstract val processInstances: MutableTransactionedHandleMap<SecureProcessInstance, T>
+    protected abstract val processNodeInstances: MutableTransactionedHandleMap<SecureProcessNodeInstance, T>
 
     abstract val logger: LoggerCompat
 
@@ -42,15 +43,15 @@ abstract class IProcessEngineData<T : ContextProcessTransaction<C>, C: ActivityI
         }
     }
 
-    fun invalidateCachePI(handle: Handle<SecureObject<ProcessInstance<*>>>) {
+    fun invalidateCachePI(handle: PIHandle) {
         processInstances.apply {
-            if (handle.isValid) invalidateCache(handle.coerce()) else invalidateCache()
+            if (handle.isValid) invalidateCache(handle) else invalidateCache()
         }
     }
 
-    fun invalidateCachePNI(handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>) {
+    fun invalidateCachePNI(handle: PNIHandle) {
         processNodeInstances.apply {
-            if (handle.isValid) invalidateCache(handle.coerce()) else invalidateCache()
+            if (handle.isValid) invalidateCache(handle) else invalidateCache()
         }
     }
 
@@ -63,7 +64,7 @@ abstract class IProcessEngineData<T : ContextProcessTransaction<C>, C: ActivityI
 
     abstract fun createWriteDelegate(transaction: T): MutableProcessEngineDataAccess<C>
 
-    abstract fun queueTickle(instanceHandle: Handle<SecureObject<ProcessInstance<*>>>)
+    abstract fun queueTickle(instanceHandle: PIHandle)
 
     @Suppress("UNUSED_PARAMETER")
     inline fun <R> inReadonlyTransaction(
@@ -97,7 +98,7 @@ abstract class IProcessEngineData<T : ContextProcessTransaction<C>, C: ActivityI
 
 
 @OptIn(ExperimentalContracts::class)
-inline fun <T : ContextProcessTransaction<C>, R, C: ActivityInstanceContext> IProcessEngineData<T, C>.inWriteTransaction(
+inline fun <T : ContextProcessTransaction, R, C: ActivityInstanceContext> IProcessEngineData<T, C>.inWriteTransaction(
     transaction: T,
     body: MutableProcessEngineDataAccess<C>.() -> R
 ): R {
@@ -106,12 +107,3 @@ inline fun <T : ContextProcessTransaction<C>, R, C: ActivityInstanceContext> IPr
     }
     return body(createWriteDelegate(transaction))
 }
-
-@Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
-inline fun <C : ActivityInstanceContext> Handle<SecureObject<ProcessNodeInstance<*, *>>>.coerce() =
-    this as Handle<SecureObject<ProcessNodeInstance<*, C>>>
-
-@Suppress("UNCHECKED_CAST", "NOTHING_TO_INLINE")
-@JvmName("coerceInstance")
-inline fun <C : ActivityInstanceContext> Handle<SecureObject<ProcessInstance<*>>>.coerce() =
-    this as Handle<SecureObject<ProcessInstance<C>>>

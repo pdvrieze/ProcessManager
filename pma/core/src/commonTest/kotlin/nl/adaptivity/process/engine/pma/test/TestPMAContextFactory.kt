@@ -9,15 +9,15 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import java.security.Principal
 
-class TestPMAContextFactory(principals: List<PrincipalCompat>) : PMAProcessContextFactory<TestPMAActivityContext>() {
+class TestPMAContextFactory(principals: List<PrincipalCompat>) : PMAProcessContextFactory<TestPMAActivityContext> {
 
     constructor(vararg principals: PrincipalCompat) : this(principals.toList())
 
     private val principals = principals.associateByTo(mutableMapOf()) { it.name }
 
     override fun newActivityInstanceContext(
-        engineDataAccess: ProcessEngineDataAccess<TestPMAActivityContext>,
-        processNodeInstance: IProcessNodeInstance<TestPMAActivityContext>
+        engineDataAccess: ProcessEngineDataAccess<*>,
+        processNodeInstance: IProcessNodeInstance
     ): TestPMAActivityContext {
         val pic = TestPMAProcessInstanceContext(this, processNodeInstance.hProcessInstance)
         return TestPMAActivityContext(pic, processNodeInstance)

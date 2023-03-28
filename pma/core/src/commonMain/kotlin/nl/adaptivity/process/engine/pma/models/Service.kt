@@ -10,3 +10,6 @@ interface AutomatedService: Service
 
 interface UIService: Service {
 }
+
+@JvmInline
+value class ServiceId(val serviceId: String)

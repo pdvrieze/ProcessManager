@@ -23,7 +23,7 @@ import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 /**
  * Base class for the implementation of access to process engine data.
  */
-abstract class AbstractProcessEngineDataAccess<out T : ContextProcessTransaction<C>, C : ActivityInstanceContext>
+abstract class AbstractProcessEngineDataAccess<out T : ContextProcessTransaction, C : ActivityInstanceContext>
 constructor(protected val transaction: T) :
     MutableProcessEngineDataAccess<C> {
 

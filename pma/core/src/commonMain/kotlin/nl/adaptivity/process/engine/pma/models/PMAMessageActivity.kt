@@ -16,7 +16,10 @@
 
 package nl.adaptivity.process.engine.pma.models
 
-import nl.adaptivity.process.engine.*
+import nl.adaptivity.process.engine.ActivityInstanceContext
+import nl.adaptivity.process.engine.IProcessInstance
+import nl.adaptivity.process.engine.ProcessEngineDataAccess
+import nl.adaptivity.process.engine.ProcessException
 import nl.adaptivity.process.engine.pma.runtime.PMAActivityContext
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
@@ -66,10 +69,10 @@ class PMAMessageActivity<C: PMAActivityContext<C>>(
     /**
      * Determine whether the process can start.
      */
-    override fun <C : ActivityInstanceContext> evalCondition(
-        nodeInstanceSource: IProcessInstance<C>,
-        predecessor: IProcessNodeInstance<C>,
-        nodeInstance: IProcessNodeInstance<C>
+    override fun evalCondition(
+        nodeInstanceSource: IProcessInstance<*>,
+        predecessor: IProcessNodeInstance,
+        nodeInstance: IProcessNodeInstance
     ): ConditionResult {
         return _condition.evalNodeStartCondition(nodeInstanceSource, predecessor, nodeInstance)
     }
@@ -79,7 +82,7 @@ class PMAMessageActivity<C: PMAActivityContext<C>>(
     }
 
     override fun <C: ActivityInstanceContext> canProvideTaskAutoProgress(
-        engineData: ProcessEngineDataAccess<C>,
+        engineData: ProcessEngineDataAccess<*>,
         instanceBuilder: ProcessNodeInstance.Builder<*, *, C>
     ) = false
 
@@ -91,7 +94,7 @@ class PMAMessageActivity<C: PMAActivityContext<C>>(
      */
     override fun <C: ActivityInstanceContext> canTakeTaskAutoProgress(
         activityContext: C,
-        instance: ProcessNodeInstance.Builder<*, *, C>,
+        instance: ProcessNodeInstance.Builder<*, *, *>,
         assignedUser: PrincipalCompat?
     ): Boolean {
         if (assignedUser==null) throw ProcessException("Message activities must have a user assigned for 'taking' them")
@@ -107,7 +110,7 @@ class PMAMessageActivity<C: PMAActivityContext<C>>(
      *
      * @return `false`
      */
-    override fun <C: ActivityInstanceContext> canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *, C>): Boolean = false
+    override fun canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *, *>): Boolean = false
 
     open class Builder<C: PMAActivityContext<C>>: MessageActivityBase.Builder, ExecutableProcessNode.Builder {
         constructor() : super() {

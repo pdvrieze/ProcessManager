@@ -34,9 +34,9 @@ import java.util.*
 /**
  * Created by pdvrieze on 16/10/16.
  */
-open class StubMessageService<C: ActivityInstanceContext>(
+open class StubMessageService(
     override val localEndpoint: EndpointDescriptor
-) : IMessageService<IXmlMessage, C> {
+) : IMessageService<IXmlMessage> {
 
     class ExtMessage(val base: IXmlMessage, val source: Handle<SecureObject<ProcessNodeInstance<*, *>>>, val authData: ServiceAuthData?) : IXmlMessage by base
 
@@ -57,9 +57,9 @@ open class StubMessageService<C: ActivityInstanceContext>(
     }
 
     override fun sendMessage(
-        engineData: ProcessEngineDataAccess<C>,
+        engineData: ProcessEngineDataAccess<*>,
         protoMessage: IXmlMessage,
-        activityInstanceContext: C,
+        activityInstanceContext: ActivityInstanceContext,
         authData: ServiceAuthData?
     ): MessageSendingResult {
         assert(activityInstanceContext.nodeInstanceHandle.isValid) { "Sending messages from invalid nodes is a bad idea (${activityInstanceContext})" }

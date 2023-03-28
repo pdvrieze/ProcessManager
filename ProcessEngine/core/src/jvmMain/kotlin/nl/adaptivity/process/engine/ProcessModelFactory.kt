@@ -48,7 +48,7 @@ import java.io.StringReader
  * A factory to create process models from the database.
  */
 internal class ProcessModelFactory() :
-    AbstractElementFactory<XmlProcessModel.Builder, SecureObject<ExecutableProcessModel>, ProcessDBTransaction<*>, ProcessEngineDB>() {
+    AbstractElementFactory<XmlProcessModel.Builder, SecureObject<ExecutableProcessModel>, ProcessDBTransaction, ProcessEngineDB>() {
 
     override val table: Table
         get() = pm
@@ -57,7 +57,7 @@ internal class ProcessModelFactory() :
         get() = listOf(pm.pmhandle, pm.owner, pm.model)
 
     override fun createBuilder(
-        transaction: ProcessDBTransaction<*>,
+        transaction: ProcessDBTransaction,
         row: SelectResultSetRow<_ListSelect>
     ): DBAction<ProcessEngineDB, XmlProcessModel.Builder> {
         val owner = pm.owner.nullableValue(row)?.let(::SimplePrincipal)
@@ -76,7 +76,7 @@ internal class ProcessModelFactory() :
     }
 
     override fun createFromBuilder(
-        transaction: ProcessDBTransaction<*>,
+        transaction: ProcessDBTransaction,
         setAccess: DbSet.DBSetAccess<XmlProcessModel.Builder>,
         builder: XmlProcessModel.Builder
     ): DBAction<ProcessEngineDB, SecureObject<ExecutableProcessModel>> {
@@ -110,12 +110,12 @@ internal class ProcessModelFactory() :
     override val keyColumn: CustomColumnType<Handle<SecureObject<ExecutableProcessModel>>, Long, NumericColumnType.BIGINT_T, *, *>.CustomColumn
         get() = pm.pmhandle
 
-    override fun insertStatement(transaction: ProcessDBTransaction<*>): ValuelessInsertAction<ProcessEngineDB, Insert> {
+    override fun insertStatement(transaction: ProcessDBTransaction): ValuelessInsertAction<ProcessEngineDB, Insert> {
         return with(transaction) { INSERT(pm.owner, pm.model) }
     }
 
     override fun insertValues(
-        transaction: ProcessDBTransaction<*>,
+        transaction: ProcessDBTransaction,
         insert: InsertActionCommon<ProcessEngineDB, Insert>,
         value: SecureObject<ExecutableProcessModel>
     ): InsertAction<ProcessEngineDB, Insert> {

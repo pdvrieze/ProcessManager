@@ -24,19 +24,18 @@ import nl.adaptivity.process.engine.db.ProcessEngineDB
 import nl.adaptivity.process.engine.db.ProcessEngineDB.processModels
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.XmlProcessModel
-import java.util.*
+import nl.adaptivity.util.multiplatform.UUID
 
 
-internal class ProcessModelMap <C : ActivityInstanceContext>(
-    transactionFactory: DBTransactionFactory<ProcessDBTransaction<C>, ProcessEngineDB>,
-    stringCache: StringCache = StringCache.NOPCACHE
-) : DBHandleMap<XmlProcessModel.Builder, SecureObject<ExecutableProcessModel>, ProcessDBTransaction<C>, ProcessEngineDB>(
+internal class ProcessModelMap(
+    transactionFactory: DBTransactionFactory<ProcessDBTransaction, ProcessEngineDB>
+) : DBHandleMap<XmlProcessModel.Builder, SecureObject<ExecutableProcessModel>, ProcessDBTransaction, ProcessEngineDB>(
     transactionFactory,
     ProcessModelFactory()
-), IMutableProcessModelMap<ProcessDBTransaction<C>> {
+), IMutableProcessModelMap<ProcessDBTransaction> {
 
     override fun getModelWithUuid(
-        transaction: ProcessDBTransaction<C>,
+        transaction: ProcessDBTransaction,
         uuid: UUID
     ): Handle<SecureObject<ExecutableProcessModel>>? {
         return with(transaction) {

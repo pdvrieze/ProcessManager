@@ -23,13 +23,11 @@ import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import net.devrieze.util.Handle
-import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.processModel.*
 import nl.adaptivity.process.engine.spek.*
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.configurableModel.ConfigurableNodeContainer
 import nl.adaptivity.process.processModel.configurableModel.ConfigurationDsl
-import nl.adaptivity.process.processModel.configurableModel.activity
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.util.Identified
@@ -206,7 +204,7 @@ class TestContext(private val config: TraceTest.ConfigBase) {
         }
     }
 
-    var hInstance: Handle<SecureObject<ProcessInstance<*>>> =
+    var hInstance: PIHandle =
         Handle.invalid()
         get() {
             if (!field.isValid) {
@@ -222,28 +220,28 @@ class TestContext(private val config: TraceTest.ConfigBase) {
         return getProcessInstance().toDebugString(transaction)
     }
 
-    fun startProcess(): Handle<SecureObject<ProcessInstance<*>>> {
+    fun startProcess(): PIHandle {
         val name = "${model.name} instance"
         hInstance = engineData.engine.startProcess(transaction, principal, hmodel, name, instanceUuid, null)
         return hInstance
     }
 
-    fun getProcessInstance(instanceHandle: Handle<SecureObject<ProcessInstance<*>>> = hInstance): ProcessInstance<ActivityInstanceContext> {
+    fun getProcessInstance(instanceHandle: PIHandle = hInstance): ProcessInstance<*> {
         return transaction.readableEngineData.instance(instanceHandle).withPermission()
     }
 
-    fun TraceElement.getNodeInstance(): ProcessNodeInstance<*, ActivityInstanceContext>? {
+    fun TraceElement.getNodeInstance(): ProcessNodeInstance<*, *>? {
         return getNodeInstance(transaction, getProcessInstance())
     }
 
-    fun getNodeInstance(handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>): ProcessNodeInstance<*, ActivityInstanceContext> {
+    fun getNodeInstance(handle: PNIHandle): ProcessNodeInstance<*, *> {
         return transaction.readableEngineData.nodeInstance(handle).withPermission()
     }
 
     inline fun updateNodeInstance(
         traceElement: TraceElement,
-        instanceHandle: Handle<SecureObject<ProcessInstance<*>>> = hInstance,
-        crossinline action: ProcessNodeInstance.Builder<out ExecutableProcessNode, *, ActivityInstanceContext>.() -> Unit
+        instanceHandle: PIHandle = hInstance,
+        crossinline action: ProcessNodeInstance.Builder<out ExecutableProcessNode, *, *>.() -> Unit
     ) {
 
         val nodeInstance = traceElement.getNodeInstance(transaction, getProcessInstance(instanceHandle))
@@ -255,8 +253,8 @@ class TestContext(private val config: TraceTest.ConfigBase) {
     }
 
     fun updateNodeInstance(
-        nodeInstanceHandle: Handle<SecureObject<ProcessNodeInstance<*, ActivityInstanceContext>>>,
-        action: ProcessNodeInstance.Builder<out ExecutableProcessNode, *, ActivityInstanceContext>.() -> Unit
+        nodeInstanceHandle: PNIHandle,
+        action: ProcessNodeInstance.Builder<out ExecutableProcessNode, *, *>.() -> Unit
     ) {
         transaction.writableEngineData.updateNodeInstance(nodeInstanceHandle, action)
     }
@@ -323,8 +321,8 @@ class TestContext(private val config: TraceTest.ConfigBase) {
                     is CompositeActivity -> {
                         if (nextNodeInstance.state == NodeInstanceState.Started) {
                             val childInstanceHandle = when (nextNodeInstance) {
-                                is CompositeInstance -> nextNodeInstance.hChildInstance
-                                is CompositeInstance.Builder -> nextNodeInstance.hChildInstance
+                                is CompositeInstance<*> -> nextNodeInstance.hChildInstance
+                                is CompositeInstance.Builder<*> -> nextNodeInstance.hChildInstance
                                 else -> throw UnsupportedOperationException("Composite activity with unexpected instance type")
                             }
                             assertTrue(
@@ -376,9 +374,9 @@ class TestContext(private val config: TraceTest.ConfigBase) {
     fun runTrace(
         trace: Trace,
         lastElement: Int = -1,
-        instanceHandle: Handle<SecureObject<ProcessInstance<*>>> = hInstance
-    ): Handle<SecureObject<ProcessNodeInstance<*, *>>> {
-        var lastInstance: Handle<SecureObject<ProcessNodeInstance<*, *>>> = Handle.invalid()
+        instanceHandle: PIHandle = hInstance
+    ): PNIHandle {
+        var lastInstance: PNIHandle = Handle.invalid()
         for (idx in 0 until (if (lastElement < 0) trace.size else lastElement)) {
             val traceElement = trace[idx]
             when (model.findNode(traceElement)) {
@@ -798,8 +796,8 @@ fun createInvalidTraceTest(
             var success = false
             try {
                 val instanceSupport = object : InstanceSupport {
-                    override val transaction: StubProcessTransaction<ActivityInstanceContext> get() = this@addTest.transaction
-                    override val engine: ProcessEngine<StubProcessTransaction<ActivityInstanceContext>, ActivityInstanceContext>
+                    override val transaction: StubProcessTransaction get() = this@addTest.transaction
+                    override val engine: ProcessEngine<StubProcessTransaction, ActivityInstanceContext>
                         get() = engineData.engine
 
                 }
@@ -837,7 +835,7 @@ inline fun TraceTest.ConfigBase.dynamicContainer(
     return dynamicContainer(displayName, children)
 }
 
-fun IProcessNodeInstance<*>.toTraceElement(payload: CompactFragment? = null): TraceElement {
+fun IProcessNodeInstance.toTraceElement(payload: CompactFragment? = null): TraceElement {
     val instanceNo = when {
         node.isMultiInstance -> entryNo
         (node as? Join)?.isMultiMerge == true -> entryNo
@@ -861,16 +859,16 @@ class FuzzException(override val message: String?, cause: Throwable?, val trace:
         )
     }
 
-fun <C: ActivityInstanceContext> IProcessInstance<C>.allDescendentNodeInstances(engineData: ProcessEngineDataAccess<C>): List<IProcessNodeInstance<C>> {
-    val result = mutableListOf<IProcessNodeInstance<C>>()
-    val procQueue = ArrayDeque<IProcessInstance<C>>().also { it.add(this) }
+fun IProcessInstance<*>.allDescendentNodeInstances(engineData: ProcessEngineDataAccess<*>): List<IProcessNodeInstance> {
+    val result = mutableListOf<IProcessNodeInstance>()
+    val procQueue = ArrayDeque<IProcessInstance<*>>().also { it.add(this) }
     while (procQueue.isNotEmpty()) {
         val inst = procQueue.removeFirst()
         for (nodeInst in inst.allChildNodeInstances()) {
             result.add(nodeInst)
             when (nodeInst) {
-                is CompositeInstance -> procQueue.add(engineData.instance(nodeInst.hChildInstance).withPermission())
-                is CompositeInstance.Builder -> procQueue.add(engineData.instance(nodeInst.hChildInstance).withPermission())
+                is CompositeInstance<*> -> procQueue.add(engineData.instance(nodeInst.hChildInstance).withPermission())
+                is CompositeInstance.Builder<*> -> procQueue.add(engineData.instance(nodeInst.hChildInstance).withPermission())
             }
         }
     }

@@ -16,23 +16,24 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination
 
-import net.devrieze.util.Handle
-import net.devrieze.util.security.SecureObject
+import nl.adaptivity.process.engine.IProcessInstance
+import nl.adaptivity.process.engine.PIHandle
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
-import nl.adaptivity.process.engine.ProcessInstance
+import nl.adaptivity.process.engine.ProcessInstanceContext
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.Browser
 import nl.adaptivity.process.engine.pma.EngineService
 import nl.adaptivity.process.engine.pma.GeneralClientService
-import nl.adaptivity.process.engine.pma.dynamic.DynamicPMAProcessInstanceContext
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAProcessInstanceContext
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
 import nl.adaptivity.process.engine.test.loanOrigination.systems.*
 import nl.adaptivity.process.util.Identified
 import java.util.logging.Logger
 
-interface LoanProcessContext : DynamicPMAProcessInstanceContext<LoanActivityContext> {
-    override val contextFactory: LoanContextFactory
+interface CommonLoanProcessContext : ProcessInstanceContext {
+
+    val contextFactory: AbstractLoanContextFactory<*>
 
     val customerData: CustomerData
     val signingService: SigningService
@@ -42,6 +43,13 @@ interface LoanProcessContext : DynamicPMAProcessInstanceContext<LoanActivityCont
     val creditBureau: CreditBureau
     val creditApplication: CreditApplication
     val pricingEngine: PricingEngine
+}
+
+interface LoanProcessContext : CommonLoanProcessContext {
+    override val contextFactory: LoanContextFactory
+    val authService: AuthService
+    val generalClientService: GeneralClientService
+    val engineService: EngineService
 
     val clerk1: Browser
     val postProcClerk: Browser
@@ -49,12 +57,21 @@ interface LoanProcessContext : DynamicPMAProcessInstanceContext<LoanActivityCont
     val log: Logger
 }
 
+interface LoanPmaProcessContext : DynamicPMAProcessInstanceContext<LoanPMAActivityContext>, CommonLoanProcessContext {
+    override val contextFactory: LoanPMAContextFactory
 
-class LoanProcessContextImpl(
-    protected val engineData: ProcessEngineDataAccess<LoanActivityContext>,
-    override val contextFactory: LoanContextFactory,
-    override val processInstanceHandle: Handle<SecureObject<ProcessInstance<*>>>
-) : LoanProcessContext {
+    val clerk1: Browser
+    val postProcClerk: Browser
+    val customer: Browser
+    val log: Logger
+}
+
+abstract class AbstractLoanProcessContext(
+    protected val engineData: ProcessEngineDataAccess<*>,
+) : CommonLoanProcessContext {
+    abstract val processInstance: IProcessInstance<*>
+
+    override val processInstanceHandle: PIHandle get() = processInstance.handle
 
     override val customerData: CustomerData get() = contextFactory.customerData
     override val signingService: SigningService get() = contextFactory.signingService
@@ -64,6 +81,18 @@ class LoanProcessContextImpl(
     override val creditBureau: CreditBureau get() = contextFactory.creditBureau
     override val creditApplication: CreditApplication get() = contextFactory.creditApplication
     override val pricingEngine: PricingEngine get() = contextFactory.pricingEngine
+
+}
+
+
+class LoanProcessContextImpl(
+    engineData: ProcessEngineDataAccess<*>,
+    override val contextFactory: LoanContextFactory,
+    processInstanceHandle: PIHandle
+) : AbstractLoanProcessContext(engineData), LoanProcessContext {
+    override val processInstance: IProcessInstance<*> = engineData.instance(processInstanceHandle).withPermission()
+
+
     override val authService: AuthService get() = contextFactory.authService
     override val generalClientService: GeneralClientService get() = contextFactory.generalClientService
     override val engineService: EngineService get() = contextFactory.engineService
@@ -74,7 +103,32 @@ class LoanProcessContextImpl(
 
     override val log: Logger get() = contextFactory.log
 
-    override fun instancesForName(name: Identified): List<IProcessNodeInstance<LoanActivityContext>> {
+    override fun instancesForName(name: Identified): List<IProcessNodeInstance> {
+        return engineData.instance(processInstanceHandle).withPermission().allChildNodeInstances()
+            .filter { it.node.id == name.id }
+            .toList()
+    }
+}
+
+class LoanPmaProcessContextImpl(
+    engineData: ProcessEngineDataAccess<*>,
+    override val contextFactory: LoanPMAContextFactory,
+    processInstanceHandle: PIHandle
+) : AbstractLoanProcessContext(engineData), LoanPmaProcessContext {
+    override val processInstance: IProcessInstance<*> = engineData.instance(processInstanceHandle).withPermission()
+
+
+    override val authService: AuthService get() = contextFactory.authService
+    override val generalClientService: GeneralClientService get() = contextFactory.generalClientService
+    override val engineService: EngineService get() = contextFactory.engineService
+
+    override val clerk1: Browser get() = contextFactory.clerk1
+    override val postProcClerk: Browser get() = contextFactory.postProcClerk
+    override val customer: Browser get() = contextFactory.customer
+
+    override val log: Logger get() = contextFactory.log
+
+    override fun instancesForName(name: Identified): List<IProcessNodeInstance> {
         return engineData.instance(processInstanceHandle).withPermission().allChildNodeInstances()
             .filter { it.node.id == name.id }
             .toList()

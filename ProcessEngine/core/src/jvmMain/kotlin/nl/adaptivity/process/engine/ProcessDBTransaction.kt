@@ -17,23 +17,21 @@
 package nl.adaptivity.process.engine
 
 import io.github.pdvrieze.kotlinsql.monadic.DBTransactionContext
-import net.devrieze.util.Handle
 import net.devrieze.util.db.MonadicDBTransaction
-import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.db.ProcessEngineDB
 import nl.adaptivity.util.multiplatform.Runnable
 
 /**
  * A process transaction that uses the database to store the data.
  */
-class ProcessDBTransaction<C: ActivityInstanceContext>(
+class ProcessDBTransaction(
     dbTransactionContext: DBTransactionContext<ProcessEngineDB>,
-    private val engineData: IProcessEngineData<ProcessDBTransaction<C>, C>
-) : MonadicDBTransaction<ProcessEngineDB>(dbTransactionContext), ContextProcessTransaction<C> {
+    private val engineData: IProcessEngineData<ProcessDBTransaction, *>
+) : MonadicDBTransaction<ProcessEngineDB>(dbTransactionContext), ContextProcessTransaction {
     private val pendingProcessInstances =
-        mutableMapOf<Handle<SecureObject<ProcessInstance<*>>>, ProcessInstance.ExtBuilder<C>>()
+        mutableMapOf<PIHandle, ProcessInstance.ExtBuilder<*>>()
 
-    fun pendingProcessInstance(pihandle: Handle<SecureObject<ProcessInstance<*>>>): ProcessInstance.ExtBuilder<C>? {
+    fun pendingProcessInstance(pihandle: PIHandle): ProcessInstance.ExtBuilder<*>? {
         return pendingProcessInstances[pihandle]
     }
 
@@ -41,8 +39,8 @@ class ProcessDBTransaction<C: ActivityInstanceContext>(
         super<MonadicDBTransaction>.addRollbackHandler(runnable)
     }
 
-    override val readableEngineData: ProcessEngineDataAccess<C>
+    override val readableEngineData: ProcessEngineDataAccess<*>
         get() = engineData.createReadDelegate(this)
-    override val writableEngineData: MutableProcessEngineDataAccess<C>
+    override val writableEngineData: MutableProcessEngineDataAccess<*>
         get() = engineData.createWriteDelegate(this)
 }

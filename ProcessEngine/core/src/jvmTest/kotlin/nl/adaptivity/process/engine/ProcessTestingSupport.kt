@@ -16,12 +16,9 @@
 
 package nl.adaptivity.process.engine
 
-import net.devrieze.util.Handle
-import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.processModel.CompositeInstance
 import nl.adaptivity.process.engine.processModel.JoinInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.spek.InstanceSupport
 import nl.adaptivity.process.processModel.Split
 import nl.adaptivity.process.processModel.engine.ExecutableCondition
@@ -36,8 +33,6 @@ import java.io.PrintStream
 @DslMarker
 annotation class ProcessTestingDslMarker
 
-typealias PNIHandle = Handle<SecureObject<ProcessNodeInstance<*, *>>>
-
 fun ExecutableProcessModel.findNode(nodeIdentified: Identified): ExecutableProcessNode? {
     val nodeId = nodeIdentified.id
     return modelNodes.firstOrNull { it.id == nodeId } ?: childModels.asSequence().flatMap { it.modelNodes.asSequence() }
@@ -46,10 +41,10 @@ fun ExecutableProcessModel.findNode(nodeIdentified: Identified): ExecutableProce
 
 @Throws(ProcessTestingException::class)
 fun InstanceSupport.testTraceExceptionThrowing(
-    hProcessInstance: Handle<SecureObject<ProcessInstance<*>>>,
+    hProcessInstance: PIHandle,
     trace: Trace
 ) {
-    fun <TR: ContextProcessTransaction<C>, C: ActivityInstanceContext> impl(transaction: TR, engine: ProcessEngine<TR, C>) {
+    fun <TR: ContextProcessTransaction, C: ActivityInstanceContext> impl(transaction: TR, engine: ProcessEngine<TR, C>) {
         try {
             transaction.readableEngineData.instance(hProcessInstance).withPermission().assertTracePossible(trace)
         } catch (e: AssertionError) {
@@ -137,8 +132,8 @@ fun InstanceSupport.testTraceExceptionThrowing(
     }
     @Suppress("UNCHECKED_CAST")
     impl(
-        transaction as StubProcessTransaction<ActivityInstanceContext>,
-        engine as ProcessEngine<StubProcessTransaction<ActivityInstanceContext>, ActivityInstanceContext>
+        transaction as StubProcessTransaction,
+        engine as ProcessEngine<StubProcessTransaction, ActivityInstanceContext>
     )
 }
 
@@ -166,6 +161,6 @@ fun kfail(message: String): Nothing {
 internal fun Boolean.toXPath() = if (this) "true()" else "false()"
 internal fun Boolean.toCondition() = if (this) ExecutableCondition.TRUE else ExecutableCondition.FALSE
 
-operator fun <C : ActivityInstanceContext> ContextProcessTransaction<C>.get(handle: Handle<SecureObject<ProcessInstance<*>>>): ProcessInstance<C> {
+operator fun ContextProcessTransaction.get(handle: PIHandle): ProcessInstance<*> {
     return this.readableEngineData.instance(handle).withPermission()
 }

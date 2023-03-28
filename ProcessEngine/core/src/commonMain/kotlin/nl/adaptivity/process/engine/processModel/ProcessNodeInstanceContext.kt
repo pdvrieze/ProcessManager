@@ -22,7 +22,7 @@ import nl.adaptivity.process.engine.ProcessData
 
 // TODO use ActivityInstanceContext
 expect class ProcessNodeInstanceContext(
-    processNodeInstance: IProcessNodeInstance<*>,
+    processNodeInstance: IProcessNodeInstance,
     defines: List<ProcessData>,
     provideResults: Boolean,
     localEndpoint: EndpointDescriptor

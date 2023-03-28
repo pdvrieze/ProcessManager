@@ -15,15 +15,16 @@ class TestPMAProcessInstanceContext(
     override val contextFactory: TestPMAContextFactory,
     override val processInstanceHandle: Handle<SecureObject<ProcessInstance<*>>>,
 ): PMAProcessInstanceContext<TestPMAActivityContext> {
-    override fun instancesForName(name: Identified): List<IProcessNodeInstance<*>> {
+    override fun instancesForName(name: Identified): List<IProcessNodeInstance> {
         TODO("not implemented")
     }
 }
 
 class TestPMAActivityContext(
     override val processContext: TestPMAProcessInstanceContext,
-    processNode: IProcessNodeInstance<TestPMAActivityContext>,
-) : PMAActivityContext<TestPMAActivityContext>(processNode) {
+    override val processNode: IProcessNodeInstance,
+) : PMAActivityContext<TestPMAActivityContext>() {
+
     override val taskListService: TaskListService
         get() = processContext.contextFactory.getOrCreateTaskListForUser(processNode.assignedUser ?: SYSTEMPRINCIPAL)
 

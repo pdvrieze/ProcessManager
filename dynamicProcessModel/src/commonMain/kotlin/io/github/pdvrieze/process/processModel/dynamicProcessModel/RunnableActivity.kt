@@ -76,7 +76,7 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
     }
 
     override fun <C : ActivityInstanceContext> canProvideTaskAutoProgress(
-        engineData: ProcessEngineDataAccess<C>,
+        engineData: ProcessEngineDataAccess<*>,
         instanceBuilder: ProcessNodeInstance.Builder<*, *, C>
     ): Boolean {
 
@@ -84,13 +84,13 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
         return true
     }
 
-    override fun <C : ActivityInstanceContext> createOrReuseInstance(
-        data: MutableProcessEngineDataAccess<C>,
-        processInstanceBuilder: ProcessInstance.Builder<C>,
-        predecessor: IProcessNodeInstance<C>,
+    override fun createOrReuseInstance(
+        data: MutableProcessEngineDataAccess<*>,
+        processInstanceBuilder: ProcessInstance.Builder<*>,
+        predecessor: IProcessNodeInstance,
         entryNo: Int,
         allowFinalInstance: Boolean
-    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*, C>, C> {
+    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*, *>, *> {
         processInstanceBuilder.getChildNodeInstance(this, entryNo)?.let { return it }
         if (!isMultiInstance && entryNo > 1) {
             processInstanceBuilder.allChildNodeInstances { it.node == this && it.entryNo != entryNo }.forEach {
@@ -99,8 +99,8 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
                 }
             }
         }
-        return RunnableActivityInstance.BaseBuilder(
-            this as RunnableActivity<I, O, C>, predecessor.handle,
+        return RunnableActivityInstance.BaseBuilder<I, O, ActivityInstanceContext>(
+            this as RunnableActivity<I, O, *>, predecessor.handle,
             processInstanceBuilder,
             processInstanceBuilder.owner, entryNo
         )
@@ -108,7 +108,7 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
 
     override fun <C : ActivityInstanceContext> canTakeTaskAutoProgress(
         activityContext: C,
-        instance: ProcessNodeInstance.Builder<*, *, C>,
+        instance: ProcessNodeInstance.Builder<*, *, *>,
         assignedUser: PrincipalCompat?
     ): Boolean {
 //        if (assignedUser == null) throw ProcessException("Message activities must have a user assigned for 'taking' them")
@@ -123,10 +123,10 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
         return condition?.isOtherwise == true
     }
 
-    override fun <C : ActivityInstanceContext> evalCondition(
-        nodeInstanceSource: IProcessInstance<C>,
-        predecessor: IProcessNodeInstance<C>,
-        nodeInstance: IProcessNodeInstance<C>
+    override fun evalCondition(
+        nodeInstanceSource: IProcessInstance<*>,
+        predecessor: IProcessNodeInstance,
+        nodeInstance: IProcessNodeInstance
     ): ConditionResult {
         return condition.evalNodeStartCondition(nodeInstanceSource, predecessor, nodeInstance)
     }
@@ -146,7 +146,7 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
     }
 
     fun interface OnActivityProvided<out I: Any, in O: Any, in C: ActivityInstanceContext>:
-            (MutableProcessEngineDataAccess<@UnsafeVariance C>, RunnableActivityInstance.Builder<@UnsafeVariance I, @UnsafeVariance O, @UnsafeVariance C>) -> Boolean {
+            (MutableProcessEngineDataAccess<*>, AbstractRunnableActivityInstance.Builder<@UnsafeVariance I, @UnsafeVariance O, *, *, *>) -> Boolean {
         companion object {
 
             val DEFAULT = OnActivityProvided<Nothing, Any, ActivityInstanceContext> { engineData, instance ->
@@ -155,7 +155,7 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
         }
     }
 
-    class Builder<I : Any, O : Any, C: ActivityInstanceContext> : BaseBuilder, ExecutableProcessNode.Builder, MessageActivity.Builder {
+    open class Builder<I : Any, O : Any, C: ActivityInstanceContext> : BaseBuilder, ExecutableProcessNode.Builder, MessageActivity.Builder {
 
         var inputCombiner: InputCombiner<I> = InputCombiner()
         val outputSerializer: SerializationStrategy<O>?

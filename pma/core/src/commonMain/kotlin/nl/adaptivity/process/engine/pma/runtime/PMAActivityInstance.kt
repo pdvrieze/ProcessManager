@@ -8,12 +8,14 @@ import nl.adaptivity.process.MessageSendingResult
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.pma.models.PMAMessageActivity
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
+import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.tryCreateTask
 import nl.adaptivity.process.processModel.XmlMessage
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAActivityInstance<C>, C> {
+
     constructor(
         node: PMAMessageActivity<C>,
         predecessors: Iterable<Handle<SecureObject<ProcessNodeInstance<*, C>>>>,
@@ -44,26 +46,37 @@ class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAA
     override val node: PMAMessageActivity<C>
         get() = super.node as PMAMessageActivity<C>
 
-    override fun builder(processInstanceBuilder: ProcessInstance.Builder<C>): ExtBuilder<C> {
+    override fun builder(processInstanceBuilder: ProcessInstance.Builder<*>): ExtBuilder<C> {
         return ExtBuilder(this, processInstanceBuilder)
     }
 
     interface Builder<C :PMAActivityContext<C>> : ProcessNodeInstance.Builder<PMAMessageActivity<C>, PMAActivityInstance<C>, C> {
-        override fun <MSG_T> doProvideTask(
-            engineData: MutableProcessEngineDataAccess<C>,
-            messageService: IMessageService<MSG_T, C>
+        override fun doProvideTask(
+            engineData: MutableProcessEngineDataAccess<*>,
+            messageService: IMessageService<*>
         ): Boolean {
-            val message = node.message ?: XmlMessage()
-            val aic = createActivityContext(engineData)
-            val authorizations = node.authorizationTemplates.map { it.instantiateScope(aic) }
-            val authData = aic.requestAuthData(messageService, message.targetService, authorizations)
 
-            val preparedMessage = messageService.createMessage(message)
+            fun <AIC : PMAActivityContext<AIC>, MSG_T> createAndSendMessage(
+                contextFactory: PMAProcessContextFactory<AIC>,
+                messageService: IMessageService<MSG_T>
+            ) : MessageSendingResult {
+                @Suppress("UNCHECKED_CAST")
+                val node: PMAMessageActivity<AIC> = node as PMAMessageActivity<AIC>
+
+                val message = node.message ?: XmlMessage()
+                val aic = contextFactory.newActivityInstanceContext(engineData, this)
+                val authorizations = node.authorizationTemplates.map { it.instantiateScope(aic) }
+                val authData = aic.requestAuthData(messageService, message.targetService, authorizations)
+
+                val preparedMessage = messageService.createMessage(message)
 
 
-            val sendingResult = tryCreateTask {
-                messageService.sendMessage(engineData, preparedMessage, aic, authData)
+                return tryCreateTask {
+                    messageService.sendMessage(engineData, preparedMessage, aic, authData)
+                }
             }
+
+            val sendingResult = createAndSendMessage(engineData.processContextFactory as PMAProcessContextFactory<*>, messageService)
 
             when (sendingResult) {
                 MessageSendingResult.SENT -> state = NodeInstanceState.Sent
@@ -77,29 +90,29 @@ class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAA
         override fun canTakeTaskAutomatically(): Boolean = false
 
         override fun doTakeTask(
-            engineData: MutableProcessEngineDataAccess<C>,
+            engineData: MutableProcessEngineDataAccess<*>,
             assignedUser: PrincipalCompat?
         ): Boolean {
             return node.canTakeTaskAutoProgress(createActivityContext(engineData), this, assignedUser)
         }
 
-        override fun doStartTask(engineData: MutableProcessEngineDataAccess<C>): Boolean {
+        override fun doStartTask(engineData: MutableProcessEngineDataAccess<*>): Boolean {
             return node.canStartTaskAutoProgress(this)
         }
 
     }
 
     class BaseBuilder<C: PMAActivityContext<C>>(
-        node: PMAMessageActivity<C>,
-        predecessor: Handle<SecureObject<ProcessNodeInstance<*, C>>>?,
-        processInstanceBuilder: ProcessInstance.Builder<C>,
+        node: PMAMessageActivity<*>,
+        predecessor: PNIHandle?,
+        processInstanceBuilder: ProcessInstance.Builder<*>,
         owner: PrincipalCompat,
         entryNo: Int,
         override var assignedUser: PrincipalCompat? = null,
-        handle: Handle<SecureObject<ProcessNodeInstance<*, C>>> = Handle.invalid(),
+        handle: PNIHandle = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
     ) : ProcessNodeInstance.BaseBuilder<PMAMessageActivity<C>, PMAActivityInstance<C>, C>(
-        node, listOfNotNull(predecessor), processInstanceBuilder, owner,
+        node as PMAMessageActivity<C>, listOfNotNull(predecessor), processInstanceBuilder, owner,
         entryNo, handle, state
     ), Builder<C> {
         override fun build(): PMAActivityInstance<C> {
@@ -109,7 +122,7 @@ class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAA
 
     class ExtBuilder<C: PMAActivityContext<C>>(
         base: PMAActivityInstance<C>,
-        processInstanceBuilder: ProcessInstance.Builder<C>
+        processInstanceBuilder: ProcessInstance.Builder<*>
     ) : ProcessNodeInstance.ExtBuilder<PMAMessageActivity<C>, PMAActivityInstance<C>, C>(
         base,
         processInstanceBuilder

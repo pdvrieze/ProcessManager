@@ -17,7 +17,6 @@
 package nl.adaptivity.process.engine.processModel
 
 import net.devrieze.util.Handle
-import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
@@ -25,13 +24,13 @@ import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-class PseudoInstance<C: ActivityInstanceContext>(
-    private val processContext: PseudoContext<C>,
-    override val handle: Handle<SecureObject<ProcessNodeInstance<*, C>>>,
+class PseudoInstance(
+    private val processContext: PseudoContext,
+    override val handle: PNIHandle,
     override val node: ExecutableProcessNode,
     override val entryNo: Int,
-    predecessors: Set<Handle<SecureObject<ProcessNodeInstance<*, C>>>>
-) : IProcessNodeInstance<C> {
+    predecessors: Set<PNIHandle>
+) : IProcessNodeInstance {
 
     override val predecessors = predecessors.toMutableSet()
 
@@ -40,13 +39,13 @@ class PseudoInstance<C: ActivityInstanceContext>(
 
     override var state: NodeInstanceState = NodeInstanceState.Pending
 
-    override val hProcessInstance: Handle<SecureObject<ProcessInstance<*>>>
+    override val hProcessInstance: PIHandle
         get() = processContext.processInstance.handle
 
     override val results: List<ProcessData>
         get() = emptyList()
 
-    override fun builder(processInstanceBuilder: ProcessInstance.Builder<C>): ProcessNodeInstance.Builder<*, *, C> {
+    override fun builder(processInstanceBuilder: ProcessInstance.Builder<*>): ProcessNodeInstance.Builder<*, ProcessNodeInstance<*, *>, *> {
         throw UnsupportedOperationException("Pseudo instances should not be made into builders")
     }
 
@@ -54,22 +53,22 @@ class PseudoInstance<C: ActivityInstanceContext>(
         return "pseudo instance ($handle, ${node.id}[$entryNo] - $state)"
     }
 
-    class PseudoContext<C : ActivityInstanceContext>(
-        val processInstance: IProcessInstance<C>,
+    class PseudoContext(
+        val processInstance: IProcessInstance<*>,
     ) : ProcessInstanceContext {
-        constructor(readAccess: ProcessEngineDataAccess<C>, hProcessInstance: Handle<SecureObject<ProcessInstance<*>>>) :
+        constructor(readAccess: ProcessEngineDataAccess<*>, hProcessInstance: PIHandle) :
             this(readAccess.instance(hProcessInstance).withPermission())
 
         private val handleOffset: Int =
             (processInstance.allChildNodeInstances().maxOf { it.handle.handleValue } + 1).toInt()
-        private val overlay = arrayOfNulls<IProcessNodeInstance<C>>(handleOffset)
+        private val overlay = arrayOfNulls<IProcessNodeInstance>(handleOffset)
 
-        private val pseudoNodes: MutableList<PseudoInstance<C>> = mutableListOf()
+        private val pseudoNodes: MutableList<PseudoInstance> = mutableListOf()
 
-        override val processInstanceHandle: Handle<SecureObject<ProcessInstance<*>>>
+        override val processInstanceHandle: PIHandle
             get() = processInstance.handle
 
-        override fun instancesForName(name: Identified): List<IProcessNodeInstance<C>> {
+        override fun instancesForName(name: Identified): List<IProcessNodeInstance> {
             return processInstance.allChildNodeInstances().filter { it.node.id == name.id }.toList()
         }
 
@@ -80,7 +79,7 @@ class PseudoInstance<C: ActivityInstanceContext>(
             }
         }
 
-        fun getNodeInstance(handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>): IProcessNodeInstance<C>? = when {
+        fun getNodeInstance(handle: PNIHandle): IProcessNodeInstance? = when {
             handle.handleValue < handleOffset
             -> overlay[handle.handleValue.toInt()]
 
@@ -89,24 +88,24 @@ class PseudoInstance<C: ActivityInstanceContext>(
 
         private fun getNodeInstance(
             node: ExecutableProcessNode,
-            hPred: Handle<SecureObject<ProcessNodeInstance<*, *>>>
-        ): IProcessNodeInstance<C>? {
+            hPred: PNIHandle
+        ): IProcessNodeInstance? {
             return (overlay.asSequence() + pseudoNodes.asSequence())
                 .firstOrNull { it?.node == node && hPred in it.predecessors }
         }
 
-        private fun getNodeInstance(node: ExecutableProcessNode, entryNo: Int): IProcessNodeInstance<C>? {
+        private fun getNodeInstance(node: ExecutableProcessNode, entryNo: Int): IProcessNodeInstance? {
             return (overlay.asSequence() + pseudoNodes.asSequence())
                 .firstOrNull { it?.node == node && (!it.node.isMultiInstance || it.entryNo == entryNo) }
         }
 
         fun create(
-            pred: Handle<SecureObject<ProcessNodeInstance<*, C>>>,
+            pred: PNIHandle,
             node: ExecutableProcessNode,
             entryNo: Int
-        ): PseudoInstance<C> {
+        ): PseudoInstance {
 
-            val inst = PseudoInstance<C>(
+            val inst = PseudoInstance(
                 this,
                 Handle((handleOffset + pseudoNodes.size).toLong()),
                 node,
@@ -118,11 +117,11 @@ class PseudoInstance<C: ActivityInstanceContext>(
         }
 
         fun create(
-            pred: Handle<SecureObject<ProcessNodeInstance<*, C>>>,
-            base: IProcessNodeInstance<C>
-        ): PseudoInstance<C> {
+            pred: PNIHandle,
+            base: IProcessNodeInstance
+        ): PseudoInstance {
 
-            val inst = PseudoInstance<C>(
+            val inst = PseudoInstance(
                 this,
                 base.handle.takeIf { it.isValid } ?: Handle((handleOffset + pseudoNodes.size).toLong()),
                 base.node,
@@ -138,10 +137,10 @@ class PseudoInstance<C: ActivityInstanceContext>(
         }
 
         fun getOrCreate(
-            hPred: Handle<SecureObject<ProcessNodeInstance<*, C>>>,
+            hPred: PNIHandle,
             node: ExecutableProcessNode,
             entryNo: Int
-        ): IProcessNodeInstance<C> {
+        ): IProcessNodeInstance {
             getNodeInstance(node, hPred)?.let { return it } // the predecessor is already known
 
             val instance = getNodeInstance(node, entryNo) // predecessor not linked yet
@@ -151,7 +150,7 @@ class PseudoInstance<C: ActivityInstanceContext>(
                 } else {
                     when (instance) {
                         is PseudoInstance -> instance.predecessors.add(hPred)
-                        is ProcessNodeInstance.Builder<*, *, C> -> instance.predecessors.add(hPred)
+                        is ProcessNodeInstance.Builder<*, *, *> -> instance.predecessors.add(hPred)
                         else -> return create(hPred, instance)
                     }
                     return instance
@@ -160,7 +159,7 @@ class PseudoInstance<C: ActivityInstanceContext>(
             return create(hPred, node, entryNo)
         }
 
-        fun populatePredecessorsFor(handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>) {
+        fun populatePredecessorsFor(handle: PNIHandle) {
             val interestedNodes: IdentifyableSet<ExecutableProcessNode>
             val targetEntryNo: Int
             run {
@@ -169,7 +168,7 @@ class PseudoInstance<C: ActivityInstanceContext>(
                 interestedNodes = targetInstance.node.transitivePredecessors()
                 targetEntryNo = targetInstance.entryNo
             }
-            val toProcess = ArrayDeque<IProcessNodeInstance<C>>()
+            val toProcess = ArrayDeque<IProcessNodeInstance>()
             processInstance.allChildNodeInstances().filterTo(toProcess) {
                 it.node is StartNode && it.node in interestedNodes
             }

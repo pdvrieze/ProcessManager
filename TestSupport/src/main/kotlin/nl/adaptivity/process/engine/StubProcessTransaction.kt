@@ -26,18 +26,18 @@ import kotlin.reflect.KProperty
 /**
  * Created by pdvrieze on 20/11/16.
  */
-class StubProcessTransaction<C: ActivityInstanceContext>(private val engineData: IProcessEngineData<StubProcessTransaction<C>, C>) : StubTransaction(),
-                                                                                                   ContextProcessTransaction<C> {
-  override val readableEngineData: ProcessEngineDataAccess<C>
+class StubProcessTransaction(private val engineData: IProcessEngineData<StubProcessTransaction, *>) : StubTransaction(),
+                                                                                                   ContextProcessTransaction {
+  override val readableEngineData: ProcessEngineDataAccess<*>
     get() = engineData.createReadDelegate(this)
-  override val writableEngineData: MutableProcessEngineDataAccess<C>
+  override val writableEngineData: MutableProcessEngineDataAccess<*>
     get() = engineData.createWriteDelegate(this)
 
-  inner class InstanceWrapper(val instanceHandle: HProcessInstance) {
+  inner class InstanceWrapper(val instanceHandle: PIHandle) {
 
-    operator fun invoke(): ProcessInstance<C> { return readableEngineData.instance(instanceHandle).mustExist(instanceHandle).withPermission() }
+    operator fun invoke(): ProcessInstance<*> { return readableEngineData.instance(instanceHandle).mustExist(instanceHandle).withPermission() }
 
-    operator fun getValue(thisRef: Any?, property: KProperty<*>) : ProcessInstance<C> {
+    operator fun getValue(thisRef: Any?, property: KProperty<*>) : ProcessInstance<*> {
       return this()
     }
 
@@ -47,7 +47,7 @@ class StubProcessTransaction<C: ActivityInstanceContext>(private val engineData:
         super<StubTransaction>.addRollbackHandler(runnable)
     }
 
-    fun ProcessEngine<StubProcessTransaction<C>, *>.testProcess(model: ExecutableProcessModel, owner: Principal, payload: CompactFragment? = null): InstanceWrapper {
+    fun ProcessEngine<StubProcessTransaction, *>.testProcess(model: ExecutableProcessModel, owner: Principal, payload: CompactFragment? = null): InstanceWrapper {
     val modelHandle = addProcessModel(this@StubProcessTransaction, model, owner).handle
     val instanceHandle = startProcess(this@StubProcessTransaction, owner, modelHandle, "TestInstance", UUID.randomUUID(), payload)
     return InstanceWrapper(instanceHandle)

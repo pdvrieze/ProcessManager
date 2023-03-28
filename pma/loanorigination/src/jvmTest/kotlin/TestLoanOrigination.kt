@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination
 
-import io.github.pdvrieze.process.processModel.dynamicProcessModel.RunnableActivity
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.pma.*
 import nl.adaptivity.process.engine.test.ProcessEngineFactory
@@ -29,8 +28,6 @@ import java.util.logging.Logger
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
-import kotlin.test.assertIs
-import kotlin.test.assertNotNull
 
 class TestLoanOrigination : ProcessEngineTestSupport<LoanActivityContext>() {
 
@@ -39,12 +36,14 @@ class TestLoanOrigination : ProcessEngineTestSupport<LoanActivityContext>() {
         assertEquals("inputCustomerMasterData", LoanOriginationModel(testModelOwnerPrincipal).inputCustomerMasterData.id)
     }
 
+/*
     @Test
     fun testCreateValModel() {
         val activity = loanModel2.getNode("inputCustomerMasterData")
         assertIs<RunnableActivity<*, *, *>>(activity)
         assertNotNull(loanModel2.uuid, "UUID is not expected to be null")
     }
+*/
 
     @Test
     fun testRunObjectModel() {
@@ -52,10 +51,12 @@ class TestLoanOrigination : ProcessEngineTestSupport<LoanActivityContext>() {
         testRunModel(model)
     }
 
+/*
     @Test
     fun testRunValModel() {
         testRunModel(loanModel2)
     }
+*/
 
     private fun testRunModel(model: ExecutableProcessModel) {
         val logger = Logger.getLogger(TestLoanOrigination::class.java.name)

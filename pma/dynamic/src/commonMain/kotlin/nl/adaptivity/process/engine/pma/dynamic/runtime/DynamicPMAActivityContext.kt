@@ -1,21 +1,29 @@
-package nl.adaptivity.process.engine.pma.dynamic
+package nl.adaptivity.process.engine.pma.dynamic.runtime
 
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.OutputRef
+import nl.adaptivity.process.engine.ActivityInstanceContext
+import nl.adaptivity.process.engine.IProcessInstance
 import nl.adaptivity.process.engine.pma.*
-import nl.adaptivity.process.engine.pma.models.PermissionScope
+import nl.adaptivity.process.engine.pma.dynamic.RunnablePmaActivity
+import nl.adaptivity.process.engine.pma.models.AuthScope
 import nl.adaptivity.process.engine.pma.models.Service
 import nl.adaptivity.process.engine.pma.runtime.PMAActivityContext
 import nl.adaptivity.process.engine.pma.runtime.PMAProcessContextFactory
 import nl.adaptivity.process.engine.pma.runtime.PMAProcessInstanceContext
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.applyData
+import nl.adaptivity.process.engine.processModel.getDefines
 import java.security.Principal
 
-abstract class DynamicPMAActivityContext<A : DynamicPMAActivityContext<A>>(processNode: IProcessNodeInstance<A>) :
-    PMAActivityContext<A>(processNode) {
+abstract class DynamicPMAActivityContext<I : Any, O : Any, A : DynamicPMAActivityContext<I, O, A>>(
+    override val processNode: IProcessNodeInstance
+) : PMAActivityContext<A>() {
+    override val node: RunnablePmaActivity<I, O, *> get() = processNode.node as RunnablePmaActivity<I, O, *>
 
     final override lateinit var taskListService: TaskList
         private set
 
-    abstract override val processContext: DynamicPMAProcessInstanceContext<A>
+    abstract override val processContext: DynamicPMAProcessInstanceContext<*>
 
     private val pendingPermissions = ArrayDeque<PendingPermission>()
 
@@ -88,7 +96,7 @@ abstract class DynamicPMAActivityContext<A : DynamicPMAActivityContext<A>>(proce
      * TODO Function that registers permissions for the task. This should be done based upon task definition
      *      and in acceptActivity.
      */
-    fun registerTaskPermission(service: Service, scope: PermissionScope) {
+    fun registerTaskPermission(service: Service, scope: AuthScope) {
         pendingPermissions.add(PendingPermission(null, service, scope))
     }
 
@@ -99,7 +107,7 @@ abstract class DynamicPMAActivityContext<A : DynamicPMAActivityContext<A>>(proce
     fun registerDelegatePermission(
         clientService: Service,
         service: Service,
-        scope: PermissionScope
+        scope: AuthScope
     ) {
         val delegateScope =
             CommonPMAPermissions.DELEGATED_PERMISSION.restrictTo(clientService.serviceId, service, scope)
@@ -109,18 +117,38 @@ abstract class DynamicPMAActivityContext<A : DynamicPMAActivityContext<A>>(proce
     class PendingPermission(
         val clientId: String? = null,
         val service: Service,
-        val scope: PermissionScope
+        val scope: AuthScope
     )
+
+    fun nodeResult(reference: OutputRef<I>): I {
+//        return processContext.nodeResult(processNode.node, reference) as T
+        val defines = (this /*as A*/).getDefines(processContext.processInstance)
+        return node.getInputData(defines)
+
+    }
 
 }
 
-interface DynamicPMAProcessInstanceContext<A : DynamicPMAActivityContext<A>>: PMAProcessInstanceContext<A> {
+interface DynamicPMAProcessInstanceContext<A : DynamicPMAActivityContext<*, *, A>> : PMAProcessInstanceContext<A> {
+    val processInstance: IProcessInstance<*>
     val authService: AuthService
     val engineService: EngineService
     val generalClientService: GeneralClientService
     override val contextFactory: DynamicPMAProcessContextFactory<A>
+
+
+    fun <I: Any, O: Any, C : DynamicPMAActivityContext<I, O, C>> nodeResult(node: RunnablePmaActivity<I, O, C>, reference: OutputRef<O>): I {
+        val defines = node.defines.map {
+            // TODO the cast shouldn't be needed
+            it.applyData(processInstance, this as ActivityInstanceContext)
+        }
+
+        return node.getInputData(defines)
+
+    }
+
 }
 
-abstract class DynamicPMAProcessContextFactory<A : PMAActivityContext<A>>: PMAProcessContextFactory<A>() {
-    abstract override fun getOrCreateTaskListForUser(principal: Principal): TaskList
+interface DynamicPMAProcessContextFactory<A : PMAActivityContext<A>> : PMAProcessContextFactory<A> {
+    override fun getOrCreateTaskListForUser(principal: Principal): TaskList
 }

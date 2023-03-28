@@ -16,8 +16,8 @@
 
 package nl.adaptivity.process.engine.pma
 
-import nl.adaptivity.process.engine.pma.dynamic.DynamicPMAActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.UIServiceImpl
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
 import nl.adaptivity.process.engine.pma.models.TaskListService
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 

@@ -17,8 +17,8 @@
 package nl.adaptivity.process.engine.pma
 
 import nl.adaptivity.process.engine.pma.dynamic.ServiceImpl
+import nl.adaptivity.process.engine.pma.models.AuthScope
 import nl.adaptivity.process.engine.pma.models.AutomatedService
-import nl.adaptivity.process.engine.pma.models.PermissionScope
 import nl.adaptivity.process.engine.pma.models.Service
 import java.security.Principal
 
@@ -44,7 +44,7 @@ class GeneralClientService(authService: AuthService) : ServiceImpl(authService, 
          * Get a token that provides access to the given service. It is expected that permission for this
          * has been granted.
          */
-        override fun getServiceToken(service: Service, scope: PermissionScope): AuthToken {
+        override fun getServiceToken(service: Service, scope: AuthScope): AuthToken {
             logMe(service.serviceId, scope)
             return authService.getAuthTokenDirect(authToken, service, scope)
 
@@ -54,5 +54,5 @@ class GeneralClientService(authService: AuthService) : ServiceImpl(authService, 
 
 interface ClientServiceContext {
     val automatedService: Principal
-    fun getServiceToken(service: Service, scope: PermissionScope): AuthToken
+    fun getServiceToken(service: Service, scope: AuthScope): AuthToken
 }

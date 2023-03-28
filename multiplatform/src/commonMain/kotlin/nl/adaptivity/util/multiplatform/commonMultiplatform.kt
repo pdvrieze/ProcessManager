@@ -22,7 +22,9 @@ expect class URI {
     fun getPath(): String
 }
 
-expect class UUID
+expect class UUID {
+    override fun equals(other: Any?): Boolean
+}
 
 expect fun randomUUID(): UUID
 

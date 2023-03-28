@@ -24,5 +24,4 @@ data class LoanEvaluation(
     val application: LoanApplication,
     val isApproved: Boolean,
     val message: String
-                         ) {
-}
+)

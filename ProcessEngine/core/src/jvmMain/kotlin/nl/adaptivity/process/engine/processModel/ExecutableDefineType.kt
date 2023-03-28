@@ -17,8 +17,6 @@
 
 package nl.adaptivity.process.engine.processModel
 
-import net.devrieze.util.Handle
-import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.util.DomUtil
@@ -35,7 +33,7 @@ import java.sql.SQLException
 import javax.xml.xpath.XPathConstants
 
 // TODO Check that context can be non-specific
-actual fun <C : ActivityInstanceContext> IXmlDefineType.applyData(nodeInstanceSource: IProcessInstance<C>, context: C): ProcessData {
+actual fun IXmlDefineType.applyData(nodeInstanceSource: IProcessInstance<*>, context: ActivityInstanceContext): ProcessData {
     val nodeInstance = nodeInstanceSource.getChildNodeInstance(context.nodeInstanceHandle)
     return applyDataImpl(nodeInstanceSource, refNode?.let { nodeInstance.resolvePredecessor(nodeInstanceSource, it)}, context.processContext.processInstanceHandle)
 }
@@ -43,7 +41,7 @@ actual fun <C : ActivityInstanceContext> IXmlDefineType.applyData(nodeInstanceSo
 
 @Throws(SQLException::class)
 actual fun <C: ActivityInstanceContext> IXmlDefineType.applyFromProcessInstance(processInstance: ProcessInstance.Builder<C>): ProcessData {
-    val predecessor: IProcessNodeInstance<C>? = refNode?.let { refNode -> processInstance
+    val predecessor: IProcessNodeInstance? = refNode?.let { refNode -> processInstance
         .allChildNodeInstances { it.node.id == refNode }
         .lastOrNull()
     }
@@ -51,7 +49,7 @@ actual fun <C: ActivityInstanceContext> IXmlDefineType.applyFromProcessInstance(
 }
 
 @OptIn(XmlUtilInternal::class)
-private fun IXmlDefineType.applyDataImpl(nodeInstanceSource: IProcessInstance<*>, refNodeInstance: IProcessNodeInstance<*>?, hProcessInstance: Handle<SecureObject<ProcessInstance<*>>>): ProcessData {
+private fun IXmlDefineType.applyDataImpl(nodeInstanceSource: IProcessInstance<*>, refNodeInstance: IProcessNodeInstance?, hProcessInstance: PIHandle): ProcessData {
     val processData: ProcessData
 
     val predRefName = refNodeInstance?.node?.effectiveRefName(refName)

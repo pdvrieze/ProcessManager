@@ -1,99 +1,21 @@
-@file:OptIn(ExperimentalTypeInference::class, ExperimentalContracts::class, ExperimentalContracts::class,
-    ExperimentalContracts::class, ExperimentalContracts::class, ExperimentalContracts::class
-)
+@file:OptIn(ExperimentalTypeInference::class, ExperimentalContracts::class)
 
 package io.github.pdvrieze.process.processModel.dynamicProcessModel
 
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.RunnableActivity.OnActivityProvided
 import kotlinx.serialization.DeserializationStrategy
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.serializer
 import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.configurableModel.ConfigurationDsl
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.process.util.IdentifyableSet
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 import kotlin.experimental.ExperimentalTypeInference
-import kotlin.reflect.KProperty
-import nl.adaptivity.xmlutil.Namespace
 
-abstract class ModelBuilderContext<AIC : ActivityInstanceContext> {
-    protected abstract val modelBuilder: ProcessModel.Builder
-//    private val modelBuilder: RootProcessModel.Builder = RootProcessModelBase.Builder()
-
-    val startNode: StartNode.Builder
-        get() = StartNodeBase.Builder()
-
-    @ConfigurationDsl
-    fun startNode(config: @ConfigurationDsl StartNode.Builder.() -> Unit): StartNode.Builder =
-        StartNodeBase.Builder().apply(config)
-
-
-    @ConfigurationDsl
-    fun split(predecessor: Identified): Split.Builder =
-        SplitBase.Builder().apply { this.predecessor = predecessor }
-
-    @ConfigurationDsl
-    fun split(
-        predecessor: Identified,
-        config: @ConfigurationDsl Split.Builder.() -> Unit
-    ): Split.Builder =
-        split(predecessor).apply(config)
-
-    @ConfigurationDsl
-    fun join(vararg predecessors: Identified): Join.Builder = JoinBase.Builder().apply {
-        this.predecessors = IdentifyableSet.processNodeSet(predecessors)
-    }
-
-    @ConfigurationDsl
-    fun join(predecessors: Collection<Identified>): Join.Builder = JoinBase.Builder().apply {
-        this.predecessors = IdentifyableSet.processNodeSet(predecessors)
-    }
-
-    @ConfigurationDsl
-    fun join(
-        vararg predecessors: Identified,
-        config: @ConfigurationDsl Join.Builder.() -> Unit
-    ): Join.Builder = join(*predecessors).apply(config)
-
-    @ConfigurationDsl
-    fun join(
-        predecessors: Collection<Identified>,
-        config: @ConfigurationDsl Join.Builder.() -> Unit
-    ): Join.Builder =join(predecessors).apply(config)
-
-    fun endNode(predecessor: Identified): EndNode.Builder =
-        EndNodeBase.Builder().apply {
-            this.predecessor = predecessor
-        }
-
-    fun endNode(
-        predecessor: Identified,
-        config: @ConfigurationDsl EndNode.Builder.() -> Unit
-    ): EndNode.Builder = endNode(predecessor).apply(config)
-
-    fun endNode(name: String, predecessor: Identified) {
-        EndNodeBase.Builder().apply {
-            this.id = name
-            this.predecessor = predecessor
-        }
-    }
-
-    fun endNode(
-        name: String,
-        predecessor: Identified,
-        config: @ConfigurationDsl EndNode.Builder.() -> Unit
-    ) {
-        EndNodeBase.Builder().apply {
-            this.id = name
-            this.predecessor = predecessor
-            config()
-        }
-    }
+abstract class ModelBuilderContext<AIC : ActivityInstanceContext> : IModelBuilderContext<AIC> {
 
     inline fun <I: Any, reified O: Any> activity(
         predecessor: Identified,
@@ -245,41 +167,7 @@ abstract class ModelBuilderContext<AIC : ActivityInstanceContext> {
     @PublishedApi
     internal abstract fun compositeActivityContext(predecessor: Identified) : CompositeModelBuilderContext<AIC>
 
-    operator fun <I: Any, O: Any> RunnableActivity.Builder<I, O, AIC>.provideDelegate(
-        thisRef: Nothing?,
-        property: KProperty<*>
-    ): ActivityHandle<O> {
-        val nodeBuilder = this
-        if (id == null && modelBuilder.nodes.firstOrNull { it.id == property.name } == null) id = property.name
-        with(modelBuilder) {
-            nodes.add(nodeBuilder.ensureId())
-        }
-        val outputName = results.singleOrNull()?.name ?: ""
-        return ActivityHandleImpl(id!!, outputName, this.outputSerializer as KSerializer<O>)
-    }
-
-    operator fun ProcessNode.Builder.provideDelegate(
-        thisRef: Nothing?,
-        property: KProperty<*>
-    ): NodeHandle<Unit> {
-        val nodeBuilder = this
-        if (id == null && modelBuilder.nodes.firstOrNull { it.id == property.name } == null) id = property.name
-        with(modelBuilder) {
-            if (nodeBuilder is CompositeActivity.ModelBuilder) {
-                modelBuilder.rootBuilder.childModels.add(nodeBuilder.ensureChildId())
-            }
-
-            nodes.add(nodeBuilder.ensureId())
-        }
-        return NonActivityNodeHandleImpl(id!!)
-    }
-
-    @Suppress("NOTHING_TO_INLINE")
-    inline operator fun <T: Identified> T.getValue(
-        thisRef: Nothing?,
-        property: KProperty<*>
-    ): T = this
-
+    @OptIn(ExperimentalContracts::class)
     inline fun <I : Any, reified O : Any> configuredActivity(
         predecessor: Identified,
         @BuilderInference
@@ -329,65 +217,6 @@ abstract class ModelBuilderContext<AIC : ActivityInstanceContext> {
             callsInPlace(config, InvocationKind.EXACTLY_ONCE)
         }
         return RunnableActivity.Builder<I, O, AIC>(predecessor, outputSerializer = outputSerializer).apply(config)
-    }
-
-/*
-    operator fun <T : ConfigurableProcessModel<ExecutableProcessNode>.ConfigurableCompositeActivity> T.provideDelegate(
-        thisRef: Nothing?,
-        property: KProperty<*>
-    ): T {
-        setIdIfEmpty(property.name)
-        return this
-    }
-
-    @Suppress("NOTHING_TO_INLINE")
-    inline operator fun <T : ConfigurableProcessModel<ExecutableProcessNode>.ConfigurableCompositeActivity>
-        T.getValue(thisRef: Nothing?, property: KProperty<*>): T = this
-*/
-
-    fun <T> processResult(
-        name: String,
-        refNode: NodeHandle<T>,
-        refName: String? = null,
-        path: String? = null,
-        content: CharArray? = null,
-        nsContext: Iterable<Namespace> = emptyList()
-    ): ProcessResultRef<T> {
-        return processResult(name, refNode, refName, path, content, nsContext, refNode.serializer)
-    }
-
-    inline fun <I> processResult(
-        name: String,
-        refNode: ActivityHandle<I>,
-        path: String? = null,
-        content: CharArray? = null,
-        nsContext: Iterable<Namespace> = emptyList()
-    ): ProcessResultRef<I> {
-        return processResult(name, refNode, refNode.propertyName, path, content, nsContext, refNode.serializer)
-    }
-
-    inline fun <reified T> processResult(
-        name: String,
-        refNode: OutputRef<T>,
-        path: String? = null,
-        content: CharArray? = null,
-        nsContext: Iterable<Namespace> = emptyList()
-    ): ProcessResultRef<T> {
-        return processResult(name, refNode.nodeRef, refNode.propertyName, path, content, nsContext, serializer())
-    }
-
-    fun <T> processResult(
-        name: String,
-        refNode: Identified,
-        refName: String? = null,
-        path: String? = null,
-        content: CharArray? = null,
-        nsContext: Iterable<Namespace> = emptyList(),
-        serializer: KSerializer<T>
-    ): ProcessResultRef<T> {
-        modelBuilder.exports.add(XmlDefineType(name, refNode, refName, path, content, nsContext))
-        return ProcessResultRefImpl(name, serializer)
-
     }
 
     fun <I1, I2> combine(
@@ -454,6 +283,7 @@ abstract class ModelBuilderContext<AIC : ActivityInstanceContext> {
 }
 
 
+@OptIn(ExperimentalContracts::class)
 inline fun <C : ActivityInstanceContext> ModelBuilderContext<C>.compositeActivity(
     predecessor: Identified,
     @ConfigurationDsl configure: CompositeModelBuilderContext<C>.() -> Unit
@@ -465,10 +295,3 @@ inline fun <C : ActivityInstanceContext> ModelBuilderContext<C>.compositeActivit
     return context.activityBuilder
 }
 
-
-private data class ProcessResultRefImpl<T>(
-    override val propertyName: String,
-    override val serializer: KSerializer<T>
-) : ProcessResultRef<T> {
-    override val nodeRef: Nothing? get() = null
-}

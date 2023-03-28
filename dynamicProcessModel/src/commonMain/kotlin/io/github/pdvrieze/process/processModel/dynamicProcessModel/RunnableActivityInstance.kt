@@ -16,127 +16,56 @@
 
 package io.github.pdvrieze.process.processModel.dynamicProcessModel
 
-import io.github.pdvrieze.process.processModel.dynamicProcessModel.RunnableActivity.OnActivityProvided
 import net.devrieze.util.Handle
-import net.devrieze.util.collection.replaceBy
-import net.devrieze.util.overlay
-import net.devrieze.util.security.SecureObject
-import nl.adaptivity.process.IMessageService
-import nl.adaptivity.process.engine.*
-import nl.adaptivity.process.engine.impl.CompactFragment
-import nl.adaptivity.process.engine.processModel.*
+import nl.adaptivity.process.engine.ActivityInstanceContext
+import nl.adaptivity.process.engine.ProcessInstance
+import nl.adaptivity.process.engine.processModel.NodeInstanceState
+import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.util.multiplatform.PrincipalCompat
-import nl.adaptivity.xmlutil.serialization.XML
 
 
-class RunnableActivityInstance<I : Any, O : Any, C: ActivityInstanceContext>(builder: Builder<I, O, C>) :
-    ProcessNodeInstance<RunnableActivityInstance<I, O, C>, C>(builder) {
+class RunnableActivityInstance<I : Any, O : Any, C : ActivityInstanceContext>(builder: Builder<I, O, C>) :
+    AbstractRunnableActivityInstance<I, O, C, RunnableActivity<I, O, *>, RunnableActivityInstance<I, O, C>>(builder) {
 
-    interface Builder<I : Any, O : Any, C: ActivityInstanceContext> :
-        ProcessNodeInstance.Builder<RunnableActivity<I, O, C>, RunnableActivityInstance<I, O, C>, C> {
 
-        override var assignedUser: PrincipalCompat?
+    override fun builder(processInstanceBuilder: ProcessInstance.Builder<*>): RunnableActivityInstance.ExtBuilder<I, O, C> =
+        ExtBuilder(this, processInstanceBuilder)
 
-        override fun <MSG_T> doProvideTask(
-            engineData: MutableProcessEngineDataAccess<C>,
-            messageService: IMessageService<MSG_T, C>
-        ): Boolean {
-            node.canProvideTaskAutoProgress(engineData, this)
-            return node.onActivityProvided(engineData, this)
-        }
 
-        override fun doStartTask(engineData: MutableProcessEngineDataAccess<C>): Boolean {
-            val shouldProgress = tryCreateTask { node.canStartTaskAutoProgress(this) }
+    interface Builder<I : Any, O : Any, C : ActivityInstanceContext> :
+        AbstractRunnableActivityInstance.Builder<I, O, C, RunnableActivity<I, O, *>, RunnableActivityInstance<I, O, C>>
 
-            if (shouldProgress) {
-
-                val resultFragment = tryRunTask {
-                    val build = build()
-                    val icontext = engineData.processContextFactory.newActivityInstanceContext(engineData, this)
-                    val input: I = with(build) { icontext.getInputData(processInstanceBuilder) }
-                    val action: RunnableAction<I, O, C> = node.action
-                    val context = engineData.processContextFactory.newActivityInstanceContext(engineData, this)
-                    val result: O = context.action(input)
-
-                    node.outputSerializer?.let { os ->
-                        CompactFragment { writer ->
-                            XML.defaultInstance.encodeToWriter(writer, os, result)
-                        }
-                    }
-                }
-
-                finishTask(engineData, resultFragment)
-            }
-            return false // we call finish ourselves, so don't call it afterwards.
-        }
-
-        override fun canTakeTaskAutomatically(): Boolean = node.onActivityProvided == OnActivityProvided.DEFAULT
-
-        override fun doTakeTask(
-            engineData: MutableProcessEngineDataAccess<C>,
-            assignedUser: PrincipalCompat?
-        ): Boolean {
-            return node.canTakeTaskAutoProgress(createActivityContext(engineData), this, assignedUser)
-        }
-    }
-
-    class BaseBuilder<I : Any, O : Any, C: ActivityInstanceContext>(
-        node: RunnableActivity<I, O, C>,
-        predecessor: Handle<SecureObject<ProcessNodeInstance<*, C>>>?,
-        processInstanceBuilder: ProcessInstance.Builder<C>,
+    class BaseBuilder<I : Any, O : Any, C : ActivityInstanceContext>(
+        node: RunnableActivity<I, O, *>,
+        predecessor: PNIHandle?,
+        processInstanceBuilder: ProcessInstance.Builder<*>,
         owner: PrincipalCompat,
         entryNo: Int,
-        override var assignedUser: PrincipalCompat? = null,
-        handle: Handle<SecureObject<ProcessNodeInstance<*, C>>> = Handle.invalid(),
+        assignedUser: PrincipalCompat? = null,
+        handle: PNIHandle = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
-    ) : ProcessNodeInstance.BaseBuilder<RunnableActivity<I, O, C>, RunnableActivityInstance<I, O, C>, C>(
-        node, listOfNotNull(predecessor), processInstanceBuilder, owner,
-        entryNo, handle, state
+    ) : AbstractRunnableActivityInstance.BaseBuilder<I, O, C, RunnableActivity<I, O, *>, RunnableActivityInstance<I, O, C>>(
+        node, predecessor, processInstanceBuilder, owner,
+        entryNo, assignedUser, handle, state
     ), Builder<I, O, C> {
-
-        override fun invalidateBuilder(engineData: ProcessEngineDataAccess<C>) {
-            val h: Handle<SecureObject<ProcessNodeInstance<*, C>>> = handle
-            engineData.nodeInstances[h]?.withPermission()?.let { n ->
-                val newBase = n as RunnableActivityInstance<I, O, C>
-                node = newBase.node
-                predecessors.replaceBy(newBase.predecessors)
-                owner = newBase.owner
-                state = newBase.state
-                assignedUser = newBase.assignedUser
-            }
-        }
 
         override fun build(): RunnableActivityInstance<I, O, C> {
             return RunnableActivityInstance(this)
         }
     }
 
-    class ExtBuilder<I : Any, O : Any, C: ActivityInstanceContext>(
+    class ExtBuilder<I : Any, O : Any, C : ActivityInstanceContext>(
         base: RunnableActivityInstance<I, O, C>,
-        processInstanceBuilder: ProcessInstance.Builder<C>
-    ) : ProcessNodeInstance.ExtBuilder<RunnableActivity<I, O, C>, RunnableActivityInstance<I, O, C>, C>(
+        processInstanceBuilder: ProcessInstance.Builder<*>
+    ) : AbstractRunnableActivityInstance.ExtBuilder<I, O, C, RunnableActivity<I, O, *>, RunnableActivityInstance<I, O, C>>(
         base,
         processInstanceBuilder
     ), Builder<I, O, C> {
-
-        override var node: RunnableActivity<I, O, C> by overlay { base.node }
-
-        override var assignedUser: PrincipalCompat? by overlay { base.assignedUser }
 
         override fun build(): RunnableActivityInstance<I, O, C> {
             return if (changed) RunnableActivityInstance(this).also { invalidateBuilder(it) } else base
         }
     }
 
-    @Suppress("UNCHECKED_CAST")
-    override val node: RunnableActivity<I, O, C> get() = super.node as RunnableActivity<I, O, C>
-
-
-    override fun builder(processInstanceBuilder: ProcessInstance.Builder<C>) = ExtBuilder(this, processInstanceBuilder)
-
-    fun <C: ActivityInstanceContext> C.getInputData(nodeInstanceSource: IProcessInstance<C>): I {
-        val defines = getDefines(nodeInstanceSource)
-        return this@RunnableActivityInstance.node.getInputData(defines)
-    }
-
 }
+
