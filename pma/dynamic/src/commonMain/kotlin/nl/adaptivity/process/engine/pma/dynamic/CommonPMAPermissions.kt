@@ -17,25 +17,22 @@
 package nl.adaptivity.process.engine.pma
 
 import net.devrieze.util.Handle
-import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.pma.models.AuthScope
 import nl.adaptivity.process.engine.pma.models.Service
 import nl.adaptivity.process.engine.pma.models.UnionPermissionScope
 import nl.adaptivity.process.engine.pma.models.UseAuthScope
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
-
-internal typealias PNIHandle = Handle<SecureObject<ProcessNodeInstance<*, *>>>
+import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 
 sealed class CommonPMAPermissions : AuthScope {
     object POST_TASK : CommonPMAPermissions(), UseAuthScope
     object ACCEPT_TASK : CommonPMAPermissions(), UseAuthScope {
-        operator fun invoke(hNodeInstance: PNIHandle) =
+        operator fun invoke(hNodeInstance: Handle<SecureProcessNodeInstance>) =
             contextImpl(hNodeInstance)
     }
 
 
     object INVALIDATE_ACTIVITY : CommonPMAPermissions() {
-        fun context(hNodeInstance: PNIHandle) =
+        fun context(hNodeInstance: Handle<SecureProcessNodeInstance>) =
             UPDATE_ACTIVITY_STATE.contextImpl(hNodeInstance)
 
         override fun includes(useScope: UseAuthScope): Boolean {
@@ -49,7 +46,7 @@ sealed class CommonPMAPermissions : AuthScope {
 
     object UPDATE_ACTIVITY_STATE : CommonPMAPermissions() {
 
-        operator fun invoke(hNodeInstance: PNIHandle) =
+        operator fun invoke(hNodeInstance: Handle<SecureProcessNodeInstance>) =
             contextImpl(hNodeInstance)
 
         override fun includes(useScope: UseAuthScope): Boolean {
@@ -138,7 +135,7 @@ sealed class CommonPMAPermissions : AuthScope {
                 else -> childScope.intersect(useScope.childScope) == useScope.childScope
             }
 
-            fun toActivityPermission(taskHandle: PNIHandle): AuthScope {
+            fun toActivityPermission(taskHandle: Handle<SecureProcessNodeInstance>): AuthScope {
                 return GRANT_ACTIVITY_PERMISSION.restrictTo(taskHandle, clientId, serviceId, childScope)
             }
 
@@ -243,7 +240,7 @@ sealed class CommonPMAPermissions : AuthScope {
 
     object GRANT_ACTIVITY_PERMISSION : CommonPMAPermissions() {
         fun context(
-            taskHandle: PNIHandle,
+            taskHandle: Handle<SecureProcessNodeInstance>,
             clientId: String,
             service: Service,
             scope: AuthScope,
@@ -252,7 +249,7 @@ sealed class CommonPMAPermissions : AuthScope {
         }
 
         fun restrictTo(
-            taskHandle: PNIHandle,
+            taskHandle: Handle<SecureProcessNodeInstance>,
             clientId: String? = null,
             service: Service? = null,
             scope: AuthScope? = null,
@@ -261,7 +258,7 @@ sealed class CommonPMAPermissions : AuthScope {
         }
 
         fun restrictTo(
-            taskHandle: PNIHandle,
+            taskHandle: Handle<SecureProcessNodeInstance>,
             clientId: String? = null,
             serviceId: String? = null,
             scope: AuthScope? = null,
@@ -270,7 +267,7 @@ sealed class CommonPMAPermissions : AuthScope {
         }
 
         fun restrictTo(
-            taskHandle: PNIHandle,
+            taskHandle: Handle<SecureProcessNodeInstance>,
             service: Service? = null,
             scope: AuthScope? = null,
         ): AuthScope {
@@ -293,7 +290,7 @@ sealed class CommonPMAPermissions : AuthScope {
         }
 
         data class ContextScope(
-            val taskInstanceHandle: PNIHandle,
+            val taskInstanceHandle: Handle<SecureProcessNodeInstance>,
             val clientId: String?,
             val serviceId: String?,
             val childScope: AuthScope? = null

@@ -28,7 +28,7 @@ class RunnableActivityInstance<I : Any, O : Any, C : ActivityInstanceContext>(bu
     AbstractRunnableActivityInstance<I, O, C, RunnableActivity<I, O, *>, RunnableActivityInstance<I, O, C>>(builder) {
 
 
-    override fun builder(processInstanceBuilder: ProcessInstance.Builder<*>): RunnableActivityInstance.ExtBuilder<I, O, C> =
+    override fun builder(processInstanceBuilder: ProcessInstance.Builder): RunnableActivityInstance.ExtBuilder<I, O, C> =
         ExtBuilder(this, processInstanceBuilder)
 
 
@@ -38,7 +38,7 @@ class RunnableActivityInstance<I : Any, O : Any, C : ActivityInstanceContext>(bu
     class BaseBuilder<I : Any, O : Any, C : ActivityInstanceContext>(
         node: RunnableActivity<I, O, *>,
         predecessor: PNIHandle?,
-        processInstanceBuilder: ProcessInstance.Builder<*>,
+        processInstanceBuilder: ProcessInstance.Builder,
         owner: PrincipalCompat,
         entryNo: Int,
         assignedUser: PrincipalCompat? = null,
@@ -56,7 +56,7 @@ class RunnableActivityInstance<I : Any, O : Any, C : ActivityInstanceContext>(bu
 
     class ExtBuilder<I : Any, O : Any, C : ActivityInstanceContext>(
         base: RunnableActivityInstance<I, O, C>,
-        processInstanceBuilder: ProcessInstance.Builder<*>
+        processInstanceBuilder: ProcessInstance.Builder
     ) : AbstractRunnableActivityInstance.ExtBuilder<I, O, C, RunnableActivity<I, O, *>, RunnableActivityInstance<I, O, C>>(
         base,
         processInstanceBuilder

@@ -130,7 +130,7 @@ abstract class DynamicPMAActivityContext<I : Any, O : Any, A : DynamicPMAActivit
 }
 
 interface DynamicPMAProcessInstanceContext<A : DynamicPMAActivityContext<*, *, A>> : PMAProcessInstanceContext<A> {
-    val processInstance: IProcessInstance<*>
+    val processInstance: IProcessInstance
     val authService: AuthService
     val engineService: EngineService
     val generalClientService: GeneralClientService

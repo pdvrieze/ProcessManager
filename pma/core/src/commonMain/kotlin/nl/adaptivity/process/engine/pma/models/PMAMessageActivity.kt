@@ -70,7 +70,7 @@ class PMAMessageActivity<C: PMAActivityContext<C>>(
      * Determine whether the process can start.
      */
     override fun evalCondition(
-        nodeInstanceSource: IProcessInstance<*>,
+        nodeInstanceSource: IProcessInstance,
         predecessor: IProcessNodeInstance,
         nodeInstance: IProcessNodeInstance
     ): ConditionResult {

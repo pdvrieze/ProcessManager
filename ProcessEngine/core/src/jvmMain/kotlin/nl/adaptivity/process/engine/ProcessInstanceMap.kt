@@ -26,7 +26,7 @@ import nl.adaptivity.process.engine.db.ProcessEngineDB
 internal class ProcessInstanceMap(
     transactionFactory: DBTransactionFactory<ProcessDBTransaction, ProcessEngineDB>,
     processEngine: ProcessEngine<ProcessDBTransaction, *>
-) : DBHandleMap<ProcessInstance.BaseBuilder<*>, SecureProcessInstance, ProcessDBTransaction, ProcessEngineDB>(
+) : DBHandleMap<ProcessInstance.BaseBuilder, SecureProcessInstance, ProcessDBTransaction, ProcessEngineDB>(
     transactionFactory,
     ProcessInstanceElementFactory(processEngine)
 ) {
@@ -38,7 +38,7 @@ internal class ProcessInstanceMap(
         delegate as MutableTransactionedHandleMap<SecureProcessInstance, T>,
         cacheSize
     ) {
-        fun pendingValue(piHandle: PIHandle): ProcessInstance.BaseBuilder<*>? {
+        fun pendingValue(piHandle: PIHandle): ProcessInstance.BaseBuilder? {
             return (delegate as ProcessInstanceMap).pendingValue(piHandle)
         }
     }

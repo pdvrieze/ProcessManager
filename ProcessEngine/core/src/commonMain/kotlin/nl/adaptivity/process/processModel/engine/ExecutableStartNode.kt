@@ -63,7 +63,7 @@ class ExecutableStartNode(
     override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
     fun <C : ActivityInstanceContext> createOrReuseInstance(
-        processInstanceBuilder: ProcessInstance.Builder<C>,
+        processInstanceBuilder: ProcessInstance.Builder,
         entryNo: Int
     ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*, *>, *> =
         processInstanceBuilder.getChildNodeInstance(this, entryNo)

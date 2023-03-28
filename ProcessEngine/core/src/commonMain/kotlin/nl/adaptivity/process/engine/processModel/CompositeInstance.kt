@@ -43,7 +43,7 @@ class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : Proc
         ): Boolean {
             val shouldProgress = node.canProvideTaskAutoProgress(engineData, this)
 
-            val childHandle = engineData.instances.put(ProcessInstance<C>(engineData, node.childModel, handle) {})
+            val childHandle = engineData.instances.put(ProcessInstance(engineData, node.childModel, handle) {})
             hChildInstance = childHandle
 
             store(engineData)
@@ -90,7 +90,7 @@ class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : Proc
     class BaseBuilder<C: ActivityInstanceContext>(
         node: ExecutableCompositeActivity,
         predecessor: PNIHandle?,
-        processInstanceBuilder: ProcessInstance.Builder<C>,
+        processInstanceBuilder: ProcessInstance.Builder,
         override var hChildInstance: PIHandle,
         owner: PrincipalCompat,
         entryNo: Int,
@@ -116,7 +116,7 @@ class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : Proc
         }
     }
 
-    class ExtBuilder<C: ActivityInstanceContext>(base: CompositeInstance<C>, processInstanceBuilder: ProcessInstance.Builder<*>) :
+    class ExtBuilder<C: ActivityInstanceContext>(base: CompositeInstance<C>, processInstanceBuilder: ProcessInstance.Builder) :
         ProcessNodeInstance.ExtBuilder<ExecutableCompositeActivity, CompositeInstance<C>, C>(base, processInstanceBuilder),
         Builder<C> {
 
@@ -139,10 +139,10 @@ class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : Proc
 
     override val node: ExecutableCompositeActivity get() = super.node as ExecutableCompositeActivity
 
-    override fun builder(processInstanceBuilder: ProcessInstance.Builder<*>): ExtBuilder<C> =
+    override fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder<C> =
         ExtBuilder(this, processInstanceBuilder)
 
-    fun <C : ActivityInstanceContext> C.getPayload(nodeInstanceSource: IProcessInstance<*>): CompactFragment? {
+    fun <C : ActivityInstanceContext> C.getPayload(nodeInstanceSource: IProcessInstance): CompactFragment? {
         val defines = getDefines(nodeInstanceSource)
         if (defines.isEmpty()) return null
 

@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
@@ -42,14 +43,14 @@ class ExecutableSplit(
 
     override fun createOrReuseInstance(
         data: MutableProcessEngineDataAccess<*>,
-        processInstanceBuilder: ProcessInstance.Builder<*>,
+        processInstanceBuilder: ProcessInstance.Builder,
         predecessor: IProcessNodeInstance,
         entryNo: Int,
         allowFinalInstance: Boolean
     ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*, *>, *> {
         // TODO handle reentry
         return processInstanceBuilder.getChildNodeInstance(this, entryNo)
-            ?: SplitInstance.BaseBuilder(
+            ?: SplitInstance.BaseBuilder<ActivityInstanceContext>(
                 this, predecessor.handle,
                 processInstanceBuilder,
                 processInstanceBuilder.owner,

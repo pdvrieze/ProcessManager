@@ -17,7 +17,6 @@ package nl.adaptivity.process.processModel.engine
 
 import kotlinx.serialization.Serializable
 import nl.adaptivity.process.ProcessConsts.Engine
-import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.IProcessInstance
 import nl.adaptivity.process.engine.impl.dom.toDocumentFragment
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
@@ -55,7 +54,7 @@ actual class ExecutableXSLTCondition actual constructor(condition: String, overr
      * @return `true` if the condition holds, `false` if not
      */
     @OptIn(XmlUtilInternal::class)
-    actual override fun eval(nodeInstanceSource: IProcessInstance<*>, nodeInstance: IProcessNodeInstance): ConditionResult {
+    actual override fun eval(nodeInstanceSource: IProcessInstance, nodeInstance: IProcessNodeInstance): ConditionResult {
         if (condition.isBlank()) return ConditionResult.TRUE
 
         val documentBuilder =
@@ -85,7 +84,7 @@ actual class ExecutableXSLTCondition actual constructor(condition: String, overr
 
 private fun Boolean.toResult(resolver: ConditionResolver) = ConditionResult(this)
 
-private class ConditionResolver(nodeSource: IProcessInstance<*>, nodeInstance: IProcessNodeInstance, val document: Document) :
+private class ConditionResolver(nodeSource: IProcessInstance, nodeInstance: IProcessNodeInstance, val document: Document) :
     XPathFunctionResolver, XPathVariableResolver {
 
 
@@ -93,7 +92,7 @@ private class ConditionResolver(nodeSource: IProcessInstance<*>, nodeInstance: I
     val aNodeInstance: IProcessNodeInstance = nodeInstance as IProcessNodeInstance
 
     @Suppress("UNCHECKED_CAST")
-    val aNodeSource: IProcessInstance<ActivityInstanceContext> = nodeSource as IProcessInstance<ActivityInstanceContext>
+    val aNodeSource: IProcessInstance = nodeSource as IProcessInstance
 
     private val defaultNodeFunction: XPathFunction = object : XPathFunction {
         override fun evaluate(args: List<*>): Any? {

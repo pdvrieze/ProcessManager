@@ -17,7 +17,7 @@ abstract class AbstractRunnableActivityInstance<I : Any, O : Any, C : ActivityIn
     @Suppress("UNCHECKED_CAST")
     override val node: NodeT get() = super.node as NodeT
 
-    fun <C : ActivityInstanceContext> C.getInputData(nodeInstanceSource: IProcessInstance<*>): I {
+    fun <C : ActivityInstanceContext> C.getInputData(nodeInstanceSource: IProcessInstance): I {
         val defines = getDefines(nodeInstanceSource)
         return this@AbstractRunnableActivityInstance.node.getInputData(defines)
     }
@@ -80,7 +80,7 @@ abstract class AbstractRunnableActivityInstance<I : Any, O : Any, C : ActivityIn
         >(
         node: NodeT,
         predecessor: PNIHandle?,
-        processInstanceBuilder: ProcessInstance.Builder<*>,
+        processInstanceBuilder: ProcessInstance.Builder,
         owner: PrincipalCompat,
         entryNo: Int,
         final override var assignedUser: PrincipalCompat? = null,
@@ -117,7 +117,7 @@ abstract class AbstractRunnableActivityInstance<I : Any, O : Any, C : ActivityIn
         InstT : AbstractRunnableActivityInstance<I, O, C, NodeT, InstT>
         >(
         base: InstT,
-        processInstanceBuilder: ProcessInstance.Builder<*>
+        processInstanceBuilder: ProcessInstance.Builder
     ) : ProcessNodeInstance.ExtBuilder<NodeT, InstT, C>(
         base,
         processInstanceBuilder

@@ -55,7 +55,7 @@ import kotlin.contracts.contract
 abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, *>, AIC: ActivityInstanceContext>(
     override val node: ExecutableProcessNode,
     predecessors: Iterable<PNIHandle>,
-    processInstanceBuilder: ProcessInstance.Builder<*>,
+    processInstanceBuilder: ProcessInstance.Builder,
     override val hProcessInstance: PIHandle,
     final override val owner: PrincipalCompat,
     final override val entryNo: Int,
@@ -97,9 +97,9 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, *>, AIC: Activ
         failureCause = builder.failureCause
     )
 
-    override fun build(processInstanceBuilder: ProcessInstance.Builder<*>): ProcessNodeInstance<*, AIC> = this
+    override fun build(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance<*, AIC> = this
 
-    override abstract fun builder(processInstanceBuilder: ProcessInstance.Builder<*>): ExtBuilder<out ExecutableProcessNode, @UnsafeVariance T, *>
+    override abstract fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder<out ExecutableProcessNode, @UnsafeVariance T, *>
 
     private fun precedingClosure(processData: ProcessEngineDataAccess<*>): Sequence<SecureProcessNodeInstance> {
         return predecessors.asSequence().flatMap { predHandle ->
@@ -109,7 +109,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, *>, AIC: Activ
     }
 
     fun update(
-        processInstanceBuilder: ProcessInstance.Builder<AIC>,
+        processInstanceBuilder: ProcessInstance.Builder,
         body: Builder<out ExecutableProcessNode, T, *>.() -> Unit
     ): Future<out T>? {
         val builder = builder(processInstanceBuilder).apply(body)
@@ -143,7 +143,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, *>, AIC: Activ
     }
 
     fun AIC.serialize(
-        nodeInstanceSource: IProcessInstance<AIC>,
+        nodeInstanceSource: IProcessInstance,
         out: XmlWriter,
         localEndpoint: EndpointDescriptor
     ) {
@@ -195,7 +195,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, *>, AIC: Activ
     interface Builder<N : ExecutableProcessNode, out T : ProcessNodeInstance<T, *>, C: ActivityInstanceContext> : IProcessNodeInstance {
         override var node: N
         override val predecessors: MutableSet<PNIHandle>
-        val processInstanceBuilder: ProcessInstance.Builder<*>
+        val processInstanceBuilder: ProcessInstance.Builder
         override val hProcessInstance: PIHandle get() = processInstanceBuilder.handle
         var owner: PrincipalCompat
         override var handle: PNIHandle
@@ -215,7 +215,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, *>, AIC: Activ
 
         fun build(): T
 
-        override fun builder(processInstanceBuilder: ProcessInstance.Builder<*>): Builder<*, ProcessNodeInstance<*, *>, *> =
+        override fun builder(processInstanceBuilder: ProcessInstance.Builder): Builder<*, ProcessNodeInstance<*, *>, *> =
             this
 
         fun failTaskCreation(cause: Throwable) {
@@ -501,7 +501,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, *>, AIC: Activ
     abstract class BaseBuilder<N : ExecutableProcessNode, T : ProcessNodeInstance<T, C>, C: ActivityInstanceContext>(
         final override var node: N,
         predecessors: Iterable<PNIHandle>,
-        final override val processInstanceBuilder: ProcessInstance.Builder<*>,
+        final override val processInstanceBuilder: ProcessInstance.Builder,
         final override var owner: PrincipalCompat,
         final override val entryNo: Int,
         final override var handle: PNIHandle = Handle.invalid(),
@@ -532,7 +532,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, *>, AIC: Activ
 
     abstract class ExtBuilder<N : ExecutableProcessNode, T : ProcessNodeInstance<T, C>, C: ActivityInstanceContext>(
         protected var base: T,
-        override val processInstanceBuilder: ProcessInstance.Builder<*>
+        override val processInstanceBuilder: ProcessInstance.Builder
     ) : AbstractBuilder<N, T, C>() {
         private val observer: Observer<Any?> = { newValue -> changed = true; newValue }
 
@@ -613,8 +613,8 @@ inline fun <R> ProcessNodeInstance.Builder<*, *, *>.tryRunTask(body: () -> R): R
 @PublishedApi
 internal inline fun <R, C: ActivityInstanceContext> _tryHelper(
     engineData: MutableProcessEngineDataAccess<C>,
-    processInstance: ProcessInstance<C>,
-    body: () -> R, failHandler: (MutableProcessEngineDataAccess<C>, ProcessInstance<C>, Exception) -> Unit
+    processInstance: ProcessInstance,
+    body: () -> R, failHandler: (MutableProcessEngineDataAccess<C>, ProcessInstance, Exception) -> Unit
 ): R {
     contract {
         callsInPlace(body, InvocationKind.EXACTLY_ONCE)

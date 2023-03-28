@@ -51,20 +51,20 @@ interface IProcessNodeInstance : ReadableHandleAware<SecureProcessNodeInstance> 
     val state: NodeInstanceState
     val results: List<ProcessData>
 
-    fun builder(processInstanceBuilder: ProcessInstance.Builder<*>): ProcessNodeInstance.Builder<*, ProcessNodeInstance<*, *>, *>
+    fun builder(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance.Builder<*, ProcessNodeInstance<*, *>, *>
 
-    fun build(processInstanceBuilder: ProcessInstance.Builder<*>): ProcessNodeInstance<*, *> {
+    fun build(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance<*, *> {
         return builder(processInstanceBuilder).build()
     }
 
     fun isOtherwiseCondition(predecessor: IProcessNodeInstance) = node.isOtherwiseCondition(predecessor.node)
 
     fun condition(
-        nodeInstanceSource: IProcessInstance<*>,
+        nodeInstanceSource: IProcessInstance,
         predecessor: IProcessNodeInstance
     ) = node.evalCondition(nodeInstanceSource, predecessor, this)
 
-    fun resolvePredecessor(nodeInstanceSource: IProcessInstance<*>, nodeName: String): IProcessNodeInstance? {
+    fun resolvePredecessor(nodeInstanceSource: IProcessInstance, nodeName: String): IProcessNodeInstance? {
         val handle = getPredecessor(nodeInstanceSource, nodeName)
             ?: throw NullPointerException("Missing predecessor with name $nodeName referenced from node ${node.id}")
         return nodeInstanceSource.getChildNodeInstance(handle)
@@ -88,7 +88,7 @@ interface IProcessNodeInstance : ReadableHandleAware<SecureProcessNodeInstance> 
 }
 
 private fun IProcessNodeInstance.getPredecessor(
-    nodeInstanceSource: IProcessInstance<*>,
+    nodeInstanceSource: IProcessInstance,
     nodeName: String
 ): PNIHandle? {
     // TODO Use process structure knowledge to do this better/faster without as many database lookups.
@@ -107,14 +107,14 @@ private fun IProcessNodeInstance.getPredecessor(
     return null
 }
 
-fun <C: ActivityInstanceContext> C.getDefines(nodeInstanceSource: IProcessInstance<*>): List<ProcessData> {
+fun <C: ActivityInstanceContext> C.getDefines(nodeInstanceSource: IProcessInstance): List<ProcessData> {
     return node.defines.map {
         it.applyData(nodeInstanceSource, this)
     }
 }
 
 fun <C : ActivityInstanceContext> C.instantiateXmlPlaceholders(
-    nodeInstanceSource: IProcessInstance<*>,
+    nodeInstanceSource: IProcessInstance,
     xmlReader: XmlReader,
     removeWhitespace: Boolean,
     localEndpoint: EndpointDescriptor
@@ -127,7 +127,7 @@ fun <C : ActivityInstanceContext> C.instantiateXmlPlaceholders(
 }
 
 fun <C : ActivityInstanceContext> C.instantiateXmlPlaceholders(
-    nodeInstanceSource: IProcessInstance<*>,
+    nodeInstanceSource: IProcessInstance,
     xmlReader: XmlReader,
     out: XmlWriter,
     removeWhitespace: Boolean,

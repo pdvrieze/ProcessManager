@@ -226,7 +226,7 @@ class TestContext(private val config: TraceTest.ConfigBase) {
         return hInstance
     }
 
-    fun getProcessInstance(instanceHandle: PIHandle = hInstance): ProcessInstance<*> {
+    fun getProcessInstance(instanceHandle: PIHandle = hInstance): ProcessInstance {
         return transaction.readableEngineData.instance(instanceHandle).withPermission()
     }
 
@@ -859,9 +859,9 @@ class FuzzException(override val message: String?, cause: Throwable?, val trace:
         )
     }
 
-fun IProcessInstance<*>.allDescendentNodeInstances(engineData: ProcessEngineDataAccess<*>): List<IProcessNodeInstance> {
+fun IProcessInstance.allDescendentNodeInstances(engineData: ProcessEngineDataAccess<*>): List<IProcessNodeInstance> {
     val result = mutableListOf<IProcessNodeInstance>()
-    val procQueue = ArrayDeque<IProcessInstance<*>>().also { it.add(this) }
+    val procQueue = ArrayDeque<IProcessInstance>().also { it.add(this) }
     while (procQueue.isNotEmpty()) {
         val inst = procQueue.removeFirst()
         for (nodeInst in inst.allChildNodeInstances()) {

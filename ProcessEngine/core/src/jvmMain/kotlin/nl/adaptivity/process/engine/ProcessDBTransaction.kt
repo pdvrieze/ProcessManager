@@ -29,9 +29,9 @@ class ProcessDBTransaction(
     private val engineData: IProcessEngineData<ProcessDBTransaction, *>
 ) : MonadicDBTransaction<ProcessEngineDB>(dbTransactionContext), ContextProcessTransaction {
     private val pendingProcessInstances =
-        mutableMapOf<PIHandle, ProcessInstance.ExtBuilder<*>>()
+        mutableMapOf<PIHandle, ProcessInstance.ExtBuilder>()
 
-    fun pendingProcessInstance(pihandle: PIHandle): ProcessInstance.ExtBuilder<*>? {
+    fun pendingProcessInstance(pihandle: PIHandle): ProcessInstance.ExtBuilder? {
         return pendingProcessInstances[pihandle]
     }
 

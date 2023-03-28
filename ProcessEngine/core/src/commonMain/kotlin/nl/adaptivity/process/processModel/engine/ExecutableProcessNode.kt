@@ -61,7 +61,7 @@ interface ExecutableProcessNode : ProcessNode, Identified {
      */
     fun createOrReuseInstance(
         data: MutableProcessEngineDataAccess<*>,
-        processInstanceBuilder: ProcessInstance.Builder<*>,
+        processInstanceBuilder: ProcessInstance.Builder,
         predecessor: IProcessNodeInstance,
         entryNo: Int,
         allowFinalInstance: Boolean,
@@ -100,7 +100,7 @@ interface ExecutableProcessNode : ProcessNode, Identified {
      *          not.
      */
     fun evalCondition(
-        nodeInstanceSource: IProcessInstance<*>,
+        nodeInstanceSource: IProcessInstance,
         predecessor: IProcessNodeInstance,
         nodeInstance: IProcessNodeInstance
     ): ConditionResult = when {

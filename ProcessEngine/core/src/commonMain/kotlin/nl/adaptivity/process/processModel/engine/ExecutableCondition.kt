@@ -28,7 +28,7 @@ import nl.adaptivity.process.processModel.engine.ConditionResult.*
  *
  * @author Paul de Vrieze
  */
-abstract class ExecutableCondition : Condition, ((IProcessInstance<*>, IProcessNodeInstance) -> ConditionResult) {
+abstract class ExecutableCondition : Condition, ((IProcessInstance, IProcessNodeInstance) -> ConditionResult) {
     open val isOtherwise: Boolean get()= false
 
     /**
@@ -38,22 +38,22 @@ abstract class ExecutableCondition : Condition, ((IProcessInstance<*>, IProcessN
      * @param nodeInstance The instance to use to evaluate against.
      * @return `true` if the condition holds, `false` if not
      */
-    abstract fun eval(nodeInstanceSource: IProcessInstance<*>, nodeInstance: IProcessNodeInstance): ConditionResult
+    abstract fun eval(nodeInstanceSource: IProcessInstance, nodeInstance: IProcessNodeInstance): ConditionResult
 
-    final override operator fun invoke(nodeInstanceSource: IProcessInstance<*>, instance: IProcessNodeInstance): ConditionResult =
+    final override operator fun invoke(nodeInstanceSource: IProcessInstance, instance: IProcessNodeInstance): ConditionResult =
         eval(nodeInstanceSource, instance)
 
     override val condition: String get() = "class:${this::class.qualifiedName}"
 
     object TRUE: ExecutableCondition() {
-        override fun eval(nodeInstanceSource: IProcessInstance<*>, nodeInstance: IProcessNodeInstance): ConditionResult = ConditionResult.TRUE
+        override fun eval(nodeInstanceSource: IProcessInstance, nodeInstance: IProcessNodeInstance): ConditionResult = ConditionResult.TRUE
 
         override val condition: String get() = "true()"
         override val label: String? get() = null
     }
 
     object FALSE: ExecutableCondition() {
-        override fun eval(nodeInstanceSource: IProcessInstance<*>, nodeInstance: IProcessNodeInstance): ConditionResult = NEVER
+        override fun eval(nodeInstanceSource: IProcessInstance, nodeInstance: IProcessNodeInstance): ConditionResult = NEVER
 
         override val condition: String get() = "false()"
         override val label: String? get() = null
@@ -62,7 +62,7 @@ abstract class ExecutableCondition : Condition, ((IProcessInstance<*>, IProcessN
     object OTHERWISE: ExecutableCondition() {
         override val isOtherwise: Boolean get() = true
 
-        override fun eval(nodeInstanceSource: IProcessInstance<*>, nodeInstance: IProcessNodeInstance): ConditionResult = MAYBE
+        override fun eval(nodeInstanceSource: IProcessInstance, nodeInstance: IProcessNodeInstance): ConditionResult = MAYBE
 
         override val condition: String get() = "otherwise"
         override val label: String? get() = null
@@ -100,7 +100,7 @@ fun ConditionResult(boolean: Boolean): ConditionResult {
  * @return `true` if the node can be started, `false` if not.
  */
 fun ExecutableCondition?.evalNodeStartCondition(
-    nodeInstanceSource: IProcessInstance<*>,
+    nodeInstanceSource: IProcessInstance,
     predecessor: IProcessNodeInstance,
     nodeInstance: IProcessNodeInstance
 ): ConditionResult {

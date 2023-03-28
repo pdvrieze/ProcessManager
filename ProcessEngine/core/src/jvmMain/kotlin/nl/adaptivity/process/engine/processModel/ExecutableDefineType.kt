@@ -33,14 +33,14 @@ import java.sql.SQLException
 import javax.xml.xpath.XPathConstants
 
 // TODO Check that context can be non-specific
-actual fun IXmlDefineType.applyData(nodeInstanceSource: IProcessInstance<*>, context: ActivityInstanceContext): ProcessData {
+actual fun IXmlDefineType.applyData(nodeInstanceSource: IProcessInstance, context: ActivityInstanceContext): ProcessData {
     val nodeInstance = nodeInstanceSource.getChildNodeInstance(context.nodeInstanceHandle)
     return applyDataImpl(nodeInstanceSource, refNode?.let { nodeInstance.resolvePredecessor(nodeInstanceSource, it)}, context.processContext.processInstanceHandle)
 }
 
 
 @Throws(SQLException::class)
-actual fun <C: ActivityInstanceContext> IXmlDefineType.applyFromProcessInstance(processInstance: ProcessInstance.Builder<C>): ProcessData {
+actual fun IXmlDefineType.applyFromProcessInstance(processInstance: ProcessInstance.Builder): ProcessData {
     val predecessor: IProcessNodeInstance? = refNode?.let { refNode -> processInstance
         .allChildNodeInstances { it.node.id == refNode }
         .lastOrNull()
@@ -49,7 +49,7 @@ actual fun <C: ActivityInstanceContext> IXmlDefineType.applyFromProcessInstance(
 }
 
 @OptIn(XmlUtilInternal::class)
-private fun IXmlDefineType.applyDataImpl(nodeInstanceSource: IProcessInstance<*>, refNodeInstance: IProcessNodeInstance?, hProcessInstance: PIHandle): ProcessData {
+private fun IXmlDefineType.applyDataImpl(nodeInstanceSource: IProcessInstance, refNodeInstance: IProcessNodeInstance?, hProcessInstance: PIHandle): ProcessData {
     val processData: ProcessData
 
     val predRefName = refNodeInstance?.node?.effectiveRefName(refName)

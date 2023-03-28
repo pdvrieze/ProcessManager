@@ -35,9 +35,9 @@ class StubProcessTransaction(private val engineData: IProcessEngineData<StubProc
 
   inner class InstanceWrapper(val instanceHandle: PIHandle) {
 
-    operator fun invoke(): ProcessInstance<*> { return readableEngineData.instance(instanceHandle).mustExist(instanceHandle).withPermission() }
+    operator fun invoke(): ProcessInstance { return readableEngineData.instance(instanceHandle).mustExist(instanceHandle).withPermission() }
 
-    operator fun getValue(thisRef: Any?, property: KProperty<*>) : ProcessInstance<*> {
+    operator fun getValue(thisRef: Any?, property: KProperty<*>) : ProcessInstance {
       return this()
     }
 

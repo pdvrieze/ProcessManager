@@ -45,7 +45,7 @@ class PseudoInstance(
     override val results: List<ProcessData>
         get() = emptyList()
 
-    override fun builder(processInstanceBuilder: ProcessInstance.Builder<*>): ProcessNodeInstance.Builder<*, ProcessNodeInstance<*, *>, *> {
+    override fun builder(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance.Builder<*, ProcessNodeInstance<*, *>, *> {
         throw UnsupportedOperationException("Pseudo instances should not be made into builders")
     }
 
@@ -54,7 +54,7 @@ class PseudoInstance(
     }
 
     class PseudoContext(
-        val processInstance: IProcessInstance<*>,
+        val processInstance: IProcessInstance,
     ) : ProcessInstanceContext {
         constructor(readAccess: ProcessEngineDataAccess<*>, hProcessInstance: PIHandle) :
             this(readAccess.instance(hProcessInstance).withPermission())

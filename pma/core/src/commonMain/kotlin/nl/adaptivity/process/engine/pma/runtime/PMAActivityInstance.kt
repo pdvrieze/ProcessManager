@@ -2,7 +2,6 @@ package nl.adaptivity.process.engine.pma.runtime
 
 import net.devrieze.util.Handle
 import net.devrieze.util.overlay
-import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.MessageSendingResult
 import nl.adaptivity.process.engine.*
@@ -18,12 +17,12 @@ class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAA
 
     constructor(
         node: PMAMessageActivity<C>,
-        predecessors: Iterable<Handle<SecureObject<ProcessNodeInstance<*, C>>>>,
-        processInstanceBuilder: ProcessInstance.Builder<*>,
-        hProcessInstance: Handle<SecureObject<ProcessInstance<C>>>,
+        predecessors: Iterable<PNIHandle>,
+        processInstanceBuilder: ProcessInstance.Builder,
+        hProcessInstance: PIHandle,
         owner: PrincipalCompat,
         entryNo: Int,
-        handle: Handle<SecureObject<ProcessNodeInstance<*, C>>>,
+        handle: PNIHandle,
         state: NodeInstanceState,
         results: Iterable<ProcessData>,
         failureCause: Throwable?
@@ -46,7 +45,7 @@ class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAA
     override val node: PMAMessageActivity<C>
         get() = super.node as PMAMessageActivity<C>
 
-    override fun builder(processInstanceBuilder: ProcessInstance.Builder<*>): ExtBuilder<C> {
+    override fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder<C> {
         return ExtBuilder(this, processInstanceBuilder)
     }
 
@@ -105,7 +104,7 @@ class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAA
     class BaseBuilder<C: PMAActivityContext<C>>(
         node: PMAMessageActivity<*>,
         predecessor: PNIHandle?,
-        processInstanceBuilder: ProcessInstance.Builder<*>,
+        processInstanceBuilder: ProcessInstance.Builder,
         owner: PrincipalCompat,
         entryNo: Int,
         override var assignedUser: PrincipalCompat? = null,
@@ -122,7 +121,7 @@ class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAA
 
     class ExtBuilder<C: PMAActivityContext<C>>(
         base: PMAActivityInstance<C>,
-        processInstanceBuilder: ProcessInstance.Builder<*>
+        processInstanceBuilder: ProcessInstance.Builder
     ) : ProcessNodeInstance.ExtBuilder<PMAMessageActivity<C>, PMAActivityInstance<C>, C>(
         base,
         processInstanceBuilder

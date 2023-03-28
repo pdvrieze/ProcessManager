@@ -64,7 +64,7 @@ open class ExecutableMessageActivity(
      * Determine whether the process can start.
      */
     override fun evalCondition(
-        nodeInstanceSource: IProcessInstance<*>,
+        nodeInstanceSource: IProcessInstance,
         predecessor: IProcessNodeInstance,
         nodeInstance: IProcessNodeInstance
     ): ConditionResult {
@@ -77,7 +77,7 @@ open class ExecutableMessageActivity(
 
     override fun createOrReuseInstance(
         data: MutableProcessEngineDataAccess<*>,
-        processInstanceBuilder: ProcessInstance.Builder<*>,
+        processInstanceBuilder: ProcessInstance.Builder,
         predecessor: IProcessNodeInstance,
         entryNo: Int,
         allowFinalInstance: Boolean

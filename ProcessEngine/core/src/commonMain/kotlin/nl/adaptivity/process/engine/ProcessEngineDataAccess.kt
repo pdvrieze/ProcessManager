@@ -62,7 +62,7 @@ inline internal operator fun <C: ActivityInstanceContext> HandleMap<SecureProces
 
 @Suppress("NOTHING_TO_INLINE")
 @JvmName("setPIHandle")
-inline internal operator fun <C: ActivityInstanceContext> MutableHandleMap<SecureProcessInstance>.set(handle: PIHandle, value: ProcessInstance<C>): SecureProcessInstance? {
+inline internal operator fun <C: ActivityInstanceContext> MutableHandleMap<SecureProcessInstance>.set(handle: PIHandle, value: ProcessInstance): SecureProcessInstance? {
     @Suppress("UNCHECKED_CAST")
     return set(handle as PIHandle, value)
 }
@@ -98,7 +98,7 @@ interface MutableProcessEngineDataAccess<C: ActivityInstanceContext> : ProcessEn
     @OptIn(ProcessInstanceStorage::class)
     fun updateInstance(
         hProcessInstance: PIHandle,
-        transform: ProcessInstance.ExtBuilder<*>.() -> Unit
+        transform: ProcessInstance.ExtBuilder.() -> Unit
     ) {
         try {
             (instances[hProcessInstance] ?: throw ProcessException("Unexpected invalid handle: $hProcessInstance"))

@@ -16,9 +16,11 @@
 
 package nl.adaptivity.process.engine.pma
 
+import net.devrieze.util.Handle
 import nl.adaptivity.process.engine.pma.dynamic.UIServiceImpl
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
 import nl.adaptivity.process.engine.pma.models.TaskListService
+import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 class TaskList constructor(
@@ -36,7 +38,7 @@ class TaskList constructor(
     fun postTask(
         authInfo: AuthToken,
         authorizationCode: AuthorizationCode,
-        nodeInstanceHandle: PNIHandle
+        nodeInstanceHandle: Handle<SecureProcessNodeInstance>
     ) {
         logMe(authInfo, authorizationCode, nodeInstanceHandle)
         validateAuthInfo(authInfo, CommonPMAPermissions.POST_TASK)
@@ -45,7 +47,10 @@ class TaskList constructor(
         tokens.add(token)
     }
 
-    fun unregisterTask(authToken: AuthInfo, nodeInstanceHandle: PNIHandle) {
+    fun unregisterTask(
+        authToken: AuthInfo,
+        nodeInstanceHandle: Handle<SecureProcessNodeInstance>
+    ) {
         logMe(authToken, nodeInstanceHandle)
         validateAuthInfo(authToken, CommonPMAPermissions.POST_TASK)
         tokens.removeIf { it.nodeInstanceHandle == nodeInstanceHandle }
@@ -57,7 +62,7 @@ class TaskList constructor(
         authToken: AuthToken,
         principal: PrincipalCompat,
         pendingPermissions: ArrayDeque<DynamicPMAActivityContext.PendingPermission>,
-        processNodeInstance: PNIHandle
+        processNodeInstance: Handle<SecureProcessNodeInstance>
     ): AuthorizationCode {
         logMe(processNodeInstance, principal)
 

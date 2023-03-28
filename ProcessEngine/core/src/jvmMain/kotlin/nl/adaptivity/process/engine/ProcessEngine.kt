@@ -535,12 +535,12 @@ class ProcessEngine<TR : ContextProcessTransaction, C : ActivityInstanceContext>
      *
      * @return All instances.
      */
-    fun getOwnedProcessInstances(transaction: TR, user: Principal): Iterable<ProcessInstance<C>> {
+    fun getOwnedProcessInstances(transaction: TR, user: Principal): Iterable<ProcessInstance> {
         securityProvider.ensurePermission(ProcessEnginePermissions.LIST_INSTANCES, user)
         // If security allows this, return an empty list.
         engineData.inReadonlyTransaction(transaction) {
             return instances.map {
-                it.withPermission(securityProvider, SecureObject.Permissions.READ, user) { it } as ProcessInstance<C>
+                it.withPermission(securityProvider, SecureObject.Permissions.READ, user) { it } as ProcessInstance
             }.filter { instance -> instance.owner.name == user.name }
         }
     }
@@ -554,7 +554,7 @@ class ProcessEngine<TR : ContextProcessTransaction, C : ActivityInstanceContext>
      *
      * @return All instances.
      */
-    fun getVisibleProcessInstances(transaction: TR, user: Principal): Iterable<ProcessInstance<*>> {
+    fun getVisibleProcessInstances(transaction: TR, user: Principal): Iterable<ProcessInstance> {
         engineData.inReadonlyTransaction(transaction) {
             return instances.map { it.withPermission() }.filter {
                 securityProvider.hasPermission(SecureObject.Permissions.READ, user, it)
@@ -567,7 +567,7 @@ class ProcessEngine<TR : ContextProcessTransaction, C : ActivityInstanceContext>
         transaction: TR,
         handle: PIHandle,
         user: Principal
-    ): ProcessInstance<*> {
+    ): ProcessInstance {
         return engineData.inReadonlyTransaction(transaction) {
             instances[handle].shouldExist(handle)
                 .withPermission(securityProvider, ProcessEnginePermissions.VIEW_INSTANCE, user) {
@@ -657,7 +657,7 @@ class ProcessEngine<TR : ContextProcessTransaction, C : ActivityInstanceContext>
         }
         val unstoredInstance =
             model.withPermission(securityProvider, ExecutableProcessModel.Permissions.INSTANTIATE, user) {
-                ProcessInstance<C>(transaction.writableEngineData, it, parentActivity) {
+                ProcessInstance(transaction.writableEngineData, it, parentActivity) {
                     this.instancename = name
                     this.uuid = uuid
                     this.state = State.NEW
@@ -665,7 +665,7 @@ class ProcessEngine<TR : ContextProcessTransaction, C : ActivityInstanceContext>
                 }
             }
 
-        val resultHandle: Handle<ProcessInstance<C>>
+        val resultHandle: Handle<ProcessInstance>
         engineData.inWriteTransaction(transaction) {
             resultHandle = instances.put(unstoredInstance)
             updateInstance(resultHandle) {
@@ -754,7 +754,7 @@ class ProcessEngine<TR : ContextProcessTransaction, C : ActivityInstanceContext>
         transaction: TR,
         handle: PIHandle,
         user: Principal
-    ): ProcessInstance<*> {
+    ): ProcessInstance {
         engineData.inWriteTransaction(transaction) {
             instances[handle].shouldExist(handle).withPermission(
                 securityProvider, ProcessEnginePermissions.CANCEL,
@@ -983,7 +983,7 @@ class ProcessEngine<TR : ContextProcessTransaction, C : ActivityInstanceContext>
     }
 
     @Throws(SQLException::class)
-    fun updateStorage(transaction: TR, processInstance: ProcessInstance<C>) {
+    fun updateStorage(transaction: TR, processInstance: ProcessInstance) {
         val handle: PIHandle = processInstance.handle
         if (!handle.isValid) {
             throw IllegalArgumentException("You can't update storage state of an unregistered node")

@@ -21,7 +21,7 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.processModel.engine.ExecutableModelCommon
 
-interface IProcessInstance<C: ActivityInstanceContext>: ReadableHandleAware<SecureProcessInstance> {
+interface IProcessInstance : ReadableHandleAware<SecureProcessInstance> {
     val processModel: ExecutableModelCommon
 
     val inputs: List<ProcessData>

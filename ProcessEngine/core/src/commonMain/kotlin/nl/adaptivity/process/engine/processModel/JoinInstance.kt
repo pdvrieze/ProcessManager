@@ -138,7 +138,7 @@ class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstanc
 
     class ExtBuilder<C : ActivityInstanceContext>(
         instance: JoinInstance<C>,
-        processInstanceBuilder: ProcessInstance.Builder<*>
+        processInstanceBuilder: ProcessInstance.Builder
     ) : ProcessNodeInstance.ExtBuilder<ExecutableJoin, JoinInstance<C>, C>(instance, processInstanceBuilder),
         Builder<C> {
 
@@ -156,7 +156,7 @@ class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstanc
     class BaseBuilder<C: ActivityInstanceContext>(
         node: ExecutableJoin,
         predecessors: Iterable<PNIHandle>,
-        processInstanceBuilder: ProcessInstance.Builder<C>,
+        processInstanceBuilder: ProcessInstance.Builder,
         owner: PrincipalCompat,
         entryNo: Int,
         handle: PNIHandle = Handle.invalid(),
@@ -192,7 +192,7 @@ class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstanc
     constructor(
         node: ExecutableJoin,
         predecessors: Collection<PNIHandle>,
-        processInstanceBuilder: ProcessInstance.Builder<*>,
+        processInstanceBuilder: ProcessInstance.Builder,
         hProcessInstance: PIHandle,
         owner: PrincipalCompat,
         entryNo: Int,
@@ -217,14 +217,14 @@ class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstanc
         builder.results
     )
 
-    override fun builder(processInstanceBuilder: ProcessInstance.Builder<*>): ExtBuilder<C> =
+    override fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder<C> =
         ExtBuilder(this, processInstanceBuilder)
 
     companion object {
         fun <C : ActivityInstanceContext> build(
             joinImpl: ExecutableJoin,
             predecessors: Set<PNIHandle>,
-            processInstanceBuilder: ProcessInstance.Builder<C>,
+            processInstanceBuilder: ProcessInstance.Builder,
             entryNo: Int,
             handle: PNIHandle = Handle.invalid(),
             state: NodeInstanceState = NodeInstanceState.Pending,
@@ -246,7 +246,7 @@ class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstanc
         fun <C : ActivityInstanceContext> build(
             joinImpl: ExecutableJoin,
             predecessors: Set<PNIHandle>,
-            processInstance: ProcessInstance<C>,
+            processInstance: ProcessInstance,
             entryNo: Int,
             handle: PNIHandle = Handle.invalid(),
             state: NodeInstanceState = NodeInstanceState.Pending,

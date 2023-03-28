@@ -69,7 +69,7 @@ interface LoanPmaProcessContext : DynamicPMAProcessInstanceContext<LoanPMAActivi
 abstract class AbstractLoanProcessContext(
     protected val engineData: ProcessEngineDataAccess<*>,
 ) : CommonLoanProcessContext {
-    abstract val processInstance: IProcessInstance<*>
+    abstract val processInstance: IProcessInstance
 
     override val processInstanceHandle: PIHandle get() = processInstance.handle
 
@@ -90,7 +90,7 @@ class LoanProcessContextImpl(
     override val contextFactory: LoanContextFactory,
     processInstanceHandle: PIHandle
 ) : AbstractLoanProcessContext(engineData), LoanProcessContext {
-    override val processInstance: IProcessInstance<*> = engineData.instance(processInstanceHandle).withPermission()
+    override val processInstance: IProcessInstance = engineData.instance(processInstanceHandle).withPermission()
 
 
     override val authService: AuthService get() = contextFactory.authService
@@ -115,7 +115,7 @@ class LoanPmaProcessContextImpl(
     override val contextFactory: LoanPMAContextFactory,
     processInstanceHandle: PIHandle
 ) : AbstractLoanProcessContext(engineData), LoanPmaProcessContext {
-    override val processInstance: IProcessInstance<*> = engineData.instance(processInstanceHandle).withPermission()
+    override val processInstance: IProcessInstance = engineData.instance(processInstanceHandle).withPermission()
 
 
     override val authService: AuthService get() = contextFactory.authService

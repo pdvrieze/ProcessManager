@@ -19,7 +19,7 @@ interface PMAProcessContextFactory<AIC : PMAActivityContext<AIC>>: ProcessContex
     override fun createNodeInstance(
         node: ExecutableProcessNode,
         predecessors: List<PNIHandle>,
-        processInstanceBuilder: ProcessInstance.Builder<*>,
+        processInstanceBuilder: ProcessInstance.Builder,
         owner: PrincipalCompat,
         entryNo: Int,
         assignedUser: PrincipalCompat?,

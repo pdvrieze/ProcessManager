@@ -745,7 +745,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction, AIC: ActivityIns
     fun getProcessInstance(
         @RestParam(name = "handle", type = RestParamType.VAR) handle: Long,
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal?
-    ): SerializableData<ProcessInstance<*>> = translateExceptions {
+    ): SerializableData<ProcessInstance> = translateExceptions {
         processEngine.startTransaction().use { transaction ->
             return transaction.commitSerializable(
                 processEngine.getProcessInstance(
@@ -787,7 +787,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction, AIC: ActivityIns
     fun cancelProcessInstance(
         @RestParam(name = "handle", type = RestParamType.VAR) handle: Long,
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal
-    ): ProcessInstance<out ActivityInstanceContext> = translateExceptions {
+    ): ProcessInstance = translateExceptions {
         processEngine.startTransaction().use { transaction ->
             return transaction.commit(
                 processEngine.cancelInstance(transaction, if (handle < 0) Handle.invalid() else Handle(handle), user)

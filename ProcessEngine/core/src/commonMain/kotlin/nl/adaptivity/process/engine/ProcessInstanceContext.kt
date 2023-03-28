@@ -71,7 +71,7 @@ interface ProcessContextFactory<C : ActivityInstanceContext> {
     fun createNodeInstance(
         node: ExecutableProcessNode,
         predecessors: List<PNIHandle>,
-        processInstanceBuilder: ProcessInstance.Builder<*>,
+        processInstanceBuilder: ProcessInstance.Builder,
         owner: PrincipalCompat,
         entryNo: Int,
         assignedUser: PrincipalCompat? = null,
@@ -86,7 +86,7 @@ interface ProcessContextFactory<C : ActivityInstanceContext> {
             engineDataAccess: ProcessEngineDataAccess<*>,
             processNodeInstance: IProcessNodeInstance
         ): ActivityInstanceContext {
-            val processContext:ProcessInstanceContext = SimpleProcessContext(engineDataAccess.instance(processNodeInstance.hProcessInstance).withPermission())
+            val processContext:ProcessInstanceContext = SimpleProcessContext<ActivityInstanceContext>(engineDataAccess.instance(processNodeInstance.hProcessInstance).withPermission())
             return SimpleActivityContext(processNodeInstance, processContext)
         }
 
@@ -94,7 +94,7 @@ interface ProcessContextFactory<C : ActivityInstanceContext> {
     }
 
     private class SimpleProcessContext<C: ActivityInstanceContext>(
-        private val processInstance: IProcessInstance<C>
+        private val processInstance: IProcessInstance
     ) : ProcessInstanceContext {
         override val processInstanceHandle: PIHandle
             get() = processInstance.handle

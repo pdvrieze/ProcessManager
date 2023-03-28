@@ -17,7 +17,6 @@
 package nl.adaptivity.process.engine.pma
 
 import net.devrieze.util.Handle
-import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ProcessInstanceContext
 import nl.adaptivity.process.engine.pma.CommonPMAPermissions.GRANT_GLOBAL_PERMISSION
 import nl.adaptivity.process.engine.pma.CommonPMAPermissions.UPDATE_ACTIVITY_STATE
@@ -28,7 +27,7 @@ import nl.adaptivity.process.engine.pma.models.AutomatedService
 import nl.adaptivity.process.engine.pma.models.Service
 import nl.adaptivity.process.engine.pma.models.UnionPermissionScope
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import java.security.Principal
 import kotlin.random.Random
@@ -38,7 +37,7 @@ class EngineService(
     serviceAuth: IdSecretAuthInfo = newEngineClientAuth(authService),
 ) : ServiceImpl(authService, serviceAuth), AutomatedService {
 
-    private val taskLists: MutableMap<PNIHandle, List<TaskList>> = mutableMapOf()
+    private val taskLists: MutableMap<Handle<SecureProcessNodeInstance>, List<TaskList>> = mutableMapOf()
 
     override fun getServiceState(): String = ""
 
@@ -48,7 +47,7 @@ class EngineService(
      */
     fun acceptActivity(
         authToken: AuthToken,
-        nodeInstanceHandle: PNIHandle,
+        nodeInstanceHandle: Handle<SecureProcessNodeInstance>,
         principal: Principal,
         pendingPermissions: ArrayDeque<DynamicPMAActivityContext.PendingPermission>,
     ): AuthorizationCode {
@@ -89,7 +88,10 @@ class EngineService(
     }
 
 
-    fun registerActivityToTaskList(taskList: TaskList, pniHandle: PNIHandle) {
+    fun registerActivityToTaskList(
+        taskList: TaskList,
+        pniHandle: Handle<SecureProcessNodeInstance>
+    ) {
         logMe(pniHandle)
 
         val permissions = listOf(
@@ -118,7 +120,7 @@ class EngineService(
 
     fun createAuthorizationCode(
         clientServiceId: String,
-        handle: Handle<SecureObject<ProcessNodeInstance<*, *>>>,
+        handle: Handle<SecureProcessNodeInstance>,
         service: AuthService,
         scope: CommonPMAPermissions.IDENTIFY,
         pendingPermissions: ArrayDeque<DynamicPMAActivityContext.PendingPermission>

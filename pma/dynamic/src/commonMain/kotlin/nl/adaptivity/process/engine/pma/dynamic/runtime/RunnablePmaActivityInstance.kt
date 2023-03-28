@@ -2,18 +2,17 @@ package nl.adaptivity.process.engine.pma.dynamic.runtime
 
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.AbstractRunnableActivityInstance
 import net.devrieze.util.Handle
-import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.pma.dynamic.RunnablePmaActivity
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 class RunnablePmaActivityInstance<I : Any, O : Any, C : DynamicPMAActivityContext<I, O, C>>(
     builder: Builder<I, O, C>
 ) : AbstractRunnableActivityInstance<I, O, C, RunnablePmaActivity<I, O, *>, RunnablePmaActivityInstance<I,O,C>>(builder) {
 
-    override fun builder(processInstanceBuilder: ProcessInstance.Builder<*>): ExtBuilder<I, O, C> {
+    override fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder<I, O, C> {
         return RunnablePmaActivityInstance.ExtBuilder(this, processInstanceBuilder)
     }
 
@@ -23,12 +22,12 @@ class RunnablePmaActivityInstance<I : Any, O : Any, C : DynamicPMAActivityContex
 
     class BaseBuilder<I : Any, O : Any, C : DynamicPMAActivityContext<I, O, C>>(
         node: RunnablePmaActivity<I, O, C>,
-        predecessor: Handle<SecureObject<ProcessNodeInstance<*, C>>>?,
-        processInstanceBuilder: ProcessInstance.Builder<C>,
+        predecessor: PNIHandle?,
+        processInstanceBuilder: ProcessInstance.Builder,
         owner: PrincipalCompat,
         entryNo: Int,
         assignedUser: PrincipalCompat? = null,
-        handle: Handle<SecureObject<ProcessNodeInstance<*, C>>> = Handle.invalid(),
+        handle: PNIHandle = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
     ) : AbstractRunnableActivityInstance.BaseBuilder<I, O, C, RunnablePmaActivity<I, O, *>, RunnablePmaActivityInstance<I, O, C>>(
         node, predecessor, processInstanceBuilder, owner,
@@ -42,7 +41,7 @@ class RunnablePmaActivityInstance<I : Any, O : Any, C : DynamicPMAActivityContex
 
     class ExtBuilder<I : Any, O : Any, C : DynamicPMAActivityContext<I, O, C>>(
         base: RunnablePmaActivityInstance<I, O, C>,
-        processInstanceBuilder: ProcessInstance.Builder<*>
+        processInstanceBuilder: ProcessInstance.Builder
     ) : AbstractRunnableActivityInstance.ExtBuilder<I, O, C, RunnablePmaActivity<I, O, *>, RunnablePmaActivityInstance<I, O, C>>(
         base,
         processInstanceBuilder

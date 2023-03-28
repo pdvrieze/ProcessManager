@@ -18,10 +18,11 @@ package nl.adaptivity.process.engine.test.loanOrigination
 
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.RunnableActivityInstance
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.SimpleRolePrincipal
-import net.devrieze.util.Handle
-import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
-import nl.adaptivity.process.engine.*
+import nl.adaptivity.process.engine.ActivityInstanceContext
+import nl.adaptivity.process.engine.PIHandle
+import nl.adaptivity.process.engine.ProcessContextFactory
+import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.pma.*
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAProcessContextFactory
 import nl.adaptivity.process.engine.pma.runtime.AuthServiceClient
@@ -33,6 +34,7 @@ import nl.adaptivity.util.multiplatform.PrincipalCompat
 import java.security.Principal
 import java.util.logging.Level
 import java.util.logging.Logger
+import kotlin.collections.set
 import kotlin.random.Random
 
 class LoanContextFactory(log: Logger, random: Random): AbstractLoanContextFactory<LoanActivityContext>(log, random) {
@@ -51,12 +53,12 @@ class LoanContextFactory(log: Logger, random: Random): AbstractLoanContextFactor
 
     fun getProcessContext(
         engineDataAccess: ProcessEngineDataAccess<*>,
-        instanceHandle: Handle<SecureObject<ProcessInstance<*>>>
+        instanceHandle: PIHandle
     ): LoanProcessContext = processContexts.getOrPut(instanceHandle) { LoanProcessContextImpl(engineDataAccess, this, instanceHandle) }
 
     override fun onProcessFinished(
         engineDataAccess: ProcessEngineDataAccess<*>,
-        processInstance: Handle<SecureObject<ProcessInstance<*>>>
+        processInstance: PIHandle
     ) {
         processContexts.remove(processInstance)
     }
@@ -92,12 +94,12 @@ class LoanPMAContextFactory(log: Logger, random: Random) :
 
     fun getProcessContext(
         engineDataAccess: ProcessEngineDataAccess<*>,
-        instanceHandle: Handle<SecureObject<ProcessInstance<*>>>
+        instanceHandle: PIHandle
     ): LoanPmaProcessContext = processContexts.getOrPut(instanceHandle) { LoanPmaProcessContextImpl(engineDataAccess, this, instanceHandle) }
 
     override fun onProcessFinished(
         engineDataAccess: ProcessEngineDataAccess<*>,
-        processInstance: Handle<SecureObject<ProcessInstance<*>>>
+        processInstance: PIHandle
     ) {
         processContexts.remove(processInstance)
     }

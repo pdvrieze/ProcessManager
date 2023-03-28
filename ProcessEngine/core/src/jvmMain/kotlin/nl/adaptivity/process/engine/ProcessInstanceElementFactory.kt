@@ -39,7 +39,7 @@ import nl.adaptivity.xmlutil.util.CompactFragment
  * Factory that helps in storing and retrieving process instances from the database.
  */
 internal class ProcessInstanceElementFactory(private val processEngine: ProcessEngine<*, *>) :
-    AbstractElementFactory<ProcessInstance.BaseBuilder<*>, SecureProcessInstance, ProcessDBTransaction, ProcessEngineDB>() {
+    AbstractElementFactory<ProcessInstance.BaseBuilder, SecureProcessInstance, ProcessDBTransaction, ProcessEngineDB>() {
 
     override fun getHandleCondition(where: _Where, handle: PIHandle): WhereClause {
         return where.run { pi.pihandle eq handle }
@@ -54,7 +54,7 @@ internal class ProcessInstanceElementFactory(private val processEngine: ProcessE
     override fun createBuilder(
         transaction: ProcessDBTransaction,
         row: SelectResultSetRow<_ListSelect>
-    ): DBAction<ProcessEngineDB, ProcessInstance.BaseBuilder<*>> {
+    ): DBAction<ProcessEngineDB, ProcessInstance.BaseBuilder> {
         val owner = pi.owner.nullableValue(row)?.let(::SimplePrincipal) ?: SYSTEMPRINCIPAL
         val hProcessModel = pi.pmhandle.value(row)
         val parentActivity = pi.parentActivity.value(row)
@@ -66,7 +66,7 @@ internal class ProcessInstanceElementFactory(private val processEngine: ProcessE
         val uuid = pi.uuid.nullableValue(row) ?: throw IllegalStateException("Missing UUID")
 
         return transaction.value(
-            ProcessInstance.BaseBuilder<ActivityInstanceContext>(
+            ProcessInstance.BaseBuilder(
                 piHandle,
                 owner,
                 processModel,
@@ -80,8 +80,8 @@ internal class ProcessInstanceElementFactory(private val processEngine: ProcessE
 
     override fun createFromBuilder(
         transaction: ProcessDBTransaction,
-        setAccess: DbSet.DBSetAccess<ProcessInstance.BaseBuilder<*>>,
-        builder: ProcessInstance.BaseBuilder<*>
+        setAccess: DbSet.DBSetAccess<ProcessInstance.BaseBuilder>,
+        builder: ProcessInstance.BaseBuilder
     ): DBAction<ProcessEngineDB, SecureProcessInstance> {
         val builderHandle = builder.handle
 
@@ -175,8 +175,8 @@ internal class ProcessInstanceElementFactory(private val processEngine: ProcessE
         return getHandleCondition(where, instance.withPermission().handle)
     }
 
-    override fun asInstance(obj: Any): ProcessInstance<*>? {
-        return obj as? ProcessInstance<*>
+    override fun asInstance(obj: Any): ProcessInstance? {
+        return obj as? ProcessInstance
     }
 
     override fun insertStatement(transaction: ProcessDBTransaction): ValuelessInsertAction<ProcessEngineDB, Insert> {
@@ -218,11 +218,11 @@ internal class ProcessInstanceElementFactory(private val processEngine: ProcessE
             return false; }
         if (oldValue === newValue) {
             return true; }
-        val actualOldValue: ProcessInstance<*> = oldValue.withPermission()
+        val actualOldValue: ProcessInstance = oldValue.withPermission()
         return isEqualForStorage(actualOldValue, newValue.withPermission())
     }
 
-    fun isEqualForStorage(oldValue: ProcessInstance<*>, newValue: ProcessInstance<*>): Boolean {
+    fun isEqualForStorage(oldValue: ProcessInstance, newValue: ProcessInstance): Boolean {
         return oldValue.uuid == newValue.uuid &&
             oldValue.handle == newValue.handle &&
             oldValue.state == newValue.state &&

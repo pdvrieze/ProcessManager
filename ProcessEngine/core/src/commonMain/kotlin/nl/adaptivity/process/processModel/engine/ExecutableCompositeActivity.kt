@@ -78,7 +78,7 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableActivity {
      * Determine whether the process can start.
      */
     override fun evalCondition(
-        nodeInstanceSource: IProcessInstance<*>,
+        nodeInstanceSource: IProcessInstance,
         predecessor: IProcessNodeInstance,
         nodeInstance: IProcessNodeInstance
     ): ConditionResult {
@@ -87,12 +87,12 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableActivity {
 
     override fun createOrReuseInstance(
         data: MutableProcessEngineDataAccess<*>,
-        processInstanceBuilder: ProcessInstance.Builder<*>,
+        processInstanceBuilder: ProcessInstance.Builder,
         predecessor: IProcessNodeInstance,
         entryNo: Int,
         allowFinalInstance: Boolean
     ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*, *>, *> {
-        return processInstanceBuilder.getChildNodeInstance(this, entryNo) ?: CompositeInstance.BaseBuilder(
+        return processInstanceBuilder.getChildNodeInstance(this, entryNo) ?: CompositeInstance.BaseBuilder<ActivityInstanceContext>(
             this, predecessor.handle,
             processInstanceBuilder,
             Handle.invalid(),

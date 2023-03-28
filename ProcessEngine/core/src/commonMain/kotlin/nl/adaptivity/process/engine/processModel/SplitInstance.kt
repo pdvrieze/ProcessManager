@@ -74,7 +74,7 @@ class SplitInstance<C : ActivityInstanceContext>  : ProcessNodeInstance<SplitIns
 
     }
 
-    class ExtBuilder<C : ActivityInstanceContext>(private val instance: SplitInstance<C>, processInstanceBuilder: ProcessInstance.Builder<*>) :
+    class ExtBuilder<C : ActivityInstanceContext>(private val instance: SplitInstance<C>, processInstanceBuilder: ProcessInstance.Builder) :
         ProcessNodeInstance.ExtBuilder<ExecutableSplit, SplitInstance<C>, C>(instance, processInstanceBuilder), Builder<C> {
         override var node: ExecutableSplit by overlay { instance.node }
         override fun build() = if (changed) SplitInstance<C>(this).also { invalidateBuilder(it) } else base
@@ -83,7 +83,7 @@ class SplitInstance<C : ActivityInstanceContext>  : ProcessNodeInstance<SplitIns
     class BaseBuilder<C : ActivityInstanceContext>(
         node: ExecutableSplit,
         predecessor: PNIHandle,
-        processInstanceBuilder: ProcessInstance.Builder<C>,
+        processInstanceBuilder: ProcessInstance.Builder,
         owner: PrincipalCompat,
         entryNo: Int,
         handle: PNIHandle = Handle.invalid(),
@@ -105,7 +105,7 @@ class SplitInstance<C : ActivityInstanceContext>  : ProcessNodeInstance<SplitIns
     constructor(
         node: ExecutableSplit,
         predecessor: PNIHandle,
-        processInstanceBuilder: ProcessInstance.Builder<*>,
+        processInstanceBuilder: ProcessInstance.Builder,
         hProcessInstance: PIHandle,
         owner: PrincipalCompat,
         handle: PNIHandle = Handle.invalid(),
@@ -136,7 +136,7 @@ class SplitInstance<C : ActivityInstanceContext>  : ProcessNodeInstance<SplitIns
         builder.entryNo
     )
 
-    override fun builder(processInstanceBuilder: ProcessInstance.Builder<*>): ExtBuilder<C> {
+    override fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder<C> {
         return SplitInstance.ExtBuilder(this, processInstanceBuilder)
     }
 

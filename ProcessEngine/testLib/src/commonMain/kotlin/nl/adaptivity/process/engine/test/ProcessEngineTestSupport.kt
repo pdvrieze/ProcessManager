@@ -39,11 +39,11 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>(
         override fun getName(): String = "modelOwner"
     }
 
-    private val ProcessInstance<*>.sortedFinished
+    private val ProcessInstance.sortedFinished
         get() = finished.sortedBy { it.handleValue }
-    private val ProcessInstance<*>.sortedActive
+    private val ProcessInstance.sortedActive
         get() = active.sortedBy { it.handleValue }
-    private val ProcessInstance<*>.sortedCompleted
+    private val ProcessInstance.sortedCompleted
         get() = completedEndnodes.sortedBy { it.handleValue }
 
     inline fun <R> testProcess(
@@ -92,13 +92,13 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>(
         return defaultEngineFactory<C>(messageService, stubTransactionFactory, createProcessContextFactory())
     }
 
-    protected fun ContextProcessTransaction.getInstance(instanceHandle: PIHandle): ProcessInstance<*> {
+    protected fun ContextProcessTransaction.getInstance(instanceHandle: PIHandle): ProcessInstance {
         return readableEngineData.instance(instanceHandle).withPermission()
     }
 
     protected fun <R> ContextProcessTransaction.withInstance(
         instanceHandle: PIHandle,
-        body: ContextProcessTransaction.(ProcessInstance<*>) -> R
+        body: ContextProcessTransaction.(ProcessInstance) -> R
     ): R {
         return body(getInstance(instanceHandle))
     }
@@ -107,15 +107,15 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>(
         return transaction.readableEngineData.nodeInstance(this.messages[index].source).withPermission()
     }
 
-    protected fun ProcessInstance<*>.child(transaction: ContextProcessTransaction, name: String) : ProcessNodeInstance<*, *> {
+    protected fun ProcessInstance.child(transaction: ContextProcessTransaction, name: String) : ProcessNodeInstance<*, *> {
         return getChild(name, 1)?.withPermission() ?: throw AssertionError("No node instance for node id ${name} found")
     }
 
-    protected fun ProcessInstance<*>.assertFinishedHandles(handles: Array<PNIHandle>) = apply {
+    protected fun ProcessInstance.assertFinishedHandles(handles: Array<PNIHandle>) = apply {
         assertEquals(handles.sorted(), ArrayList(sortedFinished))
     }
 
-    protected fun ProcessInstance<*>.assertFinished(vararg handles: IProcessNodeInstance) = apply {
+    protected fun ProcessInstance.assertFinished(vararg handles: IProcessNodeInstance) = apply {
         val actual = ArrayList(sortedFinished)
         val expected = handles.asSequence().map { it.handle }.sortedBy { it.handleValue }.toList()
         try {
@@ -125,11 +125,11 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>(
         }
     }
 
-    private fun ProcessInstance<*>.assertActiveHandles(handles: Array<PNIHandle>) = apply {
+    private fun ProcessInstance.assertActiveHandles(handles: Array<PNIHandle>) = apply {
         assertEquals(handles.sorted(), ArrayList(sortedActive))
     }
 
-    protected fun ProcessInstance<*>.assertActive(vararg handles: IProcessNodeInstance) = apply {
+    protected fun ProcessInstance.assertActive(vararg handles: IProcessNodeInstance) = apply {
         val actual = ArrayList(sortedActive)
         val expected = handles.asSequence().map { it.handle }.sortedBy { it.handleValue }.toList()
         try {
@@ -139,11 +139,11 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>(
         }
     }
 
-    private fun ProcessInstance<*>.assertCompletedHandles(handles: Array<PNIHandle>) = apply {
+    private fun ProcessInstance.assertCompletedHandles(handles: Array<PNIHandle>) = apply {
         assertEquals(handles.sorted(), ArrayList(sortedCompleted))
     }
 
-    protected fun ProcessInstance<*>.assertCompleted(vararg nodes: IProcessNodeInstance): ProcessInstance<*> {
+    protected fun ProcessInstance.assertCompleted(vararg nodes: IProcessNodeInstance): ProcessInstance {
         val actual = ArrayList(sortedCompleted)
         val expected = nodes.asSequence().map { it.handle }.sortedBy { it.handleValue }.toList()
         assertEquals(expected, actual)
@@ -154,11 +154,11 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>(
         assertEquals(NodeInstanceState.Started, this.state)
     }
 
-    protected fun ProcessInstance<*>.assertIsStarted() = apply {
+    protected fun ProcessInstance.assertIsStarted() = apply {
         assertEquals(ProcessInstance.State.STARTED, this.state)
     }
 
-    protected fun ProcessInstance<*>.assertIsFinished() = apply {
+    protected fun ProcessInstance.assertIsFinished() = apply {
         assertEquals(ProcessInstance.State.FINISHED, this.state)
     }
 

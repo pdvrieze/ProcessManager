@@ -16,12 +16,10 @@
 
 package nl.adaptivity.process.engine
 
-import net.devrieze.util.Handle
-import net.devrieze.util.security.SecureObject
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.MessageSendingResult
-import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.processModel.instantiateXmlPlaceholders
 import nl.adaptivity.process.processModel.IXmlMessage
 import nl.adaptivity.process.processModel.ServiceAuthData
@@ -38,7 +36,7 @@ open class StubMessageService(
     override val localEndpoint: EndpointDescriptor
 ) : IMessageService<IXmlMessage> {
 
-    class ExtMessage(val base: IXmlMessage, val source: Handle<SecureObject<ProcessNodeInstance<*, *>>>, val authData: ServiceAuthData?) : IXmlMessage by base
+    class ExtMessage(val base: IXmlMessage, val source: PNIHandle, val authData: ServiceAuthData?) : IXmlMessage by base
 
     private var _messages = mutableListOf<ExtMessage>()
 
@@ -52,7 +50,7 @@ open class StubMessageService(
         _messages.clear()
     }
 
-    fun getMessageNode(i: Int): Handle<SecureObject<ProcessNodeInstance<*, *>>> {
+    fun getMessageNode(i: Int): PNIHandle {
         return _messages[i].source
     }
 

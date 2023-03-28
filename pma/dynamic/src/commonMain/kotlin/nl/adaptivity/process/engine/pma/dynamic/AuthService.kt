@@ -22,6 +22,7 @@ import nl.adaptivity.process.engine.impl.Level
 import nl.adaptivity.process.engine.impl.LoggerCompat
 import nl.adaptivity.process.engine.pma.CommonPMAPermissions.*
 import nl.adaptivity.process.engine.pma.models.*
+import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.nl.adaptivity.util.kotlin.removeIfTo
 import kotlin.random.Random
@@ -30,7 +31,7 @@ import kotlin.random.nextULong
 
 class AuthService(
     val logger: LoggerCompat,
-    private val nodeLookup: Map<PNIHandle, String>,
+    private val nodeLookup: Map<Handle<SecureProcessNodeInstance>, String>,
     private val random: Random
 ) : AutomatedService {
     val authServiceId = "AuthService:${random.nextUInt().toString(16)}"
@@ -164,7 +165,7 @@ class AuthService(
     fun createAuthorizationCode(
         auth: IdSecretAuthInfo,
         clientId: String,
-        nodeInstanceHandle: PNIHandle,
+        nodeInstanceHandle: Handle<SecureProcessNodeInstance>,
         service: Service,
         scope: AuthScope
     ): AuthorizationCode {
@@ -207,15 +208,16 @@ class AuthService(
         return exchangeDelegateCode(auth, client, nodeInstanceHandle, service, scope)
     }
 
-    private fun AuthInfo.getNodeInstanceHandle(): PNIHandle = when (this) {
-        is AuthToken -> nodeInstanceHandle
-        else -> Handle.invalid()
-    }
+    private fun AuthInfo.getNodeInstanceHandle(): Handle<SecureProcessNodeInstance> =
+        when (this) {
+            is AuthToken -> nodeInstanceHandle
+            else -> Handle.invalid()
+        }
 
     private fun exchangeDelegateCode(
         auth: AuthToken,
         client: Service,
-        nodeInstanceHandle: PNIHandle,
+        nodeInstanceHandle: Handle<SecureProcessNodeInstance>,
         service: Service,
         scope: AuthScope
     ): AuthorizationCode {
@@ -254,7 +256,7 @@ class AuthService(
     private fun createAuthorizationCodeImpl(
         auth: AuthInfo,
         clientId: String,
-        nodeInstanceHandle: PNIHandle,
+        nodeInstanceHandle: Handle<SecureProcessNodeInstance>,
         service: Service,
         scope: AuthScope
     ): AuthorizationCode {
@@ -330,7 +332,7 @@ class AuthService(
                     when {
                         // Any child scopes for activity limited grants
                         it is GRANT_ACTIVITY_PERMISSION.ContextScope &&
-                                it.taskInstanceHandle == identityToken.nodeInstanceHandle -> it.childScope ?: ANYSCOPE
+                            it.taskInstanceHandle == identityToken.nodeInstanceHandle -> it.childScope ?: ANYSCOPE
 
                         // As well as global grants
                         it is GRANT_GLOBAL_PERMISSION.ContextScope ->
@@ -369,9 +371,9 @@ class AuthService(
 
         val existingToken = activeTokens.firstOrNull {
             it.principal == identityToken.principal &&
-                    it.nodeInstanceHandle == nodeInstanceHandle &&
-                    it.serviceId == serviceId &&
-                    it.scope == effectiveScope
+                it.nodeInstanceHandle == nodeInstanceHandle &&
+                it.serviceId == serviceId &&
+                it.scope == effectiveScope
         }
 
         if (existingToken != null) {
@@ -461,7 +463,10 @@ class AuthService(
         tokenPermissionList.add(Permission(scope))
     }
 
-    fun invalidateActivityTokens(auth: AuthInfo, hNodeInstance: PNIHandle) {
+    fun invalidateActivityTokens(
+        auth: AuthInfo,
+        hNodeInstance: Handle<SecureProcessNodeInstance>
+    ) {
         doLog(auth, "invalidateActivityTokens($hNodeInstance)")
         internalValidateAuthInfo(auth, INVALIDATE_ACTIVITY.context(hNodeInstance))
 

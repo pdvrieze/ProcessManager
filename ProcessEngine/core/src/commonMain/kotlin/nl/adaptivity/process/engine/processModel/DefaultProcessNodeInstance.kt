@@ -55,7 +55,7 @@ class DefaultProcessNodeInstance<C : ActivityInstanceContext> : ProcessNodeInsta
     constructor(
         node: ExecutableProcessNode,
         predecessors: Collection<PNIHandle>,
-        processInstanceBuilder: ProcessInstance.Builder<C>,
+        processInstanceBuilder: ProcessInstance.Builder,
         hProcessInstance: PIHandle,
         owner: PrincipalCompat,
         entryNo: Int,
@@ -82,7 +82,7 @@ class DefaultProcessNodeInstance<C : ActivityInstanceContext> : ProcessNodeInsta
     constructor(
         node: ExecutableProcessNode,
         predecessor: PNIHandle,
-        processInstance: ProcessInstance<C>,
+        processInstance: ProcessInstance,
         entryNo: Int,
         assignedUser: PrincipalCompat?
     ) : this(
@@ -118,7 +118,7 @@ class DefaultProcessNodeInstance<C : ActivityInstanceContext> : ProcessNodeInsta
         }
     }
 
-    override fun builder(processInstanceBuilder: ProcessInstance.Builder<*>):
+    override fun builder(processInstanceBuilder: ProcessInstance.Builder):
         ExtBuilder<ExecutableProcessNode, DefaultProcessNodeInstance<C>, C> {
 
         return ExtBuilderImpl(this, processInstanceBuilder)
@@ -221,7 +221,7 @@ class DefaultProcessNodeInstance<C : ActivityInstanceContext> : ProcessNodeInsta
 
     private class ExtBuilderImpl<C : ActivityInstanceContext>(
         base: DefaultProcessNodeInstance<C>,
-        processInstanceBuilder: ProcessInstance.Builder<*>
+        processInstanceBuilder: ProcessInstance.Builder
     ) :
         ExtBuilder<ExecutableProcessNode, DefaultProcessNodeInstance<C>, C>(base, processInstanceBuilder), Builder<C> {
         override var node: ExecutableProcessNode by overlay { base.node }
@@ -232,7 +232,7 @@ class DefaultProcessNodeInstance<C : ActivityInstanceContext> : ProcessNodeInsta
     class BaseBuilder<C : ActivityInstanceContext>(
         node: ExecutableProcessNode,
         predecessors: Iterable<PNIHandle>,
-        processInstanceBuilder: ProcessInstance.Builder<*>,
+        processInstanceBuilder: ProcessInstance.Builder,
         owner: PrincipalCompat,
         entryNo: Int,
         override var assignedUser: PrincipalCompat? = null,
@@ -263,7 +263,7 @@ class DefaultProcessNodeInstance<C : ActivityInstanceContext> : ProcessNodeInsta
         fun <C : ActivityInstanceContext> build(
             node: ExecutableProcessNode,
             predecessors: Set<PNIHandle>,
-            processInstanceBuilder: ProcessInstance.Builder<C>,
+            processInstanceBuilder: ProcessInstance.Builder,
             handle: Handle<SecureObject<DefaultProcessNodeInstance<C>>> = Handle.invalid(),
             state: NodeInstanceState = NodeInstanceState.Pending,
             entryNo: Int,
@@ -282,7 +282,7 @@ class DefaultProcessNodeInstance<C : ActivityInstanceContext> : ProcessNodeInsta
         fun <C : ActivityInstanceContext> build(
             node: ExecutableProcessNode,
             predecessors: Set<PNIHandle>,
-            processInstance: ProcessInstance<C>,
+            processInstance: ProcessInstance,
             handle: Handle<SecureObject<DefaultProcessNodeInstance<C>>> = Handle.invalid(),
             state: NodeInstanceState = NodeInstanceState.Pending,
             entryNo: Int,

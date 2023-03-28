@@ -86,7 +86,7 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
 
     override fun createOrReuseInstance(
         data: MutableProcessEngineDataAccess<*>,
-        processInstanceBuilder: ProcessInstance.Builder<*>,
+        processInstanceBuilder: ProcessInstance.Builder,
         predecessor: IProcessNodeInstance,
         entryNo: Int,
         allowFinalInstance: Boolean
@@ -124,7 +124,7 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
     }
 
     override fun evalCondition(
-        nodeInstanceSource: IProcessInstance<*>,
+        nodeInstanceSource: IProcessInstance,
         predecessor: IProcessNodeInstance,
         nodeInstance: IProcessNodeInstance
     ): ConditionResult {

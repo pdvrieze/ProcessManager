@@ -46,7 +46,7 @@ class ExecutableJoin(
 
     fun getExistingInstance(
         data: ProcessEngineDataAccess<*>,
-        processInstanceBuilder: ProcessInstance.Builder<*>,
+        processInstanceBuilder: ProcessInstance.Builder,
         predecessor: IProcessNodeInstance,
         neededEntryNo: Int,
         allowFinalInstance: Boolean
@@ -80,7 +80,7 @@ class ExecutableJoin(
     }
 
     override fun evalCondition(
-        nodeInstanceSource: IProcessInstance<*>,
+        nodeInstanceSource: IProcessInstance,
         predecessor: IProcessNodeInstance,
         nodeInstance: IProcessNodeInstance
     ): ConditionResult {
@@ -115,7 +115,7 @@ class ExecutableJoin(
 
     override fun createOrReuseInstance(
         data: MutableProcessEngineDataAccess<*>,
-        processInstanceBuilder: ProcessInstance.Builder<*>,
+        processInstanceBuilder: ProcessInstance.Builder,
         predecessor: IProcessNodeInstance,
         entryNo: Int,
         allowFinalInstance: Boolean
@@ -141,7 +141,7 @@ class ExecutableJoin(
         if (!(isMultiInstance || isMultiMerge) && candidateNo != 1) {
             throw ProcessException("Attempting to start a second instance of a single instantiation join $id:$entryNo")
         }
-        return JoinInstance.BaseBuilder(
+        return JoinInstance.BaseBuilder<ActivityInstanceContext>(
             this,
             listOf(predecessor.handle),
             processInstanceBuilder,

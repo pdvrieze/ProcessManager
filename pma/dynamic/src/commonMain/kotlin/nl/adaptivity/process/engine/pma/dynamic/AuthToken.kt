@@ -16,12 +16,14 @@
 
 package nl.adaptivity.process.engine.pma
 
+import net.devrieze.util.Handle
 import nl.adaptivity.process.engine.pma.models.AuthScope
+import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 class AuthToken(
     principal: PrincipalCompat,
-    val nodeInstanceHandle: PNIHandle,
+    val nodeInstanceHandle: Handle<SecureProcessNodeInstance>,
     val tokenValue: String,
     val serviceId: String,
     val scope: AuthScope
