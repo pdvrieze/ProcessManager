@@ -77,7 +77,7 @@ interface ProcessContextFactory<C : ActivityInstanceContext> {
         assignedUser: PrincipalCompat? = null,
         handle: PNIHandle = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
-    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, *, *> {
+    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, *> {
         return DefaultProcessNodeInstance.BaseBuilder<ActivityInstanceContext>(node, predecessors, processInstanceBuilder, owner, entryNo, assignedUser, handle, state)
     }
 

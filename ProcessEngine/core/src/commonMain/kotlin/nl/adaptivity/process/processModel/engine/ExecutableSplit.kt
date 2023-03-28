@@ -47,7 +47,7 @@ class ExecutableSplit(
         predecessor: IProcessNodeInstance,
         entryNo: Int,
         allowFinalInstance: Boolean
-    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*, *>, *> {
+    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*>> {
         // TODO handle reentry
         return processInstanceBuilder.getChildNodeInstance(this, entryNo)
             ?: SplitInstance.BaseBuilder<ActivityInstanceContext>(
@@ -58,7 +58,7 @@ class ExecutableSplit(
             )
     }
 
-    override fun canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *, *>): Boolean = false
+    override fun canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *>): Boolean = false
 
     class Builder : SplitBase.Builder, ExecutableProcessNode.Builder {
         constructor(

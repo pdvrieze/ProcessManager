@@ -91,7 +91,7 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableActivity {
         predecessor: IProcessNodeInstance,
         entryNo: Int,
         allowFinalInstance: Boolean
-    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*, *>, *> {
+    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*>> {
         return processInstanceBuilder.getChildNodeInstance(this, entryNo) ?: CompositeInstance.BaseBuilder<ActivityInstanceContext>(
             this, predecessor.handle,
             processInstanceBuilder,
@@ -101,9 +101,9 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableActivity {
         )
     }
 
-    override fun <C : ActivityInstanceContext> canProvideTaskAutoProgress(
+    override fun canProvideTaskAutoProgress(
         engineData: ProcessEngineDataAccess<*>,
-        instanceBuilder: ProcessNodeInstance.Builder<*, *, C>
+        instanceBuilder: ProcessNodeInstance.Builder<*, *>
     ): Boolean = true
 
     /**
@@ -114,7 +114,7 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableActivity {
      */
     override fun <C : ActivityInstanceContext> canTakeTaskAutoProgress(
         activityContext: C,
-        instance: ProcessNodeInstance.Builder<*, *, *>,
+        instance: ProcessNodeInstance.Builder<*, *>,
         assignedUser: PrincipalCompat?
     ): Boolean = true
 
@@ -124,6 +124,6 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableActivity {
      *
      * @return `false`
      */
-    override fun canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *, *>): Boolean = false
+    override fun canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *>): Boolean = false
 
 }

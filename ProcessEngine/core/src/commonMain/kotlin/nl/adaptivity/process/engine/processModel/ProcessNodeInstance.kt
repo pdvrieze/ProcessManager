@@ -52,7 +52,7 @@ import kotlin.contracts.contract
  *                   this may be a higher number. Values below 1 are invalid.
  * @property failureCause For a failure, the cause of the failure
  */
-abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, *>, AIC: ActivityInstanceContext>(
+abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T>>(
     override val node: ExecutableProcessNode,
     predecessors: Iterable<PNIHandle>,
     processInstanceBuilder: ProcessInstance.Builder,
@@ -63,7 +63,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, *>, AIC: Activ
     final override val state: NodeInstanceState = Pending,
     results: Iterable<ProcessData> = emptyList(),
     val failureCause: Throwable? = null
-) : SecureObject<T/*ProcessNodeInstance<T, C>*/>,
+) : SecureObject<T>,
     ReadableHandleAware<SecureProcessNodeInstance>,
     IProcessNodeInstance {
 
@@ -84,7 +84,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, *>, AIC: Activ
         }
     }
 
-    constructor(builder: Builder<*, T, AIC>) : this(
+    constructor(builder: Builder<*, T>) : this(
         node = builder.node,
         predecessors = builder.predecessors,
         processInstanceBuilder = builder.processInstanceBuilder,
@@ -97,9 +97,9 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, *>, AIC: Activ
         failureCause = builder.failureCause
     )
 
-    override fun build(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance<*, AIC> = this
+    override fun build(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance<*> = this
 
-    override abstract fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder<out ExecutableProcessNode, @UnsafeVariance T, *>
+    override abstract fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder<out ExecutableProcessNode, @UnsafeVariance T>
 
     private fun precedingClosure(processData: ProcessEngineDataAccess<*>): Sequence<SecureProcessNodeInstance> {
         return predecessors.asSequence().flatMap { predHandle ->
@@ -110,7 +110,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, *>, AIC: Activ
 
     fun update(
         processInstanceBuilder: ProcessInstance.Builder,
-        body: Builder<out ExecutableProcessNode, T, *>.() -> Unit
+        body: Builder<out ExecutableProcessNode, T>.() -> Unit
     ): Future<out T>? {
         val builder = builder(processInstanceBuilder).apply(body)
 
@@ -128,7 +128,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, *>, AIC: Activ
         return predecessors.any { it.handleValue == handle.handleValue }
     }
 
-    fun resolvePredecessors(engineData: ProcessEngineDataAccess<AIC>): Collection<ProcessNodeInstance<*, *>> {
+    fun resolvePredecessors(engineData: ProcessEngineDataAccess<*>): Collection<ProcessNodeInstance<*>> {
         return predecessors.asSequence().map {
             engineData.nodeInstance(it).withPermission()
         }.toList()
@@ -142,7 +142,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, *>, AIC: Activ
         return "nodeInstance  ($handle, ${node.id}[$entryNo] - $state)"
     }
 
-    fun AIC.serialize(
+    fun ActivityInstanceContext.serialize(
         nodeInstanceSource: IProcessInstance,
         out: XmlWriter,
         localEndpoint: EndpointDescriptor
@@ -172,7 +172,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, *>, AIC: Activ
         }
     }
 
-    fun AIC.toSerializable(
+    fun ActivityInstanceContext.toSerializable(
         engineData: ProcessEngineDataAccess<*>,
         localEndpoint: EndpointDescriptor
     ): XmlProcessNodeInstance {
@@ -192,7 +192,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, *>, AIC: Activ
         return builder.toXmlInstance(body)
     }
 
-    interface Builder<N : ExecutableProcessNode, out T : ProcessNodeInstance<T, *>, C: ActivityInstanceContext> : IProcessNodeInstance {
+    interface Builder<N : ExecutableProcessNode, out T : ProcessNodeInstance<T>> : IProcessNodeInstance {
         override var node: N
         override val predecessors: MutableSet<PNIHandle>
         val processInstanceBuilder: ProcessInstance.Builder
@@ -215,7 +215,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, *>, AIC: Activ
 
         fun build(): T
 
-        override fun builder(processInstanceBuilder: ProcessInstance.Builder): Builder<*, ProcessNodeInstance<*, *>, *> =
+        override fun builder(processInstanceBuilder: ProcessInstance.Builder): Builder<*, ProcessNodeInstance<*>> =
             this
 
         fun failTaskCreation(cause: Throwable) {
@@ -342,7 +342,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, *>, AIC: Activ
 
     }
 
-    abstract class AbstractBuilder<N : ExecutableProcessNode, T : ProcessNodeInstance<T, C>, C: ActivityInstanceContext> : Builder<N, T, C> {
+    abstract class AbstractBuilder<N : ExecutableProcessNode, T : ProcessNodeInstance<T>> : Builder<N, T> {
 
         override fun toXmlInstance(body: ICompactFragment?): XmlProcessNodeInstance {
             return XmlProcessNodeInstance(
@@ -392,7 +392,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, *>, AIC: Activ
             if (this !is JoinInstance.Builder<*>) {
                 val predecessors = predecessors.map { engineData.nodeInstance(it).withPermission() }
                 for (predecessor in predecessors) {
-                    if (predecessor !is SplitInstance && !predecessor.state.isFinal) {
+                    if (predecessor !is SplitInstance<*> && !predecessor.state.isFinal) {
                         throw ProcessException("Attempting to start successor ${node.id}[$handle] for non-final predecessor ${predecessor.node.id}[${predecessor.handle} - ${predecessor.state}]")
                     }
                 }
@@ -498,7 +498,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, *>, AIC: Activ
 
     }
 
-    abstract class BaseBuilder<N : ExecutableProcessNode, T : ProcessNodeInstance<T, C>, C: ActivityInstanceContext>(
+    abstract class BaseBuilder<N : ExecutableProcessNode, T : ProcessNodeInstance<T>>(
         final override var node: N,
         predecessors: Iterable<PNIHandle>,
         final override val processInstanceBuilder: ProcessInstance.Builder,
@@ -506,7 +506,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, *>, AIC: Activ
         final override val entryNo: Int,
         final override var handle: PNIHandle = Handle.invalid(),
         state: NodeInstanceState = Pending
-    ) : AbstractBuilder<N, T, C>() {
+    ) : AbstractBuilder<N, T>() {
 
         final override var state = state
             set(value) {
@@ -530,10 +530,10 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, *>, AIC: Activ
         final override val results = mutableListOf<ProcessData>()
     }
 
-    abstract class ExtBuilder<N : ExecutableProcessNode, T : ProcessNodeInstance<T, C>, C: ActivityInstanceContext>(
+    abstract class ExtBuilder<N : ExecutableProcessNode, T : ProcessNodeInstance<T>>(
         protected var base: T,
         override val processInstanceBuilder: ProcessInstance.Builder
-    ) : AbstractBuilder<N, T, C>() {
+    ) : AbstractBuilder<N, T>() {
         private val observer: Observer<Any?> = { newValue -> changed = true; newValue }
 
         @Suppress("UNCHECKED_CAST")
@@ -588,7 +588,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T, *>, AIC: Activ
 private typealias Observer<T> = (T) -> T
 
 @OptIn(ExperimentalContracts::class)
-inline fun <R> ProcessNodeInstance.Builder<*, *, *>.tryCreateTask(body: () -> R): R {
+inline fun <R> ProcessNodeInstance.Builder<*, *>.tryCreateTask(body: () -> R): R {
     contract {
         callsInPlace(body, InvocationKind.EXACTLY_ONCE)
     }
@@ -598,7 +598,7 @@ inline fun <R> ProcessNodeInstance.Builder<*, *, *>.tryCreateTask(body: () -> R)
 }
 
 @OptIn(ExperimentalContracts::class)
-inline fun <R> ProcessNodeInstance.Builder<*, *, *>.tryRunTask(body: () -> R): R {
+inline fun <R> ProcessNodeInstance.Builder<*, *>.tryRunTask(body: () -> R): R {
     contract {
         callsInPlace(body, InvocationKind.EXACTLY_ONCE)
     }

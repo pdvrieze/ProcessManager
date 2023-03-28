@@ -30,7 +30,7 @@ import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.XmlWriter
 import nl.adaptivity.xmlutil.filterSubstream
 
-typealias SecureProcessNodeInstance = SecureObject<ProcessNodeInstance<*, *>>
+typealias SecureProcessNodeInstance = SecureObject<ProcessNodeInstance<*>>
 typealias PNIHandle = Handle<SecureProcessNodeInstance>
 
 
@@ -51,9 +51,9 @@ interface IProcessNodeInstance : ReadableHandleAware<SecureProcessNodeInstance> 
     val state: NodeInstanceState
     val results: List<ProcessData>
 
-    fun builder(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance.Builder<*, ProcessNodeInstance<*, *>, *>
+    fun builder(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance.Builder<*, ProcessNodeInstance<*>>
 
-    fun build(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance<*, *> {
+    fun build(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance<*> {
         return builder(processInstanceBuilder).build()
     }
 
@@ -107,13 +107,13 @@ private fun IProcessNodeInstance.getPredecessor(
     return null
 }
 
-fun <C: ActivityInstanceContext> C.getDefines(nodeInstanceSource: IProcessInstance): List<ProcessData> {
+fun ActivityInstanceContext.getDefines(nodeInstanceSource: IProcessInstance): List<ProcessData> {
     return node.defines.map {
         it.applyData(nodeInstanceSource, this)
     }
 }
 
-fun <C : ActivityInstanceContext> C.instantiateXmlPlaceholders(
+fun ActivityInstanceContext.instantiateXmlPlaceholders(
     nodeInstanceSource: IProcessInstance,
     xmlReader: XmlReader,
     removeWhitespace: Boolean,
@@ -126,7 +126,7 @@ fun <C : ActivityInstanceContext> C.instantiateXmlPlaceholders(
     return WritableCompactFragment(emptyList<Namespace>(), charArray)
 }
 
-fun <C : ActivityInstanceContext> C.instantiateXmlPlaceholders(
+fun ActivityInstanceContext.instantiateXmlPlaceholders(
     nodeInstanceSource: IProcessInstance,
     xmlReader: XmlReader,
     out: XmlWriter,

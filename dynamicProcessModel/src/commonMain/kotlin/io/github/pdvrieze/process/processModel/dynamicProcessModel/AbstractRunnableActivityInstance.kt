@@ -12,7 +12,7 @@ import nl.adaptivity.xmlutil.serialization.XML
 
 abstract class AbstractRunnableActivityInstance<I : Any, O : Any, C : ActivityInstanceContext, NodeT : RunnableActivity<I, O, *>, InstT : AbstractRunnableActivityInstance<I, O, *, NodeT, InstT>>(
     builder: Builder<I, O, C, NodeT, InstT>
-) : ProcessNodeInstance<InstT, C>(builder) {
+) : ProcessNodeInstance<InstT>(builder) {
 
     @Suppress("UNCHECKED_CAST")
     override val node: NodeT get() = super.node as NodeT
@@ -23,7 +23,7 @@ abstract class AbstractRunnableActivityInstance<I : Any, O : Any, C : ActivityIn
     }
 
     interface Builder<I : Any, O : Any, C : ActivityInstanceContext, NodeT : RunnableActivity<I, O, *>, InstT : AbstractRunnableActivityInstance<I, O, *, NodeT, InstT>> :
-        ProcessNodeInstance.Builder<NodeT, InstT, C> {
+        ProcessNodeInstance.Builder<NodeT, InstT> {
 
         override var assignedUser: PrincipalCompat?
 
@@ -86,7 +86,7 @@ abstract class AbstractRunnableActivityInstance<I : Any, O : Any, C : ActivityIn
         final override var assignedUser: PrincipalCompat? = null,
         handle: PNIHandle = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
-    ) : ProcessNodeInstance.BaseBuilder<NodeT, InstT, C>(
+    ) : ProcessNodeInstance.BaseBuilder<NodeT, InstT>(
         node = node,
         predecessors = listOfNotNull(predecessor),
         processInstanceBuilder = processInstanceBuilder,
@@ -97,9 +97,7 @@ abstract class AbstractRunnableActivityInstance<I : Any, O : Any, C : ActivityIn
     ), Builder<I, O, C, NodeT, InstT> {
         override fun invalidateBuilder(engineData: ProcessEngineDataAccess<*>) {
             engineData.nodeInstances[handle]?.withPermission()?.let { n ->
-                @Suppress("UNCHECKED_CAST")
                 val newBase = n as InstT
-
                 node = newBase.node
                 predecessors.replaceBy(newBase.predecessors)
                 owner = newBase.owner
@@ -118,7 +116,7 @@ abstract class AbstractRunnableActivityInstance<I : Any, O : Any, C : ActivityIn
         >(
         base: InstT,
         processInstanceBuilder: ProcessInstance.Builder
-    ) : ProcessNodeInstance.ExtBuilder<NodeT, InstT, C>(
+    ) : ProcessNodeInstance.ExtBuilder<NodeT, InstT>(
         base,
         processInstanceBuilder
     ), Builder<I, O, C, NodeT, InstT> {

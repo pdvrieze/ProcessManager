@@ -81,9 +81,9 @@ class PMAMessageActivity<C: PMAActivityContext<C>>(
         return _condition?.isOtherwise == true
     }
 
-    override fun <C: ActivityInstanceContext> canProvideTaskAutoProgress(
+    override fun canProvideTaskAutoProgress(
         engineData: ProcessEngineDataAccess<*>,
-        instanceBuilder: ProcessNodeInstance.Builder<*, *, C>
+        instanceBuilder: ProcessNodeInstance.Builder<*, *>
     ) = false
 
     /**
@@ -94,7 +94,7 @@ class PMAMessageActivity<C: PMAActivityContext<C>>(
      */
     override fun <C: ActivityInstanceContext> canTakeTaskAutoProgress(
         activityContext: C,
-        instance: ProcessNodeInstance.Builder<*, *, *>,
+        instance: ProcessNodeInstance.Builder<*, *>,
         assignedUser: PrincipalCompat?
     ): Boolean {
         if (assignedUser==null) throw ProcessException("Message activities must have a user assigned for 'taking' them")
@@ -110,7 +110,7 @@ class PMAMessageActivity<C: PMAActivityContext<C>>(
      *
      * @return `false`
      */
-    override fun canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *, *>): Boolean = false
+    override fun canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *>): Boolean = false
 
     open class Builder<C: PMAActivityContext<C>>: MessageActivityBase.Builder, ExecutableProcessNode.Builder {
         constructor() : super() {

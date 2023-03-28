@@ -230,18 +230,18 @@ class TestContext(private val config: TraceTest.ConfigBase) {
         return transaction.readableEngineData.instance(instanceHandle).withPermission()
     }
 
-    fun TraceElement.getNodeInstance(): ProcessNodeInstance<*, *>? {
+    fun TraceElement.getNodeInstance(): ProcessNodeInstance<*>? {
         return getNodeInstance(transaction, getProcessInstance())
     }
 
-    fun getNodeInstance(handle: PNIHandle): ProcessNodeInstance<*, *> {
+    fun getNodeInstance(handle: PNIHandle): ProcessNodeInstance<*> {
         return transaction.readableEngineData.nodeInstance(handle).withPermission()
     }
 
     inline fun updateNodeInstance(
         traceElement: TraceElement,
         instanceHandle: PIHandle = hInstance,
-        crossinline action: ProcessNodeInstance.Builder<out ExecutableProcessNode, *, *>.() -> Unit
+        crossinline action: ProcessNodeInstance.Builder<out ExecutableProcessNode, *>.() -> Unit
     ) {
 
         val nodeInstance = traceElement.getNodeInstance(transaction, getProcessInstance(instanceHandle))
@@ -254,7 +254,7 @@ class TestContext(private val config: TraceTest.ConfigBase) {
 
     fun updateNodeInstance(
         nodeInstanceHandle: PNIHandle,
-        action: ProcessNodeInstance.Builder<out ExecutableProcessNode, *, *>.() -> Unit
+        action: ProcessNodeInstance.Builder<out ExecutableProcessNode, *>.() -> Unit
     ) {
         transaction.writableEngineData.updateNodeInstance(nodeInstanceHandle, action)
     }
@@ -406,7 +406,7 @@ class TestContext(private val config: TraceTest.ConfigBase) {
     }
 
     @Suppress("unused")
-    inline fun <reified T : ProcessNode> Trace.nodeInstances(): Sequence<ProcessNodeInstance<*, *>?> {
+    inline fun <reified T : ProcessNode> Trace.nodeInstances(): Sequence<ProcessNodeInstance<*>?> {
         return asSequence()
             .filter { model.findNode(it) is T }
             .map { traceElement ->
@@ -414,11 +414,11 @@ class TestContext(private val config: TraceTest.ConfigBase) {
             }
     }
 
-    inline fun <reified T : ProcessNode> Trace.allNodeInstances(): Sequence<ProcessNodeInstance<*, *>> {
+    inline fun <reified T : ProcessNode> Trace.allNodeInstances(): Sequence<ProcessNodeInstance<*>> {
         return allNodeInstances(T::class)
     }
 
-    fun Trace.allNodeInstances(type: KClass<*>): Sequence<ProcessNodeInstance<*, *>> {
+    fun Trace.allNodeInstances(type: KClass<*>): Sequence<ProcessNodeInstance<*>> {
         val processInstance = getProcessInstance()
         return asSequence().mapNotNull { traceElement ->
             val node = model.findNode(traceElement)
@@ -536,7 +536,7 @@ fun createValidTraceTest(config: TraceTest.ConfigBase, trace: Trace, traceNo: In
         addTest("After starting only start nodes should be finished") {
             val processInstance = getProcessInstance()
 
-            val predicate: (ProcessNodeInstance<*, *>) -> Boolean =
+            val predicate: (ProcessNodeInstance<*>) -> Boolean =
                 { it.state == NodeInstanceState.Skipped || it.node is StartNode || it.node is Split || it.node is Join }
 
             val onlyStartNodesCompleted = processInstance.finishedNodes.all(predicate)
@@ -565,7 +565,7 @@ fun createValidTraceTest(config: TraceTest.ConfigBase, trace: Trace, traceNo: In
                 val actualFinishedNodes = getProcessInstance().transitiveChildren(transaction)
                     .map { it.withPermission() }
                     .filter { it.state.isFinal && it.node !is EndNode }
-                    .onEach(ProcessNodeInstance<*, *>::assertFinished)
+                    .onEach(ProcessNodeInstance<*>::assertFinished)
                     .filterNot { it.state.isSkipped }
                     .map { TraceElement(it.node.id, it.entryNo) }
                     .sorted()
@@ -729,14 +729,14 @@ private fun ContainerContext.createCompositeElementTest(trace: Trace, elementIdx
     val traceElement = trace[elementIdx]
     addTest("A child instance should have been created for $traceElement") {
         runTrace(trace, elementIdx)
-        assertTrue((traceElement.getNodeInstance() as CompositeInstance).hChildInstance.isValid) {
+        assertTrue((traceElement.getNodeInstance() as CompositeInstance<*>).hChildInstance.isValid) {
             "No child instance was recorded"
         }
     }
 
     addTest("The child instance was finished for $traceElement") {
         runTrace(trace, elementIdx + 1)
-        val nodeInstance = traceElement.getNodeInstance() as CompositeInstance
+        val nodeInstance = traceElement.getNodeInstance() as CompositeInstance<*>
         val childInstance = getProcessInstance(nodeInstance.hChildInstance)
 
         assertEquals(ProcessInstance.State.FINISHED, childInstance.state)
@@ -821,7 +821,7 @@ fun createInvalidTraceTest(
     }
 }
 
-fun ProcessNodeInstance<*, *>.assertFinished() {
+fun ProcessNodeInstance<*>.assertFinished() {
     assertTrue(this.state.isFinal) { "The node instance state should be final (but is $state)" }
     assertTrue(this.node !is EndNode) { "Completed nodes should not be endnodes" }
 }

@@ -37,13 +37,13 @@ interface InstanceSupport { // TODO add context type parameter
     val transaction: StubProcessTransaction
     val engine: ProcessEngine<StubProcessTransaction, ActivityInstanceContext>
 
-    fun ProcessInstance.allChildren(): Sequence<ProcessNodeInstance<*,*>> {
+    fun ProcessInstance.allChildren(): Sequence<ProcessNodeInstance<*>> {
         @Suppress("UNCHECKED_CAST")
         return transitiveChildren(this@InstanceSupport.transaction as StubProcessTransaction)
     }
 
 
-    fun ProcessInstance.trace(filter: (ProcessNodeInstance<*,*>)->Boolean) = trace(transaction, filter)
+    fun ProcessInstance.trace(filter: (ProcessNodeInstance<*>)->Boolean) = trace(transaction, filter)
 
     val ProcessInstance.trace: Trace get() = trace(transaction)
 
@@ -57,17 +57,17 @@ interface InstanceSupport { // TODO add context type parameter
     }
 
 
-    fun TraceElement.getNodeInstance(hInstance: PIHandle): ProcessNodeInstance<*,*>? {
+    fun TraceElement.getNodeInstance(hInstance: PIHandle): ProcessNodeInstance<*>? {
         val instance = transaction.readableEngineData.instance(hInstance).withPermission()
         return getNodeInstance(transaction, instance)
     }
 }
 
 
-fun ProcessInstance.transitiveChildren(transaction: StubProcessTransaction): Sequence<ProcessNodeInstance<*,*>> {
+fun ProcessInstance.transitiveChildren(transaction: StubProcessTransaction): Sequence<ProcessNodeInstance<*>> {
     return childNodes.asSequence().flatMap {
         when (val child = it.withPermission()) {
-            is CompositeInstance ->
+            is CompositeInstance<*> ->
                 if (child.hChildInstance.isValid) {
                     sequenceOf(child) +
                         transaction.readableEngineData
@@ -128,7 +128,7 @@ fun ProcessInstance.findChild(transaction: StubProcessTransaction, id: String) =
 fun ProcessInstance.findChild(transaction: StubProcessTransaction, id: Identified) = findChild(transaction, id.id)
 
 fun ProcessInstance.trace(transaction: StubProcessTransaction,
-                          filter: (ProcessNodeInstance<*,*>) -> Boolean): Sequence<TraceElement> {
+                          filter: (ProcessNodeInstance<*>) -> Boolean): Sequence<TraceElement> {
     return transitiveChildren(transaction)
         .map { it.withPermission() }
         .filter(filter)
@@ -151,7 +151,7 @@ fun ProcessInstance.assertTracePossible(transaction: StubProcessTransaction,
         }
         .toMutableSet()
 
-    var nonFinal: ProcessNodeInstance<*,ActivityInstanceContext>? = null
+    var nonFinal: ProcessNodeInstance<*>? = null
     for(traceElementPos in trace.indices) {
         val traceElement = trace[traceElementPos]
         val nodeInstance = traceElement.getNodeInstance(transaction, this)?.takeIf { it.state.isFinal }

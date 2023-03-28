@@ -103,11 +103,11 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>(
         return body(getInstance(instanceHandle))
     }
 
-    protected fun StubMessageService.messageNode(transaction: ContextProcessTransaction, index: Int): ProcessNodeInstance<*, *> {
+    protected fun StubMessageService.messageNode(transaction: ContextProcessTransaction, index: Int): ProcessNodeInstance<*> {
         return transaction.readableEngineData.nodeInstance(this.messages[index].source).withPermission()
     }
 
-    protected fun ProcessInstance.child(transaction: ContextProcessTransaction, name: String) : ProcessNodeInstance<*, *> {
+    protected fun ProcessInstance.child(transaction: ContextProcessTransaction, name: String) : ProcessNodeInstance<*> {
         return getChild(name, 1)?.withPermission() ?: throw AssertionError("No node instance for node id ${name} found")
     }
 

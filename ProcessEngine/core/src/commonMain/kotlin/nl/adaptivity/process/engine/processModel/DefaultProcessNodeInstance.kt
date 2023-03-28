@@ -37,7 +37,7 @@ import nl.adaptivity.xmlutil.XmlReader
 /**
  * Class to represent the instanciation of a node. Subclasses may add behaviour.
  */
-class DefaultProcessNodeInstance<C : ActivityInstanceContext> : ProcessNodeInstance<DefaultProcessNodeInstance<C>, C>,
+class DefaultProcessNodeInstance<C : ActivityInstanceContext> : ProcessNodeInstance<DefaultProcessNodeInstance<C>>,
     ActiveSecureObject<DefaultProcessNodeInstance<C>> {
 
     /**
@@ -119,7 +119,7 @@ class DefaultProcessNodeInstance<C : ActivityInstanceContext> : ProcessNodeInsta
     }
 
     override fun builder(processInstanceBuilder: ProcessInstance.Builder):
-        ExtBuilder<ExecutableProcessNode, DefaultProcessNodeInstance<C>, C> {
+        ExtBuilder<ExecutableProcessNode, DefaultProcessNodeInstance<C>> {
 
         return ExtBuilderImpl(this, processInstanceBuilder)
     }
@@ -155,7 +155,7 @@ class DefaultProcessNodeInstance<C : ActivityInstanceContext> : ProcessNodeInsta
     }
 
     interface Builder<C : ActivityInstanceContext> :
-        ProcessNodeInstance.Builder<ExecutableProcessNode, DefaultProcessNodeInstance<C>, C> {
+        ProcessNodeInstance.Builder<ExecutableProcessNode, DefaultProcessNodeInstance<C>> {
 
         override var assignedUser: PrincipalCompat?
 
@@ -223,7 +223,7 @@ class DefaultProcessNodeInstance<C : ActivityInstanceContext> : ProcessNodeInsta
         base: DefaultProcessNodeInstance<C>,
         processInstanceBuilder: ProcessInstance.Builder
     ) :
-        ExtBuilder<ExecutableProcessNode, DefaultProcessNodeInstance<C>, C>(base, processInstanceBuilder), Builder<C> {
+        ExtBuilder<ExecutableProcessNode, DefaultProcessNodeInstance<C>>(base, processInstanceBuilder), Builder<C> {
         override var node: ExecutableProcessNode by overlay { base.node }
         override fun build() = if (changed) DefaultProcessNodeInstance<C>(this).also { invalidateBuilder(it) } else base
         override var assignedUser: PrincipalCompat? = base.assignedUser
@@ -238,7 +238,7 @@ class DefaultProcessNodeInstance<C : ActivityInstanceContext> : ProcessNodeInsta
         override var assignedUser: PrincipalCompat? = null,
         handle: PNIHandle = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
-    ) : ProcessNodeInstance.BaseBuilder<ExecutableProcessNode, DefaultProcessNodeInstance<C>, C>(
+    ) : ProcessNodeInstance.BaseBuilder<ExecutableProcessNode, DefaultProcessNodeInstance<C>>(
         node,
         predecessors,
         processInstanceBuilder,

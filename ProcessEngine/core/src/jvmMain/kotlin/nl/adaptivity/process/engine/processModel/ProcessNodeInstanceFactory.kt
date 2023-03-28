@@ -44,7 +44,7 @@ import nl.adaptivity.xmlutil.util.CompactFragment
  */
 
 internal class ProcessNodeInstanceFactory(val processEngine: ProcessEngine<ProcessDBTransaction, *>) :
-    AbstractElementFactory<ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*, *>, *>, SecureProcessNodeInstance, ProcessDBTransaction, ProcessEngineDB>() {
+    AbstractElementFactory<ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*>>, SecureProcessNodeInstance, ProcessDBTransaction, ProcessEngineDB>() {
 
     companion object {
         private val tbl_pni = ProcessEngineDB.processNodeInstances
@@ -68,7 +68,7 @@ internal class ProcessNodeInstanceFactory(val processEngine: ProcessEngine<Proce
     override fun createBuilder(
         transaction: ProcessDBTransaction,
         row: SelectResultSetRow<_ListSelect>
-    ): DBAction<ProcessEngineDB, ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*, *>, *>> {
+    ): DBAction<ProcessEngineDB, ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*>>> {
         val pnihandle = tbl_pni.pnihandle.value(row)
         val nodeId = tbl_pni.nodeid.value(row)
         val pihandle: PIHandle = tbl_pni.pihandle.value(row)
@@ -150,8 +150,8 @@ internal class ProcessNodeInstanceFactory(val processEngine: ProcessEngine<Proce
 
     override fun createFromBuilder(
         transaction: ProcessDBTransaction,
-        setAccess: DbSet.DBSetAccess<ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*, *>, *>>,
-        builder: ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*, *>, *>
+        setAccess: DbSet.DBSetAccess<ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*>>>,
+        builder: ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*>>
     ): DBAction<ProcessEngineDB, SecureProcessNodeInstance> {
         return with(transaction) {
             SELECT(tbl_nd.name, tbl_nd.data)

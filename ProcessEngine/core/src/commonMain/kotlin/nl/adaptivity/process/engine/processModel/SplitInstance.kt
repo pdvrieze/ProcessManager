@@ -32,9 +32,9 @@ import nl.adaptivity.xmlutil.util.ICompactFragment
 /**
  * Specialisation of process node instance for splits
  */
-class SplitInstance<C : ActivityInstanceContext>  : ProcessNodeInstance<SplitInstance<C>, C> {
+class SplitInstance<C : ActivityInstanceContext>  : ProcessNodeInstance<SplitInstance<C>> {
 
-    interface Builder<C : ActivityInstanceContext> : ProcessNodeInstance.Builder<ExecutableSplit, SplitInstance<C>, C> {
+    interface Builder<C : ActivityInstanceContext> : ProcessNodeInstance.Builder<ExecutableSplit, SplitInstance<C>> {
         override fun build(): SplitInstance<C>
         var predecessor: PNIHandle?
             get() = predecessors.firstOrNull()
@@ -75,7 +75,7 @@ class SplitInstance<C : ActivityInstanceContext>  : ProcessNodeInstance<SplitIns
     }
 
     class ExtBuilder<C : ActivityInstanceContext>(private val instance: SplitInstance<C>, processInstanceBuilder: ProcessInstance.Builder) :
-        ProcessNodeInstance.ExtBuilder<ExecutableSplit, SplitInstance<C>, C>(instance, processInstanceBuilder), Builder<C> {
+        ProcessNodeInstance.ExtBuilder<ExecutableSplit, SplitInstance<C>>(instance, processInstanceBuilder), Builder<C> {
         override var node: ExecutableSplit by overlay { instance.node }
         override fun build() = if (changed) SplitInstance<C>(this).also { invalidateBuilder(it) } else base
     }
@@ -88,7 +88,7 @@ class SplitInstance<C : ActivityInstanceContext>  : ProcessNodeInstance<SplitIns
         entryNo: Int,
         handle: PNIHandle = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
-    ) : ProcessNodeInstance.BaseBuilder<ExecutableSplit, SplitInstance<C>, C>(
+    ) : ProcessNodeInstance.BaseBuilder<ExecutableSplit, SplitInstance<C>>(
         node, listOf(predecessor), processInstanceBuilder, owner, entryNo,
         handle, state
     ), Builder<C> {
@@ -140,7 +140,7 @@ class SplitInstance<C : ActivityInstanceContext>  : ProcessNodeInstance<SplitIns
         return SplitInstance.ExtBuilder(this, processInstanceBuilder)
     }
 
-    private fun successorInstances(engineData: ProcessEngineDataAccess<*>): Sequence<ProcessNodeInstance<*, *>> {
+    private fun successorInstances(engineData: ProcessEngineDataAccess<*>): Sequence<ProcessNodeInstance<*>> {
         val instance = engineData.instance(hProcessInstance).withPermission()
         return node.successors
             .asSequence()
@@ -185,7 +185,7 @@ internal fun SplitInstance.Builder<*>.updateState(engineData: MutableProcessEngi
     var activeCount = 0
     var committedCount = 0
 
-    var otherwiseNode: ProcessNodeInstance.Builder<*, *, *>? = null
+    var otherwiseNode: ProcessNodeInstance.Builder<*, *>? = null
 
     for (successorNode in successorNodes) {
         if (committedCount >= node.max) break // stop the loop when we are at the maximum successor count

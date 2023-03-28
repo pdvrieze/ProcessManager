@@ -730,7 +730,7 @@ class ProcessEngine<TR : ContextProcessTransaction, C : ActivityInstanceContext>
         transaction: TR,
         handle: PNIHandle,
         user: Principal
-    ): ProcessNodeInstance<*, *>? {
+    ): ProcessNodeInstance<*>? {
         engineData.inReadonlyTransaction(transaction) {
             return nodeInstances[handle]?.withPermission(securityProvider, SecureObject.Permissions.READ, user) {
                 it
@@ -892,7 +892,7 @@ class ProcessEngine<TR : ContextProcessTransaction, C : ActivityInstanceContext>
         handle: PNIHandle,
         payload: ICompactFragment?,
         user: Principal
-    ): ProcessNodeInstance<*, *> {
+    ): ProcessNodeInstance<*> {
         try {
             securityProvider.ensurePermission(
                 SecureObject.Permissions.UPDATE,

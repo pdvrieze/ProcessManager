@@ -40,7 +40,7 @@ class ExecutableJoin(
 
     override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
-    override fun canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *, *>): Boolean {
+    override fun canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *>): Boolean {
         return super.canStartTaskAutoProgress(instance)
     }
 
@@ -54,7 +54,7 @@ class ExecutableJoin(
         var candidateNo = if (isMultiInstance || isMultiMerge) neededEntryNo else 1
         for (candidate in processInstanceBuilder.getChildren(this).sortedBy { it.entryNo }) {
             if (predecessor.handle in candidate.predecessors) {
-                return (candidate as JoinInstance.Builder) to candidateNo
+                return (candidate as JoinInstance.Builder<*>) to candidateNo
             }
             if ((allowFinalInstance || candidate.state != NodeInstanceState.Complete) &&
                 (candidate.entryNo == neededEntryNo || candidate.predecessors.any {
@@ -65,7 +65,7 @@ class ExecutableJoin(
                     }
                 })
             ) {
-                return (candidate as JoinInstance.Builder) to candidateNo
+                return (candidate as JoinInstance.Builder<*>) to candidateNo
             }
             // TODO Throw exceptions for cases where this is not allowed
             if (candidate.entryNo == candidateNo) {
@@ -119,7 +119,7 @@ class ExecutableJoin(
         predecessor: IProcessNodeInstance,
         entryNo: Int,
         allowFinalInstance: Boolean
-    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*, *>, *> {
+    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*>> {
         val (existingInstance, candidateNo) = getExistingInstance(
             data,
             processInstanceBuilder,

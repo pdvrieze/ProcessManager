@@ -33,9 +33,9 @@ import nl.adaptivity.xmlutil.util.ICompactFragment
 /**
  * Class representing a node instance that wraps a composite activity.
  */
-class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : ProcessNodeInstance<CompositeInstance<C>,C>(builder) {
+class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : ProcessNodeInstance<CompositeInstance<C>>(builder) {
 
-    interface Builder<C : ActivityInstanceContext> : ProcessNodeInstance.Builder<ExecutableCompositeActivity, CompositeInstance<C>, C> {
+    interface Builder<C : ActivityInstanceContext> : ProcessNodeInstance.Builder<ExecutableCompositeActivity, CompositeInstance<C>> {
         var hChildInstance: PIHandle
         override fun doProvideTask(
             engineData: MutableProcessEngineDataAccess<*>,
@@ -96,14 +96,14 @@ class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : Proc
         entryNo: Int,
         handle: PNIHandle = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
-    ) : ProcessNodeInstance.BaseBuilder<ExecutableCompositeActivity, CompositeInstance<C>, C>(
+    ) : ProcessNodeInstance.BaseBuilder<ExecutableCompositeActivity, CompositeInstance<C>>(
         node, listOfNotNull(predecessor), processInstanceBuilder, owner,
         entryNo, handle, state
     ), Builder<C> {
 
         override fun invalidateBuilder(engineData: ProcessEngineDataAccess<*>) {
             engineData.nodeInstances[handle]?.withPermission()?.let { n ->
-                val newBase = n as CompositeInstance
+                val newBase = n as CompositeInstance<*>
                 node = newBase.node
                 predecessors.replaceBy(newBase.predecessors)
                 state = newBase.state
@@ -117,7 +117,7 @@ class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : Proc
     }
 
     class ExtBuilder<C: ActivityInstanceContext>(base: CompositeInstance<C>, processInstanceBuilder: ProcessInstance.Builder) :
-        ProcessNodeInstance.ExtBuilder<ExecutableCompositeActivity, CompositeInstance<C>, C>(base, processInstanceBuilder),
+        ProcessNodeInstance.ExtBuilder<ExecutableCompositeActivity, CompositeInstance<C>>(base, processInstanceBuilder),
         Builder<C> {
 
         override var node: ExecutableCompositeActivity by overlay { base.node }

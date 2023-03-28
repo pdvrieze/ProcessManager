@@ -251,7 +251,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction, AIC: ActivityIns
             fun fillInActivityMessage(
                 messageBody: Source,
                 result: Result,
-                nodeInstance: ProcessNodeInstance<*, *>,
+                nodeInstance: ProcessNodeInstance<*>,
                 localEndpoint: EndpointDescriptor
             ) {
                 // TODO use multiplatform api
@@ -325,7 +325,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction, AIC: ActivityIns
 
             @Throws(XMLStreamException::class)
             private fun writeElement(
-                nodeInstance: ProcessNodeInstance<*, *>,
+                nodeInstance: ProcessNodeInstance<*>,
                 `in`: XMLEventReader,
                 attributes: Iterator<Attribute>,
                 out: XMLEventWriter,
@@ -395,7 +395,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction, AIC: ActivityIns
 
             @Throws(XMLStreamException::class)
             private fun writeAttribute(
-                nodeInstance: ProcessNodeInstance<*, *>,
+                nodeInstance: ProcessNodeInstance<*>,
                 `in`: XMLEventReader,
                 attributes: Iterator<Attribute>,
                 out: XMLEventWriter
@@ -827,12 +827,12 @@ open class ServletProcessEngine<TR : ContextProcessTransaction, AIC: ActivityIns
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal
     ): XmlProcessNodeInstance? = translateExceptions {
         processEngine.startTransaction().use { transaction ->
-            val nodeInstance: ProcessNodeInstance<*, ActivityInstanceContext> =
+            val nodeInstance: ProcessNodeInstance<*> =
                 processEngine.getNodeInstance(
                     transaction,
                     if (handle < 0) Handle.invalid() else Handle(handle),
                     user
-                ) as ProcessNodeInstance<*, ActivityInstanceContext>? ?: return null
+                ) as ProcessNodeInstance<*>? ?: return null
 
             val processContextFactory = transaction.readableEngineData.processContextFactory
 

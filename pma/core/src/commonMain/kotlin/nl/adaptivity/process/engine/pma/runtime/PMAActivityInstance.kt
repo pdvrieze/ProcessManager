@@ -13,7 +13,7 @@ import nl.adaptivity.process.engine.processModel.tryCreateTask
 import nl.adaptivity.process.processModel.XmlMessage
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAActivityInstance<C>, C> {
+class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAActivityInstance<C>> {
 
     constructor(
         node: PMAMessageActivity<C>,
@@ -49,7 +49,7 @@ class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAA
         return ExtBuilder(this, processInstanceBuilder)
     }
 
-    interface Builder<C :PMAActivityContext<C>> : ProcessNodeInstance.Builder<PMAMessageActivity<C>, PMAActivityInstance<C>, C> {
+    interface Builder<C :PMAActivityContext<C>> : ProcessNodeInstance.Builder<PMAMessageActivity<C>, PMAActivityInstance<C>> {
         override fun doProvideTask(
             engineData: MutableProcessEngineDataAccess<*>,
             messageService: IMessageService<*>
@@ -110,7 +110,7 @@ class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAA
         override var assignedUser: PrincipalCompat? = null,
         handle: PNIHandle = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
-    ) : ProcessNodeInstance.BaseBuilder<PMAMessageActivity<C>, PMAActivityInstance<C>, C>(
+    ) : ProcessNodeInstance.BaseBuilder<PMAMessageActivity<C>, PMAActivityInstance<C>>(
         node as PMAMessageActivity<C>, listOfNotNull(predecessor), processInstanceBuilder, owner,
         entryNo, handle, state
     ), Builder<C> {
@@ -122,7 +122,7 @@ class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAA
     class ExtBuilder<C: PMAActivityContext<C>>(
         base: PMAActivityInstance<C>,
         processInstanceBuilder: ProcessInstance.Builder
-    ) : ProcessNodeInstance.ExtBuilder<PMAMessageActivity<C>, PMAActivityInstance<C>, C>(
+    ) : ProcessNodeInstance.ExtBuilder<PMAMessageActivity<C>, PMAActivityInstance<C>>(
         base,
         processInstanceBuilder
     ), Builder<C> {

@@ -75,14 +75,10 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
         return visitor.visitGenericActivity(this)
     }
 
-    override fun <C : ActivityInstanceContext> canProvideTaskAutoProgress(
+    override fun canProvideTaskAutoProgress(
         engineData: ProcessEngineDataAccess<*>,
-        instanceBuilder: ProcessNodeInstance.Builder<*, *, C>
-    ): Boolean {
-
-
-        return true
-    }
+        instanceBuilder: ProcessNodeInstance.Builder<*, *>
+    ): Boolean = true
 
     override fun createOrReuseInstance(
         data: MutableProcessEngineDataAccess<*>,
@@ -90,7 +86,7 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
         predecessor: IProcessNodeInstance,
         entryNo: Int,
         allowFinalInstance: Boolean
-    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*, *>, *> {
+    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*>> {
         processInstanceBuilder.getChildNodeInstance(this, entryNo)?.let { return it }
         if (!isMultiInstance && entryNo > 1) {
             processInstanceBuilder.allChildNodeInstances { it.node == this && it.entryNo != entryNo }.forEach {
@@ -108,7 +104,7 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
 
     override fun <C : ActivityInstanceContext> canTakeTaskAutoProgress(
         activityContext: C,
-        instance: ProcessNodeInstance.Builder<*, *, *>,
+        instance: ProcessNodeInstance.Builder<*, *>,
         assignedUser: PrincipalCompat?
     ): Boolean {
 //        if (assignedUser == null) throw ProcessException("Message activities must have a user assigned for 'taking' them")

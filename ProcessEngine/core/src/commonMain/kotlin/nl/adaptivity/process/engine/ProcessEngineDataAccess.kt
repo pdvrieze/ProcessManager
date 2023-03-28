@@ -46,34 +46,6 @@ interface ProcessEngineDataAccess<C: ActivityInstanceContext> {
     val logger: LoggerCompat
 }
 
-@Suppress("NOTHING_TO_INLINE")
-@JvmName("getPIHandle")
-inline internal operator fun <C: ActivityInstanceContext> HandleMap<SecureProcessInstance>.get(handle: PIHandle): SecureProcessInstance? {
-    @Suppress("UNCHECKED_CAST")
-    return get(handle as PIHandle)
-}
-
-@Suppress("NOTHING_TO_INLINE")
-@JvmName("getPNIHandle")
-inline internal operator fun <C: ActivityInstanceContext> HandleMap<SecureProcessNodeInstance>.get(handle: PNIHandle): SecureProcessNodeInstance? {
-    @Suppress("UNCHECKED_CAST")
-    return get(handle as PNIHandle)
-}
-
-@Suppress("NOTHING_TO_INLINE")
-@JvmName("setPIHandle")
-inline internal operator fun <C: ActivityInstanceContext> MutableHandleMap<SecureProcessInstance>.set(handle: PIHandle, value: ProcessInstance): SecureProcessInstance? {
-    @Suppress("UNCHECKED_CAST")
-    return set(handle as PIHandle, value)
-}
-
-@Suppress("NOTHING_TO_INLINE")
-@JvmName("setPNIHandle")
-inline internal operator fun <C: ActivityInstanceContext> MutableHandleMap<SecureProcessNodeInstance>.set(handleCompat: PNIHandle, value: ProcessNodeInstance<*,C>): SecureProcessNodeInstance? {
-    @Suppress("UNCHECKED_CAST")
-    return set(handle = handleCompat as PNIHandle,value)
-}
-
 interface MutableProcessEngineDataAccess<C: ActivityInstanceContext> : ProcessEngineDataAccess<C> {
 
     fun messageService(): IMessageService<*>
@@ -112,7 +84,7 @@ interface MutableProcessEngineDataAccess<C: ActivityInstanceContext> : ProcessEn
 
     fun updateNodeInstance(
         hNodeInstance: PNIHandle,
-        transform: ProcessNodeInstance.Builder<*, *, *>.() -> Unit
+        transform: ProcessNodeInstance.Builder<*, *>.() -> Unit
     ): SecureProcessNodeInstance {
         updateInstance(nodeInstance(hNodeInstance).shouldExist(hNodeInstance).withPermission().hProcessInstance) {
             try {

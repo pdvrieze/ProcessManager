@@ -81,13 +81,13 @@ open class ExecutableMessageActivity(
         predecessor: IProcessNodeInstance,
         entryNo: Int,
         allowFinalInstance: Boolean
-    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*, *>, *> {
+    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*>> {
         return super.createOrReuseInstance(data, processInstanceBuilder, predecessor, entryNo, allowFinalInstance)
     }
 
-    override fun <C : ActivityInstanceContext> canProvideTaskAutoProgress(
+    override fun canProvideTaskAutoProgress(
         engineData: ProcessEngineDataAccess<*>,
-        instanceBuilder: ProcessNodeInstance.Builder<*, *, C>
+        instanceBuilder: ProcessNodeInstance.Builder<*, *>
     ): Boolean = false
 
     /**
@@ -98,7 +98,7 @@ open class ExecutableMessageActivity(
      */
     override fun <C : ActivityInstanceContext> canTakeTaskAutoProgress(
         activityContext: C,
-        instance: ProcessNodeInstance.Builder<*, *, *>,
+        instance: ProcessNodeInstance.Builder<*, *>,
         assignedUser: PrincipalCompat?
     ): Boolean {
         if (assignedUser==null) throw ProcessException("Message activities must have a user assigned for 'taking' them")
@@ -116,7 +116,7 @@ open class ExecutableMessageActivity(
      *
      * @return `false`
      */
-    override fun canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *, *>): Boolean = false
+    override fun canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *>): Boolean = false
 
     @Throws(XmlException::class)
     fun serializeCondition(out: XmlWriter) {

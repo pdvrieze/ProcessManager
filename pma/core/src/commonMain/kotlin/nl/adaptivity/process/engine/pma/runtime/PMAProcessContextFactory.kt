@@ -25,7 +25,7 @@ interface PMAProcessContextFactory<AIC : PMAActivityContext<AIC>>: ProcessContex
         assignedUser: PrincipalCompat?,
         handle: PNIHandle,
         state: NodeInstanceState
-    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, *, *> = when (node){
+    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, *> = when (node){
         is PMAMessageActivity<*> ->
             PMAActivityInstance.BaseBuilder<AIC>(
                 node = node,

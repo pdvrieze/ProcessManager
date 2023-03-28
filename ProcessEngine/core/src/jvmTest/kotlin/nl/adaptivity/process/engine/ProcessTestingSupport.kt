@@ -57,12 +57,12 @@ fun InstanceSupport.testTraceExceptionThrowing(
                     ?: throw ProcessTestingException("The node instance (${traceElement}) should exist")
 
                 if (nodeInstance.state != NodeInstanceState.Complete) {
-                    if (nodeInstance is JoinInstance) {
+                    if (nodeInstance is JoinInstance<*>) {
                         transaction.writableEngineData.updateNodeInstance(nodeInstance.handle) {
                             startTask(transaction.writableEngineData)
                         }
                     } else if (nodeInstance.node !is Split) {
-                        if (nodeInstance is CompositeInstance) {
+                        if (nodeInstance is CompositeInstance<*>) {
                             val childInstance =
                                 transaction.readableEngineData.instance(nodeInstance.hChildInstance).withPermission()
                             if (childInstance.state != ProcessInstance.State.FINISHED && nodeInstance.state != NodeInstanceState.Complete) {

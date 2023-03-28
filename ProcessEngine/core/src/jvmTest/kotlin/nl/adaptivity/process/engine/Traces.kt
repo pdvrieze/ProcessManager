@@ -110,7 +110,7 @@ class TraceElement(val nodeId: String, val instanceNo: Int, val resultPayload: C
     fun getNodeInstance(
         transaction: StubProcessTransaction,
         instance: ProcessInstance
-    ): ProcessNodeInstance<*, *>? {
+    ): ProcessNodeInstance<*>? {
         return when (instanceNo) {
             ANYINSTANCE -> instance.transitiveChildren(transaction).firstOrNull { it.node.id == nodeId }
             LASTINSTANCE -> instance.transitiveChildren(transaction).filter { it.node.id == nodeId }

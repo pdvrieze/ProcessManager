@@ -65,7 +65,7 @@ class ExecutableStartNode(
     fun <C : ActivityInstanceContext> createOrReuseInstance(
         processInstanceBuilder: ProcessInstance.Builder,
         entryNo: Int
-    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*, *>, *> =
+    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*>> =
         processInstanceBuilder.getChildNodeInstance(this, entryNo)
             ?: DefaultProcessNodeInstance.BaseBuilder<C>(
                 this, emptyList(),
@@ -74,18 +74,18 @@ class ExecutableStartNode(
                 entryNo
             )
 
-    override fun <C : ActivityInstanceContext> canProvideTaskAutoProgress(
+    override fun canProvideTaskAutoProgress(
         engineData: ProcessEngineDataAccess<*>,
-        instanceBuilder: ProcessNodeInstance.Builder<*, *, C>
+        instanceBuilder: ProcessNodeInstance.Builder<*, *>
     ): Boolean = true
 
     override fun <C : ActivityInstanceContext> canTakeTaskAutoProgress(
         activityContext: C,
-        instance: ProcessNodeInstance.Builder<*, *, *>,
+        instance: ProcessNodeInstance.Builder<*, *>,
         assignedUser: PrincipalCompat?
     ): Boolean = true
 
-    override fun canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *, *>): Boolean =
+    override fun canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *>): Boolean =
         true
 
 }

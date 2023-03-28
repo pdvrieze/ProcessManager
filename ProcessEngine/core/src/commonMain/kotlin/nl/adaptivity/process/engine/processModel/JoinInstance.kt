@@ -31,9 +31,9 @@ import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.xmlutil.util.ICompactFragment
 
-class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstance<C>, C> {
+class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstance<C>> {
 
-    interface Builder<C : ActivityInstanceContext> : ProcessNodeInstance.Builder<ExecutableJoin, JoinInstance<C>, C> {
+    interface Builder<C : ActivityInstanceContext> : ProcessNodeInstance.Builder<ExecutableJoin, JoinInstance<C>> {
 
         val isFinished: Boolean
             get() = state == NodeInstanceState.Complete || state == NodeInstanceState.Failed
@@ -139,7 +139,7 @@ class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstanc
     class ExtBuilder<C : ActivityInstanceContext>(
         instance: JoinInstance<C>,
         processInstanceBuilder: ProcessInstance.Builder
-    ) : ProcessNodeInstance.ExtBuilder<ExecutableJoin, JoinInstance<C>, C>(instance, processInstanceBuilder),
+    ) : ProcessNodeInstance.ExtBuilder<ExecutableJoin, JoinInstance<C>>(instance, processInstanceBuilder),
         Builder<C> {
 
         override var node: ExecutableJoin by overlay { instance.node }
@@ -161,7 +161,7 @@ class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstanc
         entryNo: Int,
         handle: PNIHandle = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
-    ) : ProcessNodeInstance.BaseBuilder<ExecutableJoin, JoinInstance<C>, C>(
+    ) : ProcessNodeInstance.BaseBuilder<ExecutableJoin, JoinInstance<C>>(
         node,
         predecessors,
         processInstanceBuilder,
@@ -354,7 +354,7 @@ class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstanc
 
             pseudoContext.populatePredecessorsFor(handle)
 
-            val toSkipCancel = mutableListOf<ProcessNodeInstance<*, *>>()
+            val toSkipCancel = mutableListOf<ProcessNodeInstance<*>>()
             val predQueue = ArrayDeque<IProcessNodeInstance>()//.apply { add(pseudoContext.getNodeInstance(handle)!!) }
 
             for (hpred in pseudoContext.getNodeInstance(handle)!!.predecessors) {
@@ -374,7 +374,7 @@ class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstanc
                         }
                     }
 
-                    pred is ProcessNodeInstance<*, *> -> {
+                    pred is ProcessNodeInstance<*> -> {
                         if (pred.node !is Split) {
                             toSkipCancel.add(pred)
                             for (hppred in pred.predecessors) {
