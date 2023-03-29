@@ -17,7 +17,6 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.MutableTransactionedHandleMap
-import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.MemTransactionedHandleMap
@@ -26,14 +25,13 @@ import nl.adaptivity.process.engine.test.ProcessEngineTestSupport.Companion.PNI_
 import nl.adaptivity.process.engine.test.ProcessEngineTestSupport.Companion.cacheInstances
 import nl.adaptivity.process.engine.test.ProcessEngineTestSupport.Companion.cacheModels
 import nl.adaptivity.process.engine.test.ProcessEngineTestSupport.Companion.cacheNodes
-import nl.adaptivity.process.processModel.ProcessModel
 import java.net.URI
 import java.util.logging.Logger
 import javax.xml.namespace.QName
 
-open class EngineTestData<C : ActivityInstanceContext>(
+open class EngineTestData(
     val messageService: StubMessageService,
-    val engine: ProcessEngine<StubProcessTransaction, C>
+    val engine: ProcessEngine<StubProcessTransaction>
 ) {
 
     companion object {
@@ -42,19 +40,19 @@ open class EngineTestData<C : ActivityInstanceContext>(
             URI.create("http://localhost/")
         )
         val principal = SimplePrincipal("pdvrieze")
-        fun defaultEngine(): EngineTestData<ActivityInstanceContext> = EngineTestData(StubMessageService(localEndpoint))
+        fun defaultEngine(): EngineTestData = EngineTestData(StubMessageService(localEndpoint))
 
 
         private operator fun invoke(messageService: StubMessageService)= EngineTestData(
             messageService,
             object : ProcessTransactionFactory<StubProcessTransaction> {
-                override fun startTransaction(engineData: IProcessEngineData<StubProcessTransaction, *>): StubProcessTransaction {
+                override fun startTransaction(engineData: IProcessEngineData<StubProcessTransaction>): StubProcessTransaction {
                     return StubProcessTransaction(engineData)
                 }
             },
-            cacheModels<SecureObject<ProcessModel<*>>, ActivityInstanceContext>(MemProcessModelMap(), 3),
-            cacheInstances<SecureProcessInstance, ActivityInstanceContext>(MemTransactionedHandleMap(), 3),
-            cacheNodes<SecureProcessNodeInstance, ActivityInstanceContext>(
+            cacheModels(MemProcessModelMap(), 3),
+            cacheInstances<SecureProcessInstance>(MemTransactionedHandleMap(), 3),
+            cacheNodes(
                 MemTransactionedHandleMap(::PNI_SET_HANDLE), 3
             )
         )
@@ -66,7 +64,7 @@ open class EngineTestData<C : ActivityInstanceContext>(
             processModels: IMutableProcessModelMap<StubProcessTransaction>,
             processInstances: MutableTransactionedHandleMap<SecureProcessInstance, StubProcessTransaction>,
             processNodeInstances: MutableTransactionedHandleMap<SecureProcessNodeInstance, StubProcessTransaction>
-        ): EngineTestData<ActivityInstanceContext> {
+        ): EngineTestData {
             return EngineTestData(
                 messageService,
                 ProcessEngine.newTestInstance(

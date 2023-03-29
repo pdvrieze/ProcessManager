@@ -16,7 +16,7 @@ class TestPMAContextFactory(principals: List<PrincipalCompat>) : PMAProcessConte
     private val principals = principals.associateByTo(mutableMapOf()) { it.name }
 
     override fun newActivityInstanceContext(
-        engineDataAccess: ProcessEngineDataAccess<*>,
+        engineDataAccess: ProcessEngineDataAccess,
         processNodeInstance: IProcessNodeInstance
     ): TestPMAActivityContext {
         val pic = TestPMAProcessInstanceContext(this, processNodeInstance.hProcessInstance)

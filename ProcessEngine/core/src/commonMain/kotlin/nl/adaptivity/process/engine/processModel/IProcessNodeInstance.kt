@@ -39,8 +39,9 @@ typealias PNIHandle = Handle<SecureProcessNodeInstance>
  */
 interface IProcessNodeInstance : ReadableHandleAware<SecureProcessNodeInstance> {
     val node: ExecutableProcessNode
+
     val predecessors: Set<PNIHandle>
-//    override val owner: PrincipalCompat
+
     val assignedUser: PrincipalCompat? get() = null
 
     override val handle: PNIHandle
@@ -48,14 +49,12 @@ interface IProcessNodeInstance : ReadableHandleAware<SecureProcessNodeInstance> 
     val hProcessInstance: PIHandle
 
     val entryNo: Int
+
     val state: NodeInstanceState
+
     val results: List<ProcessData>
 
     fun builder(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance.Builder<*, ProcessNodeInstance<*>>
-
-    fun build(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance<*> {
-        return builder(processInstanceBuilder).build()
-    }
 
     fun isOtherwiseCondition(predecessor: IProcessNodeInstance) = node.isOtherwiseCondition(predecessor.node)
 

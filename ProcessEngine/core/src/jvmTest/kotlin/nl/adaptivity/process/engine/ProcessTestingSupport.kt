@@ -44,7 +44,7 @@ fun InstanceSupport.testTraceExceptionThrowing(
     hProcessInstance: PIHandle,
     trace: Trace
 ) {
-    fun <TR: ContextProcessTransaction, C: ActivityInstanceContext> impl(transaction: TR, engine: ProcessEngine<TR, C>) {
+    fun <TR: ContextProcessTransaction> impl(transaction: TR, engine: ProcessEngine<TR>) {
         try {
             transaction.readableEngineData.instance(hProcessInstance).withPermission().assertTracePossible(trace)
         } catch (e: AssertionError) {
@@ -57,12 +57,12 @@ fun InstanceSupport.testTraceExceptionThrowing(
                     ?: throw ProcessTestingException("The node instance (${traceElement}) should exist")
 
                 if (nodeInstance.state != NodeInstanceState.Complete) {
-                    if (nodeInstance is JoinInstance<*>) {
+                    if (nodeInstance is JoinInstance) {
                         transaction.writableEngineData.updateNodeInstance(nodeInstance.handle) {
                             startTask(transaction.writableEngineData)
                         }
                     } else if (nodeInstance.node !is Split) {
-                        if (nodeInstance is CompositeInstance<*>) {
+                        if (nodeInstance is CompositeInstance) {
                             val childInstance =
                                 transaction.readableEngineData.instance(nodeInstance.hChildInstance).withPermission()
                             if (childInstance.state != ProcessInstance.State.FINISHED && nodeInstance.state != NodeInstanceState.Complete) {
@@ -133,7 +133,7 @@ fun InstanceSupport.testTraceExceptionThrowing(
     @Suppress("UNCHECKED_CAST")
     impl(
         transaction as StubProcessTransaction,
-        engine as ProcessEngine<StubProcessTransaction, ActivityInstanceContext>
+        engine as ProcessEngine<StubProcessTransaction>
     )
 }
 

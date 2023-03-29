@@ -18,7 +18,6 @@ package nl.adaptivity.process.engine.processModel
 
 import net.devrieze.util.Handle
 import net.devrieze.util.overlay
-import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.Split
@@ -31,9 +30,9 @@ import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.xmlutil.util.ICompactFragment
 
-class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstance<C>> {
+class JoinInstance : ProcessNodeInstance<JoinInstance> {
 
-    interface Builder<C : ActivityInstanceContext> : ProcessNodeInstance.Builder<ExecutableJoin, JoinInstance<C>> {
+    interface Builder : ProcessNodeInstance.Builder<ExecutableJoin, JoinInstance> {
 
         val isFinished: Boolean
             get() = state == NodeInstanceState.Complete || state == NodeInstanceState.Failed
@@ -70,12 +69,11 @@ class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstanc
             return node.canTakeTaskAutoProgress(createActivityContext(engineData), this, assignedUser)
         }
 
-        override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {
-            if (node.canStartTaskAutoProgress(this)) {
-                return updateTaskState(engineData, cancelState = NodeInstanceState.Cancelled)
-            } else {
-                return false
-            }
+        override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean = when {
+            node.canStartTaskAutoProgress(this) ->
+                updateTaskState(engineData, cancelState = NodeInstanceState.Cancelled)
+
+            else -> false
         }
 
         override fun doFinishTask(
@@ -85,8 +83,10 @@ class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstanc
             if (state == NodeInstanceState.Complete) {
                 return
             }
+
             var committedPredecessorCount = 0
             var completedPredecessorCount = 0
+
             predecessors
                 .map { processInstanceBuilder.getChildNodeInstance(it) }
                 .filter { it.state.isCommitted }
@@ -124,27 +124,25 @@ class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstanc
             engineData: MutableProcessEngineDataAccess,
             cancelState: NodeInstanceState,
             cause: Throwable
-        ) {
-            when {
-                state.isCommitted -> failTask(engineData, cause)
+        ): Unit = when {
+            state.isCommitted -> failTask(engineData, cause)
 
-                cancelState.isSkipped -> state = NodeInstanceState.Skipped
+            cancelState.isSkipped -> state = NodeInstanceState.Skipped
 
-                else -> cancel(engineData)
-            }
+            else -> cancel(engineData)
         }
 
     }
 
-    class ExtBuilder<C : ActivityInstanceContext>(
-        instance: JoinInstance<C>,
+    class ExtBuilder(
+        instance: JoinInstance,
         processInstanceBuilder: ProcessInstance.Builder
-    ) : ProcessNodeInstance.ExtBuilder<ExecutableJoin, JoinInstance<C>>(instance, processInstanceBuilder),
-        Builder<C> {
+    ) : ProcessNodeInstance.ExtBuilder<ExecutableJoin, JoinInstance>(instance, processInstanceBuilder),
+        Builder {
 
         override var node: ExecutableJoin by overlay { instance.node }
 
-        override fun build() = if (changed) JoinInstance<C>(this).also { invalidateBuilder(it) } else base
+        override fun build() = if (changed) JoinInstance(this).also { invalidateBuilder(it) } else base
 
         override fun skipTask(
             engineData: MutableProcessEngineDataAccess,
@@ -153,7 +151,7 @@ class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstanc
 
     }
 
-    class BaseBuilder<C: ActivityInstanceContext>(
+    class BaseBuilder(
         node: ExecutableJoin,
         predecessors: Iterable<PNIHandle>,
         processInstanceBuilder: ProcessInstance.Builder,
@@ -161,7 +159,7 @@ class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstanc
         entryNo: Int,
         handle: PNIHandle = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
-    ) : ProcessNodeInstance.BaseBuilder<ExecutableJoin, JoinInstance<C>>(
+    ) : ProcessNodeInstance.BaseBuilder<ExecutableJoin, JoinInstance>(
         node,
         predecessors,
         processInstanceBuilder,
@@ -169,9 +167,9 @@ class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstanc
         entryNo,
         handle,
         state
-    ), Builder<C> {
+    ), Builder {
 
-        override fun build() = JoinInstance<C>(this)
+        override fun build() = JoinInstance(this)
 
         override fun skipTask(
             engineData: MutableProcessEngineDataAccess,
@@ -182,10 +180,6 @@ class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstanc
 
     override val node: ExecutableJoin
         get() = super.node as ExecutableJoin
-
-    @Suppress("UNCHECKED_CAST")
-    override val handle: Handle<SecureObject<JoinInstance<C>>>
-        get() = super.handle as Handle<SecureObject<JoinInstance<C>>>
 
     fun canFinish() = predecessors.size >= node.min
 
@@ -205,7 +199,7 @@ class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstanc
         }
     }
 
-    constructor(builder: Builder<C>) : this(
+    constructor(builder: Builder) : this(
         builder.node,
         builder.predecessors,
         builder.processInstanceBuilder,
@@ -217,21 +211,21 @@ class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstanc
         builder.results
     )
 
-    override fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder<C> =
+    override fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder =
         ExtBuilder(this, processInstanceBuilder)
 
     companion object {
-        fun <C : ActivityInstanceContext> build(
+        fun build(
             joinImpl: ExecutableJoin,
             predecessors: Set<PNIHandle>,
             processInstanceBuilder: ProcessInstance.Builder,
             entryNo: Int,
             handle: PNIHandle = Handle.invalid(),
             state: NodeInstanceState = NodeInstanceState.Pending,
-            body: Builder<C>.() -> Unit
-        ): JoinInstance<C> {
+            body: Builder.() -> Unit
+        ): JoinInstance {
             return JoinInstance(
-                BaseBuilder<C>(
+                BaseBuilder(
                     joinImpl,
                     predecessors,
                     processInstanceBuilder,
@@ -243,15 +237,15 @@ class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstanc
             )
         }
 
-        fun <C : ActivityInstanceContext> build(
+        fun build(
             joinImpl: ExecutableJoin,
             predecessors: Set<PNIHandle>,
             processInstance: ProcessInstance,
             entryNo: Int,
             handle: PNIHandle = Handle.invalid(),
             state: NodeInstanceState = NodeInstanceState.Pending,
-            body: Builder<C>.() -> Unit
-        ): JoinInstance<C> {
+            body: Builder.() -> Unit
+        ): JoinInstance {
             return build(joinImpl, predecessors, processInstance.builder(), entryNo, handle, state, body)
         }
 
@@ -261,7 +255,7 @@ class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstanc
          * @return `true` if the caller should finish the task, `false` if not
          */
         @JvmStatic
-        private fun <C: ActivityInstanceContext> Builder<C>.updateTaskState(
+        private fun Builder.updateTaskState(
             engineData: MutableProcessEngineDataAccess,
             cancelState: NodeInstanceState
         ): Boolean {
@@ -334,7 +328,7 @@ class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstanc
             return false
         }
 
-        private fun <C: ActivityInstanceContext> Builder<C>.skipTaskImpl(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState) {
+        private fun Builder.skipTaskImpl(engineData: MutableProcessEngineDataAccess, newState: NodeInstanceState) {
             // Skipping a join merely triggers a recalculation
             assert(newState == NodeInstanceState.Skipped || newState == NodeInstanceState.SkippedCancel || newState == NodeInstanceState.SkippedFail)
             val updateResult = updateTaskState(engineData, newState)
@@ -342,12 +336,11 @@ class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstanc
             processInstanceBuilder.store(engineData)
 
             if (state.isSkipped) {
-
                 skipPredecessors(engineData)
             }
         }
 
-        private fun <C: ActivityInstanceContext> Builder<C>.skipPredecessors(engineData: MutableProcessEngineDataAccess) {
+        private fun Builder.skipPredecessors(engineData: MutableProcessEngineDataAccess) {
             if (node.isMultiMerge) return // multimerge joins should not have their predecessors skipped
 
             val pseudoContext = PseudoInstance.PseudoContext(processInstanceBuilder)
@@ -393,7 +386,6 @@ class JoinInstance<C: ActivityInstanceContext> : ProcessNodeInstance<JoinInstanc
                 }
             }
         }
-
 
     }
 

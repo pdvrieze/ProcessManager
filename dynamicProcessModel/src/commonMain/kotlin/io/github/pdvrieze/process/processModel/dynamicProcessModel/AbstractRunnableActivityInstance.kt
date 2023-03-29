@@ -9,20 +9,21 @@ import nl.adaptivity.process.engine.impl.CompactFragment
 import nl.adaptivity.process.engine.processModel.*
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.util.CompactFragment
 
-abstract class AbstractRunnableActivityInstance<I : Any, O : Any, C : ActivityInstanceContext, NodeT : RunnableActivity<I, O, *>, InstT : AbstractRunnableActivityInstance<I, O, *, NodeT, InstT>>(
-    builder: Builder<I, O, C, NodeT, InstT>
+abstract class AbstractRunnableActivityInstance<InputT : Any, OutputT : Any, C : ActivityInstanceContext, NodeT : RunnableActivity<InputT, OutputT, *>, InstT : AbstractRunnableActivityInstance<InputT, OutputT, *, NodeT, InstT>>(
+    builder: Builder<InputT, OutputT, C, NodeT, InstT>
 ) : ProcessNodeInstance<InstT>(builder) {
 
     @Suppress("UNCHECKED_CAST")
     override val node: NodeT get() = super.node as NodeT
 
-    fun <C : ActivityInstanceContext> C.getInputData(nodeInstanceSource: IProcessInstance): I {
+    fun ActivityInstanceContext.getInputData(nodeInstanceSource: IProcessInstance): InputT {
         val defines = getDefines(nodeInstanceSource)
         return this@AbstractRunnableActivityInstance.node.getInputData(defines)
     }
 
-    interface Builder<I : Any, O : Any, C : ActivityInstanceContext, NodeT : RunnableActivity<I, O, *>, InstT : AbstractRunnableActivityInstance<I, O, *, NodeT, InstT>> :
+    interface Builder<InputT : Any, OutputT : Any, ContextT : ActivityInstanceContext, NodeT : RunnableActivity<InputT, OutputT, *>, InstT : AbstractRunnableActivityInstance<InputT, OutputT, *, NodeT, InstT>> :
         ProcessNodeInstance.Builder<NodeT, InstT> {
 
         override var assignedUser: PrincipalCompat?
@@ -37,23 +38,30 @@ abstract class AbstractRunnableActivityInstance<I : Any, O : Any, C : ActivityIn
         }
 
         override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {
+            fun <C: ActivityInstanceContext> doRun(contextFactory: ProcessContextFactory<C>, builtNodeInstance: InstT) : CompactFragment? {
+                val icontext: C = contextFactory.newActivityInstanceContext(engineData, this)
+
+                val input: InputT = with(builtNodeInstance) { icontext.getInputData(processInstanceBuilder) }
+
+                val action: RunnableAction<InputT, OutputT, C> =
+                    node.action as RunnableAction<InputT, OutputT, C>
+
+                val result: OutputT = icontext.action(input)
+
+                return node.outputSerializer?.let { os ->
+                    CompactFragment { writer ->
+                        XML.defaultInstance.encodeToWriter(writer, os, result)
+                    }
+                }
+
+            }
+
             val shouldProgress = tryCreateTask { node.canStartTaskAutoProgress(this) }
 
             if (shouldProgress) {
 
                 val resultFragment = tryRunTask {
-                    val build = build()
-                    val icontext = engineData.processContextFactory.newActivityInstanceContext(engineData, this)
-                    val input: I = with(build) { icontext.getInputData(processInstanceBuilder) }
-                    val action: RunnableAction<I, O, ActivityInstanceContext> = node.action as RunnableAction<I, O, ActivityInstanceContext>
-                    val context = engineData.processContextFactory.newActivityInstanceContext(engineData, this)
-                    val result: O = context.action(input)
-
-                    node.outputSerializer?.let { os ->
-                        CompactFragment { writer ->
-                            XML.defaultInstance.encodeToWriter(writer, os, result)
-                        }
-                    }
+                    doRun(engineData.processContextFactory, build())
                 }
 
                 finishTask(engineData, resultFragment)

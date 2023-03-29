@@ -86,14 +86,14 @@ interface ProcessContextFactory<C : ActivityInstanceContext> {
             engineDataAccess: ProcessEngineDataAccess,
             processNodeInstance: IProcessNodeInstance
         ): ActivityInstanceContext {
-            val processContext:ProcessInstanceContext = SimpleProcessContext<ActivityInstanceContext>(engineDataAccess.instance(processNodeInstance.hProcessInstance).withPermission())
+            val processContext:ProcessInstanceContext = SimpleProcessContext(engineDataAccess.instance(processNodeInstance.hProcessInstance).withPermission())
             return SimpleActivityContext(processNodeInstance, processContext)
         }
 
         override fun getPrincipal(userName: String): PrincipalCompat = SimplePrincipal(userName)
     }
 
-    private class SimpleProcessContext<C: ActivityInstanceContext>(
+    private class SimpleProcessContext(
         private val processInstance: IProcessInstance
     ) : ProcessInstanceContext {
         override val processInstanceHandle: PIHandle

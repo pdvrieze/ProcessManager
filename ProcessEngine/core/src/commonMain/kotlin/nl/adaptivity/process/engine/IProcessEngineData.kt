@@ -30,7 +30,7 @@ import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
 
-abstract class IProcessEngineData<T : ContextProcessTransaction, C: ActivityInstanceContext> : TransactionFactory<T> {
+abstract class IProcessEngineData<T : ContextProcessTransaction> : TransactionFactory<T> {
     protected abstract val processModels: IMutableProcessModelMap<T>
     protected abstract val processInstances: MutableTransactionedHandleMap<SecureProcessInstance, T>
     protected abstract val processNodeInstances: MutableTransactionedHandleMap<SecureProcessNodeInstance, T>
@@ -98,7 +98,7 @@ abstract class IProcessEngineData<T : ContextProcessTransaction, C: ActivityInst
 
 
 @OptIn(ExperimentalContracts::class)
-inline fun <T : ContextProcessTransaction, R, C: ActivityInstanceContext> IProcessEngineData<T, C>.inWriteTransaction(
+inline fun <T : ContextProcessTransaction, R> IProcessEngineData<T>.inWriteTransaction(
     transaction: T,
     body: MutableProcessEngineDataAccess.() -> R
 ): R {

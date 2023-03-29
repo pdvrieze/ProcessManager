@@ -43,7 +43,7 @@ import nl.adaptivity.xmlutil.util.CompactFragment
  * Factory object to help with process node creation from a database.
  */
 
-internal class ProcessNodeInstanceFactory(val processEngine: ProcessEngine<ProcessDBTransaction, *>) :
+internal class ProcessNodeInstanceFactory(val processEngine: ProcessEngine<ProcessDBTransaction>) :
     AbstractElementFactory<ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*>>, SecureProcessNodeInstance, ProcessDBTransaction, ProcessEngineDB>() {
 
     companion object {
@@ -91,7 +91,7 @@ internal class ProcessNodeInstanceFactory(val processEngine: ProcessEngine<Proce
             return when (node) {
                 is ExecutableJoin -> {
                     predecessorHandles.map { predecessors ->
-                        JoinInstance.BaseBuilder<ActivityInstanceContext>(
+                        JoinInstance.BaseBuilder(
                             node, predecessors, processInstanceBuilder, processInstanceBuilder.owner, entryNo,
                             if (pnihandle.handleValue < 0) Handle.invalid() else Handle(pnihandle.handleValue), state
                         )
@@ -99,7 +99,7 @@ internal class ProcessNodeInstanceFactory(val processEngine: ProcessEngine<Proce
                 }
 
                 is ExecutableSplit -> predecessorHandles.map { predecessors ->
-                    SplitInstance.BaseBuilder<ActivityInstanceContext>(
+                    SplitInstance.BaseBuilder(
                         node,
                         predecessors.single(),
                         processInstanceBuilder,
@@ -118,7 +118,7 @@ internal class ProcessNodeInstanceFactory(val processEngine: ProcessEngine<Proce
                                 Pair(predecessors, it.singleOrNull() ?: Handle.invalid())
                             }
                     }.map { (predecessors, childInstance) ->
-                        CompositeInstance.BaseBuilder<ActivityInstanceContext>(
+                        CompositeInstance.BaseBuilder(
                             node,
                             predecessors.single(),
                             processInstanceBuilder,

@@ -38,7 +38,7 @@ import nl.adaptivity.xmlutil.util.CompactFragment
 /**
  * Factory that helps in storing and retrieving process instances from the database.
  */
-internal class ProcessInstanceElementFactory(private val processEngine: ProcessEngine<*, *>) :
+internal class ProcessInstanceElementFactory(private val processEngine: ProcessEngine<*>) :
     AbstractElementFactory<ProcessInstance.BaseBuilder, SecureProcessInstance, ProcessDBTransaction, ProcessEngineDB>() {
 
     override fun getHandleCondition(where: _Where, handle: PIHandle): WhereClause {

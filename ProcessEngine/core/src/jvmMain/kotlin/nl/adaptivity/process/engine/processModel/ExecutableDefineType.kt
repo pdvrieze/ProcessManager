@@ -45,7 +45,7 @@ actual fun IXmlDefineType.applyFromProcessInstance(processInstance: ProcessInsta
         .allChildNodeInstances { it.node.id == refNode }
         .lastOrNull()
     }
-    return applyDataImpl(processInstance, predecessor?.build(processInstance), processInstance.handle)
+    return applyDataImpl(processInstance, predecessor, processInstance.handle)
 }
 
 @OptIn(XmlUtilInternal::class)

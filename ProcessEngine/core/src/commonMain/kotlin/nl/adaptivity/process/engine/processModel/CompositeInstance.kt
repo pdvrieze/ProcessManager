@@ -16,8 +16,9 @@
 
 package nl.adaptivity.process.engine.processModel
 
-import net.devrieze.util.*
+import net.devrieze.util.Handle
 import net.devrieze.util.collection.replaceBy
+import net.devrieze.util.overlay
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.impl.generateXmlString
@@ -33,9 +34,9 @@ import nl.adaptivity.xmlutil.util.ICompactFragment
 /**
  * Class representing a node instance that wraps a composite activity.
  */
-class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : ProcessNodeInstance<CompositeInstance<C>>(builder) {
+class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstance>(builder) {
 
-    interface Builder<C : ActivityInstanceContext> : ProcessNodeInstance.Builder<ExecutableCompositeActivity, CompositeInstance<C>> {
+    interface Builder : ProcessNodeInstance.Builder<ExecutableCompositeActivity, CompositeInstance> {
         var hChildInstance: PIHandle
         override fun doProvideTask(
             engineData: MutableProcessEngineDataAccess,
@@ -87,7 +88,7 @@ class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : Proc
         }
     }
 
-    class BaseBuilder<C: ActivityInstanceContext>(
+    class BaseBuilder(
         node: ExecutableCompositeActivity,
         predecessor: PNIHandle?,
         processInstanceBuilder: ProcessInstance.Builder,
@@ -96,14 +97,14 @@ class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : Proc
         entryNo: Int,
         handle: PNIHandle = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
-    ) : ProcessNodeInstance.BaseBuilder<ExecutableCompositeActivity, CompositeInstance<C>>(
+    ) : ProcessNodeInstance.BaseBuilder<ExecutableCompositeActivity, CompositeInstance>(
         node, listOfNotNull(predecessor), processInstanceBuilder, owner,
         entryNo, handle, state
-    ), Builder<C> {
+    ), Builder {
 
         override fun invalidateBuilder(engineData: ProcessEngineDataAccess) {
             engineData.nodeInstances[handle]?.withPermission()?.let { n ->
-                val newBase = n as CompositeInstance<*>
+                val newBase = n as CompositeInstance
                 node = newBase.node
                 predecessors.replaceBy(newBase.predecessors)
                 state = newBase.state
@@ -111,14 +112,14 @@ class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : Proc
             }
         }
 
-        override fun build(): CompositeInstance<C> {
+        override fun build(): CompositeInstance {
             return CompositeInstance(this)
         }
     }
 
-    class ExtBuilder<C: ActivityInstanceContext>(base: CompositeInstance<C>, processInstanceBuilder: ProcessInstance.Builder) :
-        ProcessNodeInstance.ExtBuilder<ExecutableCompositeActivity, CompositeInstance<C>>(base, processInstanceBuilder),
-        Builder<C> {
+    class ExtBuilder(base: CompositeInstance, processInstanceBuilder: ProcessInstance.Builder) :
+        ProcessNodeInstance.ExtBuilder<ExecutableCompositeActivity, CompositeInstance>(base, processInstanceBuilder),
+        Builder {
 
         override var node: ExecutableCompositeActivity by overlay { base.node }
 
@@ -126,7 +127,7 @@ class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : Proc
             observer()
         ) { base.hChildInstance }
 
-        override fun build(): CompositeInstance<C> {
+        override fun build(): CompositeInstance {
             return if (changed) CompositeInstance(this).also { invalidateBuilder(it) } else base
         }
     }
@@ -139,10 +140,11 @@ class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : Proc
 
     override val node: ExecutableCompositeActivity get() = super.node as ExecutableCompositeActivity
 
-    override fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder<C> =
+    override fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder =
         ExtBuilder(this, processInstanceBuilder)
 
-    fun <C : ActivityInstanceContext> C.getPayload(nodeInstanceSource: IProcessInstance): CompactFragment? {
+    fun ActivityInstanceContext.getPayload(nodeInstanceSource: IProcessInstance): CompactFragment? {
+        // TODO move receiver to parameter
         val defines = getDefines(nodeInstanceSource)
         if (defines.isEmpty()) return null
 

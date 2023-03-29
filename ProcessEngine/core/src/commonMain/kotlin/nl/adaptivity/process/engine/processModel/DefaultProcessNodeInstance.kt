@@ -155,8 +155,7 @@ class DefaultProcessNodeInstance :
         return result
     }
 
-    interface Builder :
-        ProcessNodeInstance.Builder<ExecutableProcessNode, DefaultProcessNodeInstance> {
+    interface Builder : ProcessNodeInstance.Builder<ExecutableProcessNode, DefaultProcessNodeInstance> {
 
         override var assignedUser: PrincipalCompat?
 

@@ -321,8 +321,8 @@ class TestContext(private val config: TraceTest.ConfigBase) {
                     is CompositeActivity -> {
                         if (nextNodeInstance.state == NodeInstanceState.Started) {
                             val childInstanceHandle = when (nextNodeInstance) {
-                                is CompositeInstance<*> -> nextNodeInstance.hChildInstance
-                                is CompositeInstance.Builder<*> -> nextNodeInstance.hChildInstance
+                                is CompositeInstance -> nextNodeInstance.hChildInstance
+                                is CompositeInstance.Builder -> nextNodeInstance.hChildInstance
                                 else -> throw UnsupportedOperationException("Composite activity with unexpected instance type")
                             }
                             assertTrue(
@@ -656,7 +656,7 @@ private fun ContainerContext.createJoinElementTest(trace: Trace, elementIdx: Int
             ?: fail("An element for ${traceElement} shoulld exist")
 
         val activePredecessors =
-            getProcessInstance().getActivePredecessorsFor(transaction.readableEngineData, pni as JoinInstance<ActivityInstanceContext>)
+            getProcessInstance().getActivePredecessorsFor(transaction.readableEngineData, pni as JoinInstance)
 
         if (!(activePredecessors.isEmpty() && pni.canFinish())) {
             assertEquals(NodeInstanceState.Complete, traceElement.getNodeInstance()?.state) {
@@ -729,14 +729,14 @@ private fun ContainerContext.createCompositeElementTest(trace: Trace, elementIdx
     val traceElement = trace[elementIdx]
     addTest("A child instance should have been created for $traceElement") {
         runTrace(trace, elementIdx)
-        assertTrue((traceElement.getNodeInstance() as CompositeInstance<*>).hChildInstance.isValid) {
+        assertTrue((traceElement.getNodeInstance() as CompositeInstance).hChildInstance.isValid) {
             "No child instance was recorded"
         }
     }
 
     addTest("The child instance was finished for $traceElement") {
         runTrace(trace, elementIdx + 1)
-        val nodeInstance = traceElement.getNodeInstance() as CompositeInstance<*>
+        val nodeInstance = traceElement.getNodeInstance() as CompositeInstance
         val childInstance = getProcessInstance(nodeInstance.hChildInstance)
 
         assertEquals(ProcessInstance.State.FINISHED, childInstance.state)
@@ -797,7 +797,7 @@ fun createInvalidTraceTest(
             try {
                 val instanceSupport = object : InstanceSupport {
                     override val transaction: StubProcessTransaction get() = this@addTest.transaction
-                    override val engine: ProcessEngine<StubProcessTransaction, ActivityInstanceContext>
+                    override val engine: ProcessEngine<StubProcessTransaction>
                         get() = engineData.engine
 
                 }
@@ -867,8 +867,8 @@ fun IProcessInstance.allDescendentNodeInstances(engineData: ProcessEngineDataAcc
         for (nodeInst in inst.allChildNodeInstances()) {
             result.add(nodeInst)
             when (nodeInst) {
-                is CompositeInstance<*> -> procQueue.add(engineData.instance(nodeInst.hChildInstance).withPermission())
-                is CompositeInstance.Builder<*> -> procQueue.add(engineData.instance(nodeInst.hChildInstance).withPermission())
+                is CompositeInstance -> procQueue.add(engineData.instance(nodeInst.hChildInstance).withPermission())
+                is CompositeInstance.Builder -> procQueue.add(engineData.instance(nodeInst.hChildInstance).withPermission())
             }
         }
     }

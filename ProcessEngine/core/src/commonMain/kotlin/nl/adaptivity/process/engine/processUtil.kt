@@ -74,14 +74,14 @@ fun <N:SecureObject<V>, V:Any> N?.shouldExist(handle: Handle<SecureObject<V>>): 
  * @return The node
  * @throws IllegalStateException If it doesn't
  */
-fun <T : ContextProcessTransaction, C : ActivityInstanceContext> ProcessInstance?.mustExist(handle: PIHandle): ProcessInstance = this ?: throw IllegalStateException("Node instance missing: $handle")
+fun ProcessInstance?.mustExist(handle: PIHandle): ProcessInstance = this ?: throw IllegalStateException("Node instance missing: $handle")
 
 /**
  * Verify that the node exists. Non-existance could be user errror.
  * @return The node
  * @throws HandleNotFoundException If it doesn't.
  */
-fun <T : ContextProcessTransaction, C : ActivityInstanceContext> ProcessInstance?.shouldExist(handle: PIHandle): ProcessInstance = this ?: throw HandleNotFoundException("Node instance missing: $handle")
+fun ProcessInstance?.shouldExist(handle: PIHandle): ProcessInstance = this ?: throw HandleNotFoundException("Node instance missing: $handle")
 
 /**
  * Verify that the node instance exists. If it doesn't exist this is an internal error

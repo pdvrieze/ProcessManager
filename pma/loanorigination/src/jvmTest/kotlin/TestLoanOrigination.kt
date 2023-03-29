@@ -20,8 +20,6 @@ import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.pma.*
 import nl.adaptivity.process.engine.test.ProcessEngineFactory
 import nl.adaptivity.process.engine.test.ProcessEngineTestSupport
-import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions.*
-import nl.adaptivity.process.engine.test.loanOrigination.datatypes.*
 import nl.adaptivity.process.processModel.engine.*
 import org.junit.jupiter.api.Assertions.assertThrows
 import java.util.logging.Logger
@@ -29,7 +27,7 @@ import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 
-class TestLoanOrigination : ProcessEngineTestSupport<LoanActivityContext>() {
+class TestLoanOrigination : ProcessEngineTestSupport() {
 
     @Test
     fun testCreateObjectModel() {
@@ -60,7 +58,7 @@ class TestLoanOrigination : ProcessEngineTestSupport<LoanActivityContext>() {
 
     private fun testRunModel(model: ExecutableProcessModel) {
         val logger = Logger.getLogger(TestLoanOrigination::class.java.name)
-        val pef: ProcessEngineFactory<LoanActivityContext> = { messageService, transactionFactory ->
+        val pef: ProcessEngineFactory = { messageService, transactionFactory ->
             defaultEngineFactory(
                 messageService,
                 transactionFactory,

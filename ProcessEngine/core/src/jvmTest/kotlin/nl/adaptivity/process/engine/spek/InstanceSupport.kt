@@ -35,7 +35,7 @@ import org.junit.jupiter.api.Assertions.assertTrue
  */
 interface InstanceSupport { // TODO add context type parameter
     val transaction: StubProcessTransaction
-    val engine: ProcessEngine<StubProcessTransaction, ActivityInstanceContext>
+    val engine: ProcessEngine<StubProcessTransaction>
 
     fun ProcessInstance.allChildren(): Sequence<ProcessNodeInstance<*>> {
         @Suppress("UNCHECKED_CAST")
@@ -67,7 +67,7 @@ interface InstanceSupport { // TODO add context type parameter
 fun ProcessInstance.transitiveChildren(transaction: StubProcessTransaction): Sequence<ProcessNodeInstance<*>> {
     return childNodes.asSequence().flatMap {
         when (val child = it.withPermission()) {
-            is CompositeInstance<*> ->
+            is CompositeInstance ->
                 if (child.hChildInstance.isValid) {
                     sequenceOf(child) +
                         transaction.readableEngineData
@@ -88,7 +88,7 @@ fun ProcessInstance.toDebugString(transaction: StubProcessTransaction): String {
             .sortedBy { it.handle }
             .joinTo(this) { inst ->
                 when (inst) {
-                    is CompositeInstance<*> -> when {
+                    is CompositeInstance -> when {
                         !inst.hChildInstance.isValid ->
                             "${inst.node.id}[${inst.entryNo}]:(<Not started>) = ${inst.state}"
 

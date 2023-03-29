@@ -50,11 +50,11 @@ class ExecutableJoin(
         predecessor: IProcessNodeInstance,
         neededEntryNo: Int,
         allowFinalInstance: Boolean
-    ): Pair<JoinInstance.Builder<*>?, Int> {
+    ): Pair<JoinInstance.Builder?, Int> {
         var candidateNo = if (isMultiInstance || isMultiMerge) neededEntryNo else 1
         for (candidate in processInstanceBuilder.getChildren(this).sortedBy { it.entryNo }) {
             if (predecessor.handle in candidate.predecessors) {
-                return (candidate as JoinInstance.Builder<*>) to candidateNo
+                return (candidate as JoinInstance.Builder) to candidateNo
             }
             if ((allowFinalInstance || candidate.state != NodeInstanceState.Complete) &&
                 (candidate.entryNo == neededEntryNo || candidate.predecessors.any {
@@ -65,7 +65,7 @@ class ExecutableJoin(
                     }
                 })
             ) {
-                return (candidate as JoinInstance.Builder<*>) to candidateNo
+                return (candidate as JoinInstance.Builder) to candidateNo
             }
             // TODO Throw exceptions for cases where this is not allowed
             if (candidate.entryNo == candidateNo) {
@@ -141,7 +141,7 @@ class ExecutableJoin(
         if (!(isMultiInstance || isMultiMerge) && candidateNo != 1) {
             throw ProcessException("Attempting to start a second instance of a single instantiation join $id:$entryNo")
         }
-        return JoinInstance.BaseBuilder<ActivityInstanceContext>(
+        return JoinInstance.BaseBuilder(
             this,
             listOf(predecessor.handle),
             processInstanceBuilder,

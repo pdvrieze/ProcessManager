@@ -92,7 +92,7 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableActivity {
         entryNo: Int,
         allowFinalInstance: Boolean
     ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*>> {
-        return processInstanceBuilder.getChildNodeInstance(this, entryNo) ?: CompositeInstance.BaseBuilder<ActivityInstanceContext>(
+        return processInstanceBuilder.getChildNodeInstance(this, entryNo) ?: CompositeInstance.BaseBuilder(
             this, predecessor.handle,
             processInstanceBuilder,
             Handle.invalid(),

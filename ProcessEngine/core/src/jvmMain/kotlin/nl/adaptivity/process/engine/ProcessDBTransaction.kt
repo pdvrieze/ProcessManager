@@ -26,7 +26,7 @@ import nl.adaptivity.util.multiplatform.Runnable
  */
 class ProcessDBTransaction(
     dbTransactionContext: DBTransactionContext<ProcessEngineDB>,
-    private val engineData: IProcessEngineData<ProcessDBTransaction, *>
+    private val engineData: IProcessEngineData<ProcessDBTransaction>
 ) : MonadicDBTransaction<ProcessEngineDB>(dbTransactionContext), ContextProcessTransaction {
     private val pendingProcessInstances =
         mutableMapOf<PIHandle, ProcessInstance.ExtBuilder>()

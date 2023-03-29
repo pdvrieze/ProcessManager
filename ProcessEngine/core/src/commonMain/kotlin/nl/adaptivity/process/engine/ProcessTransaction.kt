@@ -28,5 +28,5 @@ interface ContextProcessTransaction : Transaction {
 }
 
 interface ProcessTransactionFactory<T: ContextProcessTransaction> {
-  fun startTransaction(engineData: IProcessEngineData<T, *>): T
+  fun startTransaction(engineData: IProcessEngineData<T>): T
 }

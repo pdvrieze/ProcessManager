@@ -54,7 +54,7 @@ import kotlin.test.fail
 /**
  * Created by pdvrieze on 18/08/15.
  */
-class TestProcessEngine : ProcessEngineTestSupport<ActivityInstanceContext>() {
+class TestProcessEngine : ProcessEngineTestSupport() {
 
     private fun getXml(name: String): String {
         javaClass.getResourceAsStream("/nl/adaptivity/process/engine/test/" + name)!!.use { reader ->

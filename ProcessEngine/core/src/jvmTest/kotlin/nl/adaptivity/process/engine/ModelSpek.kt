@@ -20,7 +20,7 @@ import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 
 data class ModelData(
-    val engineData: () -> EngineTestData<ActivityInstanceContext>,
+    val engineData: () -> EngineTestData,
     val model: ExecutableProcessModel,
     val valid: List<Trace>,
     val invalid: List<Trace>
@@ -47,7 +47,7 @@ data class ModelData(
         )
 
     constructor(
-        engineData: () -> EngineTestData<ActivityInstanceContext>,
+        engineData: () -> EngineTestData,
         generalModel: ProcessModel<*>,
         valid: List<Trace>,
         invalid: List<Trace>

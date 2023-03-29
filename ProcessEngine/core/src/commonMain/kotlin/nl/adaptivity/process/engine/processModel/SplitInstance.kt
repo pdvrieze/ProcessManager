@@ -19,7 +19,6 @@ package nl.adaptivity.process.engine.processModel
 import net.devrieze.util.Handle
 import net.devrieze.util.collection.replaceByNotNull
 import net.devrieze.util.overlay
-import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.impl.LogLevel
@@ -30,15 +29,16 @@ import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.xmlutil.util.ICompactFragment
 
 /**
- * Specialisation of process node instance for splits
+ * Specialization of process node instance for splits
  */
-class SplitInstance<C : ActivityInstanceContext>  : ProcessNodeInstance<SplitInstance<C>> {
+class SplitInstance : ProcessNodeInstance<SplitInstance> {
 
-    interface Builder<C : ActivityInstanceContext> : ProcessNodeInstance.Builder<ExecutableSplit, SplitInstance<C>> {
-        override fun build(): SplitInstance<C>
+    interface Builder : ProcessNodeInstance.Builder<ExecutableSplit, SplitInstance> {
         var predecessor: PNIHandle?
             get() = predecessors.firstOrNull()
             set(value) = predecessors.replaceByNotNull(value)
+
+        override fun build(): SplitInstance
 
         override fun doProvideTask(
             engineData: MutableProcessEngineDataAccess,
@@ -74,13 +74,18 @@ class SplitInstance<C : ActivityInstanceContext>  : ProcessNodeInstance<SplitIns
 
     }
 
-    class ExtBuilder<C : ActivityInstanceContext>(private val instance: SplitInstance<C>, processInstanceBuilder: ProcessInstance.Builder) :
-        ProcessNodeInstance.ExtBuilder<ExecutableSplit, SplitInstance<C>>(instance, processInstanceBuilder), Builder<C> {
+    class ExtBuilder(private val instance: SplitInstance, processInstanceBuilder: ProcessInstance.Builder) :
+        ProcessNodeInstance.ExtBuilder<ExecutableSplit, SplitInstance>(instance, processInstanceBuilder), Builder {
+
         override var node: ExecutableSplit by overlay { instance.node }
-        override fun build() = if (changed) SplitInstance<C>(this).also { invalidateBuilder(it) } else base
+
+        override fun build() = when {
+            changed -> SplitInstance(this).also { invalidateBuilder(it) }
+            else -> base
+        }
     }
 
-    class BaseBuilder<C : ActivityInstanceContext>(
+    class BaseBuilder(
         node: ExecutableSplit,
         predecessor: PNIHandle,
         processInstanceBuilder: ProcessInstance.Builder,
@@ -88,19 +93,15 @@ class SplitInstance<C : ActivityInstanceContext>  : ProcessNodeInstance<SplitIns
         entryNo: Int,
         handle: PNIHandle = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
-    ) : ProcessNodeInstance.BaseBuilder<ExecutableSplit, SplitInstance<C>>(
+    ) : ProcessNodeInstance.BaseBuilder<ExecutableSplit, SplitInstance>(
         node, listOf(predecessor), processInstanceBuilder, owner, entryNo,
         handle, state
-    ), Builder<C> {
-        override fun build(): SplitInstance<C> = SplitInstance(this)
+    ), Builder {
+        override fun build(): SplitInstance = SplitInstance(this)
     }
 
     override val node: ExecutableSplit
         get() = super.node as ExecutableSplit
-
-    @Suppress("UNCHECKED_CAST")
-    override val handle: Handle<SecureObject<SplitInstance<C>>>
-        get() = super.handle as Handle<SecureObject<SplitInstance<C>>>
 
     constructor(
         node: ExecutableSplit,
@@ -124,7 +125,7 @@ class SplitInstance<C : ActivityInstanceContext>  : ProcessNodeInstance<SplitIns
         results
     )
 
-    constructor(builder: Builder<C>) : this(
+    constructor(builder: Builder) : this(
         builder.node,
         builder.predecessor ?: throw NullPointerException("Missing predecessor node instance"),
         builder.processInstanceBuilder,
@@ -136,7 +137,7 @@ class SplitInstance<C : ActivityInstanceContext>  : ProcessNodeInstance<SplitIns
         builder.entryNo
     )
 
-    override fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder<C> {
+    override fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder {
         return SplitInstance.ExtBuilder(this, processInstanceBuilder)
     }
 
@@ -174,7 +175,7 @@ class SplitInstance<C : ActivityInstanceContext>  : ProcessNodeInstance<SplitIns
  *
  * TODO Review this algorithm
  */
-internal fun SplitInstance.Builder<*>.updateState(engineData: MutableProcessEngineDataAccess): Boolean {
+internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineDataAccess): Boolean {
 
     if (state.isFinal) return true
 

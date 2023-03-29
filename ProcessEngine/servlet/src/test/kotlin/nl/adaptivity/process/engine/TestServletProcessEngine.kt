@@ -28,7 +28,7 @@ import java.util.logging.Logger
  */
 class TestServletProcessEngine(
     localURL: EndpointDescriptorImpl?
-) : ServletProcessEngine<StubProcessTransaction, ActivityInstanceContext>() {
+) : ServletProcessEngine<StubProcessTransaction>() {
     private val mProcessModels: MemProcessModelMap
     private val mProcessInstances: MemTransactionedHandleMap<SecureProcessInstance, StubProcessTransaction>
     private val mProcessNodeInstances: MemTransactionedHandleMap<SecureProcessNodeInstance, StubProcessTransaction>
@@ -36,7 +36,7 @@ class TestServletProcessEngine(
 
     init {
         transactionFactory = object : ProcessTransactionFactory<StubProcessTransaction> {
-            override fun startTransaction(engineData: IProcessEngineData<StubProcessTransaction, *>): StubProcessTransaction {
+            override fun startTransaction(engineData: IProcessEngineData<StubProcessTransaction>): StubProcessTransaction {
                 return StubProcessTransaction(engineData)
             }
         }

@@ -10,7 +10,7 @@ import nl.adaptivity.process.processModel.ServiceAuthData
 
 class PMAStubMessageService(localEndpoint: EndpointDescriptor) : StubMessageService(localEndpoint) {
     override fun sendMessage(
-        engineData: ProcessEngineDataAccess<*>,
+        engineData: ProcessEngineDataAccess,
         protoMessage: IXmlMessage,
         activityInstanceContext: ActivityInstanceContext,
         authData: ServiceAuthData?

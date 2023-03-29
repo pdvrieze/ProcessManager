@@ -89,9 +89,9 @@ import kotlin.contracts.contract
              interfacePrefix = "pe",
              serviceLocalname = ServletProcessEngine.SERVICE_LOCALNAME)
 */
-open class ServletProcessEngine<TR : ContextProcessTransaction, AIC: ActivityInstanceContext> : EndpointServlet(), GenericEndpoint {
+open class ServletProcessEngine<TR : ContextProcessTransaction> : EndpointServlet(), GenericEndpoint {
 
-    private lateinit var processEngine: ProcessEngine<TR, AIC>
+    private lateinit var processEngine: ProcessEngine<TR>
     private lateinit var messageService: MessageService
 
     override val serviceName: QName
@@ -104,19 +104,19 @@ open class ServletProcessEngine<TR : ContextProcessTransaction, AIC: ActivityIns
         get() = null
 
     inner class MessageService(localEndpoint: EndpointDescriptor) :
-        IMessageService<NewServletMessage<ActivityInstanceContext>> {
+        IMessageService<NewServletMessage> {
 
         override var localEndpoint: EndpointDescriptor = localEndpoint
             internal set
 
 
-        override fun createMessage(message: IXmlMessage): NewServletMessage<ActivityInstanceContext> {
+        override fun createMessage(message: IXmlMessage): NewServletMessage {
             return NewServletMessage(message, localEndpoint)
         }
 
         override fun sendMessage(
             engineData: ProcessEngineDataAccess,
-            protoMessage: NewServletMessage<ActivityInstanceContext>,
+            protoMessage: NewServletMessage,
             activityInstanceContext: ActivityInstanceContext,
             authData: ServiceAuthData?
         ): MessageSendingResult {
@@ -171,12 +171,12 @@ open class ServletProcessEngine<TR : ContextProcessTransaction, AIC: ActivityIns
 
     }
 
-    class NewServletMessage<AIC: ActivityInstanceContext>(
+    class NewServletMessage(
         private val message: IXmlMessage,
         private val localEndpoint: EndpointDescriptor
     ) : ISendableMessage, Writable {
 
-        private var activityInstanceContext: AIC? = null
+        private var activityInstanceContext: ActivityInstanceContext? = null
 
         private var data: Writable? = null
 
@@ -223,7 +223,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction, AIC: ActivityIns
         }
 
 
-        fun setHandle(engineData: ProcessEngineDataAccess, activityInstanceContext: AIC) {
+        fun setHandle(engineData: ProcessEngineDataAccess, activityInstanceContext: ActivityInstanceContext) {
             this.activityInstanceContext = activityInstanceContext
 
             try {
@@ -467,7 +467,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction, AIC: ActivityIns
     }
 
     @TestOnly
-    protected fun init(engine: ProcessEngine<TR, AIC>) {
+    protected fun init(engine: ProcessEngine<TR>) {
         processEngine = engine
     }
 
@@ -485,7 +485,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction, AIC: ActivityIns
 
         val logger = Logger.getLogger(ServletProcessEngine::class.java.name)
 
-        processEngine = ProcessEngine.newInstance(messageService, logger) as ProcessEngine<TR, AIC>
+        processEngine = ProcessEngine.newInstance(messageService, logger) as ProcessEngine<TR>
 
         MessagingRegistry.messenger.registerEndpoint(this)
     }
@@ -973,7 +973,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction, AIC: ActivityIns
         handle: PNIHandle,
         owner: Principal
     ) {
-        fun <C : ActivityInstanceContext, TR : ContextProcessTransaction> impl(processEngine: ProcessEngine<TR, C>) {
+        fun <C : ActivityInstanceContext, TR : ContextProcessTransaction> impl(processEngine: ProcessEngine<TR>) {
             translateExceptions {
                 // XXX do this better
                 if (future.isCancelled) {

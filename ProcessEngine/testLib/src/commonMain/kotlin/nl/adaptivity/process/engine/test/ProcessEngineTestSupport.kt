@@ -1,5 +1,6 @@
 package nl.adaptivity.process.engine.test
 
+import net.devrieze.util.CachingHandleMap
 import net.devrieze.util.MutableTransactionedHandleMap
 import net.devrieze.util.security.*
 import nl.adaptivity.messaging.EndpointDescriptorImpl
@@ -17,9 +18,9 @@ import nl.adaptivity.xmlutil.QName
 import kotlin.test.BeforeTest
 import nl.adaptivity.xmlutil.util.CompactFragment
 
-typealias ProcessEngineFactory<C> = (IMessageService<*>, ProcessTransactionFactory<StubProcessTransaction>)-> ProcessEngine<StubProcessTransaction, C>
+typealias ProcessEngineFactory = (IMessageService<*>, ProcessTransactionFactory<StubProcessTransaction>)-> ProcessEngine<StubProcessTransaction>
 
-open class ProcessEngineTestSupport<C: ActivityInstanceContext>(
+open class ProcessEngineTestSupport(
     private val localEndpoint: EndpointDescriptorImpl = EndpointDescriptorImpl(
         QName.valueOf("processEngine"),
         "processEngine",
@@ -29,7 +30,7 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>(
 ) {
     protected val stubTransactionFactory = object :
         ProcessTransactionFactory<StubProcessTransaction> {
-        override fun startTransaction(engineData: IProcessEngineData<StubProcessTransaction, *>): StubProcessTransaction {
+        override fun startTransaction(engineData: IProcessEngineData<StubProcessTransaction>): StubProcessTransaction {
             return StubProcessTransaction(engineData)
         }
     }
@@ -49,8 +50,8 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>(
     inline fun <R> testProcess(
         model: ExecutableProcessModel,
         payload: CompactFragment? = null,
-        noinline createProcessContextFactory: () -> ProcessContextFactory<C>,
-        body: (ProcessEngine<StubProcessTransaction, C>, StubProcessTransaction, ExecutableProcessModel, PIHandle) -> R
+        noinline createProcessContextFactory: () -> ProcessContextFactory<*>,
+        body: (ProcessEngine<StubProcessTransaction>, StubProcessTransaction, ExecutableProcessModel, PIHandle) -> R
     ): R {
         val processEngine = doCreateRawEngine(createProcessContextFactory)
         processEngine.startTransaction().use { transaction ->
@@ -64,10 +65,10 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>(
     }
 
     protected inline fun <R> testProcess(
-        processEngineFactory: ProcessEngineFactory<*>,
+        processEngineFactory: ProcessEngineFactory,
         model: ExecutableProcessModel,
         payload: CompactFragment? = null,
-        body: (ProcessEngine<StubProcessTransaction, *>, StubProcessTransaction, ExecutableProcessModel, PIHandle) -> R
+        body: (ProcessEngine<StubProcessTransaction>, StubProcessTransaction, ExecutableProcessModel, PIHandle) -> R
     ): R {
         val processEngine = processEngineFactory(messageService, stubTransactionFactory)
         processEngine.startTransaction().use { transaction ->
@@ -81,15 +82,15 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>(
     }
 
     inline fun <R> testRawEngine(
-        noinline createProcessContextFactory: () -> ProcessContextFactory<C>,
-        action: (ProcessEngine<StubProcessTransaction, C>) -> R,
+        noinline createProcessContextFactory: () -> ProcessContextFactory<*>,
+        action: (ProcessEngine<StubProcessTransaction>) -> R,
     ): R {
         return action(doCreateRawEngine(createProcessContextFactory))
     }
 
     @PublishedApi
-    internal fun doCreateRawEngine(createProcessContextFactory: () -> ProcessContextFactory<C>): ProcessEngine<StubProcessTransaction, C> {
-        return defaultEngineFactory<C>(messageService, stubTransactionFactory, createProcessContextFactory())
+    internal fun doCreateRawEngine(createProcessContextFactory: () -> ProcessContextFactory<*>): ProcessEngine<StubProcessTransaction> {
+        return defaultEngineFactory(messageService, stubTransactionFactory, createProcessContextFactory())
     }
 
     protected fun ContextProcessTransaction.getInstance(instanceHandle: PIHandle): ProcessInstance {
@@ -199,7 +200,7 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>(
         @JvmStatic
         @JvmName("newTestInstance")
         @PublishedApi
-        internal fun <T : ContextProcessTransaction, C : ActivityInstanceContext> newTestProcessEngineInstance(
+        internal fun <T : ContextProcessTransaction> newTestProcessEngineInstance(
             messageService: IMessageService<*>,
             transactionFactory: ProcessTransactionFactory<T>,
             processModels: IMutableProcessModelMap<T>,
@@ -207,8 +208,8 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>(
             processNodeInstances: MutableTransactionedHandleMap<SecureProcessNodeInstance, T>,
             autoTransition: Boolean,
             logger: Logger,
-            processContextFactory: ProcessContextFactory<C>
-        ): ProcessEngine<T, C> {
+            processContextFactory: ProcessContextFactory<*>
+        ): ProcessEngine<T> {
 
 
             return ProcessEngine(
@@ -222,16 +223,16 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>(
         }
 
 
-        fun <C: ActivityInstanceContext> defaultEngineFactory(messageService: IMessageService<*>, transactionFactory: ProcessTransactionFactory<StubProcessTransaction>, contextFactory: ProcessContextFactory<C>): ProcessEngine<StubProcessTransaction, C> {
-            return newTestProcessEngineInstance(
+        fun defaultEngineFactory(messageService: IMessageService<*>, transactionFactory: ProcessTransactionFactory<StubProcessTransaction>, contextFactory: ProcessContextFactory<*>): ProcessEngine<StubProcessTransaction> {
+            return newTestProcessEngineInstance<StubProcessTransaction>(
                 messageService,
                 transactionFactory,
-                cacheModels<Any, C>(MemProcessModelMap(), 3),
-                cacheInstances<SecureProcessInstance, C>(
+                cacheModels(MemProcessModelMap(), 3),
+                cacheInstances(
                     MemTransactionedHandleMap(),
                     1
                 ),
-                cacheNodes<SecureProcessNodeInstance, C>(
+                cacheNodes(
                     MemTransactionedHandleMap(
                         ::PNI_SET_HANDLE
                     ), 2
@@ -248,15 +249,15 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>(
             return pni.withPermission().builder(piBuilder).also { it.handle = handle }.build()
         }
 
-        fun <V:Any, C : ActivityInstanceContext> cacheInstances(base: MutableTransactionedHandleMap<V, StubProcessTransaction>, count: Int): MutableTransactionedHandleMap<V, StubProcessTransaction> {
-            return net.devrieze.util.CachingHandleMap(base, count)
+        fun <V:Any> cacheInstances(base: MutableTransactionedHandleMap<V, StubProcessTransaction>, count: Int): MutableTransactionedHandleMap<V, StubProcessTransaction> {
+            return CachingHandleMap(base, count)
         }
 
-        fun <V, C: ActivityInstanceContext> cacheNodes(base: MutableTransactionedHandleMap<SecureProcessNodeInstance, StubProcessTransaction>, count: Int): MutableTransactionedHandleMap<SecureProcessNodeInstance, StubProcessTransaction> {
-            return net.devrieze.util.CachingHandleMap(base, count, ::PNI_SET_HANDLE)
+        fun cacheNodes(base: MutableTransactionedHandleMap<SecureProcessNodeInstance, StubProcessTransaction>, count: Int): MutableTransactionedHandleMap<SecureProcessNodeInstance, StubProcessTransaction> {
+            return CachingHandleMap(base, count, ::PNI_SET_HANDLE)
         }
 
-        fun <V, C: ActivityInstanceContext> cacheModels(base: IMutableProcessModelMap<StubProcessTransaction>, count: Int): IMutableProcessModelMap<StubProcessTransaction> {
+        fun cacheModels(base: IMutableProcessModelMap<StubProcessTransaction>, count: Int): IMutableProcessModelMap<StubProcessTransaction> {
             return CachingProcessModelMap(base, count)
         }
 
@@ -265,16 +266,16 @@ open class ProcessEngineTestSupport<C: ActivityInstanceContext>(
 }
 
 
-inline fun <R> ProcessEngineTestSupport<ActivityInstanceContext>.testRawEngine(
-    action: (ProcessEngine<StubProcessTransaction, ActivityInstanceContext>) -> R,
+inline fun <R> ProcessEngineTestSupport.testRawEngine(
+    action: (ProcessEngine<StubProcessTransaction>) -> R,
 ): R {
     return testRawEngine({ ProcessContextFactory.DEFAULT }, action)
 }
 
-inline fun <R> ProcessEngineTestSupport<ActivityInstanceContext>.testProcess(
+inline fun <R> ProcessEngineTestSupport.testProcess(
     model: ExecutableProcessModel,
     payload: CompactFragment? = null,
-    body: (ProcessEngine<StubProcessTransaction, ActivityInstanceContext>, StubProcessTransaction, ExecutableProcessModel, PIHandle) -> R
+    body: (ProcessEngine<StubProcessTransaction>, StubProcessTransaction, ExecutableProcessModel, PIHandle) -> R
 ): R {
     return testProcess(model, payload, {ProcessContextFactory.DEFAULT}, body)
 }

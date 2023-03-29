@@ -98,8 +98,6 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T>>(
         failureCause = builder.failureCause
     )
 
-    override fun build(processInstanceBuilder: ProcessInstance.Builder): ProcessNodeInstance<*> = this
-
     override abstract fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder<out ExecutableProcessNode, @UnsafeVariance T>
 
     private fun precedingClosure(processData: ProcessEngineDataAccess): Sequence<SecureProcessNodeInstance> {
@@ -112,7 +110,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T>>(
     fun update(
         processInstanceBuilder: ProcessInstance.Builder,
         body: Builder<out ExecutableProcessNode, T>.() -> Unit
-    ): Future<out T>? {
+    ): Future<ProcessNodeInstance<*>>? {
         val builder = builder(processInstanceBuilder).apply(body)
 
         return processInstanceBuilder.storeChild(builder)
@@ -120,10 +118,8 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T>>(
     }
 
     @Suppress("UNCHECKED_CAST")
-    private inline val asT
-        get() = this as T
-
-    override fun withPermission(): T = asT
+    override fun withPermission(): T =
+        this as T
 
     private fun hasDirectPredecessor(handle: PNIHandle): Boolean {
         return predecessors.any { it.handleValue == handle.handleValue }
@@ -193,7 +189,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T>>(
         return builder.toXmlInstance(body)
     }
 
-    interface Builder<N : ExecutableProcessNode, out T : ProcessNodeInstance<T>> : IProcessNodeInstance {
+    interface Builder<N : ExecutableProcessNode, out ResultT : ProcessNodeInstance<*>> : IProcessNodeInstance {
         override var node: N
         override val predecessors: MutableSet<PNIHandle>
         val processInstanceBuilder: ProcessInstance.Builder
@@ -214,7 +210,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T>>(
 
         fun invalidateBuilder(engineData: ProcessEngineDataAccess)
 
-        fun build(): T
+        fun build(): ResultT
 
         override fun builder(processInstanceBuilder: ProcessInstance.Builder): Builder<*, ProcessNodeInstance<*>> =
             this
@@ -292,7 +288,6 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T>>(
 
         fun cancelAndSkip(engineData: MutableProcessEngineDataAccess)
         fun doCancelAndSkip(engineData: MutableProcessEngineDataAccess) {
-            @Suppress("NON_EXHAUSTIVE_WHEN")
             when (state) {
                 Pending,
                 FailRetry -> state = Skipped
@@ -343,7 +338,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T>>(
 
     }
 
-    abstract class AbstractBuilder<N : ExecutableProcessNode, T : ProcessNodeInstance<T>> : Builder<N, T> {
+    abstract class AbstractBuilder<N : ExecutableProcessNode, out ResultT : ProcessNodeInstance<*>> : Builder<N, ResultT> {
 
         override fun toXmlInstance(body: ICompactFragment?): XmlProcessNodeInstance {
             return XmlProcessNodeInstance(
@@ -390,10 +385,10 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T>>(
 
         final override fun provideTask(engineData: MutableProcessEngineDataAccess, autoContinue: Boolean) {
             val engineData: MutableProcessEngineDataAccess = engineData
-            if (this !is JoinInstance.Builder<*>) {
+            if (this !is JoinInstance.Builder) {
                 val predecessors = predecessors.map { engineData.nodeInstance(it).withPermission() }
                 for (predecessor in predecessors) {
-                    if (predecessor !is SplitInstance<*> && !predecessor.state.isFinal) {
+                    if (predecessor !is SplitInstance && !predecessor.state.isFinal) {
                         throw ProcessException("Attempting to start successor ${node.id}[$handle] for non-final predecessor ${predecessor.node.id}[${predecessor.handle} - ${predecessor.state}]")
                     }
                 }
@@ -499,7 +494,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T>>(
 
     }
 
-    abstract class BaseBuilder<N : ExecutableProcessNode, T : ProcessNodeInstance<T>>(
+    abstract class BaseBuilder<N : ExecutableProcessNode, out ResultT : ProcessNodeInstance<ResultT>>(
         final override var node: N,
         predecessors: Iterable<PNIHandle>,
         final override val processInstanceBuilder: ProcessInstance.Builder,
@@ -507,7 +502,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T>>(
         final override val entryNo: Int,
         final override var handle: PNIHandle = Handle.invalid(),
         state: NodeInstanceState = Pending
-    ) : AbstractBuilder<N, T>() {
+    ) : AbstractBuilder<N, ResultT>() {
 
         final override var state = state
             set(value) {
@@ -531,10 +526,13 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T>>(
         final override val results = mutableListOf<ProcessData>()
     }
 
-    abstract class ExtBuilder<N : ExecutableProcessNode, T : ProcessNodeInstance<T>>(
-        protected var base: T,
+    abstract class ExtBuilder<N : ExecutableProcessNode, out ResultT : ProcessNodeInstance<*>>(
+        base: ResultT,
         override val processInstanceBuilder: ProcessInstance.Builder
-    ) : AbstractBuilder<N, T>() {
+    ) : AbstractBuilder<N, ResultT>() {
+        private var _base: ResultT = base
+        protected val base: ResultT get() = _base
+
         private val observer: Observer<Any?> = { newValue -> changed = true; newValue }
 
         @Suppress("UNCHECKED_CAST")
@@ -559,10 +557,11 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T>>(
         var changed: Boolean = false
         final override val entryNo: Int = base.entryNo
 
-        fun invalidateBuilder(newBase: T) {
+        /* Unsafe as it is internal to subclasses that would have concrete ResultTs*/
+        protected fun invalidateBuilder(newBase: @UnsafeVariance ResultT) {
             changed = false
 
-            base = newBase
+            _base = newBase
             predecessors.replaceBy(newBase.predecessors)
             owner = newBase.owner
             handle = newBase.handle
@@ -573,10 +572,10 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T>>(
 
         override fun invalidateBuilder(engineData: ProcessEngineDataAccess) {
             @Suppress("UNCHECKED_CAST")
-            invalidateBuilder(engineData.nodeInstance(handle).withPermission() as T)
+            invalidateBuilder(engineData.nodeInstance(handle).withPermission() as ResultT)
         }
 
-        override abstract fun build(): T
+        abstract override fun build(): ResultT
 
     }
 
@@ -612,7 +611,7 @@ inline fun <R> ProcessNodeInstance.Builder<*, *>.tryRunTask(body: () -> R): R {
 @OptIn(ExperimentalContracts::class)
 @Suppress("unused", "FunctionName")
 @PublishedApi
-internal inline fun <R, C: ActivityInstanceContext> _tryHelper(
+internal inline fun <R> _tryHelper(
     engineData: MutableProcessEngineDataAccess,
     processInstance: ProcessInstance,
     body: () -> R, failHandler: (MutableProcessEngineDataAccess, ProcessInstance, Exception) -> Unit
