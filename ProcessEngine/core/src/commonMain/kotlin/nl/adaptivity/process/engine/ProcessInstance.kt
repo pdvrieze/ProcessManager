@@ -1212,7 +1212,7 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
                 }
             }
 
-            return impl<DefaultProcessNodeInstance<*>>(value)
+            return impl<DefaultProcessNodeInstance>(value)
         }
 
         @JvmStatic

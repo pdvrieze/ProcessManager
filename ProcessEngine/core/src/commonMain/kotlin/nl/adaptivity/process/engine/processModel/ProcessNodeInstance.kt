@@ -22,7 +22,8 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
-import nl.adaptivity.process.engine.impl.*
+import nl.adaptivity.process.engine.impl.Future
+import nl.adaptivity.process.engine.impl.LogLevel
 import nl.adaptivity.process.engine.processModel.NodeInstanceState.*
 import nl.adaptivity.process.processModel.IPlatformXmlResultType
 import nl.adaptivity.process.processModel.MessageActivity
@@ -84,7 +85,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T>>(
         }
     }
 
-    constructor(builder: Builder<*, T>) : this(
+    constructor(builder: Builder<*, *>) : this(
         node = builder.node,
         predecessors = builder.predecessors,
         processInstanceBuilder = builder.processInstanceBuilder,

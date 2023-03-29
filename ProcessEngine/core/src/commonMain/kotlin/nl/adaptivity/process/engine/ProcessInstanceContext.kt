@@ -78,7 +78,7 @@ interface ProcessContextFactory<C : ActivityInstanceContext> {
         handle: PNIHandle = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
     ): ProcessNodeInstance.Builder<out ExecutableProcessNode, *> {
-        return DefaultProcessNodeInstance.BaseBuilder<ActivityInstanceContext>(node, predecessors, processInstanceBuilder, owner, entryNo, assignedUser, handle, state)
+        return DefaultProcessNodeInstance.BaseBuilder(node, predecessors, processInstanceBuilder, owner, entryNo, assignedUser, handle, state)
     }
 
     companion object DEFAULT : ProcessContextFactory<ActivityInstanceContext> {
@@ -122,7 +122,7 @@ interface ProcessContextFactory<C : ActivityInstanceContext> {
 
         override val assignedUser: PrincipalCompat?
             get() = when(nodeInstance) {
-                is DefaultProcessNodeInstance<*> -> nodeInstance.assignedUser
+                is DefaultProcessNodeInstance -> nodeInstance.assignedUser
                 else -> null
             }
 

@@ -176,7 +176,7 @@ internal class ProcessNodeInstanceFactory(val processEngine: ProcessEngine<Proce
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun asInstance(obj: Any) = obj as? DefaultProcessNodeInstance<*>
+    override fun asInstance(obj: Any) = obj as? DefaultProcessNodeInstance
 
     override fun store(update: _UpdateBuilder, value: SecureProcessNodeInstance) {
         update.run {

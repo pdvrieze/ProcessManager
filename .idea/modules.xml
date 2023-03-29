@@ -3,7 +3,11 @@
   <component name="ProjectModuleManager">
     <modules>
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/ProcessEngine/testLib/ProcessManager.ProcessEngine.testLib.commonMain.iml" filepath="$PROJECT_DIR$/.idea/modules/ProcessEngine/testLib/ProcessManager.ProcessEngine.testLib.commonMain.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/accountmgr/js/ProcessManager.accountmgr.js.main.iml" filepath="$PROJECT_DIR$/.idea/modules/accountmgr/js/ProcessManager.accountmgr.js.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/accountmgr/js/ProcessManager.accountmgr.js.test.iml" filepath="$PROJECT_DIR$/.idea/modules/accountmgr/js/ProcessManager.accountmgr.js.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/dynamicProcessModel/ProcessManager.dynamicProcessModel.jvmMain.iml" filepath="$PROJECT_DIR$/.idea/modules/dynamicProcessModel/ProcessManager.dynamicProcessModel.jvmMain.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/jscommon/ProcessManager.jscommon.main.iml" filepath="$PROJECT_DIR$/.idea/modules/jscommon/ProcessManager.jscommon.main.iml" />
+      <module fileurl="file://$PROJECT_DIR$/.idea/modules/jscommon/ProcessManager.jscommon.test.iml" filepath="$PROJECT_DIR$/.idea/modules/jscommon/ProcessManager.jscommon.test.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/pma/core/ProcessManager.pma.core.commonTest.iml" filepath="$PROJECT_DIR$/.idea/modules/pma/core/ProcessManager.pma.core.commonTest.iml" />
       <module fileurl="file://$PROJECT_DIR$/.idea/modules/pma/dynamic/ProcessManager.pma.dynamic.commonMain.iml" filepath="$PROJECT_DIR$/.idea/modules/pma/dynamic/ProcessManager.pma.dynamic.commonMain.iml" />
     </modules>

@@ -67,7 +67,7 @@ class ExecutableStartNode(
         entryNo: Int
     ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*>> =
         processInstanceBuilder.getChildNodeInstance(this, entryNo)
-            ?: DefaultProcessNodeInstance.BaseBuilder<C>(
+            ?: DefaultProcessNodeInstance.BaseBuilder(
                 this, emptyList(),
                 processInstanceBuilder,
                 processInstanceBuilder.owner,
