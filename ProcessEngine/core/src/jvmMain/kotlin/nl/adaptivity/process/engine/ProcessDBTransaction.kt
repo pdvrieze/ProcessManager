@@ -39,8 +39,8 @@ class ProcessDBTransaction(
         super<MonadicDBTransaction>.addRollbackHandler(runnable)
     }
 
-    override val readableEngineData: ProcessEngineDataAccess<*>
+    override val readableEngineData: ProcessEngineDataAccess
         get() = engineData.createReadDelegate(this)
-    override val writableEngineData: MutableProcessEngineDataAccess<*>
+    override val writableEngineData: MutableProcessEngineDataAccess
         get() = engineData.createWriteDelegate(this)
 }

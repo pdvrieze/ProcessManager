@@ -60,7 +60,7 @@ interface ExecutableProcessNode : ProcessNode, Identified {
      * TODO handle failRetry nodes
      */
     fun createOrReuseInstance(
-        data: MutableProcessEngineDataAccess<*>,
+        data: MutableProcessEngineDataAccess,
         processInstanceBuilder: ProcessInstance.Builder,
         predecessor: IProcessNodeInstance,
         entryNo: Int,
@@ -119,7 +119,7 @@ interface ExecutableProcessNode : ProcessNode, Identified {
      * @return `true` if the task can/must be automatically taken
      */
     fun canProvideTaskAutoProgress(
-        engineData: ProcessEngineDataAccess<*>,
+        engineData: ProcessEngineDataAccess,
         instanceBuilder: ProcessNodeInstance.Builder<*, *>
     ): Boolean = true
 

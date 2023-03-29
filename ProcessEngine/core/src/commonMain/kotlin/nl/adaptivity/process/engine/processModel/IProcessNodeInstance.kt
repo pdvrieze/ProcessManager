@@ -74,12 +74,12 @@ interface IProcessNodeInstance : ReadableHandleAware<SecureProcessNodeInstance> 
         return results.firstOrNull { name == it.name }
     }
 
-    fun createActivityContext(engineData: MutableProcessEngineDataAccess<*>): ActivityInstanceContext {
+    fun createActivityContext(engineData: MutableProcessEngineDataAccess): ActivityInstanceContext {
         return createActivityContext(engineData, engineData.processContextFactory)
     }
 
     fun <C: ActivityInstanceContext> createActivityContext(
-        engineData: MutableProcessEngineDataAccess<*>,
+        engineData: MutableProcessEngineDataAccess,
         processContextFactory: ProcessContextFactory<C>
     ): C {
         return processContextFactory.newActivityInstanceContext(engineData, this)

@@ -45,7 +45,7 @@ class ExecutableJoin(
     }
 
     fun getExistingInstance(
-        data: ProcessEngineDataAccess<*>,
+        data: ProcessEngineDataAccess,
         processInstanceBuilder: ProcessInstance.Builder,
         predecessor: IProcessNodeInstance,
         neededEntryNo: Int,
@@ -114,7 +114,7 @@ class ExecutableJoin(
     }
 
     override fun createOrReuseInstance(
-        data: MutableProcessEngineDataAccess<*>,
+        data: MutableProcessEngineDataAccess,
         processInstanceBuilder: ProcessInstance.Builder,
         predecessor: IProcessNodeInstance,
         entryNo: Int,

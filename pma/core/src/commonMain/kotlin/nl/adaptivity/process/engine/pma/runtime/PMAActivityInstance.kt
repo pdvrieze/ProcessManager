@@ -51,7 +51,7 @@ class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAA
 
     interface Builder<C :PMAActivityContext<C>> : ProcessNodeInstance.Builder<PMAMessageActivity<C>, PMAActivityInstance<C>> {
         override fun doProvideTask(
-            engineData: MutableProcessEngineDataAccess<*>,
+            engineData: MutableProcessEngineDataAccess,
             messageService: IMessageService<*>
         ): Boolean {
 
@@ -89,13 +89,13 @@ class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAA
         override fun canTakeTaskAutomatically(): Boolean = false
 
         override fun doTakeTask(
-            engineData: MutableProcessEngineDataAccess<*>,
+            engineData: MutableProcessEngineDataAccess,
             assignedUser: PrincipalCompat?
         ): Boolean {
             return node.canTakeTaskAutoProgress(createActivityContext(engineData), this, assignedUser)
         }
 
-        override fun doStartTask(engineData: MutableProcessEngineDataAccess<*>): Boolean {
+        override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {
             return node.canStartTaskAutoProgress(this)
         }
 

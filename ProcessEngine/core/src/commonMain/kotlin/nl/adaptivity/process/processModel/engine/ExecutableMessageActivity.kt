@@ -76,7 +76,7 @@ open class ExecutableMessageActivity(
     }
 
     override fun createOrReuseInstance(
-        data: MutableProcessEngineDataAccess<*>,
+        data: MutableProcessEngineDataAccess,
         processInstanceBuilder: ProcessInstance.Builder,
         predecessor: IProcessNodeInstance,
         entryNo: Int,
@@ -86,7 +86,7 @@ open class ExecutableMessageActivity(
     }
 
     override fun canProvideTaskAutoProgress(
-        engineData: ProcessEngineDataAccess<*>,
+        engineData: ProcessEngineDataAccess,
         instanceBuilder: ProcessNodeInstance.Builder<*, *>
     ): Boolean = false
 

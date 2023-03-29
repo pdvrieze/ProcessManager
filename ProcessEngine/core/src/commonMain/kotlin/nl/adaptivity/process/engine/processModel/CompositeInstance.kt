@@ -38,7 +38,7 @@ class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : Proc
     interface Builder<C : ActivityInstanceContext> : ProcessNodeInstance.Builder<ExecutableCompositeActivity, CompositeInstance<C>> {
         var hChildInstance: PIHandle
         override fun doProvideTask(
-            engineData: MutableProcessEngineDataAccess<*>,
+            engineData: MutableProcessEngineDataAccess,
             messageService: IMessageService<*>
         ): Boolean {
             val shouldProgress = node.canProvideTaskAutoProgress(engineData, this)
@@ -54,7 +54,7 @@ class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : Proc
         override fun canTakeTaskAutomatically(): Boolean = true
 
         @OptIn(ProcessInstanceStorage::class)
-        override fun doStartTask(engineData: MutableProcessEngineDataAccess<*>): Boolean {
+        override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {
             val shouldProgress = tryCreateTask { node.canStartTaskAutoProgress(this) }
 
             assert(hChildInstance.isValid) { "The task can only be started if the child instance already exists" }
@@ -69,7 +69,7 @@ class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : Proc
         }
 
         override fun doFinishTask(
-            engineData: MutableProcessEngineDataAccess<*>,
+            engineData: MutableProcessEngineDataAccess,
             resultPayload: ICompactFragment?
         ) {
             val childInstance = engineData.instance(hChildInstance).withPermission()
@@ -80,7 +80,7 @@ class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : Proc
         }
 
         override fun doTakeTask(
-            engineData: MutableProcessEngineDataAccess<*>,
+            engineData: MutableProcessEngineDataAccess,
             assignedUser: PrincipalCompat?
         ): Boolean {
             return true
@@ -101,7 +101,7 @@ class CompositeInstance<C : ActivityInstanceContext>(builder: Builder<C>) : Proc
         entryNo, handle, state
     ), Builder<C> {
 
-        override fun invalidateBuilder(engineData: ProcessEngineDataAccess<*>) {
+        override fun invalidateBuilder(engineData: ProcessEngineDataAccess) {
             engineData.nodeInstances[handle]?.withPermission()?.let { n ->
                 val newBase = n as CompositeInstance<*>
                 node = newBase.node

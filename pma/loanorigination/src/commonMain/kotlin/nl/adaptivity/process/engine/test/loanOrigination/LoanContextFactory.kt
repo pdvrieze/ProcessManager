@@ -42,7 +42,7 @@ class LoanContextFactory(log: Logger, random: Random): AbstractLoanContextFactor
     private val processContexts = mutableMapOf<PIHandle, LoanProcessContext>()
 
     override fun newActivityInstanceContext(
-        engineDataAccess: ProcessEngineDataAccess<*>,
+        engineDataAccess: ProcessEngineDataAccess,
         processNodeInstance: IProcessNodeInstance
     ): LoanActivityContext {
         val instanceHandle = processNodeInstance.hProcessInstance
@@ -52,19 +52,19 @@ class LoanContextFactory(log: Logger, random: Random): AbstractLoanContextFactor
     }
 
     fun getProcessContext(
-        engineDataAccess: ProcessEngineDataAccess<*>,
+        engineDataAccess: ProcessEngineDataAccess,
         instanceHandle: PIHandle
     ): LoanProcessContext = processContexts.getOrPut(instanceHandle) { LoanProcessContextImpl(engineDataAccess, this, instanceHandle) }
 
     override fun onProcessFinished(
-        engineDataAccess: ProcessEngineDataAccess<*>,
+        engineDataAccess: ProcessEngineDataAccess,
         processInstance: PIHandle
     ) {
         processContexts.remove(processInstance)
     }
 
     override fun onActivityTermination(
-        engineDataAccess: ProcessEngineDataAccess<*>,
+        engineDataAccess: ProcessEngineDataAccess,
         processNodeInstance: IProcessNodeInstance
     ) {
 
@@ -83,7 +83,7 @@ class LoanPMAContextFactory(log: Logger, random: Random) :
     private val processContexts = mutableMapOf<PIHandle, LoanPmaProcessContext>()
 
     override fun newActivityInstanceContext(
-        engineDataAccess: ProcessEngineDataAccess<*>,
+        engineDataAccess: ProcessEngineDataAccess,
         processNodeInstance: IProcessNodeInstance
     ): LoanPMAActivityContext {
         val instanceHandle = processNodeInstance.hProcessInstance
@@ -93,19 +93,19 @@ class LoanPMAContextFactory(log: Logger, random: Random) :
     }
 
     fun getProcessContext(
-        engineDataAccess: ProcessEngineDataAccess<*>,
+        engineDataAccess: ProcessEngineDataAccess,
         instanceHandle: PIHandle
     ): LoanPmaProcessContext = processContexts.getOrPut(instanceHandle) { LoanPmaProcessContextImpl(engineDataAccess, this, instanceHandle) }
 
     override fun onProcessFinished(
-        engineDataAccess: ProcessEngineDataAccess<*>,
+        engineDataAccess: ProcessEngineDataAccess,
         processInstance: PIHandle
     ) {
         processContexts.remove(processInstance)
     }
 
     override fun onActivityTermination(
-        engineDataAccess: ProcessEngineDataAccess<*>,
+        engineDataAccess: ProcessEngineDataAccess,
         processNodeInstance: IProcessNodeInstance
     ) {
 

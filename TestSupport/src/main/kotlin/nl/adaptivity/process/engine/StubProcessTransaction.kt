@@ -28,10 +28,10 @@ import kotlin.reflect.KProperty
  */
 class StubProcessTransaction(private val engineData: IProcessEngineData<StubProcessTransaction, *>) : StubTransaction(),
                                                                                                    ContextProcessTransaction {
-  override val readableEngineData: ProcessEngineDataAccess<*>
-    get() = engineData.createReadDelegate(this)
-  override val writableEngineData: MutableProcessEngineDataAccess<*>
-    get() = engineData.createWriteDelegate(this)
+  override val readableEngineData: ProcessEngineDataAccess
+      get() = engineData.createReadDelegate(this)
+  override val writableEngineData: MutableProcessEngineDataAccess
+      get() = engineData.createWriteDelegate(this)
 
   inner class InstanceWrapper(val instanceHandle: PIHandle) {
 

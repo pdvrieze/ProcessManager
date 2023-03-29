@@ -859,7 +859,7 @@ class FuzzException(override val message: String?, cause: Throwable?, val trace:
         )
     }
 
-fun IProcessInstance.allDescendentNodeInstances(engineData: ProcessEngineDataAccess<*>): List<IProcessNodeInstance> {
+fun IProcessInstance.allDescendentNodeInstances(engineData: ProcessEngineDataAccess): List<IProcessNodeInstance> {
     val result = mutableListOf<IProcessNodeInstance>()
     val procQueue = ArrayDeque<IProcessInstance>().also { it.add(this) }
     while (procQueue.isNotEmpty()) {

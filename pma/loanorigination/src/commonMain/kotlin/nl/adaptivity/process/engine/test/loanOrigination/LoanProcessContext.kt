@@ -67,7 +67,7 @@ interface LoanPmaProcessContext : DynamicPMAProcessInstanceContext<LoanPMAActivi
 }
 
 abstract class AbstractLoanProcessContext(
-    protected val engineData: ProcessEngineDataAccess<*>,
+    protected val engineData: ProcessEngineDataAccess,
 ) : CommonLoanProcessContext {
     abstract val processInstance: IProcessInstance
 
@@ -86,7 +86,7 @@ abstract class AbstractLoanProcessContext(
 
 
 class LoanProcessContextImpl(
-    engineData: ProcessEngineDataAccess<*>,
+    engineData: ProcessEngineDataAccess,
     override val contextFactory: LoanContextFactory,
     processInstanceHandle: PIHandle
 ) : AbstractLoanProcessContext(engineData), LoanProcessContext {
@@ -111,7 +111,7 @@ class LoanProcessContextImpl(
 }
 
 class LoanPmaProcessContextImpl(
-    engineData: ProcessEngineDataAccess<*>,
+    engineData: ProcessEngineDataAccess,
     override val contextFactory: LoanPMAContextFactory,
     processInstanceHandle: PIHandle
 ) : AbstractLoanProcessContext(engineData), LoanPmaProcessContext {

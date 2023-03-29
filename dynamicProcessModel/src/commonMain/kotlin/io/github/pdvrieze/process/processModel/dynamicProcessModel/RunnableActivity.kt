@@ -76,12 +76,12 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
     }
 
     override fun canProvideTaskAutoProgress(
-        engineData: ProcessEngineDataAccess<*>,
+        engineData: ProcessEngineDataAccess,
         instanceBuilder: ProcessNodeInstance.Builder<*, *>
     ): Boolean = true
 
     override fun createOrReuseInstance(
-        data: MutableProcessEngineDataAccess<*>,
+        data: MutableProcessEngineDataAccess,
         processInstanceBuilder: ProcessInstance.Builder,
         predecessor: IProcessNodeInstance,
         entryNo: Int,
@@ -142,7 +142,7 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
     }
 
     fun interface OnActivityProvided<out I: Any, in O: Any, in C: ActivityInstanceContext>:
-            (MutableProcessEngineDataAccess<*>, AbstractRunnableActivityInstance.Builder<@UnsafeVariance I, @UnsafeVariance O, *, *, *>) -> Boolean {
+            (MutableProcessEngineDataAccess, AbstractRunnableActivityInstance.Builder<@UnsafeVariance I, @UnsafeVariance O, *, *, *>) -> Boolean {
         companion object {
 
             val DEFAULT = OnActivityProvided<Nothing, Any, ActivityInstanceContext> { engineData, instance ->

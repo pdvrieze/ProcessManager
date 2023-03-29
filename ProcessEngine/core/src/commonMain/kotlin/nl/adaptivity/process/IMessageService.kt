@@ -53,7 +53,7 @@ interface IMessageService<MSG_T> {
    *
    */
   fun sendMessage(
-      engineData: ProcessEngineDataAccess<*>,
+      engineData: ProcessEngineDataAccess,
       protoMessage: MSG_T,
       activityInstanceContext: ActivityInstanceContext,
       authData: ServiceAuthData? = null

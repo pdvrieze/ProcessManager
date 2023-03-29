@@ -25,7 +25,7 @@ import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
  */
 abstract class AbstractProcessEngineDataAccess<out T : ContextProcessTransaction, C : ActivityInstanceContext>
 constructor(protected val transaction: T) :
-    MutableProcessEngineDataAccess<C> {
+    MutableProcessEngineDataAccess {
 
     override final fun commit() = transaction.commit()
 

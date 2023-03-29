@@ -75,7 +75,7 @@ class ExecutableStartNode(
             )
 
     override fun canProvideTaskAutoProgress(
-        engineData: ProcessEngineDataAccess<*>,
+        engineData: ProcessEngineDataAccess,
         instanceBuilder: ProcessNodeInstance.Builder<*, *>
     ): Boolean = true
 

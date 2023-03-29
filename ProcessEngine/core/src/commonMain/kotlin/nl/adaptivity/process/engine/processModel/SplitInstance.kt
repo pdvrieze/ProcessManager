@@ -41,7 +41,7 @@ class SplitInstance<C : ActivityInstanceContext>  : ProcessNodeInstance<SplitIns
             set(value) = predecessors.replaceByNotNull(value)
 
         override fun doProvideTask(
-            engineData: MutableProcessEngineDataAccess<*>,
+            engineData: MutableProcessEngineDataAccess,
             messageService: IMessageService<*>
         ): Boolean {
             return node.canProvideTaskAutoProgress(engineData, this)
@@ -50,19 +50,19 @@ class SplitInstance<C : ActivityInstanceContext>  : ProcessNodeInstance<SplitIns
         override fun canTakeTaskAutomatically(): Boolean = true
 
         override fun doTakeTask(
-            engineData: MutableProcessEngineDataAccess<*>,
+            engineData: MutableProcessEngineDataAccess,
             assignedUser: PrincipalCompat?
         ): Boolean {
             return node.canTakeTaskAutoProgress(createActivityContext(engineData), this, assignedUser)
         }
 
-        override fun doStartTask(engineData: MutableProcessEngineDataAccess<*>): Boolean {
+        override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {
             state = NodeInstanceState.Started
             return updateState(engineData)
         }
 
         override fun doFinishTask(
-            engineData: MutableProcessEngineDataAccess<*>,
+            engineData: MutableProcessEngineDataAccess,
             resultPayload: ICompactFragment?
         ) {
             val committedSuccessors = processInstanceBuilder.allChildNodeInstances { it.state.isCommitted }
@@ -140,7 +140,7 @@ class SplitInstance<C : ActivityInstanceContext>  : ProcessNodeInstance<SplitIns
         return SplitInstance.ExtBuilder(this, processInstanceBuilder)
     }
 
-    private fun successorInstances(engineData: ProcessEngineDataAccess<*>): Sequence<ProcessNodeInstance<*>> {
+    private fun successorInstances(engineData: ProcessEngineDataAccess): Sequence<ProcessNodeInstance<*>> {
         val instance = engineData.instance(hProcessInstance).withPermission()
         return node.successors
             .asSequence()
@@ -174,7 +174,7 @@ class SplitInstance<C : ActivityInstanceContext>  : ProcessNodeInstance<SplitIns
  *
  * TODO Review this algorithm
  */
-internal fun SplitInstance.Builder<*>.updateState(engineData: MutableProcessEngineDataAccess<*>): Boolean {
+internal fun SplitInstance.Builder<*>.updateState(engineData: MutableProcessEngineDataAccess): Boolean {
 
     if (state.isFinal) return true
 

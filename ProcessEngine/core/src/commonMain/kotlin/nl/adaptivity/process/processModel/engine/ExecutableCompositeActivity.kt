@@ -86,7 +86,7 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableActivity {
     }
 
     override fun createOrReuseInstance(
-        data: MutableProcessEngineDataAccess<*>,
+        data: MutableProcessEngineDataAccess,
         processInstanceBuilder: ProcessInstance.Builder,
         predecessor: IProcessNodeInstance,
         entryNo: Int,
@@ -102,7 +102,7 @@ class ExecutableCompositeActivity : CompositeActivityBase, ExecutableActivity {
     }
 
     override fun canProvideTaskAutoProgress(
-        engineData: ProcessEngineDataAccess<*>,
+        engineData: ProcessEngineDataAccess,
         instanceBuilder: ProcessNodeInstance.Builder<*, *>
     ): Boolean = true
 

@@ -115,7 +115,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction, AIC: ActivityIns
         }
 
         override fun sendMessage(
-            engineData: ProcessEngineDataAccess<*>,
+            engineData: ProcessEngineDataAccess,
             protoMessage: NewServletMessage<ActivityInstanceContext>,
             activityInstanceContext: ActivityInstanceContext,
             authData: ServiceAuthData?
@@ -223,7 +223,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction, AIC: ActivityIns
         }
 
 
-        fun setHandle(engineData: ProcessEngineDataAccess<*>, activityInstanceContext: AIC) {
+        fun setHandle(engineData: ProcessEngineDataAccess, activityInstanceContext: AIC) {
             this.activityInstanceContext = activityInstanceContext
 
             try {

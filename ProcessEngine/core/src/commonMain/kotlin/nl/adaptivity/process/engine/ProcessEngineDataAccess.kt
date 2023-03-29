@@ -27,8 +27,8 @@ import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 
-interface ProcessEngineDataAccess<C: ActivityInstanceContext> {
-    val processContextFactory: ProcessContextFactory<C>
+interface ProcessEngineDataAccess {
+    val processContextFactory: ProcessContextFactory<*>
     val instances: HandleMap<SecureProcessInstance>
 
     fun instance(handle: PIHandle): SecureProcessInstance = instances[handle].mustExist(handle)
@@ -46,7 +46,7 @@ interface ProcessEngineDataAccess<C: ActivityInstanceContext> {
     val logger: LoggerCompat
 }
 
-interface MutableProcessEngineDataAccess<C: ActivityInstanceContext> : ProcessEngineDataAccess<C> {
+interface MutableProcessEngineDataAccess : ProcessEngineDataAccess {
 
     fun messageService(): IMessageService<*>
 

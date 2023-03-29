@@ -46,7 +46,7 @@ interface ActivityInstanceContext {
 interface ProcessContextFactory<C : ActivityInstanceContext> {
 
     fun newActivityInstanceContext(
-        engineDataAccess: ProcessEngineDataAccess<*>,
+        engineDataAccess: ProcessEngineDataAccess,
         processNodeInstance: IProcessNodeInstance
     ): C
 
@@ -54,14 +54,14 @@ interface ProcessContextFactory<C : ActivityInstanceContext> {
      * Called to inform the factory that the activity is no longer active: completed, failed, cancelled etc.
      * This means any resources can be released.
      */
-    fun onActivityTermination(engineDataAccess: ProcessEngineDataAccess<*>, processNodeInstance: IProcessNodeInstance) {}
+    fun onActivityTermination(engineDataAccess: ProcessEngineDataAccess, processNodeInstance: IProcessNodeInstance) {}
 
     /**
      * Called to inform the factory that the process is no longer active: completed, failed, cancelled etc.
      * This means any resources can be released.
      */
     fun onProcessFinished(
-        engineDataAccess: ProcessEngineDataAccess<*>,
+        engineDataAccess: ProcessEngineDataAccess,
         processInstance: PIHandle
     ) {
     }
@@ -83,7 +83,7 @@ interface ProcessContextFactory<C : ActivityInstanceContext> {
 
     companion object DEFAULT : ProcessContextFactory<ActivityInstanceContext> {
         override fun newActivityInstanceContext(
-            engineDataAccess: ProcessEngineDataAccess<*>,
+            engineDataAccess: ProcessEngineDataAccess,
             processNodeInstance: IProcessNodeInstance
         ): ActivityInstanceContext {
             val processContext:ProcessInstanceContext = SimpleProcessContext<ActivityInstanceContext>(engineDataAccess.instance(processNodeInstance.hProcessInstance).withPermission())

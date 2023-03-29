@@ -56,13 +56,13 @@ abstract class IProcessEngineData<T : ContextProcessTransaction, C: ActivityInst
     }
 
 
-    inline fun <R> inReadonlyTransaction(transaction: T, body: ProcessEngineDataAccess<C>.() -> R): R {
+    inline fun <R> inReadonlyTransaction(transaction: T, body: ProcessEngineDataAccess.() -> R): R {
         return body(createReadDelegate(transaction))
     }
 
-    open fun createReadDelegate(transaction: T): ProcessEngineDataAccess<C> = createWriteDelegate(transaction)
+    open fun createReadDelegate(transaction: T): ProcessEngineDataAccess = createWriteDelegate(transaction)
 
-    abstract fun createWriteDelegate(transaction: T): MutableProcessEngineDataAccess<C>
+    abstract fun createWriteDelegate(transaction: T): MutableProcessEngineDataAccess
 
     abstract fun queueTickle(instanceHandle: PIHandle)
 
@@ -70,7 +70,7 @@ abstract class IProcessEngineData<T : ContextProcessTransaction, C: ActivityInst
     inline fun <R> inReadonlyTransaction(
         principal: PrincipalCompat,
         permissionResult: SecurityProvider.PermissionResult,
-        body: ProcessEngineDataAccess<*>.() -> R
+        body: ProcessEngineDataAccess.() -> R
     ): R {
         val tr = startTransaction()
         try {
@@ -84,7 +84,7 @@ abstract class IProcessEngineData<T : ContextProcessTransaction, C: ActivityInst
     inline fun <R> inWriteTransaction(
         principal: PrincipalCompat,
         permissionResult: SecurityProvider.PermissionResult,
-        body: MutableProcessEngineDataAccess<C>.() -> R
+        body: MutableProcessEngineDataAccess.() -> R
     ): R {
         val tr = startTransaction()
         try {
@@ -100,7 +100,7 @@ abstract class IProcessEngineData<T : ContextProcessTransaction, C: ActivityInst
 @OptIn(ExperimentalContracts::class)
 inline fun <T : ContextProcessTransaction, R, C: ActivityInstanceContext> IProcessEngineData<T, C>.inWriteTransaction(
     transaction: T,
-    body: MutableProcessEngineDataAccess<C>.() -> R
+    body: MutableProcessEngineDataAccess.() -> R
 ): R {
     contract {
         callsInPlace(body, InvocationKind.EXACTLY_ONCE)

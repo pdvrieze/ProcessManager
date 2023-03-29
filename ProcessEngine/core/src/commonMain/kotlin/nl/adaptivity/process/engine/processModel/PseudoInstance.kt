@@ -56,7 +56,7 @@ class PseudoInstance(
     class PseudoContext(
         val processInstance: IProcessInstance,
     ) : ProcessInstanceContext {
-        constructor(readAccess: ProcessEngineDataAccess<*>, hProcessInstance: PIHandle) :
+        constructor(readAccess: ProcessEngineDataAccess, hProcessInstance: PIHandle) :
             this(readAccess.instance(hProcessInstance).withPermission())
 
         private val handleOffset: Int =

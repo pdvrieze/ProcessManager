@@ -42,7 +42,7 @@ class ExecutableSplit(
     override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
     override fun createOrReuseInstance(
-        data: MutableProcessEngineDataAccess<*>,
+        data: MutableProcessEngineDataAccess,
         processInstanceBuilder: ProcessInstance.Builder,
         predecessor: IProcessNodeInstance,
         entryNo: Int,

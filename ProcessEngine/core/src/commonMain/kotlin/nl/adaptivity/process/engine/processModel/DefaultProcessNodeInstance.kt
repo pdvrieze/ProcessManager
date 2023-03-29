@@ -161,7 +161,7 @@ class DefaultProcessNodeInstance :
         override var assignedUser: PrincipalCompat?
 
         override fun doProvideTask(
-            engineData: MutableProcessEngineDataAccess<*>,
+            engineData: MutableProcessEngineDataAccess,
             messageService: IMessageService<*>
         ): Boolean {
             // Create a local copy to prevent races - and shut up Kotlin about the possibilities as it should be immutable
@@ -207,13 +207,13 @@ class DefaultProcessNodeInstance :
         }
 
         override fun doTakeTask(
-            engineData: MutableProcessEngineDataAccess<*>,
+            engineData: MutableProcessEngineDataAccess,
             assignedUser: PrincipalCompat?
         ): Boolean {
             return node.canTakeTaskAutoProgress(createActivityContext(engineData), this, assignedUser)
         }
 
-        override fun doStartTask(engineData: MutableProcessEngineDataAccess<*>): Boolean {
+        override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {
             return node.canStartTaskAutoProgress(this)
         }
 

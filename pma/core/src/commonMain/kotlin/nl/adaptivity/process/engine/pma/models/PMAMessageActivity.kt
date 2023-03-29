@@ -82,7 +82,7 @@ class PMAMessageActivity<C: PMAActivityContext<C>>(
     }
 
     override fun canProvideTaskAutoProgress(
-        engineData: ProcessEngineDataAccess<*>,
+        engineData: ProcessEngineDataAccess,
         instanceBuilder: ProcessNodeInstance.Builder<*, *>
     ) = false
 

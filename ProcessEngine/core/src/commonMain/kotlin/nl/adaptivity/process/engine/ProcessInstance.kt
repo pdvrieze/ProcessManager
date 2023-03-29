@@ -104,7 +104,7 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
         val children: List<PNIHandle>
         override val inputs: MutableList<ProcessData>
         val outputs: MutableList<ProcessData>
-        fun build(data: MutableProcessEngineDataAccess<*>): ProcessInstance
+        fun build(data: MutableProcessEngineDataAccess): ProcessInstance
         fun <T : ProcessNodeInstance<T>> storeChild(child: T): Future<T>
 
         override fun getChildNodeInstance(handle: PNIHandle): IProcessNodeInstance =
@@ -139,13 +139,13 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
         /**
          * Store the current instance to the database. This
          */
-        fun store(data: MutableProcessEngineDataAccess<*>)
+        fun store(data: MutableProcessEngineDataAccess)
 
         fun getDirectSuccessorsFor(predecessor: PNIHandle): Sequence<IProcessNodeInstance> {
             return allChildNodeInstances { predecessor in it.predecessors }
         }
 
-        fun updateSplits(engineData: MutableProcessEngineDataAccess<*>) {
+        fun updateSplits(engineData: MutableProcessEngineDataAccess) {
             for (splitInstance in allChildNodeInstances { !it.state.isFinal && it.node is Split }) {
                 if (splitInstance.state != NodeInstanceState.Pending) {
                     updateChild(splitInstance) {
@@ -159,7 +159,7 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
             }
         }
 
-        fun updateState(engineData: MutableProcessEngineDataAccess<*>) {
+        fun updateState(engineData: MutableProcessEngineDataAccess) {
             if (state == State.STARTED) {
                 if (active().none()) { // do finish
                     finish(engineData)
@@ -167,7 +167,7 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
             }
         }
 
-        fun startSuccessors(engineData: MutableProcessEngineDataAccess<*>, predecessor: IProcessNodeInstance) {
+        fun startSuccessors(engineData: MutableProcessEngineDataAccess, predecessor: IProcessNodeInstance) {
             assert((predecessor.state.isFinal) || (predecessor !is SplitInstance<*>)) {
                 "The predecessor $predecessor is not final when starting successors"
             }
@@ -232,7 +232,7 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
         }
 
         fun skipSuccessors(
-            engineData: MutableProcessEngineDataAccess<*>,
+            engineData: MutableProcessEngineDataAccess,
             predecessor: IProcessNodeInstance,
             state: NodeInstanceState
         ) {
@@ -275,7 +275,7 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
          *
          * @param messageService The message service to use for messenging.
          */
-        fun tickle(engineData: MutableProcessEngineDataAccess<*>, messageService: IMessageService<*>) {
+        fun tickle(engineData: MutableProcessEngineDataAccess, messageService: IMessageService<*>) {
             val self = this
             val children = allChildNodeInstances().toList()
             // make a copy as the list may be changed due to tickling.
@@ -319,7 +319,7 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
 
         //        @Synchronized
         private fun <N : IProcessNodeInstance> handleFinishedState(
-            engineData: MutableProcessEngineDataAccess<*>,
+            engineData: MutableProcessEngineDataAccess,
             nodeInstance: N
         ) {
 
@@ -358,7 +358,7 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
             }
         }
 
-        fun finish(engineData: MutableProcessEngineDataAccess<*>) {
+        fun finish(engineData: MutableProcessEngineDataAccess) {
             // This needs to update first as at this point the node state may not be valid.
             // TODO reduce the need to do a double update.
 
@@ -479,7 +479,7 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
             return _pendingChildren.asSequence().map { it.origBuilder }.filter { childFilter(it) }
         }
 
-        override fun build(data: MutableProcessEngineDataAccess<*>): ProcessInstance {
+        override fun build(data: MutableProcessEngineDataAccess): ProcessInstance {
             return ProcessInstance(data, this)
         }
 
@@ -527,7 +527,7 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
             (existingBuilder.origBuilder as ProcessNodeInstance.Builder<N, *>).apply(body)
         }
 
-        override fun store(data: MutableProcessEngineDataAccess<*>) {
+        override fun store(data: MutableProcessEngineDataAccess) {
             val newInstance = build(data)
             if (handle.isValid) data.instances[handle] = newInstance else handle = data.instances.put(newInstance)
             generation = newInstance.generation + 1
@@ -594,7 +594,7 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
                 .filter { it.handle !in pendingHandles && childFilter(it) }
         }
 
-        override fun build(data: MutableProcessEngineDataAccess<*>): ProcessInstance {
+        override fun build(data: MutableProcessEngineDataAccess): ProcessInstance {
             return ProcessInstance(data, this)
         }
 
@@ -680,7 +680,7 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
                 } ?: throw ProcessException("Attempting to update a nonexisting child")
         }
 
-        override fun store(data: MutableProcessEngineDataAccess<*>) {
+        override fun store(data: MutableProcessEngineDataAccess) {
             // TODO: monitor for changes
             val newInstance = build(data)
             data.instances[handle] = newInstance
@@ -692,7 +692,7 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
         @ProcessInstanceStorage
         @PublishedApi
         internal fun __storeNewValueIfNeeded(
-            writableEngineData: MutableProcessEngineDataAccess<*>
+            writableEngineData: MutableProcessEngineDataAccess
         ): ProcessInstance {
 
             val newInstance = build(writableEngineData)
@@ -738,7 +738,7 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
         }
 
         @ProcessInstanceStorage
-        fun start(engineData: MutableProcessEngineDataAccess<*>, payload: CompactFragment? = null) {
+        fun start(engineData: MutableProcessEngineDataAccess, payload: CompactFragment? = null) {
             if (state == State.NEW) initialize()
 
             state = State.STARTED
@@ -887,7 +887,7 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
     val ref: ProcessInstanceRef
         get() = ProcessInstanceRef(this)
 
-    private constructor(data: MutableProcessEngineDataAccess<*>, builder: Builder) {
+    private constructor(data: MutableProcessEngineDataAccess, builder: Builder) {
         generation = builder.generation
         name = builder.instancename
         owner = builder.owner
@@ -929,7 +929,7 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
     }
 
     constructor(
-        data: MutableProcessEngineDataAccess<*>,
+        data: MutableProcessEngineDataAccess,
         processModel: ExecutableModelCommon,
         parentActivity: PNIHandle,
         body: Builder.() -> Unit
@@ -943,7 +943,7 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
 
     @ProcessInstanceStorage
     inline fun update(
-        writableEngineData: MutableProcessEngineDataAccess<*>,
+        writableEngineData: MutableProcessEngineDataAccess,
         body: ExtBuilder.() -> Unit
     ): ProcessInstance {
         val newValue = builder().apply(body)
@@ -958,7 +958,7 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
 
     @OptIn(ProcessInstanceStorage::class)
     @Synchronized
-    fun finish(engineData: MutableProcessEngineDataAccess<*>): ProcessInstance {
+    fun finish(engineData: MutableProcessEngineDataAccess): ProcessInstance {
         // This needs to update first as at this point the node state may not be valid.
         // TODO reduce the need to do a double update.
         update(engineData) {}.let { newInstance ->
@@ -1044,7 +1044,7 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
 
     @Synchronized
     fun getActivePredecessorsFor(
-        engineData: ProcessEngineDataAccess<*>,
+        engineData: ProcessEngineDataAccess,
         join: JoinInstance<*>
     ): Collection<ProcessNodeInstance<*>> {
         return active.asSequence()
@@ -1055,7 +1055,7 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
 
     @Synchronized
     fun getDirectSuccessors(
-        engineData: ProcessEngineDataAccess<*>,
+        engineData: ProcessEngineDataAccess,
         predecessor: ProcessNodeInstance<*>
     ): Collection<PNIHandle> {
         checkOwnership(predecessor)
@@ -1199,7 +1199,7 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
 
         private val serialVersionUID = 1145452195455018306L
 
-        private fun MutableProcessEngineDataAccess<*>.putNodeInstance(value: InstanceFuture<ProcessNodeInstance<*>>): ProcessNodeInstance<*> {
+        private fun MutableProcessEngineDataAccess.putNodeInstance(value: InstanceFuture<ProcessNodeInstance<*>>): ProcessNodeInstance<*> {
 
             fun <T : ProcessNodeInstance<T>> impl(value: InstanceFuture<ProcessNodeInstance<*>>): ProcessNodeInstance<*> {
                 val handle = (nodeInstances as MutableHandleMap).put(value.origBuilder.build())
@@ -1216,7 +1216,7 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
         }
 
         @JvmStatic
-        private fun MutableProcessEngineDataAccess<*>.storeNodeInstance(value: InstanceFuture<ProcessNodeInstance<*>>): ProcessNodeInstance<*> {
+        private fun MutableProcessEngineDataAccess.storeNodeInstance(value: InstanceFuture<ProcessNodeInstance<*>>): ProcessNodeInstance<*> {
             fun impl(value: InstanceFuture<ProcessNodeInstance<*>>): ProcessNodeInstance<*> {
                 val handle = value.origBuilder.handle
                 (nodeInstances as MutableHandleMap)[handle] = value.origBuilder.build()

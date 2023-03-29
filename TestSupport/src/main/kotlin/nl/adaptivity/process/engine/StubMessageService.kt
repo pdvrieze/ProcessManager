@@ -55,7 +55,7 @@ open class StubMessageService(
     }
 
     override fun sendMessage(
-        engineData: ProcessEngineDataAccess<*>,
+        engineData: ProcessEngineDataAccess,
         protoMessage: IXmlMessage,
         activityInstanceContext: ActivityInstanceContext,
         authData: ServiceAuthData?

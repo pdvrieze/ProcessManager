@@ -23,8 +23,8 @@ import net.devrieze.util.Transaction
  * as parameter
  */
 interface ContextProcessTransaction : Transaction {
-  val readableEngineData: ProcessEngineDataAccess<*>
-  val writableEngineData: MutableProcessEngineDataAccess<*>
+  val readableEngineData: ProcessEngineDataAccess
+    val writableEngineData: MutableProcessEngineDataAccess
 }
 
 interface ProcessTransactionFactory<T: ContextProcessTransaction> {

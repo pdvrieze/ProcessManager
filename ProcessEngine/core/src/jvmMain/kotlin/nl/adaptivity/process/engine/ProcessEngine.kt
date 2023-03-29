@@ -197,7 +197,7 @@ class ProcessEngine<TR : ContextProcessTransaction, C : ActivityInstanceContext>
             }
         }
 
-        override fun createWriteDelegate(transaction: T): MutableProcessEngineDataAccess<C> = DelegateEngineDataAccess(
+        override fun createWriteDelegate(transaction: T): MutableProcessEngineDataAccess = DelegateEngineDataAccess(
             transaction
         )
 
@@ -281,7 +281,7 @@ class ProcessEngine<TR : ContextProcessTransaction, C : ActivityInstanceContext>
 
         override val processModels = wrapModelCache(ProcessModelMap(this), MODEL_CACHE_SIZE)
 
-        override fun createWriteDelegate(transaction: ProcessDBTransaction): MutableProcessEngineDataAccess<C> {
+        override fun createWriteDelegate(transaction: ProcessDBTransaction): MutableProcessEngineDataAccess {
             return DBEngineDataAccess(transaction)
         }
 
@@ -326,7 +326,7 @@ class ProcessEngine<TR : ContextProcessTransaction, C : ActivityInstanceContext>
      * @return The list of process models.
      */
     fun getProcessModels(
-        engineData: ProcessEngineDataAccess<*>,
+        engineData: ProcessEngineDataAccess,
         user: Principal
     ): Iterable<SecuredObject<ExecutableProcessModel>> {
         securityProvider.ensurePermission(ProcessEnginePermissions.LIST_MODELS, user)
@@ -426,7 +426,7 @@ class ProcessEngine<TR : ContextProcessTransaction, C : ActivityInstanceContext>
     }
 
     fun getProcessModel(
-        dataAccess: ProcessEngineDataAccess<*>,
+        dataAccess: ProcessEngineDataAccess,
         handle: Handle<SecureObject<ExecutableProcessModel>>,
         user: Principal
     ): ExecutableProcessModel? {
@@ -434,7 +434,7 @@ class ProcessEngine<TR : ContextProcessTransaction, C : ActivityInstanceContext>
             securityProvider, SecureObject.Permissions.READ,
             user
         ) { processModel ->
-            if (processModel.uuid == null && dataAccess is MutableProcessEngineDataAccess<*>) {
+            if (processModel.uuid == null && dataAccess is MutableProcessEngineDataAccess) {
                 processModel.update {
                     uuid = UUID.randomUUID()
                 }.apply {
@@ -481,7 +481,7 @@ class ProcessEngine<TR : ContextProcessTransaction, C : ActivityInstanceContext>
     }
 
     fun updateProcessModel(
-        engineData: MutableProcessEngineDataAccess<C>,
+        engineData: MutableProcessEngineDataAccess,
         handle: Handle<SecureObject<ExecutableProcessModel>>,
         processModel: RootProcessModel<*>,
         user: Principal

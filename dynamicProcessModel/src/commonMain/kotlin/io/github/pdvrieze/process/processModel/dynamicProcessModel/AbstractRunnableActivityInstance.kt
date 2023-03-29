@@ -28,7 +28,7 @@ abstract class AbstractRunnableActivityInstance<I : Any, O : Any, C : ActivityIn
         override var assignedUser: PrincipalCompat?
 
         override fun doProvideTask(
-            engineData: MutableProcessEngineDataAccess<*>,
+            engineData: MutableProcessEngineDataAccess,
             messageService: IMessageService<*>
         ): Boolean {
             val node = node
@@ -36,7 +36,7 @@ abstract class AbstractRunnableActivityInstance<I : Any, O : Any, C : ActivityIn
             return node.onActivityProvided(engineData, this)
         }
 
-        override fun doStartTask(engineData: MutableProcessEngineDataAccess<*>): Boolean {
+        override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {
             val shouldProgress = tryCreateTask { node.canStartTaskAutoProgress(this) }
 
             if (shouldProgress) {
@@ -64,7 +64,7 @@ abstract class AbstractRunnableActivityInstance<I : Any, O : Any, C : ActivityIn
         override fun canTakeTaskAutomatically(): Boolean = node.onActivityProvided == RunnableActivity.OnActivityProvided.DEFAULT
 
         override fun doTakeTask(
-            engineData: MutableProcessEngineDataAccess<*>,
+            engineData: MutableProcessEngineDataAccess,
             assignedUser: PrincipalCompat?
         ): Boolean {
             return node.canTakeTaskAutoProgress(createActivityContext(engineData), this, assignedUser)
@@ -95,7 +95,7 @@ abstract class AbstractRunnableActivityInstance<I : Any, O : Any, C : ActivityIn
         handle = handle,
         state = state
     ), Builder<I, O, C, NodeT, InstT> {
-        override fun invalidateBuilder(engineData: ProcessEngineDataAccess<*>) {
+        override fun invalidateBuilder(engineData: ProcessEngineDataAccess) {
             engineData.nodeInstances[handle]?.withPermission()?.let { n ->
                 val newBase = n as InstT
                 node = newBase.node
