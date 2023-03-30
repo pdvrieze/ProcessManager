@@ -20,10 +20,8 @@ import net.devrieze.util.Handle
 import nl.adaptivity.process.engine.pma.dynamic.UIServiceImpl
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
 import nl.adaptivity.process.engine.pma.models.TaskListService
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
-import java.util.concurrent.Future
 
 class TaskList constructor(
     authService: AuthService,
@@ -40,13 +38,9 @@ class TaskList constructor(
         principal: PrincipalCompat
     ) : this(authService, engineService, clientAuth, listOf(principal))
 
-    private val tokens = mutableListOf<AuthToken>()
+    private val engineTokens = mutableMapOf<Long, AuthToken>()
 
     override fun getServiceState(): String = principals.joinToString(prefix = "[", postfix = "]")
-
-    fun <O> postTaskForResult(taskListAuth: AuthToken, processNode: IProcessNodeInstance): Future<O> {
-        TODO()
-    }
 
     override fun servesFor(principal: PrincipalCompat): Boolean {
         return principal in principals
@@ -61,7 +55,7 @@ class TaskList constructor(
         validateAuthInfo(authInfo, CommonPMAPermissions.POST_TASK)
         val token = authService.getAuthToken(serviceAuth, authorizationCode)
         assert(token.nodeInstanceHandle == nodeInstanceHandle)
-        tokens.add(token)
+        engineTokens[nodeInstanceHandle.handleValue] = token
     }
 
     fun unregisterTask(
@@ -70,7 +64,7 @@ class TaskList constructor(
     ) {
         logMe(authToken, nodeInstanceHandle)
         validateAuthInfo(authToken, CommonPMAPermissions.POST_TASK)
-        tokens.removeIf { it.nodeInstanceHandle == nodeInstanceHandle }
+        engineTokens.remove(nodeInstanceHandle.handleValue)
     }
 
     fun contextImpl(browser: Browser): Context = ContextImpl(browser)
@@ -84,7 +78,7 @@ class TaskList constructor(
         logMe(processNodeInstance, principal)
 
         validateAuthInfo(authToken, CommonPMAPermissions.ACCEPT_TASK)
-        val activityAccessToken = tokens.single { it.nodeInstanceHandle == processNodeInstance }
+        val activityAccessToken = engineTokens[processNodeInstance.handleValue] ?: throw AuthorizationException("Task list has no access to activity $processNodeInstance")
         val userAuthorization =
             engineService.acceptActivity(activityAccessToken, processNodeInstance, principal, pendingPermissions)
 
