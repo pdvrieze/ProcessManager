@@ -4,7 +4,6 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.pma.models.AuthScope
-import nl.adaptivity.process.engine.pma.models.TaskListService
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.PNIHandle
@@ -18,9 +17,7 @@ abstract class PMAActivityContext<A : PMAActivityContext<A>> :
 
     abstract val processNode: IProcessNodeInstance
 
-    abstract override val processContext: PMAProcessInstanceContext<*>
-
-    abstract val taskListService: TaskListService
+    abstract override val processContext: PMAProcessInstanceContext<A>
 
     override val node: ExecutableActivity get() = processNode.node as ExecutableActivity
 

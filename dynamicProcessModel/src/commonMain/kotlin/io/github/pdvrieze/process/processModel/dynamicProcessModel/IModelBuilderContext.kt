@@ -9,7 +9,7 @@ import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.xmlutil.Namespace
 
-interface IModelBuilderContext<AIC: ActivityInstanceContext> : IModelBuilderContextDelegates<AIC> {
+interface IModelBuilderContext<AIC: ActivityInstanceContext> : IModelBuilderContextDelegates {
     val startNode: StartNode.Builder
         get() = StartNodeBase.Builder()
 

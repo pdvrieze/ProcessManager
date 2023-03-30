@@ -20,20 +20,37 @@ import net.devrieze.util.Handle
 import nl.adaptivity.process.engine.pma.dynamic.UIServiceImpl
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
 import nl.adaptivity.process.engine.pma.models.TaskListService
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
+import java.util.concurrent.Future
 
 class TaskList constructor(
     authService: AuthService,
     private val engineService: EngineService,
     clientAuth: IdSecretAuthInfo,
-    val principal: PrincipalCompat
+    val principals: List<PrincipalCompat>
 ) : UIServiceImpl(authService, clientAuth), TaskListService {
 //    val nodeInstanceHandle: PNIHandle? get() = activityAccessToken?.nodeInstanceHandle
 
-    override fun getServiceState(): String = principal.name
+    constructor(
+        authService: AuthService,
+        engineService: EngineService,
+        clientAuth: IdSecretAuthInfo,
+        principal: PrincipalCompat
+    ) : this(authService, engineService, clientAuth, listOf(principal))
 
     private val tokens = mutableListOf<AuthToken>()
+
+    override fun getServiceState(): String = principals.joinToString(prefix = "[", postfix = "]")
+
+    fun <O> postTaskForResult(taskListAuth: AuthToken, processNode: IProcessNodeInstance): Future<O> {
+        TODO()
+    }
+
+    override fun servesFor(principal: PrincipalCompat): Boolean {
+        return principal in principals
+    }
 
     fun postTask(
         authInfo: AuthToken,

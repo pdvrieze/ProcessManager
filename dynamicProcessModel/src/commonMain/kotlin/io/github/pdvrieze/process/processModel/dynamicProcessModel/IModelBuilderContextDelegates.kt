@@ -1,7 +1,6 @@
 package io.github.pdvrieze.process.processModel.dynamicProcessModel
 
 import kotlinx.serialization.KSerializer
-import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.processModel.CompositeActivity
 import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessNode
@@ -9,10 +8,10 @@ import nl.adaptivity.process.processModel.name
 import nl.adaptivity.process.util.Identified
 import kotlin.reflect.KProperty
 
-interface IModelBuilderContextDelegates<AIC: ActivityInstanceContext> {
+interface IModelBuilderContextDelegates {
     val modelBuilder: ProcessModel.Builder
 
-    operator fun <I: Any, O: Any> RunnableActivity.Builder<I, O, AIC>.provideDelegate(
+    operator fun <I: Any, O: Any> RunnableActivity.Builder<I, O, *>.provideDelegate(
         thisRef: Nothing?,
         property: KProperty<*>
     ): ActivityHandle<O> {

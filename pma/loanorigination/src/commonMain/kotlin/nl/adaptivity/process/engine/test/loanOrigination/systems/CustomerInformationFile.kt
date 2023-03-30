@@ -22,6 +22,7 @@ import nl.adaptivity.process.engine.pma.dynamic.UIServiceImpl
 import nl.adaptivity.process.engine.pma.models.AutomatedService
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
+import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanCustomer
 
 class CustomerInformationFile(authService: AuthService): UIServiceImpl(authService, "Customer_Information_File"),
     AutomatedService {
@@ -30,10 +31,11 @@ class CustomerInformationFile(authService: AuthService): UIServiceImpl(authServi
 
     override fun getServiceState(): String = ""
 
-    fun enterCustomerData(authToken: AuthToken, data: CustomerData) {
+    fun enterCustomerData(authToken: AuthToken, data: CustomerData): LoanCustomer {
         logMe()
         validateAuthInfo(authToken, LoanPermissions.CREATE_CUSTOMER)
         customerData[data.customerId] = data
+        return LoanCustomer(data.customerId, data.taxId)
     }
 
     fun getCustomerData(authToken: AuthToken, customerId: String): CustomerData? {

@@ -1,28 +1,34 @@
 package nl.adaptivity.process.engine.test.loanOrigination
 
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.RoleRestriction
+import net.devrieze.util.security.SimplePrincipal
+import nl.adaptivity.process.engine.pma.AuthService
+import nl.adaptivity.process.engine.pma.GeneralClientService
+import nl.adaptivity.process.engine.pma.dynamic.runnablePmaProcess
 import nl.adaptivity.process.engine.pma.models.ServiceId
+import nl.adaptivity.process.engine.test.loanOrigination.ServiceIds.customerFile
+import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
+import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanCustomer
+import nl.adaptivity.process.engine.test.loanOrigination.systems.*
 
-/*
-val pmaLoanModel = runnablePmaProcess("pmaLoanModel", SimplePrincipal("modelOwner")) {
+val pmaLoanModel = runnablePmaProcess<LoanPMAActivityContext, LoanBrowserContext>("pmaLoanModel", SimplePrincipal("modelOwner")) {
     val start by startNode
 
-    val inputCustomerMasterData by taskActivity(
+    val inputCustomerMasterData by taskActivity<Unit, LoanCustomer>(
         predecessor = start,
-        permissions = listOf(delegatePermissions(ServiceIds.customerFile, LoanPermissions.QUERY_CUSTOMER_DATA, LoanPermissions.CREATE_CUSTOMER, LoanPermissions.UPDATE_CUSTOMER_DATA)),
+        permissions = listOf(delegatePermissions(customerFile, LoanPermissions.QUERY_CUSTOMER_DATA, LoanPermissions.CREATE_CUSTOMER, LoanPermissions.UPDATE_CUSTOMER_DATA)),
         accessRestrictions = RoleRestriction("clerk"),
     ) {
         // TODO break this down into subactivities
-        acceptBrowserActivity(clerk1) {
+        acceptBrowserActivity(processContext.clerk1) {
 
-            val customerFileAuthToken = uiServiceLogin(customerFile)
-
-            val newData = customerData
-
-            customerFile.enterCustomerData(customerFileAuthToken, newData)
-            LoanCustomer(newData.customerId, newData.taxId)
+            uiServiceLogin(customerFile) {
+                val newData = data.customerData
+                service.enterCustomerData(authToken, newData)
+            }
         }
-        TODO()
     }
+/*
 
     val createLoanRequest by taskActivity(
         inputCustomerMasterData,
@@ -254,9 +260,9 @@ val pmaLoanModel = runnablePmaProcess("pmaLoanModel", SimplePrincipal("modelOwne
     processResult("loanEvaluation", loanEvaluationOut)
     processResult("creditReport", creditReportOut)
     processResult("accountNumber", openAccount)
+*/
 
 }
-*/
 
 private inline val LoanActivityContext.accountManagementSystem get() = processContext.accountManagementSystem
 private inline val LoanActivityContext.authService get() = processContext.authService
@@ -273,17 +279,17 @@ private inline val LoanActivityContext.pricingEngine get() = processContext.pric
 private inline val LoanActivityContext.signingService get() = processContext.signingService
 
 object ServiceIds {
-    val accountManagementSystem : ServiceId = ServiceId("accountManagementSystem")
-    val authService : ServiceId = ServiceId("authService")
+    val accountManagementSystem : ServiceId<AccountManagementSystem> = ServiceId("accountManagementSystem")
+    val authService : ServiceId<AuthService> = ServiceId("authService")
 //    val clerk1 : ServiceId = ServiceId("clerk1")
-    val creditApplication : ServiceId = ServiceId("creditApplication")
-    val creditBureau : ServiceId = ServiceId("creditBureau")
+    val creditApplication : ServiceId<CreditApplication> = ServiceId("creditApplication")
+    val creditBureau : ServiceId<CreditBureau> = ServiceId("creditBureau")
 //    val customer : ServiceId = ServiceId("customer")
-    val customerData : ServiceId = ServiceId("customerData")
-    val customerFile : ServiceId = ServiceId("customerFile")
-    val generalClientService : ServiceId = ServiceId("generalClientService")
-    val outputManagementSystem : ServiceId = ServiceId("outputManagementSystem")
+//    val customerData : ServiceId<CustomerData> = ServiceId("customerData")
+    val customerFile : ServiceId<CustomerInformationFile> = ServiceId("customerFile")
+    val generalClientService : ServiceId<GeneralClientService> = ServiceId("generalClientService")
+    val outputManagementSystem : ServiceId<OutputManagementSystem> = ServiceId("outputManagementSystem")
 //    val postProcClerk : ServiceId = ServiceId("postProcClerk")
-    val pricingEngine : ServiceId = ServiceId("pricingEngine")
-    val signingService : ServiceId = ServiceId("signingService")
+    val pricingEngine : ServiceId<PricingEngine> = ServiceId("pricingEngine")
+    val signingService : ServiceId<SigningService> = ServiceId("signingService")
 }

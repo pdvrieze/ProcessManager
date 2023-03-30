@@ -42,7 +42,7 @@ class AuthService(
     private val authorizationCodes = mutableMapOf<AuthorizationCode, AuthToken>()
     private val activeTokens = mutableListOf<AuthToken>()
     private val globalPermissions =
-        mutableMapOf<PrincipalCompat, MutableMap<String, MutableList<AuthScope>>>()
+        mutableMapOf<PrincipalCompat, MutableMap<String, AuthScope>>()
 
     private val tokenPermissions = mutableMapOf<String, MutableList<Permission>>()
 
@@ -115,7 +115,7 @@ class AuthService(
             val hasExtPermission = opaquePermissions.any { it.scope.includes(useScope) }
             if (!hasExtPermission) {
                 val hasGlobalPerm: Boolean = authToken.scope == IDENTIFY &&
-                    (globalPermissions.get(authToken.principal)?.get(serviceId)?.any { it.includes(useScope) }
+                    (globalPermissions.get(authToken.principal)?.get(serviceId)?.includes(useScope)
                         ?: false)
 
                 if (!hasGlobalPerm) {
@@ -147,7 +147,7 @@ class AuthService(
         )
         if (useScope != IDENTIFY) { // Identify by password is always allowed
             val hasGlobalPerms =
-                globalPermissions.get(authInfo.principal)?.get(serviceId)?.any { it.includes(useScope) } ?: false
+                globalPermissions.get(authInfo.principal)?.get(serviceId)?.includes(useScope) ?: false
             if (!hasGlobalPerms) {
                 throw AuthorizationException("No permission found for user ${authInfo.principal} to $serviceId.${useScope.description}")
             }
@@ -316,9 +316,8 @@ class AuthService(
         // TODO principal should be authorized
         val serviceId = service.serviceId
         internalValidateAuthInfo(identityToken, IDENTIFY)
-        val userPermissions =
+        val userPermissions: AuthScope? =
             globalPermissions.get(identityToken.principal)?.get(serviceId)
-                ?: emptyList<AuthScope>()
 
         val effectiveScope: AuthScope
         val tokenAssociatedPermissions: Sequence<AuthScope> = if (identityToken is AuthToken) {
@@ -350,7 +349,7 @@ class AuthService(
             emptySequence()
         }
         val registeredPermissions = tokenAssociatedPermissions
-            .plus(userPermissions.asSequence())
+            .plus(listOfNotNull(userPermissions).asSequence())
             .ifEmpty {
                 throw AuthorizationException("The token $identityToken has no permission to create delegate tokens for ${service.serviceId}.${reqScope.description}")
             }
@@ -512,9 +511,26 @@ class AuthService(
                 CommonPMAPermissions.GRANT_GLOBAL_PERMISSION.context(clientId, service, scope)
             )
         }
+        globalPermissions.compute(principal) { _, map ->
+            when(map) {
+                null -> mutableMapOf(service.serviceId to scope)
+                else -> map.apply {
+                    compute(service.serviceId) { k, oldScope ->
+                        when (oldScope) {
+                            null -> scope
+                            else -> oldScope.union(scope)
+                        }
+                    }
+                }
+            }
+        }
         globalPermissions.getOrPut(principal) { mutableMapOf() }
-            .getOrPut(service.serviceId) { mutableListOf() }
-            .add(scope)
+            .compute(service.serviceId) { k, oldScope ->
+                when (oldScope) {
+                    null -> scope
+                    else -> oldScope.union(scope)
+                }
+            }
     }
 
 

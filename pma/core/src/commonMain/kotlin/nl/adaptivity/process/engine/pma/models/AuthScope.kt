@@ -130,7 +130,7 @@ object ANYSCOPE: AuthScope {
         return this
     }
 
-    override fun intersect(otherScope: AuthScope): AuthScope? {
+    override fun intersect(otherScope: AuthScope): AuthScope {
         return otherScope
     }
 }

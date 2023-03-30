@@ -5,6 +5,8 @@ package nl.adaptivity.process.engine.pma.dynamic
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.*
 import kotlinx.serialization.serializer
 import net.devrieze.util.security.SYSTEMPRINCIPAL
+import nl.adaptivity.process.engine.pma.TaskList
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.scope.templates.DelegateScopeTemplate
 import nl.adaptivity.process.engine.pma.models.AuthScopeTemplate
 import nl.adaptivity.process.engine.pma.models.ServiceId
@@ -19,77 +21,95 @@ import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.UUID
 import kotlin.experimental.ExperimentalTypeInference
 
-abstract class PMAModelBuilderContext<AIC : PMAActivityContext<AIC>> : IModelBuilderContext<AIC> {
+abstract class PMAModelBuilderContext<AIC : DynamicPMAActivityContext<*, *, AIC, BAC>, BAC: BrowserActivityContext<AIC>> : IModelBuilderContext<AIC> {
 
-    protected abstract fun compositeActivityContext(predecessor: Identified): CompositePMAModelBuilderContext<AIC>
+    protected abstract fun compositeActivityContext(predecessor: Identified): CompositePMAModelBuilderContext<AIC, BAC>
 
     inline fun  <I : Any, reified O : Any> taskActivity(
         predecessor: NodeHandle<I>,
         permissions: List<AuthScopeTemplate<AIC>> = emptyList(),
         accessRestrictions: RunnableAccessRestriction? = null,
         @BuilderInference
-        noinline action: RunnableAction<I, O, AIC>
+        noinline action: RunnableAction<I, O, BAC>
     ): RunnableActivity.Builder<I, O, AIC> {
-        return RunnableActivity.Builder(
+        return RunnableActivity.Builder<I, O, AIC>(
             predecessor,
             predecessor.identifier,
             "",
             predecessor.serializer,
-            serializer(),
-            action
-        ).apply {
+            serializer<O>()
+        ) {input: I ->
+            val taskListServices: List<TaskList> = processContext.contextFactory.getOrCreateTaskListForRestrictions(node.accessRestrictions)
+            for (taskListService in taskListServices) {
+                processContext.engineService.doPostTaskToTasklist(taskListService, nodeInstanceHandle)
+            }
+
+/*
+
+        val authorizationCode = taskListService.acceptActivity(
+            browser.loginToService(taskListService),
+            browser.user,
+            pendingPermissions,
+            nodeInstanceHandle
+        )
+        browser.addToken(processContext.authService, authorizationCode)
+
+ */
+
+            browserContext().action(input)
+        }.apply {
             this.accessRestrictions = accessRestrictions
         }
     }
 
-    fun delegatePermissions(targetService: ServiceId, vararg permissions: AuthScopeTemplate<AIC>): AuthScopeTemplate<AIC> {
+    fun <AIC: PMAActivityContext<AIC>> delegatePermissions(targetService: ServiceId<*>, vararg permissions: AuthScopeTemplate<AIC>): AuthScopeTemplate<AIC> {
         return DelegateScopeTemplate(targetService, permissions)
 
     }
 }
 
-abstract class CompositePMAModelBuilderContext<AIC : PMAActivityContext<AIC>> : PMAModelBuilderContext<AIC>() {
+abstract class CompositePMAModelBuilderContext<AIC : DynamicPMAActivityContext<*, *, AIC, BAC>, BAC: BrowserActivityContext<AIC>> : PMAModelBuilderContext<AIC, BAC>() {
 
 }
 
-internal class CompositePMAModelBuilderContextImpl<AIC : PMAActivityContext<AIC>>(
+internal class CompositePMAModelBuilderContextImpl<AIC : DynamicPMAActivityContext<*, *, AIC, BAC>, BAC: BrowserActivityContext<AIC>>(
     predecessor: Identified,
-    private val owner: RootPMAModelBuilderContext<AIC>,
-) : CompositePMAModelBuilderContext<AIC>() {
+    private val owner: RootPMAModelBuilderContext<AIC, BAC>,
+) : CompositePMAModelBuilderContext<AIC, BAC>() {
     override val modelBuilder = ActivityBase.CompositeActivityBuilder(owner.modelBuilder).apply {
         this.predecessor = predecessor
     }
 
-    override fun compositeActivityContext(predecessor: Identified): CompositePMAModelBuilderContext<AIC> {
+    override fun compositeActivityContext(predecessor: Identified): CompositePMAModelBuilderContext<AIC, BAC> {
         return CompositePMAModelBuilderContextImpl(predecessor, owner)
     }
 
 }
 
 
-fun <AIC : PMAActivityContext<AIC>> runnablePmaProcess(
+fun <AIC : DynamicPMAActivityContext<*, *, AIC, BAC>, BAC: BrowserActivityContext<AIC>> runnablePmaProcess(
     name: String,
     owner: PrincipalCompat = SYSTEMPRINCIPAL,
     uuid: UUID = UUID.randomUUID(),
     @ConfigurationDsl
-    configureAction: PMAModelBuilderContext<AIC>.() -> Unit
+    configureAction: PMAModelBuilderContext<AIC, BAC>.() -> Unit
 ): ExecutableProcessModel {
-    val context = RootPMAModelBuilderContext<AIC>(name, owner, uuid).apply(configureAction)
+    val context = RootPMAModelBuilderContext<AIC, BAC>(name, owner, uuid).apply(configureAction)
     return ExecutableProcessModel(context.modelBuilder, true)
 }
 
-internal class RootPMAModelBuilderContext<AIC : PMAActivityContext<AIC>>(
+internal class RootPMAModelBuilderContext<AIC : DynamicPMAActivityContext<*, *, AIC, BAC>, BAC: BrowserActivityContext<AIC>>(
     name: String,
     owner: PrincipalCompat,
     uuid: UUID,
-) : PMAModelBuilderContext<AIC>() {
+) : PMAModelBuilderContext<AIC, BAC>() {
     public override val modelBuilder: RootProcessModel.Builder = RootProcessModelBase.Builder().apply {
         this.name = name
         this.owner = owner
         this.uuid = uuid
     }
 
-    override fun compositeActivityContext(predecessor: Identified): CompositePMAModelBuilderContext<AIC> {
+    override fun compositeActivityContext(predecessor: Identified): CompositePMAModelBuilderContext<AIC, BAC> {
         return CompositePMAModelBuilderContextImpl(predecessor, this)
     }
 }

@@ -88,7 +88,7 @@ class EngineService(
     }
 
 
-    fun registerActivityToTaskList(
+    fun doPostTaskToTasklist(
         taskList: TaskList,
         pniHandle: Handle<SecureProcessNodeInstance>
     ) {

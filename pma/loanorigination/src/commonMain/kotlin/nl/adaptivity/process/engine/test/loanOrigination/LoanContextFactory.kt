@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination
 
-import io.github.pdvrieze.process.processModel.dynamicProcessModel.RunnableActivityInstance
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.SimpleRolePrincipal
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ActivityInstanceContext
@@ -26,10 +25,12 @@ import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.pma.*
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAProcessContextFactory
 import nl.adaptivity.process.engine.pma.runtime.AuthServiceClient
+import nl.adaptivity.process.engine.pma.runtime.PMAActivityInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
 import nl.adaptivity.process.engine.test.loanOrigination.systems.*
+import nl.adaptivity.process.processModel.AccessRestriction
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import java.security.Principal
 import java.util.logging.Level
@@ -40,6 +41,7 @@ import kotlin.random.Random
 class LoanContextFactory(log: Logger, random: Random): AbstractLoanContextFactory<LoanActivityContext>(log, random) {
 
     private val processContexts = mutableMapOf<PIHandle, LoanProcessContext>()
+    private val taskLists = mutableMapOf<Principal, TaskList>()
 
     override fun newActivityInstanceContext(
         engineDataAccess: ProcessEngineDataAccess,
@@ -73,6 +75,23 @@ class LoanContextFactory(log: Logger, random: Random): AbstractLoanContextFactor
         with(engineService) { context.onActivityTermination(processNodeInstance) }
     }
 
+    fun getOrCreateTaskListForUser(principal: PrincipalCompat): TaskList {
+        return taskLists.getOrPut(principal) {
+            log.log(Level.INFO, "Creating tasklist service for ${principal.name}")
+            val clientAuth = authService.registerClient("TaskList(${principal.name})", Random.nextString())
+            val t = TaskList(authService, engineService, clientAuth, listOf(principal))
+            engineService.registerGlobalPermission(principal, t, CommonPMAPermissions.ACCEPT_TASK)
+
+            // TODO, use an activity specific permission/token instead.
+            engineService.registerGlobalPermission(
+                SimplePrincipal(engineService.serviceId) as Principal,
+                t,
+                CommonPMAPermissions.POST_TASK
+            )
+            t
+        }
+    }
+
 }
 
 
@@ -81,6 +100,14 @@ class LoanPMAContextFactory(log: Logger, random: Random) :
     DynamicPMAProcessContextFactory<LoanPMAActivityContext> {
 
     private val processContexts = mutableMapOf<PIHandle, LoanPmaProcessContext>()
+    private val taskList: TaskList by lazy {
+        val clientAuth = authService.registerClient("TaskList(GLOBAL)", Random.nextString())
+        TaskList(authService, engineService, clientAuth, principals)
+    }
+
+    override fun getOrCreateTaskListForRestrictions(accessRestrictions: AccessRestriction?): List<TaskList> {
+        return listOf(taskList)
+    }
 
     override fun newActivityInstanceContext(
         engineDataAccess: ProcessEngineDataAccess,
@@ -89,7 +116,7 @@ class LoanPMAContextFactory(log: Logger, random: Random) :
         val instanceHandle = processNodeInstance.hProcessInstance
         nodes[processNodeInstance.handle] = processNodeInstance.node.id
         val processContext = getProcessContext(engineDataAccess, instanceHandle)
-        return LoanPMAActivityContext(processContext, processNodeInstance as RunnableActivityInstance<*, *, *>)
+        return LoanPMAActivityContext(processContext, processNodeInstance as PMAActivityInstance<*>)
     }
 
     fun getProcessContext(
@@ -112,6 +139,20 @@ class LoanPMAContextFactory(log: Logger, random: Random) :
         val context: LoanPmaProcessContext = getProcessContext(engineDataAccess, processNodeInstance.hProcessInstance)
 
         with(engineService) { context.onActivityTermination(processNodeInstance) }
+    }
+
+    override fun getOrCreateTaskListForUser(principal: PrincipalCompat): TaskList {
+        log.log(Level.INFO, "Creating tasklist service for ${principal.name}")
+
+        engineService.registerGlobalPermission(principal, taskList, CommonPMAPermissions.ACCEPT_TASK)
+
+        // TODO, use an activity specific permission/token instead.
+        engineService.registerGlobalPermission(
+            SimplePrincipal(engineService.serviceId) as Principal,
+            taskList,
+            CommonPMAPermissions.POST_TASK
+        )
+        return taskList
     }
 
 }
@@ -137,8 +178,6 @@ abstract class AbstractLoanContextFactory<AIC: ActivityInstanceContext>(val log:
     val signingService = SigningService(authService)
 
 
-    private val taskLists = mutableMapOf<Principal, TaskList>()
-
     val customerData = CustomerData(
         "cust123456",
         "taxId234",
@@ -147,7 +186,7 @@ abstract class AbstractLoanContextFactory<AIC: ActivityInstanceContext>(val log:
         "10 Downing Street"
     )
 
-    object principals {
+    object principals: AbstractList<PrincipalCompat>() {
         fun withName(userName: String): PrincipalCompat? {
             return map[userName]
         }
@@ -155,29 +194,20 @@ abstract class AbstractLoanContextFactory<AIC: ActivityInstanceContext>(val log:
         val clerk1 = SimpleRolePrincipal("preprocessing clerk 1", "clerk", "bankuser")
         val clerk2 = SimpleRolePrincipal("postprocessing clerk 2", "clerk", "bankuser")
         val customer = SimpleRolePrincipal("John Doe", "customer")
-        private val map = arrayOf(clerk1, clerk2, customer).associateBy { it.name }
+
+        private val all = listOf(clerk1, clerk2, customer)
+
+        private val map = all.associateBy { it.name }
+
+        override val size: Int get() = all.size
+
+        override fun get(index: Int): PrincipalCompat = all[index]
     }
 
     val clerk1: Browser = Browser(authService, principals.clerk1)
     val postProcClerk: Browser = Browser(authService, principals.clerk2)
     val customer: Browser = Browser(authService, principals.customer)
 
-    fun getOrCreateTaskListForUser(principal: Principal): TaskList {
-        return taskLists.getOrPut(principal) {
-            log.log(Level.INFO, "Creating tasklist service for ${principal.name}")
-            val clientAuth = authService.registerClient("TaskList(${principal.name})", Random.nextString())
-            val t = TaskList(authService, engineService, clientAuth, principal)
-            engineService.registerGlobalPermission(principal, t, CommonPMAPermissions.ACCEPT_TASK)
-
-            // TODO, use an activity specific permission/token instead.
-            engineService.registerGlobalPermission(
-                SimplePrincipal(engineService.serviceId) as Principal,
-                t,
-                CommonPMAPermissions.POST_TASK
-            )
-            t
-        }
-    }
 
     override fun getPrincipal(userName: String): PrincipalCompat {
         return principals.withName(userName) ?: SimplePrincipal(userName)

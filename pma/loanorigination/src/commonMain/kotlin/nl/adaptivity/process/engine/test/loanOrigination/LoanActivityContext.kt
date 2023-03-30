@@ -109,7 +109,7 @@ class LoanActivityContext(
     private fun ensureTaskList(browser: Browser) {
         val taskUser = browser.user
         if (::taskListService.isInitialized) {
-            if (taskListService.principal != taskUser) {
+            if (taskListService.servesFor(taskUser)) {
                 throw UnsupportedOperationException("Attempting to change the user for an activity after it has already been set")
             }
         } else {
@@ -120,7 +120,7 @@ class LoanActivityContext(
     @PublishedApi
     internal fun acceptActivityImpl(browser: Browser) {
         ensureTaskList(browser)
-        processContext.engineService.registerActivityToTaskList(taskListService, nodeInstanceHandle)
+        processContext.engineService.doPostTaskToTasklist(taskListService, nodeInstanceHandle)
 
         val authorizationCode = taskListService.acceptActivity(
             browser.loginToService(taskListService),

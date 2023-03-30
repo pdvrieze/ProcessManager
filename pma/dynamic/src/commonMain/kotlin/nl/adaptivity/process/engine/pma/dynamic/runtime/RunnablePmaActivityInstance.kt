@@ -8,7 +8,7 @@ import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-class RunnablePmaActivityInstance<I : Any, O : Any, C : DynamicPMAActivityContext<I, O, C>>(
+class RunnablePmaActivityInstance<I : Any, O : Any, C : DynamicPMAActivityContext<I, O, C, *>>(
     builder: Builder<I, O, C>
 ) : AbstractRunnableActivityInstance<I, O, C, RunnablePmaActivity<I, O, *>, RunnablePmaActivityInstance<I,O,C>>(builder) {
 
@@ -16,11 +16,11 @@ class RunnablePmaActivityInstance<I : Any, O : Any, C : DynamicPMAActivityContex
         return RunnablePmaActivityInstance.ExtBuilder(this, processInstanceBuilder)
     }
 
-    interface Builder<I : Any, O : Any, C : DynamicPMAActivityContext<I, O, C>> :
+    interface Builder<I : Any, O : Any, C : DynamicPMAActivityContext<I, O, C, *>> :
         AbstractRunnableActivityInstance.Builder<I, O, C, RunnablePmaActivity<I, O, *>, RunnablePmaActivityInstance<I,O,C>>
 
 
-    class BaseBuilder<I : Any, O : Any, C : DynamicPMAActivityContext<I, O, C>>(
+    class BaseBuilder<I : Any, O : Any, C : DynamicPMAActivityContext<I, O, C, *>>(
         node: RunnablePmaActivity<I, O, C>,
         predecessor: PNIHandle?,
         processInstanceBuilder: ProcessInstance.Builder,
@@ -39,7 +39,7 @@ class RunnablePmaActivityInstance<I : Any, O : Any, C : DynamicPMAActivityContex
         }
     }
 
-    class ExtBuilder<I : Any, O : Any, C : DynamicPMAActivityContext<I, O, C>>(
+    class ExtBuilder<I : Any, O : Any, C : DynamicPMAActivityContext<I, O, C, *>>(
         base: RunnablePmaActivityInstance<I, O, C>,
         processInstanceBuilder: ProcessInstance.Builder
     ) : AbstractRunnableActivityInstance.ExtBuilder<I, O, C, RunnablePmaActivity<I, O, *>, RunnablePmaActivityInstance<I, O, C>>(

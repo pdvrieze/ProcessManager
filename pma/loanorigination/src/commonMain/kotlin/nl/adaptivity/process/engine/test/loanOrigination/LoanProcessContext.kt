@@ -20,15 +20,13 @@ import nl.adaptivity.process.engine.IProcessInstance
 import nl.adaptivity.process.engine.PIHandle
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstanceContext
-import nl.adaptivity.process.engine.pma.AuthService
-import nl.adaptivity.process.engine.pma.Browser
-import nl.adaptivity.process.engine.pma.EngineService
-import nl.adaptivity.process.engine.pma.GeneralClientService
+import nl.adaptivity.process.engine.pma.*
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAProcessInstanceContext
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
 import nl.adaptivity.process.engine.test.loanOrigination.systems.*
 import nl.adaptivity.process.util.Identified
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 import java.util.logging.Logger
 
 interface CommonLoanProcessContext : ProcessInstanceContext {
@@ -59,6 +57,7 @@ interface LoanProcessContext : CommonLoanProcessContext {
 
 interface LoanPmaProcessContext : DynamicPMAProcessInstanceContext<LoanPMAActivityContext>, CommonLoanProcessContext {
     override val contextFactory: LoanPMAContextFactory
+    override fun taskListFor(principal: PrincipalCompat): TaskList
 
     val clerk1: Browser
     val postProcClerk: Browser
@@ -73,7 +72,6 @@ abstract class AbstractLoanProcessContext(
 
     override val processInstanceHandle: PIHandle get() = processInstance.handle
 
-    override val customerData: CustomerData get() = contextFactory.customerData
     override val signingService: SigningService get() = contextFactory.signingService
     override val customerFile: CustomerInformationFile get() = contextFactory.customerFile
     override val outputManagementSystem: OutputManagementSystem get() = contextFactory.outputManagementSystem
@@ -82,8 +80,8 @@ abstract class AbstractLoanProcessContext(
     override val creditApplication: CreditApplication get() = contextFactory.creditApplication
     override val pricingEngine: PricingEngine get() = contextFactory.pricingEngine
 
+    override val customerData: CustomerData get() = contextFactory.customerData
 }
-
 
 class LoanProcessContextImpl(
     engineData: ProcessEngineDataAccess,
@@ -132,5 +130,9 @@ class LoanPmaProcessContextImpl(
         return engineData.instance(processInstanceHandle).withPermission().allChildNodeInstances()
             .filter { it.node.id == name.id }
             .toList()
+    }
+
+    override fun taskListFor(principal: PrincipalCompat): TaskList {
+        TODO("not implemented")
     }
 }

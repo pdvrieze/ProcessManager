@@ -4,34 +4,40 @@ import io.github.pdvrieze.process.processModel.dynamicProcessModel.OutputRef
 import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.IProcessInstance
 import nl.adaptivity.process.engine.pma.*
+import nl.adaptivity.process.engine.pma.dynamic.BrowserActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.RunnablePmaActivity
 import nl.adaptivity.process.engine.pma.models.AuthScope
 import nl.adaptivity.process.engine.pma.models.Service
+import nl.adaptivity.process.engine.pma.models.TaskListService
 import nl.adaptivity.process.engine.pma.runtime.PMAActivityContext
 import nl.adaptivity.process.engine.pma.runtime.PMAProcessContextFactory
 import nl.adaptivity.process.engine.pma.runtime.PMAProcessInstanceContext
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.applyData
 import nl.adaptivity.process.engine.processModel.getDefines
+import nl.adaptivity.process.processModel.AccessRestriction
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 import java.security.Principal
 
-abstract class DynamicPMAActivityContext<I : Any, O : Any, A : DynamicPMAActivityContext<I, O, A>>(
+abstract class DynamicPMAActivityContext<I : Any, O : Any, AIC : DynamicPMAActivityContext<I, O, AIC, BAC>, BAC: BrowserActivityContext<AIC>>(
     override val processNode: IProcessNodeInstance
-) : PMAActivityContext<A>() {
+) : PMAActivityContext<AIC>() {
     override val node: RunnablePmaActivity<I, O, *> get() = processNode.node as RunnablePmaActivity<I, O, *>
 
-    final override lateinit var taskListService: TaskList
-        private set
+    abstract fun browserContext(): BAC
 
-    abstract override val processContext: DynamicPMAProcessInstanceContext<*>
+    abstract override val processContext: DynamicPMAProcessInstanceContext<AIC>
 
     private val pendingPermissions = ArrayDeque<PendingPermission>()
 
+/*
     inline fun <R> acceptBrowserActivity(browser: Browser, action: TaskList.Context.() -> R): R {
         acceptActivityImpl(browser) // This will initialise the task list and then delegate to it
         return taskListService.contextImpl(browser).action()
     }
+*/
 
+/*
     @PublishedApi
     internal fun acceptActivityImpl(browser: Browser) {
         ensureTaskList(browser)
@@ -46,7 +52,8 @@ abstract class DynamicPMAActivityContext<I : Any, O : Any, A : DynamicPMAActivit
         browser.addToken(processContext.authService, authorizationCode)
 
 
-        /*
+        */
+/*
 
                 val hNodeInstance = handle
                 while (pendingPermissions.isNotEmpty()) {
@@ -58,9 +65,12 @@ abstract class DynamicPMAActivityContext<I : Any, O : Any, A : DynamicPMAActivit
                         LoanPermissions.GRANT_PERMISSION.invoke(pendingPermission.service, pendingPermission.scope))
                 }
                 browser.addToken(taskIdentityToken)
-        */
-    }
+        *//*
 
+    }
+*/
+
+/*
     private fun ensureTaskList(browser: Browser) {
         val taskUser = browser.user
         if (::taskListService.isInitialized) {
@@ -71,11 +81,9 @@ abstract class DynamicPMAActivityContext<I : Any, O : Any, A : DynamicPMAActivit
             taskListService = processContext.contextFactory.getOrCreateTaskListForUser(taskUser)
         }
     }
+*/
 
     fun serviceTask(): AuthorizationCode {
-        if (::taskListService.isInitialized) {
-            throw UnsupportedOperationException("Attempting to mark as service task an activity that has already been marked for users")
-        }
         val clientServiceId = processContext.generalClientService.serviceId
         val serviceAuthorization = with(processContext) {
             engineService.createAuthorizationCode(
@@ -129,7 +137,7 @@ abstract class DynamicPMAActivityContext<I : Any, O : Any, A : DynamicPMAActivit
 
 }
 
-interface DynamicPMAProcessInstanceContext<A : DynamicPMAActivityContext<*, *, A>> : PMAProcessInstanceContext<A> {
+interface DynamicPMAProcessInstanceContext<A : DynamicPMAActivityContext<*, *, A, *>> : PMAProcessInstanceContext<A> {
     val processInstance: IProcessInstance
     val authService: AuthService
     val engineService: EngineService
@@ -137,7 +145,7 @@ interface DynamicPMAProcessInstanceContext<A : DynamicPMAActivityContext<*, *, A
     override val contextFactory: DynamicPMAProcessContextFactory<A>
 
 
-    fun <I: Any, O: Any, C : DynamicPMAActivityContext<I, O, C>> nodeResult(node: RunnablePmaActivity<I, O, C>, reference: OutputRef<O>): I {
+    fun <I: Any, O: Any, C : DynamicPMAActivityContext<I, O, C, *>> nodeResult(node: RunnablePmaActivity<I, O, C>, reference: OutputRef<O>): I {
         val defines = node.defines.map {
             // TODO the cast shouldn't be needed
             it.applyData(processInstance, this as ActivityInstanceContext)
@@ -147,8 +155,11 @@ interface DynamicPMAProcessInstanceContext<A : DynamicPMAActivityContext<*, *, A
 
     }
 
+    fun taskListFor(principal: PrincipalCompat): TaskListService
+
 }
 
 interface DynamicPMAProcessContextFactory<A : PMAActivityContext<A>> : PMAProcessContextFactory<A> {
     override fun getOrCreateTaskListForUser(principal: Principal): TaskList
+    override fun getOrCreateTaskListForRestrictions(accessRestrictions: AccessRestriction?): List<TaskList>
 }
