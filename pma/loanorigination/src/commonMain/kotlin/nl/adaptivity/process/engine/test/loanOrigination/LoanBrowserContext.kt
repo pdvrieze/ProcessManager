@@ -17,7 +17,7 @@ class LoanBrowserContext(activityContext: LoanPMAActivityContext) :
 
     }
 
-    override fun <R> acceptBrowserActivity(browser: Browser, action: BrowserInnerContext.() -> R): R {
+    override fun <R> acceptTask(browser: Browser, action: BrowserInnerContext.() -> R): R {
         val taskListService = processContext.taskListFor(browser.user)
 
         val taskListToken = taskListService.acceptActivity(

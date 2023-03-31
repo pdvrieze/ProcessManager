@@ -5,7 +5,7 @@ import net.devrieze.util.overlay
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.MessageSendingResult
 import nl.adaptivity.process.engine.*
-import nl.adaptivity.process.engine.pma.models.PMAMessageActivity
+import nl.adaptivity.process.engine.pma.models.IPMAMessageActivity
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
@@ -16,7 +16,7 @@ import nl.adaptivity.util.multiplatform.PrincipalCompat
 class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAActivityInstance<C>> {
 
     constructor(
-        node: PMAMessageActivity<C>,
+        node: IPMAMessageActivity<C>,
         predecessors: Iterable<PNIHandle>,
         processInstanceBuilder: ProcessInstance.Builder,
         hProcessInstance: PIHandle,
@@ -42,14 +42,14 @@ class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAA
     constructor(builder: Builder<C>) : super(builder)
 
     @Suppress("UNCHECKED_CAST")
-    override val node: PMAMessageActivity<C>
-        get() = super.node as PMAMessageActivity<C>
+    override val node: IPMAMessageActivity<C>
+        get() = super.node as IPMAMessageActivity<C>
 
     override fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder<C> {
         return ExtBuilder(this, processInstanceBuilder)
     }
 
-    interface Builder<C :PMAActivityContext<C>> : ProcessNodeInstance.Builder<PMAMessageActivity<C>, PMAActivityInstance<C>> {
+    interface Builder<C :PMAActivityContext<C>> : ProcessNodeInstance.Builder<IPMAMessageActivity<C>, PMAActivityInstance<C>> {
         override fun doProvideTask(
             engineData: MutableProcessEngineDataAccess,
             messageService: IMessageService<*>
@@ -60,11 +60,11 @@ class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAA
                 messageService: IMessageService<MSG_T>
             ) : MessageSendingResult {
                 @Suppress("UNCHECKED_CAST")
-                val node: PMAMessageActivity<AIC> = node as PMAMessageActivity<AIC>
+                val node: IPMAMessageActivity<AIC> = node as IPMAMessageActivity<AIC>
 
                 val message = node.message ?: XmlMessage()
                 val aic = contextFactory.newActivityInstanceContext(engineData, this)
-                val authorizations = node.authorizationTemplates.map { it.instantiateScope(aic) }
+                val authorizations = node.authorizationTemplates.mapNotNull { it.instantiateScope(aic) }
                 val authData = aic.requestAuthData(messageService, message.targetService, authorizations)
 
                 val preparedMessage = messageService.createMessage(message)
@@ -102,7 +102,7 @@ class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAA
     }
 
     class BaseBuilder<C: PMAActivityContext<C>>(
-        node: PMAMessageActivity<*>,
+        node: IPMAMessageActivity<*>,
         predecessor: PNIHandle?,
         processInstanceBuilder: ProcessInstance.Builder,
         owner: PrincipalCompat,
@@ -110,8 +110,8 @@ class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAA
         override var assignedUser: PrincipalCompat? = null,
         handle: PNIHandle = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
-    ) : ProcessNodeInstance.BaseBuilder<PMAMessageActivity<C>, PMAActivityInstance<C>>(
-        node as PMAMessageActivity<C>, listOfNotNull(predecessor), processInstanceBuilder, owner,
+    ) : ProcessNodeInstance.BaseBuilder<IPMAMessageActivity<C>, PMAActivityInstance<C>>(
+        node as IPMAMessageActivity<C>, listOfNotNull(predecessor), processInstanceBuilder, owner,
         entryNo, handle, state
     ), Builder<C> {
         override fun build(): PMAActivityInstance<C> {
@@ -122,11 +122,11 @@ class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAA
     class ExtBuilder<C: PMAActivityContext<C>>(
         base: PMAActivityInstance<C>,
         processInstanceBuilder: ProcessInstance.Builder
-    ) : ProcessNodeInstance.ExtBuilder<PMAMessageActivity<C>, PMAActivityInstance<C>>(
+    ) : ProcessNodeInstance.ExtBuilder<IPMAMessageActivity<C>, PMAActivityInstance<C>>(
         base,
         processInstanceBuilder
     ), Builder<C> {
-        override var node: PMAMessageActivity<C> by overlay { base.node }
+        override var node: IPMAMessageActivity<C> by overlay { base.node }
 
         override fun build(): PMAActivityInstance<C> {
             return if(changed) PMAActivityInstance(this).also { invalidateBuilder(it) } else base

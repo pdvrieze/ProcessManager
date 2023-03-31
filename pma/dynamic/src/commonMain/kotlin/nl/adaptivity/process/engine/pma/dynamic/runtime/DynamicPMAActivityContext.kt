@@ -1,13 +1,16 @@
 package nl.adaptivity.process.engine.pma.dynamic.runtime
 
+import RunnablePmaActivity
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.InputRef
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.OutputRef
+import kotlinx.serialization.DeserializationStrategy
 import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.IProcessInstance
 import nl.adaptivity.process.engine.pma.*
 import nl.adaptivity.process.engine.pma.dynamic.BrowserActivityContext
-import nl.adaptivity.process.engine.pma.dynamic.RunnablePmaActivity
 import nl.adaptivity.process.engine.pma.models.AuthScope
 import nl.adaptivity.process.engine.pma.models.Service
+import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.TaskListService
 import nl.adaptivity.process.engine.pma.runtime.PMAActivityContext
 import nl.adaptivity.process.engine.pma.runtime.PMAProcessContextFactory
@@ -16,13 +19,15 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.applyData
 import nl.adaptivity.process.engine.processModel.getDefines
 import nl.adaptivity.process.processModel.AccessRestriction
+import nl.adaptivity.serialutil.nonNullSerializer
 import nl.adaptivity.util.multiplatform.PrincipalCompat
+import nl.adaptivity.xmlutil.serialization.XML
 import java.security.Principal
 
-abstract class DynamicPMAActivityContext<I : Any, O : Any, AIC : DynamicPMAActivityContext<I, O, AIC, BAC>, BAC: BrowserActivityContext<AIC>>(
+abstract class DynamicPMAActivityContext<AIC : DynamicPMAActivityContext<AIC, BAC>, out BAC: BrowserActivityContext<AIC>>(
     override val processNode: IProcessNodeInstance
 ) : PMAActivityContext<AIC>() {
-    override val node: RunnablePmaActivity<I, O, *> get() = processNode.node as RunnablePmaActivity<I, O, *>
+    override val node: RunnablePmaActivity<*, *, *> get() = processNode.node as RunnablePmaActivity<*, *, *>
 
     abstract fun browserContext(): BAC
 
@@ -128,16 +133,24 @@ abstract class DynamicPMAActivityContext<I : Any, O : Any, AIC : DynamicPMAActiv
         val scope: AuthScope
     )
 
-    fun nodeResult(reference: OutputRef<I>): I {
+    fun <T: Any> nodeData(reference: InputRef<T>): T? {
+        val valueReader = processNode.resolvePredecessor(processContext.processInstance, reference.propertyName)
+            ?.getResult(reference.propertyName)?.contentStream ?: return null
+
+        val deserializer: DeserializationStrategy<T> = reference.serializer.nonNullSerializer()
+        return XML.decodeFromReader(deserializer, valueReader)
+    }
+
+    fun <InT> nodeResult(reference: OutputRef<InT>): InT {
 //        return processContext.nodeResult(processNode.node, reference) as T
         val defines = (this /*as A*/).getDefines(processContext.processInstance)
-        return node.getInputData(defines)
+        return node.getInputData(defines) as InT
 
     }
 
 }
 
-interface DynamicPMAProcessInstanceContext<A : DynamicPMAActivityContext<*, *, A, *>> : PMAProcessInstanceContext<A> {
+interface DynamicPMAProcessInstanceContext<A : DynamicPMAActivityContext<A, *>> : PMAProcessInstanceContext<A> {
     val processInstance: IProcessInstance
     val authService: AuthService
     val engineService: EngineService
@@ -145,7 +158,7 @@ interface DynamicPMAProcessInstanceContext<A : DynamicPMAActivityContext<*, *, A
     override val contextFactory: DynamicPMAProcessContextFactory<A>
 
 
-    fun <I: Any, O: Any, C : DynamicPMAActivityContext<I, O, C, *>> nodeResult(node: RunnablePmaActivity<I, O, C>, reference: OutputRef<O>): I {
+    fun <I: Any, O: Any, C : DynamicPMAActivityContext<C, *>> nodeResult(node: RunnablePmaActivity<I, O, C>, reference: OutputRef<O>): I {
         val defines = node.defines.map {
             // TODO the cast shouldn't be needed
             it.applyData(processInstance, this as ActivityInstanceContext)
@@ -162,4 +175,5 @@ interface DynamicPMAProcessInstanceContext<A : DynamicPMAActivityContext<*, *, A
 interface DynamicPMAProcessContextFactory<A : PMAActivityContext<A>> : PMAProcessContextFactory<A> {
     override fun getOrCreateTaskListForUser(principal: Principal): TaskList
     override fun getOrCreateTaskListForRestrictions(accessRestrictions: AccessRestriction?): List<TaskList>
+    fun <S: Service> resolveService(serviceId: ServiceId<S>): S
 }

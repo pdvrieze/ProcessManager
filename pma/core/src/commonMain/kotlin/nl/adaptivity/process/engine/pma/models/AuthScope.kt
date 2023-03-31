@@ -20,7 +20,7 @@ import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.pma.AuthorizationException
 
 interface AuthScopeTemplate<in C: ActivityInstanceContext> {
-    fun instantiateScope(context: C): AuthScope
+    fun instantiateScope(context: C): AuthScope?
 }
 
 interface AuthScope : AuthScopeTemplate<ActivityInstanceContext> {
@@ -29,7 +29,7 @@ interface AuthScope : AuthScopeTemplate<ActivityInstanceContext> {
     /**
      * All authscopes can be templates as well (they just don't need instantiation).
      */
-    override fun instantiateScope(context: ActivityInstanceContext): AuthScope = this
+    override fun instantiateScope(context: ActivityInstanceContext): AuthScope? = this
 
     /**
      * Determine whether this scope is larger than the passed one. In other words, whether the parameter scope

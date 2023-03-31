@@ -103,6 +103,67 @@ interface IModelBuilderContext<AIC: ActivityInstanceContext> : IModelBuilderCont
         return ProcessResultRefImpl(name, serializer)
     }
 
+    fun <I1, I2> combine(
+        input1: DefineHolder<I1>,
+        input2: DefineHolder<I2>,
+    ): DefineInputCombiner<Pair<I1, I2>> {
+        return DefineInputCombiner(
+            listOf(input1.define, input2.define),
+            InputCombiner {
+                Pair(input1(), input2())
+            }
+        )
+    }
+
+    fun <T, I1, I2> combine(
+        input1: DefineHolder<I1>,
+        input2: DefineHolder<I2>,
+        combiner: (I1, I2) -> T
+    ): DefineInputCombiner<T> {
+        return DefineInputCombiner(
+            listOf(input1.define, input2.define),
+            InputCombiner {
+                combiner(input1(), input2())
+            }
+        )
+    }
+
+    fun <T, I1, I2, I3> combine(
+        input1: DefineHolder<I1>,
+        input2: DefineHolder<I2>,
+        input3: DefineHolder<I3>,
+        combiner: (I1, I2, I3) -> T
+    ): DefineInputCombiner<T> {
+        return DefineInputCombiner(
+            listOf(input1.define, input2.define, input3.define),
+            InputCombiner {
+                combiner(input1(), input2(), input3())
+            }
+        )
+    }
+
+    fun <T, I1, I2, I3, I4> combine(
+        input1: DefineHolder<I1>,
+        input2: DefineHolder<I2>,
+        input3: DefineHolder<I3>,
+        input4: DefineHolder<I4>,
+        combiner: (I1, I2, I3, I4) -> T
+    ): DefineInputCombiner<T> {
+        return DefineInputCombiner(
+            listOf(input1.define, input2.define, input3.define, input4.define),
+            InputCombiner {
+                combiner(input1(), input2(), input3(), input4())
+            }
+        )
+    }
+
+    fun <T> combine(
+        vararg inputs: DefineHolder<*>,
+        combiner: InputCombiner<T>
+    ): DefineInputCombiner<T> {
+        return DefineInputCombiner(inputs.map { it.define }, combiner)
+    }
+
 }
 
 inline fun <AIC : ActivityInstanceContext, reified T> IModelBuilderContext<AIC>.processResult(

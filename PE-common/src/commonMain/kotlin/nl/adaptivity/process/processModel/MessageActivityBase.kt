@@ -63,37 +63,26 @@ abstract class MessageActivityBase(
     open class Builder : BaseBuilder, MessageActivity.RWBuilder {
 
         final override var message: IXmlMessage?
-        override var accessRestrictions: AccessRestriction?
+        final override var accessRestrictions: AccessRestriction?
 
         constructor(): this(
             null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            null,
-            Double.NaN,
-            Double.NaN,
-            false
         )
 
 
         constructor(
             id: String?,
-            predecessor: Identifiable?,
-            successor: Identifiable?,
-            label: String?,
-            defines: Collection<IXmlDefineType>?,
-            results: Collection<IXmlResultType>?,
-            message: XmlMessage?,
-            condition: Condition?,
-            name: String?,
-            x: Double,
-            y: Double,
-            isMultiInstance: Boolean,
+            predecessor: Identifiable? = null,
+            successor: Identifiable? = null,
+            label: String? = null,
+            defines: Collection<IXmlDefineType>? = null,
+            results: Collection<IXmlResultType>? = null,
+            message: IXmlMessage? = null,
+            condition: Condition? = null,
+            name: String? = null,
+            x: Double= Double.NaN,
+            y: Double= Double.NaN,
+            isMultiInstance: Boolean= false,
             accessRestrictions: AccessRestriction? = null
         ) : super(
             id,

@@ -8,7 +8,7 @@ import nl.adaptivity.util.multiplatform.PrincipalCompat
 class LoanPMAActivityContext(
     override val processContext: LoanPmaProcessContext,
     processNode: PMAActivityInstance<*>
-) : DynamicPMAActivityContext<Any, Any, LoanPMAActivityContext, LoanBrowserContext>(processNode) {
+) : DynamicPMAActivityContext<LoanPMAActivityContext, LoanBrowserContext>(processNode) {
     @Suppress("UNCHECKED_CAST")
     override val processNode: PMAActivityInstance<LoanPMAActivityContext>
         get() = super.processNode as PMAActivityInstance<LoanPMAActivityContext>

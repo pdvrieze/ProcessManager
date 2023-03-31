@@ -2,7 +2,7 @@ package nl.adaptivity.process.engine.pma.runtime
 
 import nl.adaptivity.process.engine.ProcessContextFactory
 import nl.adaptivity.process.engine.ProcessInstance
-import nl.adaptivity.process.engine.pma.models.PMAMessageActivity
+import nl.adaptivity.process.engine.pma.models.IPMAMessageActivity
 import nl.adaptivity.process.engine.pma.models.TaskListService
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.PNIHandle
@@ -29,7 +29,7 @@ interface PMAProcessContextFactory<AIC : PMAActivityContext<AIC>>: ProcessContex
         handle: PNIHandle,
         state: NodeInstanceState
     ): ProcessNodeInstance.Builder<out ExecutableProcessNode, *> = when (node){
-        is PMAMessageActivity<*> ->
+        is IPMAMessageActivity<*> ->
             PMAActivityInstance.BaseBuilder<AIC>(
                 node = node,
                 predecessor = predecessors.single(),

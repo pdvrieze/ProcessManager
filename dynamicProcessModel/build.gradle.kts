@@ -14,8 +14,6 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import multiplatform.jvmAndroid
-
 plugins {
     kotlin("multiplatform")
     id("net.devrieze.gradlecodegen")
@@ -41,6 +39,7 @@ kotlin {
                 }
             }
         }
+/*
         jvmAndroid {
             compilations.all {
                 kotlinOptions {
@@ -48,6 +47,7 @@ kotlin {
                 }
             }
         }
+*/
 /*
         js(BOTH) {
             browser()
@@ -96,28 +96,22 @@ kotlin {
                 implementation(kotlin("test-annotations-common"))
             }
         }
+/*
         val javaMain by creating {
             dependsOn(commonMain)
-/*
-            dependencies {
-                implementation(libs.xmlutil.core)
-                implementation(libs.xmlutil.xmlserializable)
-            }
-*/
         }
         val jvmMain by getting {
             dependsOn(javaMain)
-/*
-            dependencies {
-                implementation(libs.xmlutil.core)
-            }
-*/
         }
+*/
+/*
         val jvmTest by getting {
             dependencies {
 
             }
         }
+*/
+/*
         val androidMain by getting {
             dependsOn(javaMain)
             dependencies {
@@ -128,6 +122,7 @@ kotlin {
                 runtimeOnly(libs.kxml2)
             }
         }
+*/
     }
 
 }

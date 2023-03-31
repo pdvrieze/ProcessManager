@@ -28,15 +28,24 @@ import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
+interface IPMAMessageActivity<C: PMAActivityContext<C>>: ExecutableActivity, MessageActivity {
+    val authorizationTemplates: List<AuthScopeTemplate<C>>
+
+    override fun builder(): Builder<C>
+
+    interface Builder<C: PMAActivityContext<C>>: ExecutableProcessNode.Builder, MessageActivity.Builder {
+        var authorizationTemplates: List<AuthScopeTemplate<C>>
+    }
+}
 
 /**
  * Activity version that is used for process execution.
  */
-class PMAMessageActivity<C: PMAActivityContext<C>>(
+open class PMAMessageActivity<C: PMAActivityContext<C>>(
     builder: Builder<C>,
     newOwner: ProcessModel<*>,
     otherNodes: Iterable<ProcessNode.Builder>
-) : ExecutableMessageActivity(builder, newOwner, otherNodes) {
+) : ExecutableMessageActivity(builder, newOwner, otherNodes), IPMAMessageActivity<C> {
     init {
         checkPredSuccCounts()
     }
@@ -44,9 +53,9 @@ class PMAMessageActivity<C: PMAActivityContext<C>>(
     private var _condition: ExecutableCondition? = builder.condition?.toExecutableCondition()
 
     override val ownerModel: ExecutableModelCommon
-        get() = super.ownerModel as ExecutableModelCommon
+        get() = super.ownerModel
 
-    override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
+    override val id: String get() = super.id
 
     override val predecessor: Identifiable get() = predecessors.single()
 
@@ -54,13 +63,10 @@ class PMAMessageActivity<C: PMAActivityContext<C>>(
 
     override val accessRestrictions: AccessRestriction? = builder.accessRestrictions
 
-    val authorizationTemplates: List<AuthScopeTemplate<C>> = builder.authorizationTemplates.toList()
+    override val authorizationTemplates: List<AuthScopeTemplate<C>> = builder.authorizationTemplates.toList()
 
-    override var condition: Condition?
+    override val condition: Condition?
         get() = _condition
-        private set(value) {
-            _condition = value?.toExecutableCondition()
-        }
 
     override fun builder(): PMAMessageActivity.Builder<C> {
         return Builder(this)
@@ -112,24 +118,24 @@ class PMAMessageActivity<C: PMAActivityContext<C>>(
      */
     override fun canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *>): Boolean = false
 
-    open class Builder<C: PMAActivityContext<C>>: MessageActivityBase.Builder, ExecutableProcessNode.Builder {
+    class Builder<C: PMAActivityContext<C>>: MessageActivityBase.Builder, IPMAMessageActivity.Builder<C> {
         constructor() : super() {
             authorizationTemplates = emptyList()
         }
 
         constructor(
-            id: String?,
-            predecessor: Identifiable?,
-            successor: Identifiable?,
-            label: String?,
-            defines: Collection<IXmlDefineType>?,
-            results: Collection<IXmlResultType>?,
-            message: XmlMessage?,
-            condition: Condition?,
-            name: String?,
-            x: Double,
-            y: Double,
-            isMultiInstance: Boolean,
+            id: String? = null,
+            predecessor: Identifiable? = null,
+            successor: Identifiable? = null,
+            label: String? = null,
+            defines: Collection<IXmlDefineType>? = null,
+            results: Collection<IXmlResultType>? = null,
+            message: IXmlMessage? = null,
+            condition: Condition? = null,
+            name: String? = null,
+            x: Double = Double.NaN,
+            y: Double = Double.NaN,
+            isMultiInstance: Boolean = false,
             authorizations: List<AuthScopeTemplate<C>> = emptyList(),
         ) : super(id, predecessor, successor, label, defines, results, message, condition, name, x, y, isMultiInstance) {
             this.authorizationTemplates = authorizations
@@ -144,7 +150,7 @@ class PMAMessageActivity<C: PMAActivityContext<C>>(
             // TODO Instantiate templates with some context
         }
 
-        var authorizationTemplates: List<AuthScopeTemplate<C>>
+        override var authorizationTemplates: List<AuthScopeTemplate<C>>
 
         override fun build(
             buildHelper: ProcessModel.BuildHelper<ExecutableProcessNode, ProcessModel<ExecutableProcessNode>, *, *>,

@@ -10,7 +10,7 @@ import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions.*
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.*
 import nl.adaptivity.process.engine.test.loanOrigination.systems.SignedDocument
 import nl.adaptivity.process.processModel.configurableModel.*
-import nl.adaptivity.process.processModel.engine.*
+import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.toUUID
@@ -324,7 +324,7 @@ fun <I : Any, O : Any> ConfigurableNodeContainer<ExecutableProcessNode>.loanActi
     inputRefName: String = "",
     action: LoanActivityContext.(I) -> O
 ): RunnableActivity.Builder<I, O, LoanActivityContext> =
-    RunnableActivity.Builder(predecessor, inputRefNode, inputRefName, inputSerializer, outputSerializer, action)
+    RunnableActivity.Builder(predecessor, inputRefNode, inputRefName, inputSerializer, outputSerializer, action = action)
 
 fun <I : Any, O : Any> ConfigurableNodeContainer<ExecutableProcessNode>.configureLoanActivity(
     predecessor: Identified,
@@ -334,7 +334,13 @@ fun <I : Any, O : Any> ConfigurableNodeContainer<ExecutableProcessNode>.configur
     inputRefName: String = "",
     config: @ConfigurationDsl RunnableActivity.Builder<I, O, LoanActivityContext>.() -> Unit
 ): RunnableActivity.Builder<I, O, LoanActivityContext> =
-    RunnableActivity.Builder<I, O, LoanActivityContext>(predecessor, inputRefNode, inputRefName, inputSerializer, outputSerializer).apply(config)
+    RunnableActivity.Builder<I, O, LoanActivityContext>(
+        predecessor = predecessor,
+        refNode = inputRefNode,
+        refName = inputRefName,
+        inputSerializer = inputSerializer,
+        outputSerializer = outputSerializer
+    ).apply(config)
 
 fun <I : Any, O : Any> ConfigurableNodeContainer<ExecutableProcessNode>.configureLoanActivity(
     predecessor: Identified,

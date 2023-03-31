@@ -1,4 +1,4 @@
-@file:OptIn(ExperimentalTypeInference::class, ExperimentalContracts::class)
+@file:OptIn(ExperimentalTypeInference::class, ExperimentalContracts::class, ExperimentalContracts::class)
 
 package io.github.pdvrieze.process.processModel.dynamicProcessModel
 
@@ -7,7 +7,7 @@ import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.serializer
 import nl.adaptivity.process.engine.ActivityInstanceContext
-import nl.adaptivity.process.processModel.*
+import nl.adaptivity.process.processModel.ActivityBase
 import nl.adaptivity.process.processModel.configurableModel.ConfigurationDsl
 import nl.adaptivity.process.util.Identified
 import kotlin.contracts.ExperimentalContracts
@@ -31,7 +31,7 @@ abstract class ModelBuilderContext<AIC : ActivityInstanceContext> : IModelBuilde
             input.propertyName,
             input.serializer,
             serializer(),
-            action
+            action = action
         ).apply {
             this.accessRestrictions = accessRestrictions
             this.onActivityProvided = onActivityProvided
@@ -66,11 +66,10 @@ abstract class ModelBuilderContext<AIC : ActivityInstanceContext> : IModelBuilde
             "",
             predecessor.serializer,
             serializer(),
-            action
-        ).apply {
-            this.accessRestrictions = accessRestrictions
-            this.onActivityProvided = onActivityProvided
-        }
+            accessRestrictions = accessRestrictions,
+            onActivityProvided = onActivityProvided,
+            action = action
+        )
     }
 
     fun <I : Any, O : Any> activity(
@@ -87,11 +86,10 @@ abstract class ModelBuilderContext<AIC : ActivityInstanceContext> : IModelBuilde
             predecessor.propertyName,
             predecessor.serializer,
             outputSerializer,
-            action
-        ).apply {
-            this.onActivityProvided = onActivityProvided
-            this.accessRestrictions = accessRestrictions
-        }
+            accessRestrictions = accessRestrictions,
+            onActivityProvided = onActivityProvided,
+            action = action
+        )
     }
 
     fun <I : Any, O : Any> activity(
@@ -110,11 +108,10 @@ abstract class ModelBuilderContext<AIC : ActivityInstanceContext> : IModelBuilde
             "",
             inputSerializer,
             outputSerializer,
-            action
-        ).apply {
-            this.onActivityProvided = onActivityProvided
-            this.accessRestrictions = accessRestrictions
-        }
+            accessRestrictions = accessRestrictions,
+            onActivityProvided = onActivityProvided,
+            action = action
+        )
     }
 
     fun <I : Any, O : Any> activity(
@@ -133,11 +130,10 @@ abstract class ModelBuilderContext<AIC : ActivityInstanceContext> : IModelBuilde
             inputRefName,
             inputSerializer,
             outputSerializer,
-            action
-        ).apply {
-            this.onActivityProvided = onActivityProvided
-            this.accessRestrictions = accessRestrictions
-        }
+            accessRestrictions = accessRestrictions,
+            onActivityProvided = onActivityProvided,
+            action = action
+        )
     }
 
     fun <I : Any, O : Any> activity(
@@ -157,11 +153,10 @@ abstract class ModelBuilderContext<AIC : ActivityInstanceContext> : IModelBuilde
             inputRefName,
             inputSerializer,
             outputSerializer,
-            action
-        ).apply {
-            this.onActivityProvided = onActivityProvided
-            this.accessRestrictions = accessRestrictions
-        }
+            accessRestrictions = accessRestrictions,
+            onActivityProvided = onActivityProvided,
+            action = action
+        )
     }
 
     @PublishedApi
@@ -217,67 +212,6 @@ abstract class ModelBuilderContext<AIC : ActivityInstanceContext> : IModelBuilde
             callsInPlace(config, InvocationKind.EXACTLY_ONCE)
         }
         return RunnableActivity.Builder<I, O, AIC>(predecessor, outputSerializer = outputSerializer).apply(config)
-    }
-
-    fun <I1, I2> combine(
-        input1: DefineHolder<I1>,
-        input2: DefineHolder<I2>,
-    ): DefineInputCombiner<Pair<I1, I2>> {
-        return DefineInputCombiner(
-            listOf(input1.define, input2.define),
-            InputCombiner {
-                Pair(input1(), input2())
-            }
-        )
-    }
-
-    fun <T, I1, I2> combine(
-        input1: DefineHolder<I1>,
-        input2: DefineHolder<I2>,
-        combiner: (I1, I2) -> T
-    ): DefineInputCombiner<T> {
-        return DefineInputCombiner(
-            listOf(input1.define, input2.define),
-            InputCombiner {
-                combiner(input1(), input2())
-            }
-        )
-    }
-
-    fun <T, I1, I2, I3> combine(
-        input1: DefineHolder<I1>,
-        input2: DefineHolder<I2>,
-        input3: DefineHolder<I3>,
-        combiner: (I1, I2, I3) -> T
-    ): DefineInputCombiner<T> {
-        return DefineInputCombiner(
-            listOf(input1.define, input2.define, input3.define),
-            InputCombiner {
-                combiner(input1(), input2(), input3())
-            }
-        )
-    }
-
-    fun <T, I1, I2, I3, I4> combine(
-        input1: DefineHolder<I1>,
-        input2: DefineHolder<I2>,
-        input3: DefineHolder<I3>,
-        input4: DefineHolder<I4>,
-        combiner: (I1, I2, I3, I4) -> T
-    ): DefineInputCombiner<T> {
-        return DefineInputCombiner(
-            listOf(input1.define, input2.define, input3.define, input4.define),
-            InputCombiner {
-                combiner(input1(), input2(), input3(), input4())
-            }
-        )
-    }
-
-    fun <T> combine(
-        vararg inputs: DefineHolder<*>,
-        combiner: InputCombiner<T>
-    ): DefineInputCombiner<T> {
-        return DefineInputCombiner(inputs.map { it.define }, combiner)
     }
 
 }

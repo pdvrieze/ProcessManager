@@ -24,6 +24,8 @@ import nl.adaptivity.process.engine.ProcessContextFactory
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.pma.*
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAProcessContextFactory
+import nl.adaptivity.process.engine.pma.models.Service
+import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.runtime.AuthServiceClient
 import nl.adaptivity.process.engine.pma.runtime.PMAActivityInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
@@ -105,8 +107,28 @@ class LoanPMAContextFactory(log: Logger, random: Random) :
         TaskList(authService, engineService, clientAuth, principals)
     }
 
+    private val services: List<Service> = listOf(
+        authService,
+        engineService,
+        customerFile,
+        outputManagementSystem,
+        accountManagementSystem,
+        taskList,
+        creditBureau,
+        creditApplication,
+        pricingEngine,
+        generalClientService,
+        signingService
+    )
+
     override fun getOrCreateTaskListForRestrictions(accessRestrictions: AccessRestriction?): List<TaskList> {
         return listOf(taskList)
+    }
+
+    override fun <S : Service> resolveService(serviceId: ServiceId<S>): S {
+        val id = serviceId.serviceId
+        @Suppress("UNCHECKED_CAST")
+        return services.first { it.serviceId == id } as S
     }
 
     override fun newActivityInstanceContext(

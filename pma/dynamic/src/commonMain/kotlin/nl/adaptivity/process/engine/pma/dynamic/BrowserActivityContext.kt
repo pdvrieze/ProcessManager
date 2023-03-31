@@ -30,7 +30,7 @@ abstract class BrowserActivityContext<AIC: PMAActivityContext<AIC>>(protected va
         }
     */
 
-    abstract fun <R> acceptBrowserActivity(browser: Browser, action: BrowserInnerContext.() -> R): R
+    abstract fun <R> acceptTask(browser: Browser, action: BrowserInnerContext.() -> R): R
 
     interface BrowserInnerContext {
         fun <S: UIService, R> uiServiceLogin(service: ServiceId<S>, action: UIServiceInnerContext<S>.() -> R) : R
