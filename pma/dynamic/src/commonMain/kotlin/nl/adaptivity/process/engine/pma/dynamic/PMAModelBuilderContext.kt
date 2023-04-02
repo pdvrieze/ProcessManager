@@ -9,6 +9,7 @@ import io.github.pdvrieze.process.processModel.dynamicProcessModel.*
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
+import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import nl.adaptivity.process.engine.pma.dynamic.TaskBuilderContext.BrowserContext
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
@@ -78,7 +79,9 @@ abstract class PMAModelBuilderContext<AIC : DynamicPMAActivityContext<AIC, BIC>,
             action = taskListAction<AIC, BIC, I, O>(action),
             accessRestrictions = accessRestrictions,
             authorizationTemplates = authorizationTemplates
-        )
+        ).apply {
+            defines.replaceBy(input.defines)
+        }
     }
 
     inline fun  <I : Any, reified O : Any> taskActivity(
@@ -115,7 +118,9 @@ abstract class PMAModelBuilderContext<AIC : DynamicPMAActivityContext<AIC, BIC>,
             outputSerializer = serializer<O>(),
             authorizationTemplates = authorizationTemplates,
             action = serviceAction(service, action)
-        )
+        ).apply {
+            defines.replaceBy(input.defines)
+        }
     }
 
     inline fun  <I : Any, reified O : Any, S: AutomatedService> serviceActivity(

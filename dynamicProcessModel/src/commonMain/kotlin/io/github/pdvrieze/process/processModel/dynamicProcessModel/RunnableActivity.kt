@@ -180,7 +180,10 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
     }
 }
 
-class DefineInputCombiner<T> internal constructor(internal val defines: List<RunnableActivity.DefineType<*>>, val combiner: InputCombiner<T>)
+class DefineInputCombiner<T> internal constructor(
+    val defines: List<RunnableActivity.DefineType<*>>,
+    val combiner: InputCombiner<T>
+)
 
 class InputCombiner<T>(val impl: (InputContext.(Map<String, Any?>) -> T)? = null) {
     @Suppress("UNCHECKED_CAST")
