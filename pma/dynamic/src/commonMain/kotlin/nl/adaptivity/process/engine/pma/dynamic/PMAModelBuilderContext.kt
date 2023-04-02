@@ -15,8 +15,7 @@ import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContex
 import nl.adaptivity.process.engine.pma.dynamic.scope.templates.DelegateScopeTemplate
 import nl.adaptivity.process.engine.pma.models.AuthScopeTemplate
 import nl.adaptivity.process.engine.pma.models.AutomatedService
-import nl.adaptivity.process.engine.pma.models.ServiceId
-import nl.adaptivity.process.engine.pma.runtime.PMAActivityContext
+import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.configurableModel.ConfigurationDsl
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
@@ -103,7 +102,7 @@ abstract class PMAModelBuilderContext<AIC : DynamicPMAActivityContext<AIC, BIC>,
     inline fun  <I : Any, reified O : Any, S: AutomatedService> serviceActivity(
         predecessor: NodeHandle<*>,
         permissions: List<AuthScopeTemplate<AIC>> = emptyList(),
-        service: ServiceId<S>,
+        service: ServiceName<S>,
         input: DefineInputCombiner<I>,
         @BuilderInference
         noinline action: RunnableAction<I, O, ServiceActivityContext<AIC, S>>
@@ -119,7 +118,7 @@ abstract class PMAModelBuilderContext<AIC : DynamicPMAActivityContext<AIC, BIC>,
     inline fun  <I : Any, reified O : Any, S: AutomatedService> serviceActivity(
         predecessor: NodeHandle<*>,
         permissions: List<AuthScopeTemplate<AIC>> = emptyList(),
-        service: ServiceId<S>,
+        service: ServiceName<S>,
         input: InputRef<I>,
         @BuilderInference
         noinline action: RunnableAction<I, O, ServiceActivityContext<AIC, S>>
@@ -134,9 +133,8 @@ abstract class PMAModelBuilderContext<AIC : DynamicPMAActivityContext<AIC, BIC>,
         )
     }
 
-    fun <AIC: PMAActivityContext<AIC>> delegatePermissions(targetService: ServiceId<*>, vararg permissions: AuthScopeTemplate<AIC>): AuthScopeTemplate<AIC> {
+    fun <AIC: DynamicPMAActivityContext<AIC, *>> delegatePermissions(targetService: ServiceName<*>, vararg permissions: AuthScopeTemplate<AIC>): AuthScopeTemplate<AIC> {
         return DelegateScopeTemplate(targetService, permissions)
-
     }
 }
 
@@ -148,7 +146,7 @@ internal fun <AIC : DynamicPMAActivityContext<AIC, BIC>, BIC : BrowserContext<AI
 
 @PublishedApi
 internal fun <AIC: DynamicPMAActivityContext<AIC, *>, I: Any, O: Any, S: AutomatedService> serviceAction(
-    serviceId: ServiceId<S>,
+    serviceId: ServiceName<S>,
     action: RunnableAction<I, O, ServiceActivityContext<AIC, S>>
 ): PmaServiceAction<I, O, AIC, S> {
     return PmaServiceAction(serviceId) { input ->

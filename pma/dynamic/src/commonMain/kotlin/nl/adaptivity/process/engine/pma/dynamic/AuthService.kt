@@ -30,13 +30,16 @@ import kotlin.random.nextUInt
 import kotlin.random.nextULong
 
 class AuthService(
+    serviceName: String,
     val logger: LoggerCompat,
     private val nodeLookup: Map<Handle<SecureProcessNodeInstance>, String>,
     private val random: Random
 ) : AutomatedService {
-    val authServiceId = "AuthService:${random.nextUInt().toString(16)}"
-    override val serviceId: String
-        get() = authServiceId
+    override val serviceInstanceId: ServiceId<AuthService> = ServiceId("${serviceName}:${random.nextUInt().toString(16)}")
+
+    val authServiceId get() = serviceInstanceId
+
+    override val serviceName: ServiceName<AutomatedService> = ServiceName(serviceName)
 
     private val registeredClients = mutableMapOf<String, ClientInfo>()
     private val authorizationCodes = mutableMapOf<AuthorizationCode, AuthToken>()
@@ -78,7 +81,7 @@ class AuthService(
         authInfo: AuthInfo,
         scope: UseAuthScope
     ) {
-        val serviceId = service.serviceId
+        val serviceId = service.serviceInstanceId
         when (authInfo) {
             is IdSecretAuthInfo -> validateUserPermission(serviceId, authInfo, scope)
             is AuthToken -> validateAuthTokenPermission(serviceId, authInfo, scope)
@@ -102,7 +105,7 @@ class AuthService(
     }
 
     private fun validateAuthTokenPermission(
-        serviceId: String,
+        serviceId: ServiceId<*>,
         authToken: AuthToken,
         useScope: UseAuthScope
     ) {
@@ -130,7 +133,7 @@ class AuthService(
     }
 
     private fun validateUserPermission(
-        serviceId: String,
+        serviceId: ServiceId<*>,
         authInfo: IdSecretAuthInfo,
         useScope: UseAuthScope
     ) {
@@ -221,19 +224,19 @@ class AuthService(
         service: Service,
         scope: AuthScope
     ): AuthorizationCode {
-        val clientId = client.serviceId
+        val clientId = client.serviceInstanceId
         // We know the task handle so permission limited to the task handle is sufficient
         validateAuthTokenPermission(
             clientId,
             auth,
-            CommonPMAPermissions.DELEGATED_PERMISSION.context(clientId, service, scope)
+            CommonPMAPermissions.DELEGATED_PERMISSION.context(clientId.serviceId, service, scope)
         )
 
-        val clientPrincipal = clientFromId(clientId)
+        val clientPrincipal = clientFromId(clientId.serviceId)
         val existingToken = activeTokens.lastOrNull {
             it.principal == clientPrincipal &&
                 it.nodeInstanceHandle == nodeInstanceHandle &&
-                it.serviceId == serviceId &&
+                it.serviceId == serviceInstanceId &&
                 it.scope == scope
         }
 
@@ -241,7 +244,7 @@ class AuthService(
             random.nextString()
             existingToken
         } else {
-            AuthToken(clientPrincipal, nodeInstanceHandle, Random.nextString(), service.serviceId, scope)
+            AuthToken(clientPrincipal, nodeInstanceHandle, Random.nextString(), service.serviceInstanceId, scope)
         }
         val authorizationCode = AuthorizationCode(Random.nextString(), clientPrincipal)
         authorizationCodes[authorizationCode] = token
@@ -267,7 +270,7 @@ class AuthService(
         val existingToken = activeTokens.lastOrNull {
             it.principal == clientPrincipal &&
                 it.nodeInstanceHandle == nodeInstanceHandle &&
-                it.serviceId == serviceId &&
+                it.serviceId == serviceInstanceId &&
                 it.scope == scope
         }
 
@@ -275,7 +278,7 @@ class AuthService(
             Random.nextString()
             existingToken
         } else {
-            AuthToken(clientPrincipal, nodeInstanceHandle, Random.nextString(), service.serviceId, scope)
+            AuthToken(clientPrincipal, nodeInstanceHandle, Random.nextString(), service.serviceInstanceId, scope)
         }
         val authorizationCode = AuthorizationCode(Random.nextString(), clientPrincipal)
         authorizationCodes[authorizationCode] = token
@@ -290,6 +293,11 @@ class AuthService(
     private fun clientFromId(clientId: String): PrincipalCompat {
         // TODO look up actual users.
         return SimplePrincipal(clientId)
+    }
+
+    private fun clientFromId(serviceId: ServiceId<*>): PrincipalCompat {
+        // TODO look up actual users.
+        return SimplePrincipal(serviceId.serviceId)
     }
 
     fun getAuthToken(clientAuth: AuthInfo, authorizationCode: AuthorizationCode): AuthToken {
@@ -314,7 +322,7 @@ class AuthService(
         reqScope: AuthScope
     ): AuthToken {
         // TODO principal should be authorized
-        val serviceId = service.serviceId
+        val serviceId = service.serviceInstanceId
         internalValidateAuthInfo(identityToken, IDENTIFY)
         val userPermissions: AuthScope? =
             globalPermissions.get(identityToken.principal)?.get(serviceId)
@@ -351,7 +359,7 @@ class AuthService(
         val registeredPermissions = tokenAssociatedPermissions
             .plus(listOfNotNull(userPermissions).asSequence())
             .ifEmpty {
-                throw AuthorizationException("The token $identityToken has no permission to create delegate tokens for ${service.serviceId}.${reqScope.description}")
+                throw AuthorizationException("The token $identityToken has no permission to create delegate tokens for ${service.serviceName}.${reqScope.description}")
             }
             .reduce<AuthScope?, AuthScope> { l, r -> l?.union(r) }
             ?: throw AuthorizationException("The token $identityToken permissions cancel to nothing")
@@ -389,7 +397,7 @@ class AuthService(
         reqScope: AuthScope
     ): AuthorizationCode {
         val token = getAuthCommon(identityToken, service, reqScope)
-        val authorizationCode = AuthorizationCode(Random.nextString(), clientFromId(service.serviceId))
+        val authorizationCode = AuthorizationCode(Random.nextString(), clientFromId(service.serviceInstanceId))
         authorizationCodes[authorizationCode] = token
 
         if (token in activeTokens) {
@@ -446,7 +454,7 @@ class AuthService(
         service: Service,
         scope: AuthScope
     ) {
-        val serviceId = service.serviceId
+        val serviceId = service.serviceInstanceId
         val neededClientId = auth.principal.name
         // If we are providing permission to an activity limited token, it is sufficient to have the ability to grant
         // permissions limited to that activity context (as the token receiving permission will not outlast the activity)
@@ -503,7 +511,7 @@ class AuthService(
         service: Service,
         scope: AuthScope
     ) {
-        doLog(authInfo, "registerGlobalPermissions($authInfo, $principal, ${service.serviceId}, $scope)")
+        doLog(authInfo, "registerGlobalPermissions($authInfo, $principal, ${service.serviceInstanceId}, $scope)")
         if (authInfo != null) {
             val clientId = authInfo.principal.name
             internalValidateAuthInfo(
@@ -513,9 +521,9 @@ class AuthService(
         }
         globalPermissions.compute(principal) { _, map ->
             when(map) {
-                null -> mutableMapOf(service.serviceId to scope)
+                null -> mutableMapOf(service.serviceInstanceId.serviceId to scope)
                 else -> map.apply {
-                    compute(service.serviceId) { k, oldScope ->
+                    compute(service.serviceInstanceId.serviceId) { k, oldScope ->
                         when (oldScope) {
                             null -> scope
                             else -> oldScope.union(scope)
@@ -525,7 +533,7 @@ class AuthService(
             }
         }
         globalPermissions.getOrPut(principal) { mutableMapOf() }
-            .compute(service.serviceId) { k, oldScope ->
+            .compute(service.serviceInstanceId.serviceId) { k, oldScope ->
                 when (oldScope) {
                     null -> scope
                     else -> oldScope.union(scope)
@@ -546,3 +554,7 @@ class AuthService(
 }
 
 fun Random.nextString() = nextULong().toString(16)
+
+private operator fun Map<String, AuthScope>.get(key: ServiceId<*>) = get(key.serviceId)
+
+private operator fun MutableMap<String, AuthScope>.set(key: ServiceId<*>, value: AuthScope) = set(key.serviceId, value)

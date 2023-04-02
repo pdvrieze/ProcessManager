@@ -17,32 +17,40 @@
 package nl.adaptivity.process.engine.pma
 
 import net.devrieze.util.Handle
-import nl.adaptivity.process.engine.pma.dynamic.UIServiceImpl
+import nl.adaptivity.process.engine.pma.dynamic.AbstractRunnableUIService
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
+import nl.adaptivity.process.engine.pma.models.ServiceId
+import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.models.TaskListService
 import nl.adaptivity.process.engine.pma.runtime.PMAActivityContext
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 class TaskList constructor(
+    serviceName: String,
     authService: AuthService,
     private val engineService: EngineService,
     clientAuth: IdSecretAuthInfo,
     val principals: List<PrincipalCompat>
-) : UIServiceImpl(authService, clientAuth), TaskListService {
+) : AbstractRunnableUIService(authService, clientAuth), TaskListService {
 //    val nodeInstanceHandle: PNIHandle? get() = activityAccessToken?.nodeInstanceHandle
 
     constructor(
+        serviceName: String,
         authService: AuthService,
         engineService: EngineService,
         clientAuth: IdSecretAuthInfo,
         principal: PrincipalCompat
-    ) : this(authService, engineService, clientAuth, listOf(principal))
+    ) : this(serviceName, authService, engineService, clientAuth, listOf(principal))
+
+    override val serviceName: ServiceName<TaskList> = ServiceName(serviceName)
+
+    override val serviceInstanceId: ServiceId<TaskList> = ServiceId(getServiceId(clientAuth))
 
     private val engineTokens = mutableMapOf<Long, AuthToken>()
 
     override fun acceptActivity(aic: PMAActivityContext<*>, user: PrincipalCompat) {
-        val token = requireNotNull( engineTokens[aic.nodeInstanceHandle.handleValue]) { "No reply token for task(${aic.nodeInstanceHandle})" }
+        val token = requireNotNull(engineTokens[aic.nodeInstanceHandle.handleValue]) { "No reply token for task(${aic.nodeInstanceHandle})" }
         engineService.acceptActivity(token, aic.nodeInstanceHandle, user, emptyList())
     }
 
@@ -86,19 +94,19 @@ class TaskList constructor(
         validateAuthInfo(authToken, CommonPMAPermissions.ACCEPT_TASK)
         val activityAccessToken = engineTokens[processNodeInstance.handleValue] ?: throw AuthorizationException("Task list has no access to activity $processNodeInstance")
         val userAuthorization =
-            engineService.acceptActivity(activityAccessToken, processNodeInstance, principal, pendingPermissions)
+            engineService.acceptActivity(activityAccessToken,  processNodeInstance, principal, pendingPermissions)
 
         return userAuthorization
 
     }
 
     interface Context {
-        fun uiServiceLogin(service: UIServiceImpl): AuthToken
+        fun uiServiceLogin(service: AbstractRunnableUIService): AuthToken
     }
 
     private inner class ContextImpl(val browser: Browser) : Context {
-        override fun uiServiceLogin(service: UIServiceImpl): AuthToken {
-            logMe(service.serviceId)
+        override fun uiServiceLogin(service: AbstractRunnableUIService): AuthToken {
+            logMe(service.serviceName)
             return browser.loginToService(service)
 //            return authService.getAuthTokenDirect(browser.user, taskIdentityToken!!, service, ANYSCOPE)
         }

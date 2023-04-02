@@ -22,10 +22,7 @@ import nl.adaptivity.process.engine.pma.CommonPMAPermissions.GRANT_GLOBAL_PERMIS
 import nl.adaptivity.process.engine.pma.CommonPMAPermissions.UPDATE_ACTIVITY_STATE
 import nl.adaptivity.process.engine.pma.dynamic.ServiceImpl
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
-import nl.adaptivity.process.engine.pma.models.AuthScope
-import nl.adaptivity.process.engine.pma.models.AutomatedService
-import nl.adaptivity.process.engine.pma.models.Service
-import nl.adaptivity.process.engine.pma.models.UnionPermissionScope
+import nl.adaptivity.process.engine.pma.models.*
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
@@ -33,11 +30,16 @@ import java.security.Principal
 import kotlin.random.Random
 
 class EngineService(
+    serviceName: String,
     authService: AuthService,
     serviceAuth: IdSecretAuthInfo = newEngineClientAuth(authService),
 ) : ServiceImpl(authService, serviceAuth), AutomatedService {
 
     private val taskLists: MutableMap<Handle<SecureProcessNodeInstance>, List<TaskList>> = mutableMapOf()
+
+    override val serviceName: ServiceName<EngineService> = ServiceName(serviceName)
+
+    override val serviceInstanceId: ServiceId<EngineService> = ServiceId(getServiceId(serviceAuth))
 
     override fun getServiceState(): String = ""
 
@@ -101,7 +103,7 @@ class EngineService(
         )
         val taskListToEngineAuthToken = authService.createAuthorizationCode(
             serviceAuth,
-            taskList.serviceId,
+            taskList.serviceInstanceId.serviceId,
             pniHandle,
             this,
             UnionPermissionScope(permissions)

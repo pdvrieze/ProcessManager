@@ -70,7 +70,7 @@ class LoanActivityContext(
         scope: AuthScope
     ) {
         val delegateScope =
-            CommonPMAPermissions.DELEGATED_PERMISSION.restrictTo(clientService.serviceId, service, scope)
+            CommonPMAPermissions.DELEGATED_PERMISSION.restrictTo(clientService.serviceInstanceId.serviceId, service, scope)
         pendingPermissions.add(DynamicPMAActivityContext.PendingPermission(null, clientService, delegateScope))
     }
 
@@ -78,10 +78,10 @@ class LoanActivityContext(
         if (::taskListService.isInitialized) {
             throw UnsupportedOperationException("Attempting to mark as service task an activity that has already been marked for users")
         }
-        val clientServiceId = processContext.generalClientService.serviceId
+        val clientServiceId = processContext.generalClientService.serviceInstanceId
         val serviceAuthorization = with(processContext) {
             engineService.createAuthorizationCode(
-                clientServiceId,
+                clientServiceId.serviceId,
                 nodeInstanceHandle,
                 authService,
                 CommonPMAPermissions.IDENTIFY,

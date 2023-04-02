@@ -17,10 +17,7 @@
 package nl.adaptivity.process.engine.pma
 
 import net.devrieze.util.Handle
-import nl.adaptivity.process.engine.pma.models.AuthScope
-import nl.adaptivity.process.engine.pma.models.Service
-import nl.adaptivity.process.engine.pma.models.UnionPermissionScope
-import nl.adaptivity.process.engine.pma.models.UseAuthScope
+import nl.adaptivity.process.engine.pma.models.*
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 
 sealed class CommonPMAPermissions : AuthScope {
@@ -76,7 +73,7 @@ sealed class CommonPMAPermissions : AuthScope {
             service: Service,
             scope: AuthScope
         ): UseAuthScope {
-            return ContextScope(clientId, service.serviceId, scope)
+            return ContextScope(clientId, service.serviceInstanceId, scope)
         }
 
         fun restrictTo(
@@ -84,14 +81,14 @@ sealed class CommonPMAPermissions : AuthScope {
             service: Service? = null,
             scope: AuthScope? = null
         ): AuthScope {
-            return ContextScope(clientId, service?.serviceId, scope)
+            return ContextScope(clientId, service?.serviceInstanceId, scope)
         }
 
         fun restrictTo(
             service: Service? = null,
             scope: AuthScope? = null
         ): AuthScope {
-            return ContextScope(null, service?.serviceId, scope)
+            return ContextScope(null, service?.serviceInstanceId, scope)
         }
 
         override fun includes(useScope: UseAuthScope): Boolean {
@@ -112,10 +109,9 @@ sealed class CommonPMAPermissions : AuthScope {
 
         data class ContextScope(
             val clientId: String?,
-            val serviceId: String?,
+            val serviceId: ServiceId<*>?,
             val childScope: AuthScope? = null
-        ) :
-            UseAuthScope, AuthScope {
+        ) : UseAuthScope, AuthScope {
             override fun includes(useScope: UseAuthScope): Boolean = when {
                 useScope is GRANT_ACTIVITY_PERMISSION.ContextScope &&
                     useScope.childScope != null &&
@@ -245,7 +241,7 @@ sealed class CommonPMAPermissions : AuthScope {
             service: Service,
             scope: AuthScope,
         ): UseAuthScope {
-            return ContextScope(taskHandle, clientId, service.serviceId, scope)
+            return ContextScope(taskHandle, clientId, service.serviceInstanceId, scope)
         }
 
         fun restrictTo(
@@ -254,13 +250,13 @@ sealed class CommonPMAPermissions : AuthScope {
             service: Service? = null,
             scope: AuthScope? = null,
         ): AuthScope {
-            return ContextScope(taskHandle, clientId, service?.serviceId, scope)
+            return ContextScope(taskHandle, clientId, service?.serviceInstanceId, scope)
         }
 
         fun restrictTo(
             taskHandle: Handle<SecureProcessNodeInstance>,
             clientId: String? = null,
-            serviceId: String? = null,
+            serviceId: ServiceId<*>? = null,
             scope: AuthScope? = null,
         ): AuthScope {
             return ContextScope(taskHandle, clientId, serviceId, scope)
@@ -271,7 +267,7 @@ sealed class CommonPMAPermissions : AuthScope {
             service: Service? = null,
             scope: AuthScope? = null,
         ): AuthScope {
-            return ContextScope(taskHandle, null, service?.serviceId, scope)
+            return ContextScope(taskHandle, null, service?.serviceInstanceId, scope)
         }
 
         override fun includes(useScope: UseAuthScope): Boolean {
@@ -292,7 +288,7 @@ sealed class CommonPMAPermissions : AuthScope {
         data class ContextScope(
             val taskInstanceHandle: Handle<SecureProcessNodeInstance>,
             val clientId: String?,
-            val serviceId: String?,
+            val serviceId: ServiceId<*>?,
             val childScope: AuthScope? = null
         ) :
             UseAuthScope, AuthScope {
@@ -420,7 +416,7 @@ sealed class CommonPMAPermissions : AuthScope {
             service: Service,
             scope: AuthScope,
         ): UseAuthScope {
-            return DelegateContextScope(service.serviceId, scope)
+            return DelegateContextScope(service.serviceInstanceId, scope)
         }
 
         fun restrictTo(
@@ -428,12 +424,12 @@ sealed class CommonPMAPermissions : AuthScope {
             service: Service? = null,
             scope: AuthScope? = null,
         ): AuthScope {
-            return DelegateContextScope(service?.serviceId, scope)
+            return DelegateContextScope(service?.serviceInstanceId, scope)
         }
 
         fun restrictTo(
             clientId: String? = null,
-            serviceId: String? = null,
+            serviceId: ServiceId<*>? = null,
             scope: AuthScope? = null,
         ): AuthScope {
             return DelegateContextScope(serviceId, scope)
@@ -443,7 +439,7 @@ sealed class CommonPMAPermissions : AuthScope {
             service: Service? = null,
             scope: AuthScope? = null,
         ): AuthScope {
-            return DelegateContextScope(service?.serviceId, scope)
+            return DelegateContextScope(service?.serviceInstanceId, scope)
         }
 
         override fun includes(useScope: UseAuthScope): Boolean {
@@ -462,7 +458,7 @@ sealed class CommonPMAPermissions : AuthScope {
         }
 
         data class DelegateContextScope(
-            val serviceId: String?,
+            val serviceId: ServiceId<*>?,
             val childScope: AuthScope? = null
         ) :
             UseAuthScope, AuthScope {

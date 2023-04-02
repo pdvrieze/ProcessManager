@@ -18,7 +18,7 @@ package nl.adaptivity.process.engine.pma
 
 import nl.adaptivity.process.engine.impl.Level
 import nl.adaptivity.process.engine.impl.LoggerCompat
-import nl.adaptivity.process.engine.pma.dynamic.UIServiceImpl
+import nl.adaptivity.process.engine.pma.dynamic.RunnableUIService
 import nl.adaptivity.process.engine.pma.models.ANYSCOPE
 import nl.adaptivity.process.engine.pma.models.Service
 import nl.adaptivity.util.multiplatform.PrincipalCompat
@@ -45,18 +45,18 @@ class Browser private constructor(private val authService: AuthService, val auth
     fun addToken(authService: AuthService, authorizationCode: AuthorizationCode) {
         logger.log(Level.INFO, "Browser(${user.name}).addTokenFromAuth($authorizationCode)")
         val auth =
-            tokens.lastOrNull { it.scope == CommonPMAPermissions.IDENTIFY && it.serviceId == authService.serviceId }
+            tokens.lastOrNull { it.scope == CommonPMAPermissions.IDENTIFY && it.serviceId == authService.serviceInstanceId }
                 ?: this.auth
 
         addToken(authService.getAuthToken(auth, authorizationCode))
     }
 
-    fun loginToService(service: UIServiceImpl): AuthToken {
+    fun loginToService(service: RunnableUIService): AuthToken {
         tokens.removeIf { authService.isTokenInvalid(it) }
-        tokens.lastOrNull { it.serviceId == service.serviceId }?.let {
+        tokens.lastOrNull { it.serviceId == service.serviceInstanceId }?.let {
             logger.log(
                 Level.INFO,
-                "Browser(${user.name}).loginToService(${service.serviceId}) = already logged in - $it"
+                "Browser(${user.name}).loginToService(${service.serviceInstanceId}) = already logged in - $it"
             )
             return it
         }
@@ -66,10 +66,10 @@ class Browser private constructor(private val authService: AuthService, val auth
     }
 
     fun loginToService(authService: AuthService, service: Service): AuthorizationCode {
-        logger.log(Level.INFO, "Browser(${user.name}).loginToService(${service.serviceId})")
+        logger.log(Level.INFO, "Browser(${user.name}).loginToService(${service.serviceInstanceId})")
         tokens.removeIf { authService.isTokenInvalid(it) }
         val token =
-            tokens.lastOrNull { it.scope == CommonPMAPermissions.IDENTIFY && it.serviceId == authService.serviceId }
+            tokens.lastOrNull { it.scope == CommonPMAPermissions.IDENTIFY && it.serviceId == authService.serviceInstanceId }
                 ?: throw AuthorizationException("Not logged in to authorization service")
         return authService.getAuthorizationCode(token, service, ANYSCOPE)
     }

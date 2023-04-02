@@ -4,10 +4,13 @@ import nl.adaptivity.process.engine.pma.runtime.PMAActivityContext
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 sealed interface Service {
-    val serviceId: String
+    val serviceName: ServiceName<Service>
+    val serviceInstanceId: ServiceId<Service>
 }
 
 interface TaskListService: Service {
+    override val serviceName: ServiceName<TaskListService>
+    override val serviceInstanceId: ServiceId<TaskListService>
     /**
      * Does this service support this particular user
      */
@@ -15,10 +18,18 @@ interface TaskListService: Service {
     fun acceptActivity(aic: PMAActivityContext<*>, user: PrincipalCompat)
 }
 
-interface AutomatedService: Service
+interface AutomatedService: Service {
+    override val serviceName: ServiceName<AutomatedService>
+    override val serviceInstanceId: ServiceId<AutomatedService>
+}
 
 interface UIService: Service {
+    override val serviceName: ServiceName<UIService>
+    override val serviceInstanceId: ServiceId<UIService>
 }
 
 @JvmInline
-value class ServiceId<S: Service>(val serviceId: String)
+value class ServiceName<out S: Service>(val serviceName: String)
+
+@JvmInline
+value class ServiceId<out S: Service>(val serviceId: String)

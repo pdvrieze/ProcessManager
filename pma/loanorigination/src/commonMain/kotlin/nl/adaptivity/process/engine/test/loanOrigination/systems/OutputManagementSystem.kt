@@ -18,8 +18,10 @@ package nl.adaptivity.process.engine.test.loanOrigination.systems
 
 import nl.adaptivity.process.engine.pma.AuthInfo
 import nl.adaptivity.process.engine.pma.AuthService
-import nl.adaptivity.process.engine.pma.dynamic.UIServiceImpl
+import nl.adaptivity.process.engine.pma.dynamic.AbstractRunnableUIService
 import nl.adaptivity.process.engine.pma.models.AutomatedService
+import nl.adaptivity.process.engine.pma.models.ServiceId
+import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.nextString
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.Contract
@@ -27,8 +29,11 @@ import nl.adaptivity.process.engine.test.loanOrigination.datatypes.Offer
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.PricedLoanProductBundle
 import kotlin.random.Random
 
-class OutputManagementSystem(authService: AuthService): UIServiceImpl(authService, "Output_Management_System"),
+class OutputManagementSystem(serviceName: String, authService: AuthService): AbstractRunnableUIService(authService, "Output_Management_System"),
     AutomatedService {
+
+    override val serviceName: ServiceName<OutputManagementSystem> = ServiceName(serviceName)
+    override val serviceInstanceId: ServiceId<OutputManagementSystem> = ServiceId(getServiceId(serviceAuth))
 
     override fun getServiceState(): String = ""
 

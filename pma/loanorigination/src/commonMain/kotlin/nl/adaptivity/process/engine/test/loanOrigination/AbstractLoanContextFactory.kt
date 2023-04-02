@@ -21,20 +21,19 @@ abstract class AbstractLoanContextFactory<AIC: ActivityInstanceContext>(val log:
 
     protected val nodes = mutableMapOf<PNIHandle, String>()
 
-    val authService: AuthService = AuthService(log, nodes, random)
+    val authService: AuthService = AuthService(ServiceNames.authService.serviceName, log, nodes, random)
+    val engineService : EngineService = EngineService(ServiceNames.engineService.serviceName, authService)
+    val customerFile = CustomerInformationFile(ServiceNames.customerFile.serviceName, authService)
+    val outputManagementSystem = OutputManagementSystem(ServiceNames.outputManagementSystem.serviceName, authService)
+    val accountManagementSystem = AccountManagementSystem(ServiceNames.accountManagementSystem.serviceName, authService)
+    val creditBureau = CreditBureau(ServiceNames.creditBureau.serviceName, authService)
+    val creditApplication = CreditApplication(ServiceNames.creditApplication.serviceName, authService, customerFile)
+    val pricingEngine = PricingEngine(ServiceNames.pricingEngine.serviceName, authService)
+    val generalClientService = GeneralClientService(ServiceNames.generalClientService.serviceName, authService)
+    val signingService = SigningService(ServiceNames.signingService.serviceName, authService)
+
     val authServiceClient: AuthServiceClient
         get() = AuthServiceClientImpl(authService)
-
-    val engineService : EngineService = EngineService(authService)
-
-    val customerFile = CustomerInformationFile(authService)
-    val outputManagementSystem = OutputManagementSystem(authService)
-    val accountManagementSystem = AccountManagementSystem(authService)
-    val creditBureau = CreditBureau(authService)
-    val creditApplication = CreditApplication(authService, customerFile)
-    val pricingEngine = PricingEngine(authService)
-    val generalClientService = GeneralClientService(authService)
-    val signingService = SigningService(authService)
 
 
     val customerData = CustomerData(

@@ -3,18 +3,19 @@ package nl.adaptivity.process.engine.test.loanOrigination
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.*
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.pma.AuthService
+import nl.adaptivity.process.engine.pma.EngineService
 import nl.adaptivity.process.engine.pma.GeneralClientService
 import nl.adaptivity.process.engine.pma.dynamic.TaskBuilderContext
 import nl.adaptivity.process.engine.pma.dynamic.compositeActivity
 import nl.adaptivity.process.engine.pma.dynamic.runnablePmaProcess
 import nl.adaptivity.process.engine.pma.dynamic.scope.templates.ContextScopeTemplate
-import nl.adaptivity.process.engine.pma.models.ServiceId
-import nl.adaptivity.process.engine.test.loanOrigination.ServiceIds.accountManagementSystem
-import nl.adaptivity.process.engine.test.loanOrigination.ServiceIds.creditApplication
-import nl.adaptivity.process.engine.test.loanOrigination.ServiceIds.customerFile
-import nl.adaptivity.process.engine.test.loanOrigination.ServiceIds.outputManagementSystem
-import nl.adaptivity.process.engine.test.loanOrigination.ServiceIds.pricingEngine
-import nl.adaptivity.process.engine.test.loanOrigination.ServiceIds.signingService
+import nl.adaptivity.process.engine.pma.models.ServiceName
+import nl.adaptivity.process.engine.test.loanOrigination.ServiceNames.accountManagementSystem
+import nl.adaptivity.process.engine.test.loanOrigination.ServiceNames.creditApplication
+import nl.adaptivity.process.engine.test.loanOrigination.ServiceNames.customerFile
+import nl.adaptivity.process.engine.test.loanOrigination.ServiceNames.outputManagementSystem
+import nl.adaptivity.process.engine.test.loanOrigination.ServiceNames.pricingEngine
+import nl.adaptivity.process.engine.test.loanOrigination.ServiceNames.signingService
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions.*
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.*
@@ -32,16 +33,15 @@ val pmaLoanModel =
             ),
             accessRestrictions = RoleRestriction("clerk"),
         ) {
-            val a = acceptTask(clerk1) {
+            acceptTask(clerk1) {
                 uiServiceLogin(customerFile) {
                     val newData = data.customerData
                     service.enterCustomerData(authToken, newData)
                 }
             }
-            a
         }
 
-        val createLoanRequest:  ActivityHandle<LoanApplication> by taskActivity(
+        val createLoanRequest: ActivityHandle<LoanApplication> by taskActivity(
             predecessor = inputCustomerMasterData,
             permissions = listOf(
                 delegatePermissions(
@@ -119,7 +119,7 @@ val pmaLoanModel =
 
             val getCreditReport: ActivityHandle<CreditReport> by serviceActivity<LoanCustomer, CreditReport, CreditBureau>(
                 predecessor = verifyCustomerApproval,
-                service = ServiceIds.creditBureau,
+                service = ServiceNames.creditBureau,
                 input = customerIdInput,
                 permissions = listOf(
                     delegatePermissions(
@@ -140,8 +140,8 @@ val pmaLoanModel =
             ) { customer: LoanCustomer ->
                 // TODO maybe retrieve the customer data to pass it to the creditBureau
                 service.getCreditReport(processContext.contextFactory, authToken, customer.customerId, customer.taxId)
-                
-/*
+
+                /*
                 generalClientService.runWithAuthorization(serviceTask()) { tknTID ->
 
                     assertForbidden {
@@ -185,7 +185,7 @@ val pmaLoanModel =
 
                     creditBureau.getCreditReport(creditAuthToken, customerData)
 */
-                }
+            }
 
 
             val getLoanEvaluation: ActivityHandle<LoanEvaluation> by serviceActivity(
@@ -196,8 +196,10 @@ val pmaLoanModel =
                     getCreditReport named "creditReport"
                 ),
                 permissions = listOf(
-                    ContextScopeTemplate(EVALUATE_LOAN) { t -> nodeData(loanApplicationInput)?.let { t(it.customerId) }},
-                    delegatePermissions(customerFile, ContextScopeTemplate(QUERY_CUSTOMER_DATA) { it(nodeData(loanApplicationInput)!!.customerId)})
+                    ContextScopeTemplate(EVALUATE_LOAN) { t -> nodeData(loanApplicationInput)?.let { t(it.customerId) } },
+                    delegatePermissions(
+                        customerFile,
+                        ContextScopeTemplate(QUERY_CUSTOMER_DATA) { it(nodeData(loanApplicationInput)!!.customerId) })
                 ),
                 service = creditApplication
             ) { (application, creditReport) ->
@@ -235,7 +237,12 @@ val pmaLoanModel =
                 input = combine(loanEvalInput named "loanEval", chosenProductInput named "prod") { e, p ->
                     PricingInput(e, p)
                 },
-                permissions = listOf(delegatePermissions(pricingEngine,LoanPermissions.PRICE_LOAN.restrictTo(Double.NaN)))
+                permissions = listOf(
+                    delegatePermissions(
+                        pricingEngine,
+                        LoanPermissions.PRICE_LOAN.restrictTo(Double.NaN)
+                    )
+                )
             ) {
                 acceptTask(postProcClerk) { (loanEval, chosenProduct) ->
                     uiServiceLogin(pricingEngine) {
@@ -280,7 +287,16 @@ val pmaLoanModel =
         val bankSignsContract: ActivityHandle<Contract> by taskActivity(
             predecessor = customerSignsContract,
             input = customerSignsContract,
-            permissions = listOf(delegatePermissions(outputManagementSystem, ContextScopeTemplate(LoanPermissions.SIGN_LOAN) { it.restrictTo(nodeData(customerSignsContract)!!.customerId, Double.NaN)}))
+            permissions = listOf(
+                delegatePermissions(
+                    outputManagementSystem,
+                    ContextScopeTemplate(LoanPermissions.SIGN_LOAN) {
+                        it.restrictTo(
+                            nodeData(customerSignsContract)!!.customerId,
+                            Double.NaN
+                        )
+                    })
+            )
         ) {
             acceptTask(postProcClerk) { offer ->
                 uiServiceLogin(outputManagementSystem) {
@@ -290,7 +306,11 @@ val pmaLoanModel =
         }
         val openAccount: ActivityHandle<BankAccountNumber> by taskActivity(
             predecessor = bankSignsContract,
-            permissions = listOf(delegatePermissions(accountManagementSystem, ContextScopeTemplate(LoanPermissions.OPEN_ACCOUNT) { it(nodeData(bankSignsContract)!!.customerId) }))
+            permissions = listOf(
+                delegatePermissions(
+                    accountManagementSystem,
+                    ContextScopeTemplate(LoanPermissions.OPEN_ACCOUNT) { it(nodeData(bankSignsContract)!!.customerId) })
+            )
         ) {
             acceptTask(postProcClerk) { contract ->
                 uiServiceLogin(accountManagementSystem) {
@@ -308,36 +328,37 @@ val pmaLoanModel =
 
     }
 
-//private inline val LoanActivityContext.accountManagementSystem get() = processContext.accountManagementSystem
-//private inline val LoanActivityContext.authService get() = processContext.authService
-//private inline val LoanActivityContext.creditApplication get() = processContext.creditApplication
-//private inline val LoanActivityContext.creditBureau get() = processContext.creditBureau
-//private inline val LoanActivityContext.customerData get() = processContext.customerData
-//private inline val LoanActivityContext.customerFile get() = processContext.customerFile
-//private inline val LoanActivityContext.generalClientService get() = processContext.generalClientService
-//private inline val LoanActivityContext.outputManagementSystem get() = processContext.outputManagementSystem
-//private inline val LoanActivityContext.pricingEngine get() = processContext.pricingEngine
-//private inline val LoanActivityContext.signingService get() = processContext.signingService
+//private inline val LoanBrowserContext.accountManagementSystem get() = processContext.accountManagementSystem.serviceInstanceId
+//private inline val LoanBrowserContext.authService get() = processContext.authService
+//private inline val LoanBrowserContext.creditApplication get() = processContext.creditApplication
+//private inline val LoanBrowserContext.creditBureau get() = processContext.creditBureau
+//private inline val LoanBrowserContext.customerData get() = processContext.customerData
+//private inline val LoanBrowserContext.customerFile get() = processContext.customerFile
+//private inline val LoanBrowserContext.generalClientService get() = processContext.generalClientService
+//private inline val LoanBrowserContext.outputManagementSystem get() = processContext.outputManagementSystem
+//private inline val LoanBrowserContext.pricingEngine get() = processContext.pricingEngine
+//private inline val LoanBrowserContext.signingService get() = processContext.signingService
 
-private inline val TaskBuilderContext<LoanPMAActivityContext, *, *>.customer: PrincipalCompat get() = SimplePrincipal("customer")
-private inline val TaskBuilderContext<LoanPMAActivityContext, *, *>.clerk1: PrincipalCompat get() = SimplePrincipal("clerk1")
-private inline val TaskBuilderContext<LoanPMAActivityContext, *, *>.postProcClerk: PrincipalCompat get() = SimplePrincipal("postProcClerk")
+private inline val TaskBuilderContext<LoanPMAActivityContext, *, *>.customer: PrincipalCompat get() = AbstractLoanContextFactory.principals.customer
+private inline val TaskBuilderContext<LoanPMAActivityContext, *, *>.clerk1: PrincipalCompat get() = AbstractLoanContextFactory.principals.clerk1
+private inline val TaskBuilderContext<LoanPMAActivityContext, *, *>.postProcClerk: PrincipalCompat get() = AbstractLoanContextFactory.principals.clerk2
 
-object ServiceIds {
-    val accountManagementSystem: ServiceId<AccountManagementSystem> = ServiceId("accountManagementSystem")
-    val authService: ServiceId<AuthService> = ServiceId("authService")
+object ServiceNames {
+    val accountManagementSystem: ServiceName<AccountManagementSystem> = ServiceName("accountManagementSystem")
+    val authService: ServiceName<AuthService> = ServiceName("authService")
+    val engineService: ServiceName<EngineService> = ServiceName("engineService")
 
     //    val clerk1 : ServiceId = ServiceId("clerk1")
-    val creditApplication: ServiceId<CreditApplication> = ServiceId("creditApplication")
-    val creditBureau: ServiceId<CreditBureau> = ServiceId("creditBureau")
+    val creditApplication: ServiceName<CreditApplication> = ServiceName("creditApplication")
+    val creditBureau: ServiceName<CreditBureau> = ServiceName("creditBureau")
 
     //    val customer : ServiceId = ServiceId("customer")
 //    val customerData : ServiceId<CustomerData> = ServiceId("customerData")
-    val customerFile: ServiceId<CustomerInformationFile> = ServiceId("customerFile")
-    val generalClientService: ServiceId<GeneralClientService> = ServiceId("generalClientService")
-    val outputManagementSystem: ServiceId<OutputManagementSystem> = ServiceId("outputManagementSystem")
+    val customerFile: ServiceName<CustomerInformationFile> = ServiceName("customerFile")
+    val generalClientService: ServiceName<GeneralClientService> = ServiceName("generalClientService")
+    val outputManagementSystem: ServiceName<OutputManagementSystem> = ServiceName("outputManagementSystem")
 
     //    val postProcClerk : ServiceId = ServiceId("postProcClerk")
-    val pricingEngine: ServiceId<PricingEngine> = ServiceId("pricingEngine")
-    val signingService: ServiceId<SigningService> = ServiceId("signingService")
+    val pricingEngine: ServiceName<PricingEngine> = ServiceName("pricingEngine")
+    val signingService: ServiceName<SigningService> = ServiceName("signingService")
 }

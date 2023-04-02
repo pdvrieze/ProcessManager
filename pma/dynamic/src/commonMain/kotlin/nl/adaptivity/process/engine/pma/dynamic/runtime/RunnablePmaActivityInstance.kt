@@ -68,7 +68,7 @@ class RunnablePmaActivityInstance<InputT : Any, OutputT : Any, C : DynamicPMAAct
                 is PmaBrowserAction<InputT, OutputT, C, *> -> {
                     val taskList = processContext.taskListFor(action.action.principal)
                     taskList.acceptActivity(aic, action.action.principal)
-                    return false // TODO Verify that this is valid as accepting is done by hand
+                    return super.doTakeTask(engineData, action.action.principal)
                 }
 
                 else ->

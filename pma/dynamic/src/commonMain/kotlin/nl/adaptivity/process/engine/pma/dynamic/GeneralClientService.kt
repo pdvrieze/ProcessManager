@@ -17,12 +17,16 @@
 package nl.adaptivity.process.engine.pma
 
 import nl.adaptivity.process.engine.pma.dynamic.ServiceImpl
-import nl.adaptivity.process.engine.pma.models.AuthScope
-import nl.adaptivity.process.engine.pma.models.AutomatedService
-import nl.adaptivity.process.engine.pma.models.Service
+import nl.adaptivity.process.engine.pma.models.*
 import java.security.Principal
 
-class GeneralClientService(authService: AuthService) : ServiceImpl(authService, "<automated>"), AutomatedService {
+class GeneralClientService(
+    serviceName: String,
+    authService: AuthService
+) : ServiceImpl(authService, "<automated>"), AutomatedService {
+    override val serviceName: ServiceName<GeneralClientService> = ServiceName(serviceName)
+    override val serviceInstanceId: ServiceId<GeneralClientService> = ServiceId(getServiceId(serviceAuth))
+
     fun <R> runWithAuthorization(
         authorizationCode: AuthorizationCode,
         action: ClientServiceContext.(AuthToken) -> R
@@ -45,7 +49,7 @@ class GeneralClientService(authService: AuthService) : ServiceImpl(authService, 
          * has been granted.
          */
         override fun getServiceToken(service: Service, scope: AuthScope): AuthToken {
-            logMe(service.serviceId, scope)
+            logMe(service.serviceName, scope)
             return authService.getAuthTokenDirect(authToken, service, scope)
 
         }

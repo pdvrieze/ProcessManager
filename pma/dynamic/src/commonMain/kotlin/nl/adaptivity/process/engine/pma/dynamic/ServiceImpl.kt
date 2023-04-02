@@ -24,8 +24,7 @@ import kotlin.random.nextULong
 
 abstract class ServiceImpl(protected val authService: AuthService, protected val serviceAuth: IdSecretAuthInfo) {
     private val tokens = mutableListOf<AuthToken>()
-
-    val serviceId: String = getServiceId(serviceAuth)
+//    open val serviceInstanceId: ServiceId<*> = getServiceId(serviceAuth)
 
     abstract fun getServiceState(): String
 
@@ -42,11 +41,11 @@ abstract class ServiceImpl(protected val authService: AuthService, protected val
     }
 
     fun authTokenForService(service: Service, scope: AuthScope = ANYSCOPE): AuthToken {
-        logMe(service.serviceId, scope)
+        logMe(service.serviceInstanceId, scope)
 
         tokens.removeAll { authService.isTokenInvalid(it) }
 
-        tokens.lastOrNull { it.serviceId == service.serviceId }?.let { return it }
+        tokens.lastOrNull { it.serviceId == service.serviceInstanceId }?.let { return it }
 
         return authService.getAuthTokenDirect(serviceAuth, service, ANYSCOPE).also { tokens.add(it) }
     }
@@ -74,12 +73,21 @@ abstract class ServiceImpl(protected val authService: AuthService, protected val
     }
 }
 
-abstract class UIServiceImpl : ServiceImpl, UIService {
+interface RunnableUIService: UIService {
+    fun loginBrowser(browser: Browser): AuthToken
+    override val serviceName: ServiceName<RunnableUIService>
+    override val serviceInstanceId: ServiceId<RunnableUIService>
+}
+
+abstract class AbstractRunnableUIService : ServiceImpl, RunnableUIService {
 
     constructor(authService: AuthService, serviceAuth: IdSecretAuthInfo) : super(authService, serviceAuth)
     constructor(authService: AuthService, name: String) : super(authService, name)
 
-    fun loginBrowser(browser: Browser): AuthToken {
+    abstract override val serviceName: ServiceName<AbstractRunnableUIService>
+    abstract override val serviceInstanceId: ServiceId<AbstractRunnableUIService>
+
+    override fun loginBrowser(browser: Browser): AuthToken {
         val authorization = browser.loginToService(authService, this)
         return authService.getAuthToken(serviceAuth, authorization)
     }

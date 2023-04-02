@@ -20,15 +20,21 @@ import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.AuthToken
 import nl.adaptivity.process.engine.pma.dynamic.ServiceImpl
 import nl.adaptivity.process.engine.pma.models.AutomatedService
+import nl.adaptivity.process.engine.pma.models.ServiceId
+import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CreditReport
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanApplication
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanEvaluation
 
 class CreditApplication(
+    serviceName: String,
     authService: AuthService,
     val customerInformationFile: CustomerInformationFile,
 ) : ServiceImpl(authService, "Credit_Application"), AutomatedService {
+
+    override val serviceName: ServiceName<CreditApplication> = ServiceName(serviceName)
+    override val serviceInstanceId: ServiceId<CreditApplication> = ServiceId(getServiceId(serviceAuth))
 
     override fun getServiceState(): String = ""
 

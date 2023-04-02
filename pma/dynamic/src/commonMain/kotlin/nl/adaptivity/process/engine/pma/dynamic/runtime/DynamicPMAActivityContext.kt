@@ -10,7 +10,7 @@ import nl.adaptivity.process.engine.pma.*
 import nl.adaptivity.process.engine.pma.dynamic.TaskBuilderContext
 import nl.adaptivity.process.engine.pma.models.AuthScope
 import nl.adaptivity.process.engine.pma.models.Service
-import nl.adaptivity.process.engine.pma.models.ServiceId
+import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.models.TaskListService
 import nl.adaptivity.process.engine.pma.runtime.PMAActivityContext
 import nl.adaptivity.process.engine.pma.runtime.PMAProcessContextFactory
@@ -94,10 +94,10 @@ abstract class DynamicPMAActivityContext<AIC : DynamicPMAActivityContext<AIC, BI
 */
 
     fun serviceTask(): AuthorizationCode {
-        val clientServiceId = processContext.generalClientService.serviceId
+        val clientServiceId = processContext.generalClientService.serviceInstanceId
         val serviceAuthorization = with(processContext) {
             engineService.createAuthorizationCode(
-                clientServiceId,
+                clientServiceId.serviceId,
                 this@DynamicPMAActivityContext.nodeInstanceHandle,
                 authService,
                 CommonPMAPermissions.IDENTIFY,
@@ -128,7 +128,7 @@ abstract class DynamicPMAActivityContext<AIC : DynamicPMAActivityContext<AIC, BI
         scope: AuthScope
     ) {
         val delegateScope =
-            CommonPMAPermissions.DELEGATED_PERMISSION.restrictTo(clientService.serviceId, service, scope)
+            CommonPMAPermissions.DELEGATED_PERMISSION.restrictTo(clientService.serviceInstanceId.serviceId, service, scope)
         pendingPermissions.add(PendingPermission(null, clientService, delegateScope))
     }
 
@@ -180,5 +180,5 @@ interface DynamicPMAProcessInstanceContext<A : DynamicPMAActivityContext<A, *>> 
 interface DynamicPMAProcessContextFactory<A : PMAActivityContext<A>> : PMAProcessContextFactory<A> {
     override fun getOrCreateTaskListForUser(principal: Principal): TaskList
     override fun getOrCreateTaskListForRestrictions(accessRestrictions: AccessRestriction?): List<TaskList>
-    fun <S: Service> resolveService(serviceId: ServiceId<S>): S
+    fun <S: Service> resolveService(serviceId: ServiceName<S>): S
 }

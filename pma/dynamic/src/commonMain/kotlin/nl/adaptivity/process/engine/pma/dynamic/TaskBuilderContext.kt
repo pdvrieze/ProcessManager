@@ -2,11 +2,9 @@ package nl.adaptivity.process.engine.pma.dynamic
 
 import nl.adaptivity.process.engine.pma.AuthToken
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
-import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAProcessContextFactory
 import nl.adaptivity.process.engine.pma.dynamic.runtime.IDynamicPMAActivityContext
-import nl.adaptivity.process.engine.pma.models.ServiceId
+import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.models.UIService
-import nl.adaptivity.process.engine.pma.runtime.PMAActivityContext
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 open class TaskBuilderContext<AIC : DynamicPMAActivityContext<AIC, BIC>, BIC : TaskBuilderContext.BrowserContext<AIC, BIC>, I>() {
@@ -42,7 +40,7 @@ open class TaskBuilderContext<AIC : DynamicPMAActivityContext<AIC, BIC>, BIC : T
 
     interface BrowserContext<AIC: DynamicPMAActivityContext<AIC, BIC>, BIC: BrowserContext<AIC, BIC>> :
         IDynamicPMAActivityContext<AIC, BIC> {
-        fun <S: UIService, R> uiServiceLogin(service: ServiceId<S>, action: UIServiceInnerContext<S>.() -> R) : R
+        fun <S: RunnableUIService, R> uiServiceLogin(service: ServiceName<S>, action: UIServiceInnerContext<S>.() -> R) : R
     }
 
     interface UIServiceInnerContext<S: UIService> {

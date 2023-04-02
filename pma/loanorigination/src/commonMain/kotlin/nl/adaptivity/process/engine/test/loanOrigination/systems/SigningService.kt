@@ -19,12 +19,16 @@ package nl.adaptivity.process.engine.test.loanOrigination.systems
 import kotlinx.serialization.Serializable
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.AuthToken
-import nl.adaptivity.process.engine.pma.dynamic.ServiceImpl
-import nl.adaptivity.process.engine.pma.dynamic.UIServiceImpl
+import nl.adaptivity.process.engine.pma.dynamic.AbstractRunnableUIService
 import nl.adaptivity.process.engine.pma.models.AutomatedService
+import nl.adaptivity.process.engine.pma.models.ServiceId
+import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 
-class SigningService(authService: AuthService): UIServiceImpl(authService, "SigningService"), AutomatedService {
+class SigningService(serviceName: String, authService: AuthService): AbstractRunnableUIService(authService, "SigningService"), AutomatedService {
+
+    override val serviceName: ServiceName<SigningService> = ServiceName(serviceName)
+    override val serviceInstanceId: ServiceId<SigningService> = ServiceId(getServiceId(serviceAuth))
 
     override fun getServiceState(): String = ""
 

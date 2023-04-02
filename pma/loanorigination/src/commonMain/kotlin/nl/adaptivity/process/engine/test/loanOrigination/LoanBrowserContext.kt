@@ -2,8 +2,9 @@ package nl.adaptivity.process.engine.test.loanOrigination
 
 import nl.adaptivity.process.engine.pma.AuthToken
 import nl.adaptivity.process.engine.pma.Browser
+import nl.adaptivity.process.engine.pma.dynamic.RunnableUIService
 import nl.adaptivity.process.engine.pma.dynamic.TaskBuilderContext
-import nl.adaptivity.process.engine.pma.models.ServiceId
+import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.models.UIService
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
@@ -33,11 +34,15 @@ class LoanBrowserContext(private val delegateContext: LoanPMAActivityContext, pr
     override val processNode: IProcessNodeInstance
         get() = delegateContext.processNode
 
-    override fun <S : UIService, R> uiServiceLogin(
-        service: ServiceId<S>,
+    override fun <S : RunnableUIService, R> uiServiceLogin(
+        serviceId: ServiceName<S>,
         action: TaskBuilderContext.UIServiceInnerContext<S>.() -> R
     ): R {
-        TODO("not implemented")
+        val serviceInst: S = processContext.contextFactory.resolveService(serviceId)
+        val authToken : AuthToken = browser.loginToService(serviceInst)
+
+        val context = LoanUIServiceContext(authToken, serviceInst)
+        return context.action()
     }
 
     interface Data {

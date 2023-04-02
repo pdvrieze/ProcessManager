@@ -29,7 +29,7 @@ import nl.adaptivity.process.engine.pma.dynamic.runtime.RunnablePmaActivityInsta
 import nl.adaptivity.process.engine.pma.models.AuthScopeTemplate
 import nl.adaptivity.process.engine.pma.models.AutomatedService
 import nl.adaptivity.process.engine.pma.models.IPMAMessageActivity
-import nl.adaptivity.process.engine.pma.models.ServiceId
+import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.updateChild
@@ -152,6 +152,6 @@ class PmaBrowserAction<I : Any, O : Any, AIC : DynamicPMAActivityContext<AIC, BI
 }
 
 class PmaServiceAction<I : Any, O : Any, C : DynamicPMAActivityContext<C, *>, S : AutomatedService>(
-    val serviceId: ServiceId<S>,
+    val serviceId: ServiceName<S>,
     val action: RunnableAction<I, O, C>
 ) : PmaAction<I, O, C>()

@@ -7,7 +7,7 @@ import nl.adaptivity.process.engine.pma.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.TaskList
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAProcessContextFactory
 import nl.adaptivity.process.engine.pma.models.Service
-import nl.adaptivity.process.engine.pma.models.ServiceId
+import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.nextString
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.processModel.AccessRestriction
@@ -24,9 +24,9 @@ class LoanPMAContextFactory(log: Logger, random: Random) :
     private val processContexts = mutableMapOf<PIHandle, LoanPmaProcessContext>()
     private val taskList: TaskList by lazy {
         val clientAuth = authService.registerClient("TaskList(GLOBAL)", Random.nextString())
-        TaskList(authService, engineService, clientAuth, principals).also { t ->
+        TaskList("tasklist", authService, engineService, clientAuth, principals).also { t ->
             engineService.registerGlobalPermission(
-                SimplePrincipal(engineService.serviceId) as PrincipalCompat,
+                SimplePrincipal(engineService.serviceInstanceId.serviceId) as PrincipalCompat,
                 t,
                 CommonPMAPermissions.POST_TASK
             )
@@ -51,10 +51,9 @@ class LoanPMAContextFactory(log: Logger, random: Random) :
         return listOf(taskList)
     }
 
-    override fun <S : Service> resolveService(serviceId: ServiceId<S>): S {
-        val id = serviceId.serviceId
+    override fun <S : Service> resolveService(serviceId: ServiceName<S>): S {
         @Suppress("UNCHECKED_CAST")
-        return services.first { it.serviceId == id } as S
+        return requireNotNull(services.firstOrNull { it.serviceName == serviceId } as S?) { "No service found for id $serviceId" }
     }
 
     override fun newActivityInstanceContext(
@@ -102,7 +101,7 @@ class LoanPMAContextFactory(log: Logger, random: Random) :
 
         // TODO, use an activity specific permission/token instead.
         engineService.registerGlobalPermission(
-            SimplePrincipal(engineService.serviceId) as Principal,
+            SimplePrincipal(engineService.serviceInstanceId.serviceId) as Principal,
             taskList,
             CommonPMAPermissions.POST_TASK
         )

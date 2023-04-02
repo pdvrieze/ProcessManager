@@ -22,13 +22,18 @@ import nl.adaptivity.process.engine.pma.AuthToken
 import nl.adaptivity.process.engine.pma.dynamic.ServiceImpl
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAProcessContextFactory
 import nl.adaptivity.process.engine.pma.models.AutomatedService
+import nl.adaptivity.process.engine.pma.models.ServiceId
+import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.test.loanOrigination.LoanPMAActivityContext
-import nl.adaptivity.process.engine.test.loanOrigination.ServiceIds
+import nl.adaptivity.process.engine.test.loanOrigination.ServiceNames
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CreditReport
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
 
-class CreditBureau(authService: AuthService): ServiceImpl(authService, "CreditBureau"), AutomatedService {
+class CreditBureau(serviceName: String, authService: AuthService): ServiceImpl(authService, "CreditBureau"), AutomatedService {
+
+    override val serviceName: ServiceName<CreditBureau> = ServiceName(serviceName)
+    override val serviceInstanceId: ServiceId<CreditBureau> = ServiceId(getServiceId(serviceAuth))
 
     override fun getServiceState(): String = ""
 
@@ -47,7 +52,7 @@ class CreditBureau(authService: AuthService): ServiceImpl(authService, "CreditBu
     fun getCreditReport(context: DynamicPMAProcessContextFactory<LoanPMAActivityContext>, authInfo: AuthToken, customerId: String, taxId: String): CreditReport {
         logMe()
         validateAuthInfo(authInfo, LoanPermissions.GET_CREDIT_REPORT(taxId))
-        val customerFile = context.resolveService(ServiceIds.customerFile)
+        val customerFile = context.resolveService(ServiceNames.customerFile)
 
         // TODO this shouldn't need a code
         val customerFileCode = authService.exchangeDelegateCode(authInfo, this@CreditBureau, customerFile, LoanPermissions.QUERY_CUSTOMER_DATA(customerId))

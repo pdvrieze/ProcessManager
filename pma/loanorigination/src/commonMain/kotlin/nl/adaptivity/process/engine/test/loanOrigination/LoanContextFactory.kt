@@ -71,12 +71,12 @@ class LoanContextFactory(log: Logger, random: Random): AbstractLoanContextFactor
         return taskLists.getOrPut(principal) {
             log.log(Level.INFO, "Creating tasklist service for ${principal.name}")
             val clientAuth = authService.registerClient("TaskList(${principal.name})", Random.nextString())
-            val t = TaskList(authService, engineService, clientAuth, listOf(principal))
+            val t = TaskList("tasklist-${principal.name}", authService, engineService, clientAuth, listOf(principal))
             engineService.registerGlobalPermission(principal, t, CommonPMAPermissions.ACCEPT_TASK)
 
             // TODO, use an activity specific permission/token instead.
             engineService.registerGlobalPermission(
-                SimplePrincipal(engineService.serviceId) as Principal,
+                SimplePrincipal(engineService.serviceInstanceId.serviceId) as Principal,
                 t,
                 CommonPMAPermissions.POST_TASK
             )
