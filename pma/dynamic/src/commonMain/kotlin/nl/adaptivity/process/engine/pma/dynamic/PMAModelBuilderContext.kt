@@ -16,6 +16,7 @@ import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContex
 import nl.adaptivity.process.engine.pma.dynamic.scope.templates.DelegateScopeTemplate
 import nl.adaptivity.process.engine.pma.models.AuthScopeTemplate
 import nl.adaptivity.process.engine.pma.models.AutomatedService
+import nl.adaptivity.process.engine.pma.models.IPMAMessageActivity
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.configurableModel.ConfigurationDsl
@@ -160,7 +161,15 @@ internal fun <AIC: DynamicPMAActivityContext<AIC, *>, I: Any, O: Any, S: Automat
 ): PmaServiceAction<I, O, AIC, S> {
     return PmaServiceAction(serviceId) { input ->
         val service: S = processContext.contextFactory.resolveService(serviceId)
-        val authToken =processContext.engineService.globalAuthTokenForService(service)
+        val scope = (node as IPMAMessageActivity<AIC>).authorizationTemplates
+            .mapNotNull { it.instantiateScope(this) }
+            .reduce { left, right -> left.union(right)}
+
+        val engineService = processContext.engineService
+        val authToken = engineService.createAuthToken(
+            engineService.serviceInstanceId.serviceId, nodeInstanceHandle, service, scope,
+        )
+
         val serviceContext = ServiceActivityContext(this, service, authToken)
         serviceContext.action(input)
     }

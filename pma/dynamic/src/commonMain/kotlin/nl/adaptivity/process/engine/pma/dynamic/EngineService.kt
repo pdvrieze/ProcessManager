@@ -18,11 +18,11 @@ package nl.adaptivity.process.engine.pma
 
 import net.devrieze.util.Handle
 import nl.adaptivity.process.engine.ProcessInstanceContext
-import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions.GRANT_GLOBAL_PERMISSION
-import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions.UPDATE_ACTIVITY_STATE
 import nl.adaptivity.process.engine.pma.dynamic.ServiceImpl
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
+import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions.GRANT_GLOBAL_PERMISSION
+import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions.UPDATE_ACTIVITY_STATE
 import nl.adaptivity.process.engine.pma.models.*
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
@@ -145,6 +145,16 @@ class EngineService(
                     )
                 }
             }
+    }
+
+    fun createAuthToken(
+        clientId: String,
+        handle: Handle<SecureProcessNodeInstance>,
+        service: Service,
+        scope: AuthScope
+    ): AuthToken {
+        val authorizationCode = authService.createAuthorizationCode(serviceAuth, clientId, handle, service, scope)
+        return authService.getAuthToken(serviceAuth, authorizationCode)
     }
 
     fun ProcessInstanceContext.onActivityTermination(
