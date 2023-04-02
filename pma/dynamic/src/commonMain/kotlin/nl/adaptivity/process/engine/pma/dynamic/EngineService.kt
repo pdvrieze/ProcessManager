@@ -49,7 +49,7 @@ class EngineService(
         authToken: AuthToken,
         nodeInstanceHandle: Handle<SecureProcessNodeInstance>,
         principal: Principal,
-        pendingPermissions: ArrayDeque<DynamicPMAActivityContext.PendingPermission>,
+        pendingPermissions: Collection<DynamicPMAActivityContext.PendingPermission>,
     ): AuthorizationCode {
         logMe(authToken, nodeInstanceHandle, principal)
         validateAuthInfo(
@@ -66,11 +66,12 @@ class EngineService(
             authService,
             CommonPMAPermissions.IDENTIFY
         ).also { authorizationCode ->
+            val permissionsToProvide = ArrayDeque(pendingPermissions)
 
             val clientId = principal.name
             // Also use the result to register permissions for it
-            while (pendingPermissions.isNotEmpty()) {
-                val pendingPermission = pendingPermissions.removeFirst()
+            while (permissionsToProvide.isNotEmpty()) {
+                val pendingPermission = permissionsToProvide.removeFirst()
                 authService.grantPermission(
                     serviceAuth,
                     authorizationCode,

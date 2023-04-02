@@ -23,7 +23,7 @@ import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
-import nl.adaptivity.process.engine.pma.dynamic.BrowserActivityContext
+import nl.adaptivity.process.engine.pma.dynamic.TaskBuilderContext
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.runtime.RunnablePmaActivityInstance
 import nl.adaptivity.process.engine.pma.models.AuthScopeTemplate
@@ -145,9 +145,11 @@ class RunnablePmaActivity<I : Any, O : Any, C : DynamicPMAActivityContext<C, *>>
 
 sealed class PmaAction<I : Any, O : Any, C : DynamicPMAActivityContext<C, *>>
 
-class PmaBrowserAction<I : Any, O : Any, C : DynamicPMAActivityContext<C, BAC>, BAC : BrowserActivityContext<C>>(
-    val action: RunnableAction<I, O, BAC>
-) : PmaAction<I, O, C>()
+class PmaBrowserAction<I : Any, O : Any, AIC : DynamicPMAActivityContext<AIC, BIC>, BIC : TaskBuilderContext.BrowserContext<AIC, BIC>>(
+    val action: TaskBuilderContext.AcceptedTask<AIC, BIC, I, O>
+) : PmaAction<I, O, AIC>() {
+
+}
 
 class PmaServiceAction<I : Any, O : Any, C : DynamicPMAActivityContext<C, *>, S : AutomatedService>(
     val serviceId: ServiceId<S>,

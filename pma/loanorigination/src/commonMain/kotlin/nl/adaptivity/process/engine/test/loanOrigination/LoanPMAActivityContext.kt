@@ -1,20 +1,26 @@
 package nl.adaptivity.process.engine.test.loanOrigination
 
 import nl.adaptivity.process.engine.ProcessEnginePermissions
+import nl.adaptivity.process.engine.pma.Browser
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
-import nl.adaptivity.process.engine.pma.runtime.PMAActivityInstance
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 class LoanPMAActivityContext(
     override val processContext: LoanPmaProcessContext,
-    processNode: PMAActivityInstance<*>
+    processNode: IProcessNodeInstance
 ) : DynamicPMAActivityContext<LoanPMAActivityContext, LoanBrowserContext>(processNode) {
+    /*
     @Suppress("UNCHECKED_CAST")
     override val processNode: PMAActivityInstance<LoanPMAActivityContext>
         get() = super.processNode as PMAActivityInstance<LoanPMAActivityContext>
+*/
+    override fun browserContext(browser: Browser): LoanBrowserContext {
+        return LoanBrowserContext(this, browser)
+    }
 
-    override fun browserContext(): LoanBrowserContext {
-        return LoanBrowserContext(this)
+    override fun resolveBrowser(principal: PrincipalCompat): Browser {
+        return processContext.resolveBrowser(principal)
     }
 
     override fun canBeAssignedTo(principal: PrincipalCompat?): Boolean {

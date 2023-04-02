@@ -1,5 +1,6 @@
 package nl.adaptivity.process.engine.pma.dynamic.runtime
 
+import PmaAction
 import PmaBrowserAction
 import RunnablePmaActivity
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.AbstractRunnableActivityInstance
@@ -41,8 +42,9 @@ class RunnablePmaActivityInstance<I : Any, O : Any, C : DynamicPMAActivityContex
                     for (taskList in taskLists) {
                         processContext.engineService.doPostTaskToTasklist(taskList, handle)
                     }
-                    false
+                    true
                 }
+
                 else -> {
 
                     true
@@ -51,11 +53,20 @@ class RunnablePmaActivityInstance<I : Any, O : Any, C : DynamicPMAActivityContex
         }
 
         override fun doTakeTask(engineData: MutableProcessEngineDataAccess, assignedUser: PrincipalCompat?): Boolean {
-            val assignedUser = when {
-                isBrowserTask -> this.assignedUser
-                else -> null
+            val contextFactory = engineData.processContextFactory as DynamicPMAProcessContextFactory<C>
+            val aic = contextFactory.newActivityInstanceContext(engineData, this)
+            val processContext = aic.processContext
+
+            when (val action: PmaAction<I, O, C> = node.action) {
+                is PmaBrowserAction<I, O, C, *> -> {
+                    val taskList = processContext.taskListFor(action.action.principal)
+                    taskList.acceptActivity(aic, action.action.principal)
+                    return true
+                }
+
+                else ->
+                    return super.doTakeTask(engineData, assignedUser)
             }
-            return super.doTakeTask(engineData, assignedUser)
         }
 
         override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {

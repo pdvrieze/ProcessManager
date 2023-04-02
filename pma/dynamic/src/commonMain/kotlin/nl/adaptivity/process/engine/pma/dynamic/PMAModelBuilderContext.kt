@@ -10,6 +10,7 @@ import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
 import net.devrieze.util.security.SYSTEMPRINCIPAL
+import nl.adaptivity.process.engine.pma.dynamic.TaskBuilderContext.BrowserContext
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.scope.templates.DelegateScopeTemplate
 import nl.adaptivity.process.engine.pma.models.AuthScopeTemplate
@@ -29,7 +30,7 @@ import kotlin.contracts.contract
 import kotlin.experimental.ExperimentalTypeInference
 import kotlin.reflect.KProperty
 
-abstract class PMAModelBuilderContext<AIC : DynamicPMAActivityContext<AIC, BAC>, BAC: BrowserActivityContext<AIC>> : IModelBuilderContext<AIC> {
+abstract class PMAModelBuilderContext<AIC : DynamicPMAActivityContext<AIC, BIC>, BIC: BrowserContext<AIC, BIC>> : IModelBuilderContext<AIC> {
 
     operator fun <I: Any, O: Any> RunnablePmaActivity.Builder<I, O, *>.provideDelegate(
         thisRef: Nothing?,
@@ -45,7 +46,7 @@ abstract class PMAModelBuilderContext<AIC : DynamicPMAActivityContext<AIC, BAC>,
     }
 
     @PublishedApi
-    internal abstract fun compositeActivityContext(predecessor: Identified): CompositePMAModelBuilderContext<AIC, BAC>
+    internal abstract fun compositeActivityContext(predecessor: Identified): CompositePMAModelBuilderContext<AIC, BIC>
 
     // TODO taskActivities should not provide the inptus until the task has been accepted
     inline fun  <I : Any, reified O : Any> taskActivity(
@@ -56,7 +57,7 @@ abstract class PMAModelBuilderContext<AIC : DynamicPMAActivityContext<AIC, BAC>,
         refName: String? = "",
         inputSerializer: DeserializationStrategy<I> = predecessor.serializer,
         @BuilderInference
-        noinline action: RunnableAction<I, O, BAC>
+        noinline action: TaskBuilderContext<AIC, BIC, I>.() -> TaskBuilderContext.AcceptedTask<AIC, BIC, I, O>
     ): RunnablePmaActivity.Builder<I, O, AIC> {
         return taskActivity(
             predecessor, permissions, accessRestrictions, input = InputRefImpl(refNode, refName?:"", inputSerializer), action = action
@@ -69,13 +70,13 @@ abstract class PMAModelBuilderContext<AIC : DynamicPMAActivityContext<AIC, BAC>,
         accessRestrictions: RunnableAccessRestriction? = null,
         input: DefineInputCombiner<I>,
         @BuilderInference
-        noinline action: RunnableAction<I, O, BAC>
+        noinline action: TaskBuilderContext<AIC, BIC, I>.() -> TaskBuilderContext.AcceptedTask<AIC, BIC, I, O>
     ): RunnablePmaActivity.Builder<I, O, AIC> {
         return RunnablePmaActivity.Builder<I, O, AIC>(
             predecessor = predecessor,
             inputCombiner = input.combiner,
             outputSerializer = serializer<O>(),
-            action = taskListAction(action),
+            action = taskListAction<AIC, BIC, I, O>(action),
             accessRestrictions = accessRestrictions
         )
     }
@@ -86,7 +87,7 @@ abstract class PMAModelBuilderContext<AIC : DynamicPMAActivityContext<AIC, BAC>,
         accessRestrictions: RunnableAccessRestriction? = null,
         input: InputRef<I>,
         @BuilderInference
-        noinline action: RunnableAction<I, O, BAC>
+        noinline action: TaskBuilderContext<AIC, BIC, I>.() -> TaskBuilderContext.AcceptedTask<AIC, BIC, I, O>
     ): RunnablePmaActivity.Builder<I, O, AIC> {
         return RunnablePmaActivity.Builder<I, O, AIC>(
             predecessor = predecessor,
@@ -140,10 +141,9 @@ abstract class PMAModelBuilderContext<AIC : DynamicPMAActivityContext<AIC, BAC>,
 }
 
 @PublishedApi
-internal fun <BAC : BrowserActivityContext<AIC>, AIC : DynamicPMAActivityContext<AIC, BAC>, I : Any, O : Any> taskListAction(
-    action: RunnableAction<I, O, BAC>
-): PmaBrowserAction<I, O, AIC, BAC> {
-    return PmaBrowserAction(action)
+internal fun <AIC : DynamicPMAActivityContext<AIC, BIC>, BIC : BrowserContext<AIC, BIC>, I : Any, O : Any>
+    taskListAction(action: TaskBuilderContext<AIC, BIC, I>.() -> TaskBuilderContext.AcceptedTask<AIC, BIC, I, O>): PmaBrowserAction<I, O, AIC, BIC> {
+    return PmaBrowserAction(TaskBuilderContext<AIC, BIC, I>().action())
 }
 
 @PublishedApi
@@ -159,7 +159,7 @@ internal fun <AIC: DynamicPMAActivityContext<AIC, *>, I: Any, O: Any, S: Automat
     }
 }
 
-abstract class CompositePMAModelBuilderContext<AIC : DynamicPMAActivityContext<AIC, BAC>, BAC: BrowserActivityContext<AIC>> : PMAModelBuilderContext<AIC, BAC>(), ICompositeModelBuilderContext<AIC> {
+abstract class CompositePMAModelBuilderContext<AIC : DynamicPMAActivityContext<AIC, BIC>, BIC: BrowserContext<AIC, BIC>> : PMAModelBuilderContext<AIC, BIC>(), ICompositeModelBuilderContext<AIC> {
     abstract override val modelBuilder: ActivityBase.CompositeActivityBuilder
 
 
@@ -179,53 +179,53 @@ abstract class CompositePMAModelBuilderContext<AIC : DynamicPMAActivityContext<A
 
 }
 
-internal class CompositePMAModelBuilderContextImpl<AIC : DynamicPMAActivityContext<AIC, BAC>, BAC: BrowserActivityContext<AIC>>(
+internal class CompositePMAModelBuilderContextImpl<AIC : DynamicPMAActivityContext<AIC, BIC>, BIC: BrowserContext<AIC, BIC>>(
     predecessor: Identified,
-    private val owner: RootPMAModelBuilderContext<AIC, BAC>,
-) : CompositePMAModelBuilderContext<AIC, BAC>() {
+    private val owner: RootPMAModelBuilderContext<AIC, BIC>,
+) : CompositePMAModelBuilderContext<AIC, BIC>() {
     override val modelBuilder = ActivityBase.CompositeActivityBuilder(owner.modelBuilder).apply {
         this.predecessor = predecessor
     }
 
-    override fun compositeActivityContext(predecessor: Identified): CompositePMAModelBuilderContext<AIC, BAC> {
+    override fun compositeActivityContext(predecessor: Identified): CompositePMAModelBuilderContext<AIC, BIC> {
         return CompositePMAModelBuilderContextImpl(predecessor, owner)
     }
 
 }
 
 
-fun <AIC : DynamicPMAActivityContext<AIC, BAC>, BAC: BrowserActivityContext<AIC>> runnablePmaProcess(
+fun <AIC : DynamicPMAActivityContext<AIC, BIC>, BIC: BrowserContext<AIC, BIC>> runnablePmaProcess(
     name: String,
     owner: PrincipalCompat = SYSTEMPRINCIPAL,
     uuid: UUID = UUID.randomUUID(),
     @ConfigurationDsl
-    configureAction: PMAModelBuilderContext<AIC, BAC>.() -> Unit
+    configureAction: PMAModelBuilderContext<AIC, BIC>.() -> Unit
 ): ExecutableProcessModel {
-    val context = RootPMAModelBuilderContext<AIC, BAC>(name, owner, uuid).apply(configureAction)
+    val context = RootPMAModelBuilderContext<AIC, BIC>(name, owner, uuid).apply(configureAction)
     return ExecutableProcessModel(context.modelBuilder, true)
 }
 
-internal class RootPMAModelBuilderContext<AIC : DynamicPMAActivityContext<AIC, BAC>, BAC: BrowserActivityContext<AIC>>(
+internal class RootPMAModelBuilderContext<AIC : DynamicPMAActivityContext<AIC, BIC>, BIC: BrowserContext<AIC, BIC>>(
     name: String,
     owner: PrincipalCompat,
     uuid: UUID,
-) : PMAModelBuilderContext<AIC, BAC>() {
+) : PMAModelBuilderContext<AIC, BIC>() {
     public override val modelBuilder: RootProcessModel.Builder = RootProcessModelBase.Builder().apply {
         this.name = name
         this.owner = owner
         this.uuid = uuid
     }
 
-    override fun compositeActivityContext(predecessor: Identified): CompositePMAModelBuilderContext<AIC, BAC> {
+    override fun compositeActivityContext(predecessor: Identified): CompositePMAModelBuilderContext<AIC, BIC> {
         return CompositePMAModelBuilderContextImpl(predecessor, this)
     }
 }
 
 
 @OptIn(ExperimentalContracts::class)
-inline fun <AIC : DynamicPMAActivityContext<AIC, BAC>, BAC : BrowserActivityContext<AIC>> PMAModelBuilderContext<AIC, BAC>.compositeActivity(
+inline fun <AIC : DynamicPMAActivityContext<AIC, BIC>, BIC : BrowserContext<AIC, BIC>> PMAModelBuilderContext<AIC, BIC>.compositeActivity(
     predecessor: Identified,
-    @ConfigurationDsl configure: CompositePMAModelBuilderContext<AIC, BAC>.() -> Unit
+    @ConfigurationDsl configure: CompositePMAModelBuilderContext<AIC, BIC>.() -> Unit
 ): ActivityBase.CompositeActivityBuilder {
     contract {
         callsInPlace(configure, InvocationKind.EXACTLY_ONCE)

@@ -1,5 +1,6 @@
 package nl.adaptivity.process.engine.pma.models
 
+import nl.adaptivity.process.engine.pma.runtime.PMAActivityContext
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 sealed interface Service {
@@ -11,6 +12,7 @@ interface TaskListService: Service {
      * Does this service support this particular user
      */
     fun servesFor(principal: PrincipalCompat): Boolean
+    fun acceptActivity(aic: PMAActivityContext<*>, user: PrincipalCompat)
 }
 
 interface AutomatedService: Service

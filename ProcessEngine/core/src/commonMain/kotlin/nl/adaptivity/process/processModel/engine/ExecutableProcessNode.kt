@@ -129,6 +129,11 @@ interface ExecutableProcessNode : ProcessNode, Identified {
         assignedUser: PrincipalCompat?
     ): Boolean = true
 
+    fun canTakeTaskAutoProgress(
+        instance: ProcessNodeInstance.Builder<*, *>,
+        assignedUser: PrincipalCompat?
+    ): Boolean = true
+
     fun canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *>): Boolean = true
 
     private fun preceeds(node: ExecutableProcessNode, reference: ExecutableProcessNode, seenIds: MutableSet<String>):Boolean {

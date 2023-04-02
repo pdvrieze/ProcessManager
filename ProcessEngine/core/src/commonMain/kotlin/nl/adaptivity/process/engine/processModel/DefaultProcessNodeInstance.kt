@@ -28,6 +28,7 @@ import nl.adaptivity.process.engine.impl.getClass
 import nl.adaptivity.process.processModel.MessageActivity
 import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.XmlMessage
+import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.net.devrieze.util.security.ActiveSecureObject
@@ -209,7 +210,11 @@ class DefaultProcessNodeInstance :
             engineData: MutableProcessEngineDataAccess,
             assignedUser: PrincipalCompat?
         ): Boolean {
-            return node.canTakeTaskAutoProgress(createActivityContext(engineData), this, assignedUser)
+            return when (node) {
+                is ExecutableActivity ->
+                    node.canTakeTaskAutoProgress(createActivityContext(engineData), this, assignedUser)
+                else -> node.canTakeTaskAutoProgress(this, assignedUser)
+            }
         }
 
         override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {

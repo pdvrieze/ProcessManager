@@ -58,6 +58,7 @@ interface LoanProcessContext : CommonLoanProcessContext {
 interface LoanPmaProcessContext : DynamicPMAProcessInstanceContext<LoanPMAActivityContext>, CommonLoanProcessContext {
     override val contextFactory: LoanPMAContextFactory
     override fun taskListFor(principal: PrincipalCompat): TaskList
+    fun resolveBrowser(principal: PrincipalCompat): Browser
 
     val clerk1: Browser
     val postProcClerk: Browser
@@ -123,6 +124,13 @@ class LoanPmaProcessContextImpl(
     override val clerk1: Browser get() = contextFactory.clerk1
     override val postProcClerk: Browser get() = contextFactory.postProcClerk
     override val customer: Browser get() = contextFactory.customer
+
+    override fun resolveBrowser(principal: PrincipalCompat): Browser = when (principal) {
+        clerk1.user -> clerk1
+        postProcClerk.user -> postProcClerk
+        customer.user -> customer
+        else -> error("No browser defined for ${principal}")
+    }
 
     override val log: Logger get() = contextFactory.log
 

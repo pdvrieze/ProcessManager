@@ -12,7 +12,7 @@ open class ServiceActivityContext<AIC : DynamicPMAActivityContext<AIC, *>, S : A
     protected val activityContext: AIC,
     val service: S,
     val authToken: AuthToken
-) : PMAActivityContext<AIC>() {
+) : PMAActivityContext<AIC> {
     override fun canBeAssignedTo(principal: PrincipalCompat?): Boolean = activityContext.canBeAssignedTo(principal)
 
     override val processNode: IProcessNodeInstance get() = activityContext.processNode

@@ -7,7 +7,7 @@ import kotlinx.serialization.DeserializationStrategy
 import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.IProcessInstance
 import nl.adaptivity.process.engine.pma.*
-import nl.adaptivity.process.engine.pma.dynamic.BrowserActivityContext
+import nl.adaptivity.process.engine.pma.dynamic.TaskBuilderContext
 import nl.adaptivity.process.engine.pma.models.AuthScope
 import nl.adaptivity.process.engine.pma.models.Service
 import nl.adaptivity.process.engine.pma.models.ServiceId
@@ -24,12 +24,17 @@ import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.xmlutil.serialization.XML
 import java.security.Principal
 
-abstract class DynamicPMAActivityContext<AIC : DynamicPMAActivityContext<AIC, BAC>, out BAC: BrowserActivityContext<AIC>>(
-    override val processNode: IProcessNodeInstance
-) : PMAActivityContext<AIC>() {
-    override val node: RunnablePmaActivity<*, *, *> get() = processNode.node as RunnablePmaActivity<*, *, *>
+interface IDynamicPMAActivityContext<AIC : DynamicPMAActivityContext<AIC, BIC>, BIC : TaskBuilderContext.BrowserContext<AIC, BIC>> :
+    PMAActivityContext<AIC> {
 
-    abstract fun browserContext(): BAC
+    fun browserContext(browser: Browser): BIC
+    fun resolveBrowser(principal: PrincipalCompat): Browser
+}
+
+abstract class DynamicPMAActivityContext<AIC : DynamicPMAActivityContext<AIC, BIC>, BIC: TaskBuilderContext.BrowserContext<AIC, BIC>>(
+    override val processNode: IProcessNodeInstance
+) : IDynamicPMAActivityContext<AIC, BIC> {
+    override val node: RunnablePmaActivity<*, *, *> get() = processNode.node as RunnablePmaActivity<*, *, *>
 
     abstract override val processContext: DynamicPMAProcessInstanceContext<AIC>
 

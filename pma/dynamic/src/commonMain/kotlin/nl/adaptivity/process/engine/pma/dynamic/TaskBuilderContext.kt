@@ -1,20 +1,15 @@
 package nl.adaptivity.process.engine.pma.dynamic
 
 import nl.adaptivity.process.engine.pma.AuthToken
-import nl.adaptivity.process.engine.pma.Browser
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAProcessContextFactory
+import nl.adaptivity.process.engine.pma.dynamic.runtime.IDynamicPMAActivityContext
 import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.UIService
 import nl.adaptivity.process.engine.pma.runtime.PMAActivityContext
-import nl.adaptivity.process.engine.pma.runtime.PMAProcessInstanceContext
-import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-abstract class BrowserActivityContext<AIC: PMAActivityContext<AIC>>(protected val activityContext: AIC): PMAActivityContext<AIC>() {
-    override fun canBeAssignedTo(principal: PrincipalCompat?): Boolean = activityContext.canBeAssignedTo(principal)
-
-    override val processNode: IProcessNodeInstance get() = activityContext.processNode
-
-    override val processContext: PMAProcessInstanceContext<AIC> get() = activityContext.processContext
+open class TaskBuilderContext<AIC : DynamicPMAActivityContext<AIC, BIC>, BIC : TaskBuilderContext.BrowserContext<AIC, BIC>, I>() {
 
     /*
         open fun ensureTaskList(browser: Browser) : TaskListService {
@@ -30,9 +25,23 @@ abstract class BrowserActivityContext<AIC: PMAActivityContext<AIC>>(protected va
         }
     */
 
-    abstract fun <R> acceptTask(browser: Browser, action: BrowserInnerContext.() -> R): R
+    fun <O> acceptTask(principal: PrincipalCompat, action: BIC.(I) -> O) : AcceptedTask<AIC, BIC, I, O> {
+        return AcceptedTask(principal, action)
+    }
 
-    interface BrowserInnerContext {
+    class AcceptedTask<AIC : DynamicPMAActivityContext<AIC, BIC>, BIC : BrowserContext<AIC, BIC>, I, O>(
+        val principal: PrincipalCompat,
+        private val action: BIC.(I) -> O
+    ) {
+        operator fun invoke(activityContext: AIC, input: I): O {
+            val browser = activityContext.resolveBrowser(principal)
+            val context = activityContext.browserContext(browser)
+            return context.action(input)
+        }
+    }
+
+    interface BrowserContext<AIC: DynamicPMAActivityContext<AIC, BIC>, BIC: BrowserContext<AIC, BIC>> :
+        IDynamicPMAActivityContext<AIC, BIC> {
         fun <S: UIService, R> uiServiceLogin(service: ServiceId<S>, action: UIServiceInnerContext<S>.() -> R) : R
     }
 
