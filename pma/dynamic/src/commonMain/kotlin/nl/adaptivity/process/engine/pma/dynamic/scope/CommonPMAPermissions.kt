@@ -14,9 +14,10 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.pma
+package nl.adaptivity.process.engine.pma.dynamic.scope
 
 import net.devrieze.util.Handle
+import nl.adaptivity.process.engine.pma.ExtScope
 import nl.adaptivity.process.engine.pma.models.*
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 
@@ -460,8 +461,7 @@ sealed class CommonPMAPermissions : AuthScope {
         data class DelegateContextScope(
             val serviceId: ServiceId<*>?,
             val childScope: AuthScope? = null
-        ) :
-            UseAuthScope, AuthScope {
+        ) : UseAuthScope, AuthScope {
 
             override fun includes(useScope: UseAuthScope): Boolean = when {
                 useScope !is DelegateContextScope ||

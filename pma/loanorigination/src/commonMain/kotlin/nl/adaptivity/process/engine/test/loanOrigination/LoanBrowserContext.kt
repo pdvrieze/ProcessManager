@@ -45,6 +45,16 @@ class LoanBrowserContext(private val delegateContext: LoanPMAActivityContext, pr
         return context.action()
     }
 
+    override fun <S : RunnableUIService, R> uiServiceLogin(
+        service: S,
+        action: TaskBuilderContext.UIServiceInnerContext<S>.() -> R
+    ): R {
+        val authToken : AuthToken = browser.loginToService(service)
+
+        val context = LoanUIServiceContext(authToken, service)
+        return context.action()
+    }
+
     interface Data {
         val customerData: CustomerData
     }

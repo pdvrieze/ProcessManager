@@ -11,6 +11,9 @@ import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessContextFactory
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.impl.CompactFragment
+import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
+import nl.adaptivity.process.engine.pma.models.AuthScope
+import nl.adaptivity.process.engine.pma.models.Service
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.processModel.tryCreateTask
@@ -62,13 +65,41 @@ class RunnablePmaActivityInstance<InputT : Any, OutputT : Any, C : DynamicPMAAct
         override fun doTakeTask(engineData: MutableProcessEngineDataAccess, assignedUser: PrincipalCompat?): Boolean {
             val contextFactory = engineData.processContextFactory as DynamicPMAProcessContextFactory<C>
             val aic = contextFactory.newActivityInstanceContext(engineData, this)
-            val processContext = aic.processContext
+            val processContext: DynamicPMAProcessInstanceContext<C> = aic.processContext
 
             when (val action: PmaAction<InputT, OutputT, C> = node.action) {
                 is PmaBrowserAction<InputT, OutputT, C, *> -> {
-                    val taskList = processContext.taskListFor(action.action.principal)
-                    taskList.acceptActivity(aic, action.action.principal)
-                    return super.doTakeTask(engineData, action.action.principal)
+
+                    val user = action.action.principal
+                    val taskList = processContext.contextFactory.getOrCreateTaskListForUser(user)
+                    val browser = aic.resolveBrowser(user)
+                    val pendingPermissions = node.authorizationTemplates
+                        .mapNotNull { it.instantiateScope(aic) }
+                        .mapNotNull {
+                            val service: Service?
+                            val scope: AuthScope?
+                            when (it) {
+                                is CommonPMAPermissions.DELEGATED_PERMISSION.DelegateContextScope -> {
+                                    service = it.serviceId?.let { id -> aic.processContext.contextFactory.resolveService(id) }
+                                    scope = it.childScope
+                                }
+
+                                else -> {
+                                    service = taskList
+                                    scope = it
+                                }
+                            }
+                            if (service!=null && scope != null) {
+                                DynamicPMAActivityContext.PendingPermission(user.name, service, scope)
+                            } else null
+                        }
+
+                    val taskListToken = browser.loginToService(taskList)
+
+                    val authCode = taskList.acceptActivity(taskListToken, user, pendingPermissions, aic.nodeInstanceHandle)
+                    browser.addToken(processContext.authService, authCode) // TODO tidy this up
+
+                    return super.doTakeTask(engineData, user)
                 }
 
                 else ->

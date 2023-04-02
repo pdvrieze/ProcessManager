@@ -21,7 +21,7 @@ import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.ProcessEnginePermissions
 import nl.adaptivity.process.engine.pma.AuthorizationCode
 import nl.adaptivity.process.engine.pma.Browser
-import nl.adaptivity.process.engine.pma.CommonPMAPermissions
+import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.TaskList
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
 import nl.adaptivity.process.engine.pma.models.AuthScope

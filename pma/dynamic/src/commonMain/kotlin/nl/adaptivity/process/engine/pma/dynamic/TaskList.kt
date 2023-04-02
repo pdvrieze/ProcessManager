@@ -19,10 +19,10 @@ package nl.adaptivity.process.engine.pma
 import net.devrieze.util.Handle
 import nl.adaptivity.process.engine.pma.dynamic.AbstractRunnableUIService
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
+import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.models.TaskListService
-import nl.adaptivity.process.engine.pma.runtime.PMAActivityContext
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
@@ -49,10 +49,12 @@ class TaskList constructor(
 
     private val engineTokens = mutableMapOf<Long, AuthToken>()
 
+/*
     override fun acceptActivity(aic: PMAActivityContext<*>, user: PrincipalCompat) {
         val token = requireNotNull(engineTokens[aic.nodeInstanceHandle.handleValue]) { "No reply token for task(${aic.nodeInstanceHandle})" }
         engineService.acceptActivity(token, aic.nodeInstanceHandle, user, emptyList())
     }
+*/
 
     override fun getServiceState(): String = principals.joinToString(prefix = "[", postfix = "]")
 
@@ -86,7 +88,7 @@ class TaskList constructor(
     fun acceptActivity(
         authToken: AuthToken,
         principal: PrincipalCompat,
-        pendingPermissions: ArrayDeque<DynamicPMAActivityContext.PendingPermission>,
+        pendingPermissions: Collection<DynamicPMAActivityContext.PendingPermission>,
         processNodeInstance: Handle<SecureProcessNodeInstance>
     ): AuthorizationCode {
         logMe(processNodeInstance, principal)

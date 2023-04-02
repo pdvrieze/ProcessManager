@@ -68,10 +68,9 @@ interface LoanPmaProcessContext : DynamicPMAProcessInstanceContext<LoanPMAActivi
 
 abstract class AbstractLoanProcessContext(
     protected val engineData: ProcessEngineDataAccess,
+    override val processInstanceHandle: PIHandle
 ) : CommonLoanProcessContext {
-    abstract val processInstance: IProcessInstance
-
-    override val processInstanceHandle: PIHandle get() = processInstance.handle
+    val processInstance: IProcessInstance get() = engineData.instance(processInstanceHandle).withPermission()
 
     override val signingService: SigningService get() = contextFactory.signingService
     override val customerFile: CustomerInformationFile get() = contextFactory.customerFile
@@ -88,9 +87,7 @@ class LoanProcessContextImpl(
     engineData: ProcessEngineDataAccess,
     override val contextFactory: LoanContextFactory,
     processInstanceHandle: PIHandle
-) : AbstractLoanProcessContext(engineData), LoanProcessContext {
-    override val processInstance: IProcessInstance = engineData.instance(processInstanceHandle).withPermission()
-
+) : AbstractLoanProcessContext(engineData, processInstanceHandle), LoanProcessContext {
 
     override val authService: AuthService get() = contextFactory.authService
     override val generalClientService: GeneralClientService get() = contextFactory.generalClientService
@@ -113,9 +110,8 @@ class LoanPmaProcessContextImpl(
     engineData: ProcessEngineDataAccess,
     override val contextFactory: LoanPMAContextFactory,
     processInstanceHandle: PIHandle
-) : AbstractLoanProcessContext(engineData), LoanPmaProcessContext {
-    override val processInstance: IProcessInstance = engineData.instance(processInstanceHandle).withPermission()
-
+) : AbstractLoanProcessContext(engineData,processInstanceHandle), LoanPmaProcessContext {
+    //
 
     override val authService: AuthService get() = contextFactory.authService
     override val generalClientService: GeneralClientService get() = contextFactory.generalClientService

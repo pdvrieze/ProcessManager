@@ -19,6 +19,7 @@ package nl.adaptivity.process.engine.pma
 import nl.adaptivity.process.engine.impl.Level
 import nl.adaptivity.process.engine.impl.LoggerCompat
 import nl.adaptivity.process.engine.pma.dynamic.RunnableUIService
+import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.models.ANYSCOPE
 import nl.adaptivity.process.engine.pma.models.Service
 import nl.adaptivity.util.multiplatform.PrincipalCompat

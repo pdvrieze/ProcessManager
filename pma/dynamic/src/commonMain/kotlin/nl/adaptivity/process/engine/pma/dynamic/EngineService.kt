@@ -18,10 +18,11 @@ package nl.adaptivity.process.engine.pma
 
 import net.devrieze.util.Handle
 import nl.adaptivity.process.engine.ProcessInstanceContext
-import nl.adaptivity.process.engine.pma.CommonPMAPermissions.GRANT_GLOBAL_PERMISSION
-import nl.adaptivity.process.engine.pma.CommonPMAPermissions.UPDATE_ACTIVITY_STATE
+import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions.GRANT_GLOBAL_PERMISSION
+import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions.UPDATE_ACTIVITY_STATE
 import nl.adaptivity.process.engine.pma.dynamic.ServiceImpl
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
+import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.models.*
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
@@ -115,20 +116,21 @@ class EngineService(
             to the user (and delegated to the worklist).
          */
 
-        val taskListAuth = authTokenForService(taskList)
+        val taskListAuth = globalAuthTokenForService(taskList)
         taskLists.merge(pniHandle, listOf(taskList)) { old, new -> old + new }
 
         taskList.postTask(taskListAuth, taskListToEngineAuthToken, pniHandle)
     }
 
     fun createAuthorizationCode(
-        clientServiceId: String,
+        clientId: String,
         handle: Handle<SecureProcessNodeInstance>,
-        service: AuthService,
-        scope: CommonPMAPermissions.IDENTIFY,
-        pendingPermissions: ArrayDeque<DynamicPMAActivityContext.PendingPermission>
+        service: Service,
+        scope: AuthScope,
+        pendingPermissions: Collection<DynamicPMAActivityContext.PendingPermission>
     ): AuthorizationCode {
-        return authService.createAuthorizationCode(serviceAuth, clientServiceId, handle, service, scope)
+        val pendingPermissions = ArrayDeque(pendingPermissions)
+        return authService.createAuthorizationCode(serviceAuth, clientId, handle, service, scope)
             .also { serviceAuthorization ->
                 while (pendingPermissions.isNotEmpty()) {
                     val pendingPermission = pendingPermissions.removeFirst()
@@ -136,7 +138,7 @@ class EngineService(
                         serviceAuth, serviceAuthorization, authService,
                         CommonPMAPermissions.GRANT_ACTIVITY_PERMISSION.restrictTo(
                             handle,
-                            pendingPermission.clientId ?: clientServiceId,
+                            pendingPermission.clientId ?: clientId,
                             pendingPermission.service,
                             pendingPermission.scope
                         )
@@ -152,7 +154,7 @@ class EngineService(
         val taskLists = taskLists[nodeInstanceHandle] ?: emptyList()
 
         for (taskList in taskLists) {
-            val authToken = authTokenForService(taskList)
+            val authToken = globalAuthTokenForService(taskList)
             taskList.unregisterTask(authToken, nodeInstanceHandle)
         }
 

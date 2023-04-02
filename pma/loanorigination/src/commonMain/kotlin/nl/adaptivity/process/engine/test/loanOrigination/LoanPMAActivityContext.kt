@@ -4,6 +4,7 @@ import nl.adaptivity.process.engine.ProcessEnginePermissions
 import nl.adaptivity.process.engine.pma.Browser
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
+import nl.adaptivity.process.processModel.MessageActivity
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 class LoanPMAActivityContext(
@@ -24,7 +25,7 @@ class LoanPMAActivityContext(
     }
 
     override fun canBeAssignedTo(principal: PrincipalCompat?): Boolean {
-        val restrictions = node.accessRestrictions ?: return true
+        val restrictions = (node as? MessageActivity)?.accessRestrictions ?: return true
 
         return principal != null &&
             restrictions.hasAccess(this, principal, ProcessEnginePermissions.ASSIGNED_TO_ACTIVITY)

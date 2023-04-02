@@ -1,17 +1,21 @@
 package nl.adaptivity.process.engine.pma.dynamic.runtime
 
 import RunnablePmaActivity
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.AbstractRunnableActivity
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.InputRef
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.OutputRef
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.RunnableActivity
 import kotlinx.serialization.DeserializationStrategy
 import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.IProcessInstance
+import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.engine.pma.*
 import nl.adaptivity.process.engine.pma.dynamic.TaskBuilderContext
+import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.models.AuthScope
 import nl.adaptivity.process.engine.pma.models.Service
+import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
-import nl.adaptivity.process.engine.pma.models.TaskListService
 import nl.adaptivity.process.engine.pma.runtime.PMAActivityContext
 import nl.adaptivity.process.engine.pma.runtime.PMAProcessContextFactory
 import nl.adaptivity.process.engine.pma.runtime.PMAProcessInstanceContext
@@ -19,6 +23,8 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.applyData
 import nl.adaptivity.process.engine.processModel.getDefines
 import nl.adaptivity.process.processModel.AccessRestriction
+import nl.adaptivity.process.processModel.engine.ExecutableActivity
+import nl.adaptivity.process.processModel.engine.ExecutableCompositeActivity
 import nl.adaptivity.serialutil.nonNullSerializer
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.xmlutil.serialization.XML
@@ -34,7 +40,7 @@ interface IDynamicPMAActivityContext<AIC : DynamicPMAActivityContext<AIC, BIC>, 
 abstract class DynamicPMAActivityContext<AIC : DynamicPMAActivityContext<AIC, BIC>, BIC: TaskBuilderContext.BrowserContext<AIC, BIC>>(
     override val processNode: IProcessNodeInstance
 ) : IDynamicPMAActivityContext<AIC, BIC> {
-    override val node: RunnablePmaActivity<*, *, *> get() = processNode.node as RunnablePmaActivity<*, *, *>
+    override val node: ExecutableActivity get() = processNode.node as ExecutableActivity
 
     abstract override val processContext: DynamicPMAProcessInstanceContext<AIC>
 
@@ -139,8 +145,17 @@ abstract class DynamicPMAActivityContext<AIC : DynamicPMAActivityContext<AIC, BI
     )
 
     fun <T: Any> nodeData(reference: InputRef<T>): T? {
-        val valueReader = processNode.resolvePredecessor(processContext.processInstance, reference.propertyName)
-            ?.getResult(reference.propertyName)?.contentStream ?: return null
+        val result: ProcessData? = when (val nodeRef = reference.nodeRef) {
+            null -> processContext.processInstance.inputs.firstOrNull { it.name == reference.propertyName }
+
+            else -> {
+                processNode.resolvePredecessor(processContext.processInstance, nodeRef.id)
+                    ?.getResult(reference.propertyName)
+            }
+        }
+
+
+        val valueReader = result?.contentStream ?: return null
 
         val deserializer: DeserializationStrategy<T> = reference.serializer.nonNullSerializer()
         return XML.decodeFromReader(deserializer, valueReader)
@@ -149,7 +164,18 @@ abstract class DynamicPMAActivityContext<AIC : DynamicPMAActivityContext<AIC, BI
     fun <InT> nodeResult(reference: OutputRef<InT>): InT {
 //        return processContext.nodeResult(processNode.node, reference) as T
         val defines = (this /*as A*/).getDefines(processContext.processInstance)
-        return node.getInputData(defines) as InT
+        when (val n = node) {
+            is ExecutableCompositeActivity -> {
+                val data =  defines.firstOrNull { it.name == reference.propertyName } ?: error("No result found for ${reference} in executable activity")
+                val ser: DeserializationStrategy<Any> = (data as? RunnableActivity.DefineType<InT>)?.run { deserializer.nonNullSerializer() } ?: error("Define cannot be deserialized")
+
+                return XML.decodeFromReader(ser, data.contentStream) as InT
+            }
+            is AbstractRunnableActivity<*,*,*> -> {
+                return n.getInputData(defines) as InT
+            }
+        }
+        error("No result found for ${reference}")
 
     }
 
@@ -173,12 +199,14 @@ interface DynamicPMAProcessInstanceContext<A : DynamicPMAActivityContext<A, *>> 
 
     }
 
-    fun taskListFor(principal: PrincipalCompat): TaskListService
+    @Deprecated("Use contextfactory", ReplaceWith("contextFactory.getOrCreateTaskListForUser(principal)"))
+    fun taskListFor(principal: PrincipalCompat): TaskList = contextFactory.getOrCreateTaskListForUser(principal)
 
 }
 
 interface DynamicPMAProcessContextFactory<A : PMAActivityContext<A>> : PMAProcessContextFactory<A> {
     override fun getOrCreateTaskListForUser(principal: Principal): TaskList
     override fun getOrCreateTaskListForRestrictions(accessRestrictions: AccessRestriction?): List<TaskList>
-    fun <S: Service> resolveService(serviceId: ServiceName<S>): S
+    fun <S: Service> resolveService(serviceName: ServiceName<S>): S
+    fun <S: Service> resolveService(serviceId: ServiceId<S>): S
 }

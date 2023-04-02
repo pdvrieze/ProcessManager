@@ -1002,7 +1002,10 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
         return childNodes
             .asSequence()
             .map { it.withPermission() }
-            .first { it.handle == handle }
+            .firstOrNull { it.handle == handle }
+            ?: run {
+                throw NoSuchElementException("Could not find a child instance with handle ${handle}")
+            }
     }
 
     override fun allChildNodeInstances(): Sequence<IProcessNodeInstance> {

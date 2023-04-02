@@ -75,7 +75,7 @@ val pmaLoanModel =
 
             val getCustomerApproval: ActivityHandle<SignedDocument<Approval>> by taskActivity(
                 predecessor = startCreditEvaluate,
-                permissions = listOf(delegatePermissions(signingService, LoanPermissions.SIGN)),
+                authorizationTemplates = listOf(delegatePermissions(signingService, LoanPermissions.SIGN)),
                 accessRestrictions = RoleRestriction("customer"), // TODO support dynamic restrictions
                 input = customerIdInput as InputRef<LoanCustomer>,
             ) {
@@ -88,7 +88,7 @@ val pmaLoanModel =
 
             val verifyCustomerApproval: ActivityHandle<SignedDocument<SignedDocument<Approval>>> by taskActivity(
                 predecessor = getCustomerApproval,
-                permissions = listOf(
+                authorizationTemplates = listOf(
                     delegatePermissions(
                         customerFile,
                         ContextScopeTemplate(QUERY_CUSTOMER_DATA) { s ->
@@ -121,7 +121,7 @@ val pmaLoanModel =
                 predecessor = verifyCustomerApproval,
                 service = ServiceNames.creditBureau,
                 input = customerIdInput,
-                permissions = listOf(
+                authorizationTemplates = listOf(
                     delegatePermissions(
                         customerFile,
                         ContextScopeTemplate(QUERY_CUSTOMER_DATA) { t ->
@@ -195,7 +195,7 @@ val pmaLoanModel =
                     loanApplicationInput named "application",
                     getCreditReport named "creditReport"
                 ),
-                permissions = listOf(
+                authorizationTemplates = listOf(
                     ContextScopeTemplate(EVALUATE_LOAN) { t -> nodeData(loanApplicationInput)?.let { t(it.customerId) } },
                     delegatePermissions(
                         customerFile,
@@ -237,7 +237,7 @@ val pmaLoanModel =
                 input = combine(loanEvalInput named "loanEval", chosenProductInput named "prod") { e, p ->
                     PricingInput(e, p)
                 },
-                permissions = listOf(
+                authorizationTemplates = listOf(
                     delegatePermissions(
                         pricingEngine,
                         LoanPermissions.PRICE_LOAN.restrictTo(Double.NaN)
@@ -267,7 +267,7 @@ val pmaLoanModel =
         val printOffer: ActivityHandle<Offer> by taskActivity(
             predecessor = offerPriceLoan,
             input = approvedOfferOut,
-            permissions = listOf(delegatePermissions(outputManagementSystem, PRINT_OFFER))
+            authorizationTemplates = listOf(delegatePermissions(outputManagementSystem, PRINT_OFFER))
         ) {
             acceptTask(postProcClerk) { approvedOffer ->
                 uiServiceLogin(outputManagementSystem) {
@@ -287,7 +287,7 @@ val pmaLoanModel =
         val bankSignsContract: ActivityHandle<Contract> by taskActivity(
             predecessor = customerSignsContract,
             input = customerSignsContract,
-            permissions = listOf(
+            authorizationTemplates = listOf(
                 delegatePermissions(
                     outputManagementSystem,
                     ContextScopeTemplate(LoanPermissions.SIGN_LOAN) {

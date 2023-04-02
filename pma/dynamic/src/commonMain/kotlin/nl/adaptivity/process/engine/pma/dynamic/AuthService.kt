@@ -20,7 +20,8 @@ import net.devrieze.util.Handle
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.impl.Level
 import nl.adaptivity.process.engine.impl.LoggerCompat
-import nl.adaptivity.process.engine.pma.CommonPMAPermissions.*
+import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
+import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions.*
 import nl.adaptivity.process.engine.pma.models.*
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
@@ -45,7 +46,7 @@ class AuthService(
     private val authorizationCodes = mutableMapOf<AuthorizationCode, AuthToken>()
     private val activeTokens = mutableListOf<AuthToken>()
     private val globalPermissions =
-        mutableMapOf<PrincipalCompat, MutableMap<String, AuthScope>>()
+        mutableMapOf<String, MutableMap<String, AuthScope>>()
 
     private val tokenPermissions = mutableMapOf<String, MutableList<Permission>>()
 
@@ -118,7 +119,7 @@ class AuthService(
             val hasExtPermission = opaquePermissions.any { it.scope.includes(useScope) }
             if (!hasExtPermission) {
                 val hasGlobalPerm: Boolean = authToken.scope == IDENTIFY &&
-                    (globalPermissions.get(authToken.principal)?.get(serviceId)?.includes(useScope)
+                    (globalPermissions.get(authToken.principal.name)?.get(serviceId)?.includes(useScope)
                         ?: false)
 
                 if (!hasGlobalPerm) {
@@ -150,7 +151,7 @@ class AuthService(
         )
         if (useScope != IDENTIFY) { // Identify by password is always allowed
             val hasGlobalPerms =
-                globalPermissions.get(authInfo.principal)?.get(serviceId)?.includes(useScope) ?: false
+                globalPermissions.get(authInfo.principal.name)?.get(serviceId)?.includes(useScope) ?: false
             if (!hasGlobalPerms) {
                 throw AuthorizationException("No permission found for user ${authInfo.principal} to $serviceId.${useScope.description}")
             }
@@ -275,7 +276,7 @@ class AuthService(
         }
 
         val token = if (existingToken != null) {
-            Random.nextString()
+//            Random.nextString()
             existingToken
         } else {
             AuthToken(clientPrincipal, nodeInstanceHandle, Random.nextString(), service.serviceInstanceId, scope)
@@ -325,7 +326,7 @@ class AuthService(
         val serviceId = service.serviceInstanceId
         internalValidateAuthInfo(identityToken, IDENTIFY)
         val userPermissions: AuthScope? =
-            globalPermissions.get(identityToken.principal)?.get(serviceId)
+            globalPermissions.get(identityToken.principal.name)?.get(serviceId)
 
         val effectiveScope: AuthScope
         val tokenAssociatedPermissions: Sequence<AuthScope> = if (identityToken is AuthToken) {
@@ -359,7 +360,7 @@ class AuthService(
         val registeredPermissions = tokenAssociatedPermissions
             .plus(listOfNotNull(userPermissions).asSequence())
             .ifEmpty {
-                throw AuthorizationException("The token $identityToken has no permission to create delegate tokens for ${service.serviceName}.${reqScope.description}")
+                throw AuthorizationException("The token $identityToken has no permission to create delegate tokens for ${service.serviceInstanceId}.${reqScope.description}")
             }
             .reduce<AuthScope?, AuthScope> { l, r -> l?.union(r) }
             ?: throw AuthorizationException("The token $identityToken permissions cancel to nothing")
@@ -519,7 +520,7 @@ class AuthService(
                 CommonPMAPermissions.GRANT_GLOBAL_PERMISSION.context(clientId, service, scope)
             )
         }
-        globalPermissions.compute(principal) { _, map ->
+        globalPermissions.compute(principal.name) { _, map ->
             when(map) {
                 null -> mutableMapOf(service.serviceInstanceId.serviceId to scope)
                 else -> map.apply {
@@ -532,7 +533,7 @@ class AuthService(
                 }
             }
         }
-        globalPermissions.getOrPut(principal) { mutableMapOf() }
+        globalPermissions.getOrPut(principal.name) { mutableMapOf() }
             .compute(service.serviceInstanceId.serviceId) { k, oldScope ->
                 when (oldScope) {
                     null -> scope

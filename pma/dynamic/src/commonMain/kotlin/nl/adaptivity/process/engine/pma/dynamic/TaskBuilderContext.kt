@@ -1,7 +1,9 @@
 package nl.adaptivity.process.engine.pma.dynamic
 
 import nl.adaptivity.process.engine.pma.AuthToken
+import nl.adaptivity.process.engine.pma.TaskList
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAProcessInstanceContext
 import nl.adaptivity.process.engine.pma.dynamic.runtime.IDynamicPMAActivityContext
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.models.UIService
@@ -34,6 +36,24 @@ open class TaskBuilderContext<AIC : DynamicPMAActivityContext<AIC, BIC>, BIC : T
         operator fun invoke(activityContext: AIC, input: I): O {
             val browser = activityContext.resolveBrowser(principal)
             val context = activityContext.browserContext(browser)
+
+            val processContext: DynamicPMAProcessInstanceContext<AIC> = activityContext.processContext
+            val taskListService = processContext.contextFactory.getOrCreateTaskListForUser(principal) as TaskList
+
+            context.uiServiceLogin(taskListService) {
+                service.acceptActivity(authToken, browser.user, emptyList(), context.nodeInstanceHandle)
+            }
+
+/*
+            val authorizationCode = taskListService.acceptActivity(
+                browser.loginToService(taskListService),
+                browser.user,
+                emptyList(),
+                activityContext.nodeInstanceHandle
+            )
+            browser.addToken(processContext.authService, authorizationCode)
+*/
+
             return context.action(input)
         }
     }
@@ -41,6 +61,7 @@ open class TaskBuilderContext<AIC : DynamicPMAActivityContext<AIC, BIC>, BIC : T
     interface BrowserContext<AIC: DynamicPMAActivityContext<AIC, BIC>, BIC: BrowserContext<AIC, BIC>> :
         IDynamicPMAActivityContext<AIC, BIC> {
         fun <S: RunnableUIService, R> uiServiceLogin(service: ServiceName<S>, action: UIServiceInnerContext<S>.() -> R) : R
+        fun <S: RunnableUIService, R> uiServiceLogin(service: S, action: UIServiceInnerContext<S>.() -> R) : R
     }
 
     interface UIServiceInnerContext<S: UIService> {

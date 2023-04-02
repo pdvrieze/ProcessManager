@@ -65,7 +65,7 @@ abstract class PMAModelBuilderContext<AIC : DynamicPMAActivityContext<AIC, BIC>,
 
     inline fun  <I : Any, reified O : Any> taskActivity(
         predecessor: NodeHandle<*>,
-        permissions: List<AuthScopeTemplate<AIC>> = emptyList(),
+        authorizationTemplates: List<AuthScopeTemplate<AIC>> = emptyList(),
         accessRestrictions: RunnableAccessRestriction? = null,
         input: DefineInputCombiner<I>,
         @BuilderInference
@@ -76,13 +76,14 @@ abstract class PMAModelBuilderContext<AIC : DynamicPMAActivityContext<AIC, BIC>,
             inputCombiner = input.combiner,
             outputSerializer = serializer<O>(),
             action = taskListAction<AIC, BIC, I, O>(action),
-            accessRestrictions = accessRestrictions
+            accessRestrictions = accessRestrictions,
+            authorizationTemplates = authorizationTemplates
         )
     }
 
     inline fun  <I : Any, reified O : Any> taskActivity(
         predecessor: NodeHandle<*>,
-        permissions: List<AuthScopeTemplate<AIC>> = emptyList(),
+        authorizationTemplates: List<AuthScopeTemplate<AIC>> = emptyList(),
         accessRestrictions: RunnableAccessRestriction? = null,
         input: InputRef<I>,
         @BuilderInference
@@ -95,13 +96,14 @@ abstract class PMAModelBuilderContext<AIC : DynamicPMAActivityContext<AIC, BIC>,
             inputSerializer = input.serializer,
             outputSerializer = serializer<O>(),
             accessRestrictions = accessRestrictions,
+            authorizationTemplates = authorizationTemplates,
             action = taskListAction(action),
         )
     }
 
     inline fun  <I : Any, reified O : Any, S: AutomatedService> serviceActivity(
         predecessor: NodeHandle<*>,
-        permissions: List<AuthScopeTemplate<AIC>> = emptyList(),
+        authorizationTemplates: List<AuthScopeTemplate<AIC>> = emptyList(),
         service: ServiceName<S>,
         input: DefineInputCombiner<I>,
         @BuilderInference
@@ -111,13 +113,14 @@ abstract class PMAModelBuilderContext<AIC : DynamicPMAActivityContext<AIC, BIC>,
             predecessor = predecessor,
             inputCombiner = input.combiner,
             outputSerializer = serializer<O>(),
+            authorizationTemplates = authorizationTemplates,
             action = serviceAction(service, action)
         )
     }
 
     inline fun  <I : Any, reified O : Any, S: AutomatedService> serviceActivity(
         predecessor: NodeHandle<*>,
-        permissions: List<AuthScopeTemplate<AIC>> = emptyList(),
+        authorizationTemplates: List<AuthScopeTemplate<AIC>> = emptyList(),
         service: ServiceName<S>,
         input: InputRef<I>,
         @BuilderInference
@@ -129,6 +132,7 @@ abstract class PMAModelBuilderContext<AIC : DynamicPMAActivityContext<AIC, BIC>,
             refName = input.propertyName,
             inputSerializer = input.serializer,
             outputSerializer = serializer<O>(),
+            authorizationTemplates = authorizationTemplates,
             action = serviceAction(service, action)
         )
     }
@@ -151,7 +155,7 @@ internal fun <AIC: DynamicPMAActivityContext<AIC, *>, I: Any, O: Any, S: Automat
 ): PmaServiceAction<I, O, AIC, S> {
     return PmaServiceAction(serviceId) { input ->
         val service: S = processContext.contextFactory.resolveService(serviceId)
-        val authToken =processContext.engineService.authTokenForService(service)
+        val authToken =processContext.engineService.globalAuthTokenForService(service)
         val serviceContext = ServiceActivityContext(this, service, authToken)
         serviceContext.action(input)
     }
