@@ -141,6 +141,6 @@ class LoanPmaProcessContextImpl(
     }
 
     override fun taskListFor(principal: PrincipalCompat): TaskList {
-        TODO("not implemented")
+        return contextFactory.getOrCreateTaskListForUser(principal)
     }
 }

@@ -44,14 +44,14 @@ class RunnableActivityInstance<I : Any, O : Any, C : ActivityInstanceContext>(bu
 
         override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {
             fun <C: ActivityInstanceContext> doRun(contextFactory: ProcessContextFactory<C>, builtNodeInstance: RunnableActivityInstance<InputT, OutputT, *>) : CompactFragment? {
-                val icontext: C = contextFactory.newActivityInstanceContext(engineData, this)
+                val aic: C = contextFactory.newActivityInstanceContext(engineData, this)
 
-                val input: InputT = with(builtNodeInstance) { icontext.getInputData(processInstanceBuilder) }
+                val input: InputT = with(builtNodeInstance) { aic.getInputData(processInstanceBuilder) }
 
                 val action: RunnableAction<InputT, OutputT, C> =
                     node.action as RunnableAction<InputT, OutputT, C>
 
-                val result: OutputT = icontext.action(input)
+                val result: OutputT = aic.action(input)
 
                 return node.outputSerializer?.let { os ->
                     CompactFragment { writer ->

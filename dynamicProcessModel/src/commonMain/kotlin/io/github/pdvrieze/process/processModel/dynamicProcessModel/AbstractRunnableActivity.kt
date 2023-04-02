@@ -38,7 +38,7 @@ abstract class AbstractRunnableActivity<I: Any, O: Any, C: ActivityInstanceConte
 
     protected val inputCombiner: InputCombiner<I> = builder.inputCombiner
 
-    internal val outputSerializer: SerializationStrategy<O>? = builder.outputSerializer
+    val outputSerializer: SerializationStrategy<O>? = builder.outputSerializer
 
     final override val condition: ExecutableCondition? = builder.condition?.toExecutableCondition()
 
