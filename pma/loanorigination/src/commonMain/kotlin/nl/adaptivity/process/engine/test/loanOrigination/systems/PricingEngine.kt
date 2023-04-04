@@ -18,7 +18,7 @@ package nl.adaptivity.process.engine.test.loanOrigination.systems
 
 import nl.adaptivity.process.engine.pma.AuthInfo
 import nl.adaptivity.process.engine.pma.AuthService
-import nl.adaptivity.process.engine.pma.dynamic.AbstractRunnableUIService
+import nl.adaptivity.process.engine.pma.dynamic.services.AbstractRunnableUiService
 import nl.adaptivity.process.engine.pma.models.AutomatedService
 import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
@@ -27,7 +27,7 @@ import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanEvaluatio
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanProductBundle
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.PricedLoanProductBundle
 
-class PricingEngine(serviceName: String, authService: AuthService): AbstractRunnableUIService(authService, "Pricing_Engine"), AutomatedService {
+class PricingEngine(serviceName: String, authService: AuthService): AbstractRunnableUiService(authService, "Pricing_Engine"), AutomatedService {
 
     override val serviceName: ServiceName<PricingEngine> = ServiceName(serviceName)
     override val serviceInstanceId: ServiceId<PricingEngine> = ServiceId(getServiceId(serviceAuth))

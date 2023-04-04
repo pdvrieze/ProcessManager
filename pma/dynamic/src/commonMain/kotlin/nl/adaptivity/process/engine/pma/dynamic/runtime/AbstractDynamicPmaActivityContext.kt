@@ -1,48 +1,33 @@
 package nl.adaptivity.process.engine.pma.dynamic.runtime
 
-import RunnablePmaActivity
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.AbstractRunnableActivity
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.InputRef
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.OutputRef
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.RunnableActivity
 import kotlinx.serialization.DeserializationStrategy
-import nl.adaptivity.process.engine.ActivityInstanceContext
-import nl.adaptivity.process.engine.IProcessInstance
 import nl.adaptivity.process.engine.ProcessData
-import nl.adaptivity.process.engine.pma.*
+import nl.adaptivity.process.engine.ProcessEnginePermissions
+import nl.adaptivity.process.engine.pma.AuthorizationCode
+import nl.adaptivity.process.engine.pma.Browser
 import nl.adaptivity.process.engine.pma.dynamic.TaskBuilderContext
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.models.AuthScope
 import nl.adaptivity.process.engine.pma.models.Service
-import nl.adaptivity.process.engine.pma.models.ServiceId
-import nl.adaptivity.process.engine.pma.models.ServiceName
-import nl.adaptivity.process.engine.pma.runtime.PMAActivityContext
-import nl.adaptivity.process.engine.pma.runtime.PMAProcessContextFactory
-import nl.adaptivity.process.engine.pma.runtime.PMAProcessInstanceContext
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
-import nl.adaptivity.process.engine.processModel.applyData
 import nl.adaptivity.process.engine.processModel.getDefines
-import nl.adaptivity.process.processModel.AccessRestriction
+import nl.adaptivity.process.processModel.MessageActivity
 import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.process.processModel.engine.ExecutableCompositeActivity
 import nl.adaptivity.serialutil.nonNullSerializer
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.xmlutil.serialization.XML
-import java.security.Principal
 
-interface IDynamicPMAActivityContext<AIC : DynamicPMAActivityContext<AIC, BIC>, BIC : TaskBuilderContext.BrowserContext<AIC, BIC>> :
-    PMAActivityContext<AIC> {
-
-    fun browserContext(browser: Browser): BIC
-    fun resolveBrowser(principal: PrincipalCompat): Browser
-}
-
-abstract class DynamicPMAActivityContext<AIC : DynamicPMAActivityContext<AIC, BIC>, BIC: TaskBuilderContext.BrowserContext<AIC, BIC>>(
+abstract class AbstractDynamicPmaActivityContext<AIC : AbstractDynamicPmaActivityContext<AIC, BIC>, BIC: TaskBuilderContext.BrowserContext<AIC, BIC>>(
     override val processNode: IProcessNodeInstance
-) : IDynamicPMAActivityContext<AIC, BIC> {
+) : DynamicPmaActivityContext<AIC, BIC> {
     override val node: ExecutableActivity get() = processNode.node as ExecutableActivity
 
-    abstract override val processContext: DynamicPMAProcessInstanceContext<AIC>
+    abstract override val processContext: DynamicPmaProcessInstanceContext<AIC>
 
     private val pendingPermissions = ArrayDeque<PendingPermission>()
 
@@ -104,7 +89,7 @@ abstract class DynamicPMAActivityContext<AIC : DynamicPMAActivityContext<AIC, BI
         val serviceAuthorization = with(processContext) {
             engineService.createAuthorizationCode(
                 clientServiceId.serviceId,
-                this@DynamicPMAActivityContext.nodeInstanceHandle,
+                this@AbstractDynamicPmaActivityContext.nodeInstanceHandle,
                 authService,
                 CommonPMAPermissions.IDENTIFY,
                 pendingPermissions
@@ -179,34 +164,15 @@ abstract class DynamicPMAActivityContext<AIC : DynamicPMAActivityContext<AIC, BI
 
     }
 
-}
-
-interface DynamicPMAProcessInstanceContext<A : DynamicPMAActivityContext<A, *>> : PMAProcessInstanceContext<A> {
-    val processInstance: IProcessInstance
-    val authService: AuthService
-    val engineService: EngineService
-    val generalClientService: GeneralClientService
-    override val contextFactory: DynamicPMAProcessContextFactory<A>
-
-
-    fun <I: Any, O: Any, C : DynamicPMAActivityContext<C, *>> nodeResult(node: RunnablePmaActivity<I, O, C>, reference: OutputRef<O>): I {
-        val defines = node.defines.map {
-            // TODO the cast shouldn't be needed
-            it.applyData(processInstance, this as ActivityInstanceContext)
-        }
-
-        return node.getInputData(defines)
-
+    override fun resolveBrowser(principal: PrincipalCompat): Browser {
+        return processContext.resolveBrowser(principal)
     }
 
-    @Deprecated("Use contextfactory", ReplaceWith("contextFactory.getOrCreateTaskListForUser(principal)"))
-    fun taskListFor(principal: PrincipalCompat): TaskList = contextFactory.getOrCreateTaskListForUser(principal)
+    override fun canBeAssignedTo(principal: PrincipalCompat?): Boolean {
+        val restrictions = (node as? MessageActivity)?.accessRestrictions ?: return true
 
+        return principal != null &&
+            restrictions.hasAccess(this, principal, ProcessEnginePermissions.ASSIGNED_TO_ACTIVITY)
+    }
 }
 
-interface DynamicPMAProcessContextFactory<A : PMAActivityContext<A>> : PMAProcessContextFactory<A> {
-    override fun getOrCreateTaskListForUser(principal: Principal): TaskList
-    override fun getOrCreateTaskListForRestrictions(accessRestrictions: AccessRestriction?): List<TaskList>
-    fun <S: Service> resolveService(serviceName: ServiceName<S>): S
-    fun <S: Service> resolveService(serviceId: ServiceId<S>): S
-}

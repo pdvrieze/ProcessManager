@@ -21,9 +21,9 @@ interface AutomatedService: Service {
     override val serviceInstanceId: ServiceId<AutomatedService>
 }
 
-interface UIService: Service {
-    override val serviceName: ServiceName<UIService>
-    override val serviceInstanceId: ServiceId<UIService>
+interface UiService: Service {
+    override val serviceName: ServiceName<UiService>
+    override val serviceInstanceId: ServiceId<UiService>
 }
 
 @JvmInline

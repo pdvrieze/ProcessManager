@@ -1,8 +1,5 @@
 package nl.adaptivity.process.engine.pma.dynamic.runtime
 
-import PmaAction
-import PmaBrowserAction
-import PmaServiceAction
 import RunnablePmaActivity
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.AbstractRunnableActivityInstance
 import net.devrieze.util.Handle
@@ -11,6 +8,9 @@ import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessContextFactory
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.impl.CompactFragment
+import nl.adaptivity.process.engine.pma.dynamic.model.PmaAction
+import nl.adaptivity.process.engine.pma.dynamic.model.PmaAction.BrowserAction
+import nl.adaptivity.process.engine.pma.dynamic.model.PmaAction.ServiceAction
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.models.AuthScope
 import nl.adaptivity.process.engine.pma.models.Service
@@ -22,32 +22,32 @@ import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.CompactFragment
 
-class RunnablePmaActivityInstance<InputT : Any, OutputT : Any, C : DynamicPMAActivityContext<C, *>>(
+class DynamicPmaActivityInstance<InputT : Any, OutputT : Any, C : AbstractDynamicPmaActivityContext<C, *>>(
     builder: Builder<InputT, OutputT, C>
-) : AbstractRunnableActivityInstance<InputT, OutputT, C, RunnablePmaActivity<InputT, OutputT, C>, RunnablePmaActivityInstance<InputT, OutputT, C>>(
+) : AbstractRunnableActivityInstance<InputT, OutputT, C, RunnablePmaActivity<InputT, OutputT, C>, DynamicPmaActivityInstance<InputT, OutputT, C>>(
     builder
 ) {
 
-    val isBrowserTask: Boolean get() = node.action is PmaBrowserAction<*, *, *, *>
+    val isBrowserTask: Boolean get() = node.action is BrowserAction<*, *, *, *>
 
     override fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder<InputT, OutputT, C> {
-        return RunnablePmaActivityInstance.ExtBuilder(this, processInstanceBuilder)
+        return DynamicPmaActivityInstance.ExtBuilder(this, processInstanceBuilder)
     }
 
-    interface Builder<InputT : Any, OutputT : Any, C : DynamicPMAActivityContext<C, *>> :
-        AbstractRunnableActivityInstance.Builder<InputT, OutputT, C, RunnablePmaActivity<InputT, OutputT, C>, RunnablePmaActivityInstance<InputT, OutputT, C>> {
+    interface Builder<InputT : Any, OutputT : Any, C : AbstractDynamicPmaActivityContext<C, *>> :
+        AbstractRunnableActivityInstance.Builder<InputT, OutputT, C, RunnablePmaActivity<InputT, OutputT, C>, DynamicPmaActivityInstance<InputT, OutputT, C>> {
 
-        val isBrowserTask: Boolean get() = node.action is PmaBrowserAction<*, *, *, *>
+        val isBrowserTask: Boolean get() = node.action is BrowserAction<*, *, *, *>
 
         override fun doProvideTask(
             engineData: MutableProcessEngineDataAccess,
             messageService: IMessageService<*>
         ): Boolean {
-            val contextFactory = engineData.processContextFactory as DynamicPMAProcessContextFactory<C>
+            val contextFactory = engineData.processContextFactory as DynamicPmaProcessContextFactory<C>
             val aic = contextFactory.newActivityInstanceContext(engineData, this)
             val processContext = aic.processContext
             return when (node.action) {
-                is PmaBrowserAction<*, *, *, *> -> {
+                is BrowserAction<*, *, *, *> -> {
                     val taskLists = contextFactory.getOrCreateTaskListForRestrictions(node.accessRestrictions)
                     for (taskList in taskLists) {
                         processContext.engineService.doPostTaskToTasklist(taskList, handle)
@@ -63,12 +63,12 @@ class RunnablePmaActivityInstance<InputT : Any, OutputT : Any, C : DynamicPMAAct
         }
 
         override fun doTakeTask(engineData: MutableProcessEngineDataAccess, assignedUser: PrincipalCompat?): Boolean {
-            val contextFactory = engineData.processContextFactory as DynamicPMAProcessContextFactory<C>
+            val contextFactory = engineData.processContextFactory as DynamicPmaProcessContextFactory<C>
             val aic = contextFactory.newActivityInstanceContext(engineData, this)
-            val processContext: DynamicPMAProcessInstanceContext<C> = aic.processContext
+            val processContext: DynamicPmaProcessInstanceContext<C> = aic.processContext
 
             when (val action: PmaAction<InputT, OutputT, C> = node.action) {
-                is PmaBrowserAction<InputT, OutputT, C, *> -> {
+                is BrowserAction<InputT, OutputT, C, *> -> {
 
                     val user = action.action.principal
                     val taskList = processContext.contextFactory.getOrCreateTaskListForUser(user)
@@ -90,7 +90,7 @@ class RunnablePmaActivityInstance<InputT : Any, OutputT : Any, C : DynamicPMAAct
                                 }
                             }
                             if (service!=null && scope != null) {
-                                DynamicPMAActivityContext.PendingPermission(user.name, service, scope)
+                                AbstractDynamicPmaActivityContext.PendingPermission(user.name, service, scope)
                             } else null
                         }
 
@@ -108,9 +108,9 @@ class RunnablePmaActivityInstance<InputT : Any, OutputT : Any, C : DynamicPMAAct
         }
 
         override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {
-            fun <C: DynamicPMAActivityContext<C, *>> doRun(
+            fun <C: AbstractDynamicPmaActivityContext<C, *>> doRun(
                 contextFactory: ProcessContextFactory<C>,
-                builtNodeInstance: RunnablePmaActivityInstance<InputT, OutputT, C>
+                builtNodeInstance: DynamicPmaActivityInstance<InputT, OutputT, C>
             ) : CompactFragment? {
                 val aic: C = contextFactory.newActivityInstanceContext(engineData, builtNodeInstance)
 
@@ -119,15 +119,13 @@ class RunnablePmaActivityInstance<InputT : Any, OutputT : Any, C : DynamicPMAAct
                 val ac: PmaAction<InputT, OutputT, C> = builtNodeInstance.node.action
 
                 val result: OutputT = when (ac) {
-                    is PmaBrowserAction<InputT, OutputT, C, *> ->
+                    is BrowserAction<InputT, OutputT, C, *> ->
                         ac.action.invoke(aic, input)
 
-                    is PmaServiceAction<InputT,OutputT,C,*> -> {
+                    is ServiceAction<InputT, OutputT, C, *> -> {
                         val action = ac.action
                         aic.action(input)
                     }
-
-                    else -> error("Should not be reachable (PmaAction is sealed)")
                 }
 
                     //aic.action(input)
@@ -145,7 +143,7 @@ class RunnablePmaActivityInstance<InputT : Any, OutputT : Any, C : DynamicPMAAct
             if (shouldProgress) {
 
                 val resultFragment = tryRunTask {
-                    val builtNodeInstance: RunnablePmaActivityInstance<InputT, OutputT, C> = build()
+                    val builtNodeInstance: DynamicPmaActivityInstance<InputT, OutputT, C> = build()
                     val contextFactory = engineData.processContextFactory as ProcessContextFactory<C>
                     doRun(contextFactory, builtNodeInstance)
                 }
@@ -157,7 +155,7 @@ class RunnablePmaActivityInstance<InputT : Any, OutputT : Any, C : DynamicPMAAct
     }
 
 
-    class BaseBuilder<I : Any, O : Any, C : DynamicPMAActivityContext<C, *>>(
+    class BaseBuilder<I : Any, O : Any, C : AbstractDynamicPmaActivityContext<C, *>>(
         node: RunnablePmaActivity<I, O, C>,
         predecessor: PNIHandle?,
         processInstanceBuilder: ProcessInstance.Builder,
@@ -166,26 +164,26 @@ class RunnablePmaActivityInstance<InputT : Any, OutputT : Any, C : DynamicPMAAct
         assignedUser: PrincipalCompat? = null,
         handle: PNIHandle = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
-    ) : AbstractRunnableActivityInstance.BaseBuilder<I, O, C, RunnablePmaActivity<I, O, C>, RunnablePmaActivityInstance<I, O, C>>(
+    ) : AbstractRunnableActivityInstance.BaseBuilder<I, O, C, RunnablePmaActivity<I, O, C>, DynamicPmaActivityInstance<I, O, C>>(
         node, predecessor, processInstanceBuilder, owner,
         entryNo, assignedUser, handle, state
     ), Builder<I, O, C> {
 
-        override fun build(): RunnablePmaActivityInstance<I, O, C> {
-            return RunnablePmaActivityInstance(this)
+        override fun build(): DynamicPmaActivityInstance<I, O, C> {
+            return DynamicPmaActivityInstance(this)
         }
     }
 
-    class ExtBuilder<I : Any, O : Any, C : DynamicPMAActivityContext<C, *>>(
-        base: RunnablePmaActivityInstance<I, O, C>,
+    class ExtBuilder<I : Any, O : Any, C : AbstractDynamicPmaActivityContext<C, *>>(
+        base: DynamicPmaActivityInstance<I, O, C>,
         processInstanceBuilder: ProcessInstance.Builder
-    ) : AbstractRunnableActivityInstance.ExtBuilder<I, O, C, RunnablePmaActivity<I, O, C>, RunnablePmaActivityInstance<I, O, C>>(
+    ) : AbstractRunnableActivityInstance.ExtBuilder<I, O, C, RunnablePmaActivity<I, O, C>, DynamicPmaActivityInstance<I, O, C>>(
         base,
         processInstanceBuilder
     ), Builder<I, O, C> {
 
-        override fun build(): RunnablePmaActivityInstance<I, O, C> {
-            return if (changed) RunnablePmaActivityInstance(this).also { invalidateBuilder(it) } else base
+        override fun build(): DynamicPmaActivityInstance<I, O, C> {
+            return if (changed) DynamicPmaActivityInstance(this).also { invalidateBuilder(it) } else base
         }
     }
 }

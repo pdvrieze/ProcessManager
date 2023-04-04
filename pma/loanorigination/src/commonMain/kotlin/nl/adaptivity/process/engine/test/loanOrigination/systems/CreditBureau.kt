@@ -19,8 +19,8 @@ package nl.adaptivity.process.engine.test.loanOrigination.systems
 import nl.adaptivity.process.engine.pma.AuthInfo
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.AuthToken
-import nl.adaptivity.process.engine.pma.dynamic.ServiceImpl
-import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAProcessContextFactory
+import nl.adaptivity.process.engine.pma.dynamic.services.ServiceBase
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaProcessContextFactory
 import nl.adaptivity.process.engine.pma.models.AutomatedService
 import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
@@ -30,7 +30,7 @@ import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CreditReport
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
 
-class CreditBureau(serviceName: String, authService: AuthService): ServiceImpl(authService, "CreditBureau"), AutomatedService {
+class CreditBureau(serviceName: String, authService: AuthService): ServiceBase(authService, "CreditBureau"), AutomatedService {
 
     override val serviceName: ServiceName<CreditBureau> = ServiceName(serviceName)
     override val serviceInstanceId: ServiceId<CreditBureau> = ServiceId(getServiceId(serviceAuth))
@@ -49,7 +49,7 @@ class CreditBureau(serviceName: String, authService: AuthService): ServiceImpl(a
                                                                                       )
     }
 
-    fun getCreditReport(context: DynamicPMAProcessContextFactory<LoanPMAActivityContext>, authInfo: AuthToken, customerId: String, taxId: String): CreditReport {
+    fun getCreditReport(context: DynamicPmaProcessContextFactory<LoanPMAActivityContext>, authInfo: AuthToken, customerId: String, taxId: String): CreditReport {
         logMe()
         validateAuthInfo(authInfo, LoanPermissions.GET_CREDIT_REPORT(taxId))
         val customerFile = context.resolveService(ServiceNames.customerFile)

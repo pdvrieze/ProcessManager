@@ -17,19 +17,16 @@
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.AbstractRunnableActivity
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.InputCombiner
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.RunnableAccessRestriction
-import io.github.pdvrieze.process.processModel.dynamicProcessModel.RunnableAction
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.RunnableActivity.OnActivityProvided
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
-import nl.adaptivity.process.engine.pma.dynamic.TaskBuilderContext
-import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
-import nl.adaptivity.process.engine.pma.dynamic.runtime.RunnablePmaActivityInstance
+import nl.adaptivity.process.engine.pma.dynamic.model.PmaAction
+import nl.adaptivity.process.engine.pma.dynamic.runtime.AbstractDynamicPmaActivityContext
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaActivityInstance
 import nl.adaptivity.process.engine.pma.models.AuthScopeTemplate
-import nl.adaptivity.process.engine.pma.models.AutomatedService
 import nl.adaptivity.process.engine.pma.models.IPMAMessageActivity
-import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.updateChild
@@ -39,7 +36,7 @@ import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.util.Identified
 
-class RunnablePmaActivity<I : Any, O : Any, C : DynamicPMAActivityContext<C, *>>(
+class RunnablePmaActivity<I : Any, O : Any, C : AbstractDynamicPmaActivityContext<C, *>>(
     builder: Builder<I, O, C>,
     newOwner: ProcessModel<*>,
     otherNodes: Iterable<ProcessNode.Builder>
@@ -68,7 +65,7 @@ class RunnablePmaActivity<I : Any, O : Any, C : DynamicPMAActivityContext<C, *>>
             }
         }
 
-        return RunnablePmaActivityInstance.BaseBuilder<I, O, C>(
+        return DynamicPmaActivityInstance.BaseBuilder<I, O, C>(
             this, predecessor.handle,
             processInstanceBuilder,
             processInstanceBuilder.owner,
@@ -76,7 +73,7 @@ class RunnablePmaActivity<I : Any, O : Any, C : DynamicPMAActivityContext<C, *>>
         )
     }
 
-    class Builder<I : Any, O : Any, C : DynamicPMAActivityContext<C, *>> :
+    class Builder<I : Any, O : Any, C : AbstractDynamicPmaActivityContext<C, *>> :
         AbstractRunnableActivity.Builder<I, O, C>, IPMAMessageActivity.Builder<C> {
 
         var action: PmaAction<I, O, C>
@@ -143,15 +140,3 @@ class RunnablePmaActivity<I : Any, O : Any, C : DynamicPMAActivityContext<C, *>>
 
 }
 
-sealed class PmaAction<I : Any, O : Any, C : DynamicPMAActivityContext<C, *>>
-
-class PmaBrowserAction<I : Any, O : Any, AIC : DynamicPMAActivityContext<AIC, BIC>, BIC : TaskBuilderContext.BrowserContext<AIC, BIC>>(
-    val action: TaskBuilderContext.AcceptedTask<AIC, BIC, I, O>
-) : PmaAction<I, O, AIC>() {
-
-}
-
-class PmaServiceAction<I : Any, O : Any, C : DynamicPMAActivityContext<C, *>, S : AutomatedService>(
-    val serviceId: ServiceName<S>,
-    val action: RunnableAction<I, O, C>
-) : PmaAction<I, O, C>()

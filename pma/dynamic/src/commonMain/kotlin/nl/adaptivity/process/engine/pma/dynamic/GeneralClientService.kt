@@ -16,14 +16,14 @@
 
 package nl.adaptivity.process.engine.pma
 
-import nl.adaptivity.process.engine.pma.dynamic.ServiceImpl
+import nl.adaptivity.process.engine.pma.dynamic.services.ServiceBase
 import nl.adaptivity.process.engine.pma.models.*
 import java.security.Principal
 
 class GeneralClientService(
     serviceName: String,
     authService: AuthService
-) : ServiceImpl(authService, "<automated>"), AutomatedService {
+) : ServiceBase(authService, "<automated>"), AutomatedService {
     override val serviceName: ServiceName<GeneralClientService> = ServiceName(serviceName)
     override val serviceInstanceId: ServiceId<GeneralClientService> = ServiceId(getServiceId(serviceAuth))
 
@@ -54,9 +54,10 @@ class GeneralClientService(
 
         }
     }
-}
 
-interface ClientServiceContext {
-    val automatedService: Principal
-    fun getServiceToken(service: Service, scope: AuthScope): AuthToken
+    interface ClientServiceContext {
+        val automatedService: Principal
+        fun getServiceToken(service: Service, scope: AuthScope): AuthToken
+    }
+
 }

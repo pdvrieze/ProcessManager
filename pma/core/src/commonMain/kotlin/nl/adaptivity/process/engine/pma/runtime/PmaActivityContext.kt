@@ -12,11 +12,11 @@ import nl.adaptivity.process.processModel.TokenServiceAuthData
 import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-interface PMAActivityContext<AIC : PMAActivityContext<AIC>> : ActivityInstanceContext {
+interface PmaActivityContext<AIC : PmaActivityContext<AIC>> : ActivityInstanceContext {
 
     val processNode: IProcessNodeInstance
 
-    override val processContext: PMAProcessInstanceContext<AIC>
+    override val processContext: PmaProcessInstanceContext<AIC>
 
     override val node: ExecutableActivity get() = processNode.node as ExecutableActivity
 

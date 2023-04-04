@@ -18,7 +18,8 @@ package nl.adaptivity.process.engine.pma
 
 import nl.adaptivity.process.engine.impl.Level
 import nl.adaptivity.process.engine.impl.LoggerCompat
-import nl.adaptivity.process.engine.pma.dynamic.RunnableUIService
+import nl.adaptivity.process.engine.pma.dynamic.services.RunnableUiService
+import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.models.ANYSCOPE
 import nl.adaptivity.process.engine.pma.models.Service
@@ -52,7 +53,7 @@ class Browser private constructor(private val authService: AuthService, val auth
         addToken(authService.getAuthToken(auth, authorizationCode))
     }
 
-    fun loginToService(service: RunnableUIService): AuthToken {
+    fun loginToService(service: RunnableUiService): AuthToken {
         tokens.removeIf { authService.isTokenInvalid(it) }
         tokens.lastOrNull { it.serviceId == service.serviceInstanceId }?.let {
             logger.log(

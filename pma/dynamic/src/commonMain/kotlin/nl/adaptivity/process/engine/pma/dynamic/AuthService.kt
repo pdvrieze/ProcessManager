@@ -20,6 +20,7 @@ import net.devrieze.util.Handle
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.impl.Level
 import nl.adaptivity.process.engine.impl.LoggerCompat
+import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions.*
 import nl.adaptivity.process.engine.pma.models.*
@@ -28,7 +29,6 @@ import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.nl.adaptivity.util.kotlin.removeIfTo
 import kotlin.random.Random
 import kotlin.random.nextUInt
-import kotlin.random.nextULong
 
 class AuthService(
     serviceName: String,
@@ -552,10 +552,12 @@ class AuthService(
     override fun toString(): String {
         return "AuthService"
     }
+
+    companion object {
+
+        private operator fun Map<String, AuthScope>.get(key: ServiceId<*>) = get(key.serviceId)
+
+        private operator fun MutableMap<String, AuthScope>.set(key: ServiceId<*>, value: AuthScope) = set(key.serviceId, value)
+
+    }
 }
-
-fun Random.nextString() = nextULong().toString(16)
-
-private operator fun Map<String, AuthScope>.get(key: ServiceId<*>) = get(key.serviceId)
-
-private operator fun MutableMap<String, AuthScope>.set(key: ServiceId<*>, value: AuthScope) = set(key.serviceId, value)

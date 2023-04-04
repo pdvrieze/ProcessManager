@@ -51,6 +51,7 @@ kotlin {
             dependencies {
                 implementation(project(":ProcessEngine:core"))
                 implementation(project(":pma:core"))
+                implementation(project(":pma:dynamic"))
                 implementation(project(":ProcessEngine:testLib"))
                 implementation(project(":multiplatform"))
                 implementation(project(":dynamicProcessModel"))

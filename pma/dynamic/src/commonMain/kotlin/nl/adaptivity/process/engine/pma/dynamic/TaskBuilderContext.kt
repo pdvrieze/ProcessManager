@@ -1,15 +1,16 @@
 package nl.adaptivity.process.engine.pma.dynamic
 
 import nl.adaptivity.process.engine.pma.AuthToken
-import nl.adaptivity.process.engine.pma.TaskList
-import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
-import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAProcessInstanceContext
-import nl.adaptivity.process.engine.pma.dynamic.runtime.IDynamicPMAActivityContext
+import nl.adaptivity.process.engine.pma.dynamic.services.TaskList
+import nl.adaptivity.process.engine.pma.dynamic.runtime.AbstractDynamicPmaActivityContext
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaProcessInstanceContext
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaActivityContext
+import nl.adaptivity.process.engine.pma.dynamic.services.RunnableUiService
 import nl.adaptivity.process.engine.pma.models.ServiceName
-import nl.adaptivity.process.engine.pma.models.UIService
+import nl.adaptivity.process.engine.pma.models.UiService
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-open class TaskBuilderContext<AIC : DynamicPMAActivityContext<AIC, BIC>, BIC : TaskBuilderContext.BrowserContext<AIC, BIC>, I>() {
+open class TaskBuilderContext<AIC : AbstractDynamicPmaActivityContext<AIC, BIC>, BIC : TaskBuilderContext.BrowserContext<AIC, BIC>, I>() {
 
     /*
         open fun ensureTaskList(browser: Browser) : TaskListService {
@@ -29,7 +30,7 @@ open class TaskBuilderContext<AIC : DynamicPMAActivityContext<AIC, BIC>, BIC : T
         return AcceptedTask(principal, action)
     }
 
-    class AcceptedTask<AIC : DynamicPMAActivityContext<AIC, BIC>, BIC : BrowserContext<AIC, BIC>, I, O>(
+    class AcceptedTask<AIC : AbstractDynamicPmaActivityContext<AIC, BIC>, BIC : BrowserContext<AIC, BIC>, I, O>(
         val principal: PrincipalCompat,
         private val action: BIC.(I) -> O
     ) {
@@ -37,7 +38,7 @@ open class TaskBuilderContext<AIC : DynamicPMAActivityContext<AIC, BIC>, BIC : T
             val browser = activityContext.resolveBrowser(principal)
             val context = activityContext.browserContext(browser)
 
-            val processContext: DynamicPMAProcessInstanceContext<AIC> = activityContext.processContext
+            val processContext: DynamicPmaProcessInstanceContext<AIC> = activityContext.processContext
             val taskListService = processContext.contextFactory.getOrCreateTaskListForUser(principal) as TaskList
 
             context.uiServiceLogin(taskListService) {
@@ -58,13 +59,13 @@ open class TaskBuilderContext<AIC : DynamicPMAActivityContext<AIC, BIC>, BIC : T
         }
     }
 
-    interface BrowserContext<AIC: DynamicPMAActivityContext<AIC, BIC>, BIC: BrowserContext<AIC, BIC>> :
-        IDynamicPMAActivityContext<AIC, BIC> {
-        fun <S: RunnableUIService, R> uiServiceLogin(service: ServiceName<S>, action: UIServiceInnerContext<S>.() -> R) : R
-        fun <S: RunnableUIService, R> uiServiceLogin(service: S, action: UIServiceInnerContext<S>.() -> R) : R
+    interface BrowserContext<AIC: AbstractDynamicPmaActivityContext<AIC, BIC>, BIC: BrowserContext<AIC, BIC>> :
+        DynamicPmaActivityContext<AIC, BIC> {
+        fun <S: RunnableUiService, R> uiServiceLogin(service: ServiceName<S>, action: UIServiceInnerContext<S>.() -> R) : R
+        fun <S: RunnableUiService, R> uiServiceLogin(service: S, action: UIServiceInnerContext<S>.() -> R) : R
     }
 
-    interface UIServiceInnerContext<S: UIService> {
+    interface UIServiceInnerContext<S: UiService> {
         val authToken: AuthToken
         val service: S
     }

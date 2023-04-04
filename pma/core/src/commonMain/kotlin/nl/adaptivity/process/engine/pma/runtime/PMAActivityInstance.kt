@@ -13,7 +13,7 @@ import nl.adaptivity.process.engine.processModel.tryCreateTask
 import nl.adaptivity.process.processModel.XmlMessage
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAActivityInstance<C>> {
+class PMAActivityInstance <C : PmaActivityContext<C>> : ProcessNodeInstance<PMAActivityInstance<C>> {
 
     constructor(
         node: IPMAMessageActivity<C>,
@@ -49,13 +49,13 @@ class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAA
         return ExtBuilder(this, processInstanceBuilder)
     }
 
-    interface Builder<C :PMAActivityContext<C>> : ProcessNodeInstance.Builder<IPMAMessageActivity<C>, PMAActivityInstance<C>> {
+    interface Builder<C :PmaActivityContext<C>> : ProcessNodeInstance.Builder<IPMAMessageActivity<C>, PMAActivityInstance<C>> {
         override fun doProvideTask(
             engineData: MutableProcessEngineDataAccess,
             messageService: IMessageService<*>
         ): Boolean {
 
-            fun <AIC : PMAActivityContext<AIC>, MSG_T> createAndSendMessage(
+            fun <AIC : PmaActivityContext<AIC>, MSG_T> createAndSendMessage(
                 contextFactory: PMAProcessContextFactory<AIC>,
                 messageService: IMessageService<MSG_T>
             ) : MessageSendingResult {
@@ -101,7 +101,7 @@ class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAA
 
     }
 
-    class BaseBuilder<C: PMAActivityContext<C>>(
+    class BaseBuilder<C: PmaActivityContext<C>>(
         node: IPMAMessageActivity<*>,
         predecessor: PNIHandle?,
         processInstanceBuilder: ProcessInstance.Builder,
@@ -119,7 +119,7 @@ class PMAActivityInstance <C : PMAActivityContext<C>> : ProcessNodeInstance<PMAA
         }
     }
 
-    class ExtBuilder<C: PMAActivityContext<C>>(
+    class ExtBuilder<C: PmaActivityContext<C>>(
         base: PMAActivityInstance<C>,
         processInstanceBuilder: ProcessInstance.Builder
     ) : ProcessNodeInstance.ExtBuilder<IPMAMessageActivity<C>, PMAActivityInstance<C>>(

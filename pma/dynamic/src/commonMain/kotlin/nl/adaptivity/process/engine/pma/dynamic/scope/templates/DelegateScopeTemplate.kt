@@ -1,13 +1,13 @@
 package nl.adaptivity.process.engine.pma.dynamic.scope.templates
 
-import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
+import nl.adaptivity.process.engine.pma.dynamic.runtime.AbstractDynamicPmaActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.models.AuthScope
 import nl.adaptivity.process.engine.pma.models.AuthScopeTemplate
 import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
 
-class DelegateScopeTemplate<AIC: DynamicPMAActivityContext<AIC, *>>(val targetServiceName: ServiceName<*>, val scopeTemplates: Array<out AuthScopeTemplate<AIC>>) :
+class DelegateScopeTemplate<AIC: AbstractDynamicPmaActivityContext<AIC, *>>(val targetServiceName: ServiceName<*>, val scopeTemplates: Array<out AuthScopeTemplate<AIC>>) :
     AuthScopeTemplate<AIC> {
     override fun instantiateScope(context: AIC): AuthScope? {
         val scopes = scopeTemplates.mapNotNull { it.instantiateScope(context) }.toTypedArray()

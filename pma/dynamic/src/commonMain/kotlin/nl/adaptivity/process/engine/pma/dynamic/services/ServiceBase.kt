@@ -14,15 +14,24 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.pma.dynamic
+package nl.adaptivity.process.engine.pma.dynamic.services
 
-import nl.adaptivity.process.engine.pma.*
-import nl.adaptivity.process.engine.pma.models.*
+import nl.adaptivity.process.engine.pma.AuthInfo
+import nl.adaptivity.process.engine.pma.AuthService
+import nl.adaptivity.process.engine.pma.AuthToken
+import nl.adaptivity.process.engine.pma.IdSecretAuthInfo
+import nl.adaptivity.process.engine.pma.models.ANYSCOPE
+import nl.adaptivity.process.engine.pma.models.AuthScope
+import nl.adaptivity.process.engine.pma.models.Service
+import nl.adaptivity.process.engine.pma.models.UseAuthScope
 import java.util.logging.Level
 import kotlin.random.Random
 import kotlin.random.nextULong
 
-abstract class ServiceImpl(protected val authService: AuthService, protected val serviceAuth: IdSecretAuthInfo) {
+abstract class ServiceBase(
+    protected val authService: AuthService,
+    protected val serviceAuth: IdSecretAuthInfo
+) {
     private val tokens = mutableListOf<AuthToken>()
 //    open val serviceInstanceId: ServiceId<*> = getServiceId(serviceAuth)
 
@@ -73,23 +82,3 @@ abstract class ServiceImpl(protected val authService: AuthService, protected val
     }
 }
 
-interface RunnableUIService: UIService {
-    fun loginBrowser(browser: Browser): AuthToken
-    override val serviceName: ServiceName<RunnableUIService>
-    override val serviceInstanceId: ServiceId<RunnableUIService>
-}
-
-abstract class AbstractRunnableUIService : ServiceImpl, RunnableUIService {
-
-    constructor(authService: AuthService, serviceAuth: IdSecretAuthInfo) : super(authService, serviceAuth)
-    constructor(authService: AuthService, name: String) : super(authService, name)
-
-    abstract override val serviceName: ServiceName<AbstractRunnableUIService>
-    abstract override val serviceInstanceId: ServiceId<AbstractRunnableUIService>
-
-    override fun loginBrowser(browser: Browser): AuthToken {
-        val authorization = browser.loginToService(authService, this)
-        return authService.getAuthToken(serviceAuth, authorization)
-    }
-
-}

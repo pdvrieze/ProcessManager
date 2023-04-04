@@ -40,6 +40,9 @@ interface ActivityInstanceContext {
     val owner: PrincipalCompat
     val assignedUser: PrincipalCompat?
 
+    /**
+     * Can the task corresponding to this activity be assigned to the specific principal?
+     */
     fun canBeAssignedTo(principal: PrincipalCompat?): Boolean
 }
 

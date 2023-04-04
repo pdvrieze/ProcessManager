@@ -12,7 +12,7 @@ import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import java.security.Principal
 
-interface PMAProcessContextFactory<AIC : PMAActivityContext<AIC>>: ProcessContextFactory<AIC> {
+interface PMAProcessContextFactory<AIC : PmaActivityContext<AIC>>: ProcessContextFactory<AIC> {
     val authServiceClient: AuthServiceClient
 
     fun getOrCreateTaskListForUser(principal: Principal): TaskListService

@@ -20,8 +20,8 @@ import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.PIHandle
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
-import nl.adaptivity.process.engine.pma.TaskList
-import nl.adaptivity.process.engine.pma.nextString
+import nl.adaptivity.process.engine.pma.dynamic.services.TaskList
+import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import java.security.Principal

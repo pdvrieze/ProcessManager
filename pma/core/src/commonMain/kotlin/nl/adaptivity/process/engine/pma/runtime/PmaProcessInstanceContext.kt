@@ -6,7 +6,7 @@ import nl.adaptivity.process.engine.pma.models.AuthScope
 import nl.adaptivity.process.messaging.InvokableMethod
 import nl.adaptivity.process.processModel.TokenServiceAuthData
 
-interface PMAProcessInstanceContext<A: PMAActivityContext<A>>: ProcessInstanceContext {
+interface PmaProcessInstanceContext<A: PmaActivityContext<A>>: ProcessInstanceContext {
 
     val contextFactory: PMAProcessContextFactory<A>
 

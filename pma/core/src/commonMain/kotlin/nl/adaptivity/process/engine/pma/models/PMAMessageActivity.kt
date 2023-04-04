@@ -20,7 +20,7 @@ import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.IProcessInstance
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessException
-import nl.adaptivity.process.engine.pma.runtime.PMAActivityContext
+import nl.adaptivity.process.engine.pma.runtime.PmaActivityContext
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
@@ -28,12 +28,12 @@ import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-interface IPMAMessageActivity<C: PMAActivityContext<C>>: ExecutableActivity, MessageActivity {
+interface IPMAMessageActivity<C: PmaActivityContext<C>>: ExecutableActivity, MessageActivity {
     val authorizationTemplates: List<AuthScopeTemplate<C>>
 
     override fun builder(): Builder<C>
 
-    interface Builder<C: PMAActivityContext<C>>: ExecutableProcessNode.Builder, MessageActivity.Builder {
+    interface Builder<C: PmaActivityContext<C>>: ExecutableProcessNode.Builder, MessageActivity.Builder {
         var authorizationTemplates: List<AuthScopeTemplate<C>>
     }
 }
@@ -41,7 +41,7 @@ interface IPMAMessageActivity<C: PMAActivityContext<C>>: ExecutableActivity, Mes
 /**
  * Activity version that is used for process execution.
  */
-open class PMAMessageActivity<C: PMAActivityContext<C>>(
+open class PMAMessageActivity<C: PmaActivityContext<C>>(
     builder: Builder<C>,
     newOwner: ProcessModel<*>,
     otherNodes: Iterable<ProcessNode.Builder>
@@ -118,7 +118,7 @@ open class PMAMessageActivity<C: PMAActivityContext<C>>(
      */
     override fun canStartTaskAutoProgress(instance: ProcessNodeInstance.Builder<*, *>): Boolean = false
 
-    class Builder<C: PMAActivityContext<C>>: MessageActivityBase.Builder, IPMAMessageActivity.Builder<C> {
+    class Builder<C: PmaActivityContext<C>>: MessageActivityBase.Builder, IPMAMessageActivity.Builder<C> {
         constructor() : super() {
             authorizationTemplates = emptyList()
         }

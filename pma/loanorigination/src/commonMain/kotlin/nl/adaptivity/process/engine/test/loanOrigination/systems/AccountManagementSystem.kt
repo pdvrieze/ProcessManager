@@ -17,7 +17,7 @@
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 import nl.adaptivity.process.engine.pma.AuthInfo
 import nl.adaptivity.process.engine.pma.AuthService
-import nl.adaptivity.process.engine.pma.dynamic.AbstractRunnableUIService
+import nl.adaptivity.process.engine.pma.dynamic.services.AbstractRunnableUiService
 import nl.adaptivity.process.engine.pma.models.AutomatedService
 import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
@@ -25,7 +25,7 @@ import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.BankAccountNumber
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.Contract
 
-class AccountManagementSystem(serviceName: String, authService: AuthService): AbstractRunnableUIService(authService, "Account_Management_System"),
+class AccountManagementSystem(serviceName: String, authService: AuthService): AbstractRunnableUiService(authService, "Account_Management_System"),
     AutomatedService {
 
     override val serviceName: ServiceName<AccountManagementSystem> = ServiceName(serviceName)

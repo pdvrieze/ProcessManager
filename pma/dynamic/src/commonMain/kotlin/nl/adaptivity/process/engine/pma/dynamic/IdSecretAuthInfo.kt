@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine.pma
 
+import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import kotlin.random.Random
 

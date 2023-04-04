@@ -22,8 +22,8 @@ import nl.adaptivity.process.engine.ProcessEnginePermissions
 import nl.adaptivity.process.engine.pma.AuthorizationCode
 import nl.adaptivity.process.engine.pma.Browser
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
-import nl.adaptivity.process.engine.pma.TaskList
-import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
+import nl.adaptivity.process.engine.pma.dynamic.services.TaskList
+import nl.adaptivity.process.engine.pma.dynamic.runtime.AbstractDynamicPmaActivityContext
 import nl.adaptivity.process.engine.pma.models.AuthScope
 import nl.adaptivity.process.engine.pma.models.Service
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
@@ -47,7 +47,7 @@ class LoanActivityContext(
     override val assignedUser: PrincipalCompat?
         get() = processNode.assignedUser
 
-    private val pendingPermissions = ArrayDeque<DynamicPMAActivityContext.PendingPermission>()
+    private val pendingPermissions = ArrayDeque<AbstractDynamicPmaActivityContext.PendingPermission>()
 
     final lateinit var taskListService: TaskList
         private set
@@ -57,7 +57,7 @@ class LoanActivityContext(
      *      and in acceptActivity.
      */
     fun registerTaskPermission(service: Service, scope: AuthScope) {
-        pendingPermissions.add(DynamicPMAActivityContext.PendingPermission(null, service, scope))
+        pendingPermissions.add(AbstractDynamicPmaActivityContext.PendingPermission(null, service, scope))
     }
 
     /**
@@ -71,7 +71,7 @@ class LoanActivityContext(
     ) {
         val delegateScope =
             CommonPMAPermissions.DELEGATED_PERMISSION.restrictTo(clientService.serviceInstanceId.serviceId, service, scope)
-        pendingPermissions.add(DynamicPMAActivityContext.PendingPermission(null, clientService, delegateScope))
+        pendingPermissions.add(AbstractDynamicPmaActivityContext.PendingPermission(null, clientService, delegateScope))
     }
 
     fun serviceTask(): AuthorizationCode {

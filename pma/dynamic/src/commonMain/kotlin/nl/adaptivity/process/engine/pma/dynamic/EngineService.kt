@@ -18,11 +18,13 @@ package nl.adaptivity.process.engine.pma
 
 import net.devrieze.util.Handle
 import nl.adaptivity.process.engine.ProcessInstanceContext
-import nl.adaptivity.process.engine.pma.dynamic.ServiceImpl
-import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
+import nl.adaptivity.process.engine.pma.dynamic.services.ServiceBase
+import nl.adaptivity.process.engine.pma.dynamic.runtime.AbstractDynamicPmaActivityContext
+import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions.GRANT_GLOBAL_PERMISSION
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions.UPDATE_ACTIVITY_STATE
+import nl.adaptivity.process.engine.pma.dynamic.services.TaskList
 import nl.adaptivity.process.engine.pma.models.*
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
@@ -34,7 +36,7 @@ class EngineService(
     serviceName: String,
     authService: AuthService,
     serviceAuth: IdSecretAuthInfo = newEngineClientAuth(authService),
-) : ServiceImpl(authService, serviceAuth), AutomatedService {
+) : ServiceBase(authService, serviceAuth), AutomatedService {
 
     private val taskLists: MutableMap<Handle<SecureProcessNodeInstance>, List<TaskList>> = mutableMapOf()
 
@@ -52,7 +54,7 @@ class EngineService(
         authToken: AuthToken,
         nodeInstanceHandle: Handle<SecureProcessNodeInstance>,
         principal: Principal,
-        pendingPermissions: Collection<DynamicPMAActivityContext.PendingPermission>,
+        pendingPermissions: Collection<AbstractDynamicPmaActivityContext.PendingPermission>,
     ): AuthorizationCode {
         logMe(authToken, nodeInstanceHandle, principal)
         validateAuthInfo(
@@ -127,7 +129,7 @@ class EngineService(
         handle: Handle<SecureProcessNodeInstance>,
         service: Service,
         scope: AuthScope,
-        pendingPermissions: Collection<DynamicPMAActivityContext.PendingPermission>
+        pendingPermissions: Collection<AbstractDynamicPmaActivityContext.PendingPermission>
     ): AuthorizationCode {
         val pendingPermissions = ArrayDeque(pendingPermissions)
         return authService.createAuthorizationCode(serviceAuth, clientId, handle, service, scope)

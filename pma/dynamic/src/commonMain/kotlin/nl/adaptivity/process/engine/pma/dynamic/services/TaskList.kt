@@ -14,11 +14,11 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-package nl.adaptivity.process.engine.pma
+package nl.adaptivity.process.engine.pma.dynamic.services
 
 import net.devrieze.util.Handle
-import nl.adaptivity.process.engine.pma.dynamic.AbstractRunnableUIService
-import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPMAActivityContext
+import nl.adaptivity.process.engine.pma.*
+import nl.adaptivity.process.engine.pma.dynamic.runtime.AbstractDynamicPmaActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
@@ -32,7 +32,7 @@ class TaskList constructor(
     private val engineService: EngineService,
     clientAuth: IdSecretAuthInfo,
     val principals: List<PrincipalCompat>
-) : AbstractRunnableUIService(authService, clientAuth), TaskListService {
+) : AbstractRunnableUiService(authService, clientAuth), TaskListService {
 //    val nodeInstanceHandle: PNIHandle? get() = activityAccessToken?.nodeInstanceHandle
 
     constructor(
@@ -88,7 +88,7 @@ class TaskList constructor(
     fun acceptActivity(
         authToken: AuthToken,
         principal: PrincipalCompat,
-        pendingPermissions: Collection<DynamicPMAActivityContext.PendingPermission>,
+        pendingPermissions: Collection<AbstractDynamicPmaActivityContext.PendingPermission>,
         processNodeInstance: Handle<SecureProcessNodeInstance>
     ): AuthorizationCode {
         logMe(processNodeInstance, principal)
@@ -103,11 +103,11 @@ class TaskList constructor(
     }
 
     interface Context {
-        fun uiServiceLogin(service: AbstractRunnableUIService): AuthToken
+        fun uiServiceLogin(service: AbstractRunnableUiService): AuthToken
     }
 
     private inner class ContextImpl(val browser: Browser) : Context {
-        override fun uiServiceLogin(service: AbstractRunnableUIService): AuthToken {
+        override fun uiServiceLogin(service: AbstractRunnableUiService): AuthToken {
             logMe(service.serviceName)
             return browser.loginToService(service)
 //            return authService.getAuthTokenDirect(browser.user, taskIdentityToken!!, service, ANYSCOPE)

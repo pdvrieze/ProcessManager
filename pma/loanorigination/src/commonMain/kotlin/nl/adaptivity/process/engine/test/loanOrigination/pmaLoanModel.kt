@@ -6,8 +6,7 @@ import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.EngineService
 import nl.adaptivity.process.engine.pma.GeneralClientService
 import nl.adaptivity.process.engine.pma.dynamic.TaskBuilderContext
-import nl.adaptivity.process.engine.pma.dynamic.compositeActivity
-import nl.adaptivity.process.engine.pma.dynamic.runnablePmaProcess
+import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
 import nl.adaptivity.process.engine.pma.dynamic.scope.templates.ContextScopeTemplate
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.test.loanOrigination.ServiceNames.accountManagementSystem
@@ -16,7 +15,6 @@ import nl.adaptivity.process.engine.test.loanOrigination.ServiceNames.customerFi
 import nl.adaptivity.process.engine.test.loanOrigination.ServiceNames.outputManagementSystem
 import nl.adaptivity.process.engine.test.loanOrigination.ServiceNames.pricingEngine
 import nl.adaptivity.process.engine.test.loanOrigination.ServiceNames.signingService
-import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions.*
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.*
 import nl.adaptivity.process.engine.test.loanOrigination.systems.*
@@ -75,7 +73,7 @@ val pmaLoanModel =
 
             val getCustomerApproval: ActivityHandle<SignedDocument<Approval>> by taskActivity(
                 predecessor = startCreditEvaluate,
-                authorizationTemplates = listOf(delegatePermissions(signingService, LoanPermissions.SIGN)),
+                authorizationTemplates = listOf(delegatePermissions(signingService, SIGN)),
                 accessRestrictions = RoleRestriction("customer"), // TODO support dynamic restrictions
                 input = customerIdInput as InputRef<LoanCustomer>,
             ) {
@@ -96,7 +94,7 @@ val pmaLoanModel =
                                 s.invoke(it)
                             }
                         }),
-                    delegatePermissions(signingService, LoanPermissions.SIGN)
+                    delegatePermissions(signingService, SIGN)
                 ),
                 input = combine(customerIdInput named "customer", getCustomerApproval named "approval") { a, b ->
                     VerifyCustomerApprovalInput(a, b)
@@ -129,7 +127,7 @@ val pmaLoanModel =
                                 t(it)
                             }
                         }),
-                    ContextScopeTemplate(LoanPermissions.GET_CREDIT_REPORT) { t ->
+                    ContextScopeTemplate(GET_CREDIT_REPORT) { t ->
                         nodeData(customerIdInput)?.taxId?.let {
                             t(
                                 it
@@ -240,7 +238,7 @@ val pmaLoanModel =
                 authorizationTemplates = listOf(
                     delegatePermissions(
                         pricingEngine,
-                        LoanPermissions.PRICE_LOAN.restrictTo(Double.NaN)
+                        PRICE_LOAN.restrictTo(Double.NaN)
                     )
                 )
             ) {
@@ -290,7 +288,7 @@ val pmaLoanModel =
             authorizationTemplates = listOf(
                 delegatePermissions(
                     outputManagementSystem,
-                    ContextScopeTemplate(LoanPermissions.SIGN_LOAN) {
+                    ContextScopeTemplate(SIGN_LOAN) {
                         it.restrictTo(
                             nodeData(customerSignsContract)!!.customerId,
                             Double.NaN
@@ -309,7 +307,7 @@ val pmaLoanModel =
             permissions = listOf(
                 delegatePermissions(
                     accountManagementSystem,
-                    ContextScopeTemplate(LoanPermissions.OPEN_ACCOUNT) { it(nodeData(bankSignsContract)!!.customerId) })
+                    ContextScopeTemplate(OPEN_ACCOUNT) { it(nodeData(bankSignsContract)!!.customerId) })
             )
         ) {
             acceptTask(postProcClerk) { contract ->
