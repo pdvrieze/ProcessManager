@@ -15,7 +15,7 @@
  */
 
 package nl.adaptivity.process.engine.test.loanOrigination.systems
-import nl.adaptivity.process.engine.pma.AuthInfo
+import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.dynamic.services.AbstractRunnableUiService
 import nl.adaptivity.process.engine.pma.models.AutomatedService
@@ -33,7 +33,7 @@ class AccountManagementSystem(serviceName: String, authService: AuthService): Ab
 
     override fun getServiceState(): String = ""
 
-    fun openAccountFor(authInfo: AuthInfo, contract: Contract): BankAccountNumber {
+    fun openAccountFor(authInfo: PmaAuthInfo, contract: Contract): BankAccountNumber {
         logMe(authInfo, contract)
 
         validateAuthInfo(authInfo, LoanPermissions.OPEN_ACCOUNT(contract.customerId))

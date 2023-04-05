@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
-import nl.adaptivity.process.engine.pma.AuthInfo
+import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.dynamic.services.AbstractRunnableUiService
 import nl.adaptivity.process.engine.pma.models.AutomatedService
@@ -34,7 +34,7 @@ class PricingEngine(serviceName: String, authService: AuthService): AbstractRunn
 
     override fun getServiceState(): String = ""
 
-    fun priceLoan(authInfo: AuthInfo, chosenProduct: LoanProductBundle, loanEval: LoanEvaluation):
+    fun priceLoan(authInfo: PmaAuthInfo, chosenProduct: LoanProductBundle, loanEval: LoanEvaluation):
         PricedLoanProductBundle {
         logMe(chosenProduct)
 

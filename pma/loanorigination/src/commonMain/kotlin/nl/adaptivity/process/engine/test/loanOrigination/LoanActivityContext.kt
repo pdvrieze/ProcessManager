@@ -21,9 +21,9 @@ import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.ProcessEnginePermissions
 import nl.adaptivity.process.engine.pma.AuthorizationCode
 import nl.adaptivity.process.engine.pma.Browser
+import nl.adaptivity.process.engine.pma.dynamic.runtime.AbstractDynamicPmaActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.dynamic.services.TaskList
-import nl.adaptivity.process.engine.pma.dynamic.runtime.AbstractDynamicPmaActivityContext
 import nl.adaptivity.process.engine.pma.models.AuthScope
 import nl.adaptivity.process.engine.pma.models.Service
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
@@ -88,8 +88,7 @@ class LoanActivityContext(
                 pendingPermissions
             )
         }
-
-        check(pendingPermissions.isEmpty()) { "Pending permissions should be empty after a service task is created" }
+        pendingPermissions.clear()
 
         return serviceAuthorization
     }
@@ -128,6 +127,7 @@ class LoanActivityContext(
             pendingPermissions,
             nodeInstanceHandle
         )
+        pendingPermissions.clear()
         browser.addToken(processContext.authService, authorizationCode)
 
 

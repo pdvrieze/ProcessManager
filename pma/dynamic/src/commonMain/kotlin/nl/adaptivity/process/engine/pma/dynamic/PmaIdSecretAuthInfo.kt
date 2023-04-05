@@ -16,20 +16,18 @@
 
 package nl.adaptivity.process.engine.pma
 
-import net.devrieze.util.Handle
-import nl.adaptivity.process.engine.pma.models.AuthScope
-import nl.adaptivity.process.engine.pma.models.ServiceId
-import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
+import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
+import nl.adaptivity.process.processModel.AuthorizationInfo
 import nl.adaptivity.util.multiplatform.PrincipalCompat
+import kotlin.random.Random
 
-class AuthToken(
+class PmaIdSecretAuthInfo(
     principal: PrincipalCompat,
-    val nodeInstanceHandle: Handle<SecureProcessNodeInstance>,
-    val tokenValue: String,
-    val serviceId: ServiceId<*>,
-    val scope: AuthScope
-): AuthInfo(principal) {
+    override val secret: String = Random.nextString()
+): PmaAuthInfo(principal), AuthorizationInfo.IdSecret {
     override fun toString(): String {
-        return "AuthToken($tokenValue - $principal[act=${nodeInstanceHandle.handleValue}] -> $serviceId.${scope.description})"
+        return "PW(${principal.name})=${this.secret}"
     }
+
+    override val id: String get() = principal.name
 }

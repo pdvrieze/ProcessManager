@@ -22,7 +22,7 @@ import nl.adaptivity.process.MessageSendingResult
 import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.processModel.instantiateXmlPlaceholders
 import nl.adaptivity.process.processModel.IXmlMessage
-import nl.adaptivity.process.processModel.ServiceAuthData
+import nl.adaptivity.process.processModel.AuthorizationInfo
 import nl.adaptivity.process.processModel.XmlMessage
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
@@ -36,7 +36,7 @@ open class StubMessageService(
     override val localEndpoint: EndpointDescriptor
 ) : IMessageService<IXmlMessage> {
 
-    class ExtMessage(val base: IXmlMessage, val source: PNIHandle, val authData: ServiceAuthData?) : IXmlMessage by base
+    class ExtMessage(val base: IXmlMessage, val source: PNIHandle, val authData: AuthorizationInfo?) : IXmlMessage by base
 
     private var _messages = mutableListOf<ExtMessage>()
 
@@ -58,7 +58,7 @@ open class StubMessageService(
         engineData: ProcessEngineDataAccess,
         protoMessage: IXmlMessage,
         activityInstanceContext: ActivityInstanceContext,
-        authData: ServiceAuthData?
+        authData: AuthorizationInfo?
     ): MessageSendingResult {
         assert(activityInstanceContext.nodeInstanceHandle.isValid) { "Sending messages from invalid nodes is a bad idea (${activityInstanceContext})" }
 

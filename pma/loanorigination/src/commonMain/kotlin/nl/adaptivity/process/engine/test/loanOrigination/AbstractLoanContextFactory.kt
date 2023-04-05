@@ -8,7 +8,6 @@ import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.Browser
 import nl.adaptivity.process.engine.pma.EngineService
 import nl.adaptivity.process.engine.pma.GeneralClientService
-import nl.adaptivity.process.engine.pma.runtime.AuthServiceClient
 import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
 import nl.adaptivity.process.engine.test.loanOrigination.systems.*
@@ -31,9 +30,6 @@ abstract class AbstractLoanContextFactory<AIC: ActivityInstanceContext>(val log:
     val pricingEngine = PricingEngine(ServiceNames.pricingEngine.serviceName, authService)
     val generalClientService = GeneralClientService(ServiceNames.generalClientService.serviceName, authService)
     val signingService = SigningService(ServiceNames.signingService.serviceName, authService)
-
-    val authServiceClient: AuthServiceClient
-        get() = AuthServiceClientImpl(authService)
 
 
     val customerData = CustomerData(

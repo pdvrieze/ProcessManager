@@ -17,7 +17,7 @@
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
 import nl.adaptivity.process.engine.pma.AuthService
-import nl.adaptivity.process.engine.pma.AuthToken
+import nl.adaptivity.process.engine.pma.PmaAuthToken
 import nl.adaptivity.process.engine.pma.dynamic.services.ServiceBase
 import nl.adaptivity.process.engine.pma.models.AutomatedService
 import nl.adaptivity.process.engine.pma.models.ServiceId
@@ -39,7 +39,7 @@ class CreditApplication(
     override fun getServiceState(): String = ""
 
     fun evaluateLoan(
-        authInfo: AuthToken,
+        authInfo: PmaAuthToken,
         application: LoanApplication,
         creditReport: CreditReport,
     ): LoanEvaluation {

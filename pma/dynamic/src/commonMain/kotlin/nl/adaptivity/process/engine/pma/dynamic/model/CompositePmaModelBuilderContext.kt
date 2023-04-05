@@ -12,8 +12,11 @@ import nl.adaptivity.process.processModel.XmlResultType
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xmlutil.Namespace
 
-abstract class CompositePmaModelBuilderContext<AIC : AbstractDynamicPmaActivityContext<AIC, BIC>, BIC: TaskBuilderContext.BrowserContext<AIC, BIC>> : PmaModelBuilderContext<AIC, BIC>(),
-    ICompositeModelBuilderContext<AIC> {
+abstract class CompositePmaModelBuilderContext<
+    AIC : AbstractDynamicPmaActivityContext<AIC, BIC>,
+    BIC: TaskBuilderContext.BrowserContext<AIC, BIC>
+    > : PmaModelBuilderContext<AIC, BIC>(), ICompositeModelBuilderContext<AIC> {
+
     abstract override val modelBuilder: ActivityBase.CompositeActivityBuilder
 
 

@@ -69,10 +69,10 @@ class DynamicPmaActivityInstance<InputT : Any, OutputT : Any, C : AbstractDynami
 
             when (val action: PmaAction<InputT, OutputT, C> = node.action) {
                 is BrowserAction<InputT, OutputT, C, *> -> {
-
-                    val user = action.action.principal
+                    val user = with(action.action) { aic.principalProvider() }
                     val taskList = processContext.contextFactory.getOrCreateTaskListForUser(user)
                     val browser = aic.resolveBrowser(user)
+
                     val pendingPermissions = node.authorizationTemplates
                         .mapNotNull { it.instantiateScope(aic) }
                         .mapNotNull {

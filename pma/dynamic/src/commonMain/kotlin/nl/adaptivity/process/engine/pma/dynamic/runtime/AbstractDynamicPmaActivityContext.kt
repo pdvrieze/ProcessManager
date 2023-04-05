@@ -22,10 +22,10 @@ import nl.adaptivity.serialutil.nonNullSerializer
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.xmlutil.serialization.XML
 
-abstract class AbstractDynamicPmaActivityContext<AIC : AbstractDynamicPmaActivityContext<AIC, BIC>, BIC: TaskBuilderContext.BrowserContext<AIC, BIC>>(
-    override val processNode: IProcessNodeInstance
+abstract class AbstractDynamicPmaActivityContext<AIC : DynamicPmaActivityContext<AIC, BIC>, BIC: TaskBuilderContext.BrowserContext<AIC, BIC>>(
+    override val activityInstance: IProcessNodeInstance
 ) : DynamicPmaActivityContext<AIC, BIC> {
-    override val node: ExecutableActivity get() = processNode.node as ExecutableActivity
+    override val node: ExecutableActivity get() = activityInstance.node as ExecutableActivity
 
     abstract override val processContext: DynamicPmaProcessInstanceContext<AIC>
 
@@ -84,6 +84,7 @@ abstract class AbstractDynamicPmaActivityContext<AIC : AbstractDynamicPmaActivit
     }
 */
 
+    @Deprecated("Not used at all", level = DeprecationLevel.ERROR)
     fun serviceTask(): AuthorizationCode {
         val clientServiceId = processContext.generalClientService.serviceInstanceId
         val serviceAuthorization = with(processContext) {
@@ -134,7 +135,7 @@ abstract class AbstractDynamicPmaActivityContext<AIC : AbstractDynamicPmaActivit
             null -> processContext.processInstance.inputs.firstOrNull { it.name == reference.propertyName }
 
             else -> {
-                processNode.resolvePredecessor(processContext.processInstance, nodeRef.id)
+                activityInstance.resolvePredecessor(processContext.processInstance, nodeRef.id)
                     ?.getResult(reference.propertyName)
             }
         }

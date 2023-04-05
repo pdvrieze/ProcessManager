@@ -65,7 +65,7 @@ class PMAActivityInstance <C : PmaActivityContext<C>> : ProcessNodeInstance<PMAA
                 val message = node.message ?: XmlMessage()
                 val aic = contextFactory.newActivityInstanceContext(engineData, this)
                 val authorizations = node.authorizationTemplates.mapNotNull { it.instantiateScope(aic) }
-                val authData = aic.requestAuthData(messageService, message.targetService, authorizations)
+                val authData = aic.requestAuthData(message.targetService, authorizations)
 
                 val preparedMessage = messageService.createMessage(message)
 

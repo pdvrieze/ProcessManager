@@ -17,7 +17,7 @@ fun <AIC : AbstractDynamicPmaActivityContext<AIC, BIC>, BIC : BrowserContext<AIC
     owner: PrincipalCompat = SYSTEMPRINCIPAL,
     uuid: UUID = UUID.randomUUID(),
     @ConfigurationDsl
-    configureAction: PmaModelBuilderContext<AIC, BIC>.() -> Unit
+    configureAction: RootPmaModelBuilderContext<AIC, BIC>.() -> Unit
 ): ExecutableProcessModel {
     val context = RootPmaModelBuilderContext<AIC, BIC>(name, owner, uuid).apply(configureAction)
     return ExecutableProcessModel(context.modelBuilder, true)

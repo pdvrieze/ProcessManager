@@ -3,14 +3,17 @@ package nl.adaptivity.process.engine.test.loanOrigination
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.PIHandle
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
-import nl.adaptivity.process.engine.pma.dynamic.services.TaskList
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaProcessContextFactory
 import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
+import nl.adaptivity.process.engine.pma.dynamic.services.TaskList
+import nl.adaptivity.process.engine.pma.models.ResolvedInvokableMethod
 import nl.adaptivity.process.engine.pma.models.Service
 import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
+import nl.adaptivity.process.engine.pma.runtime.AuthServiceClient
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
+import nl.adaptivity.process.messaging.InvokableMethod
 import nl.adaptivity.process.processModel.AccessRestriction
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import java.security.Principal
@@ -34,6 +37,8 @@ class LoanPMAContextFactory(log: Logger, random: Random) :
             )
         }
     }
+    override val engineServiceAuthServiceClient: AuthServiceClient
+        get() = engineService.authServiceClient
 
     private val services: List<Service> = listOf(
         authService,
@@ -61,6 +66,17 @@ class LoanPMAContextFactory(log: Logger, random: Random) :
     override fun <S : Service> resolveService(serviceId: ServiceId<S>): S {
         @Suppress("UNCHECKED_CAST")
         return requireNotNull(services.firstOrNull { it.serviceInstanceId == serviceId } as S?) { "No service found for id $serviceId" }
+    }
+
+    override fun resolveService(targetService: InvokableMethod): ResolvedInvokableMethod? {
+        return null
+/*
+        val targetId = (targetService as? Dynamic
+        return services.filterIsInstance<Service>()
+            .firstOrNull { it.serviceInstanceId ==  }
+
+        return services.firstOrNull { it. }
+*/
     }
 
     override fun newActivityInstanceContext(

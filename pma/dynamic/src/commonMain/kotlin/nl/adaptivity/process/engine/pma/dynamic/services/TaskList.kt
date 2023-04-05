@@ -30,7 +30,7 @@ class TaskList constructor(
     serviceName: String,
     authService: AuthService,
     private val engineService: EngineService,
-    clientAuth: IdSecretAuthInfo,
+    clientAuth: PmaIdSecretAuthInfo,
     val principals: List<PrincipalCompat>
 ) : AbstractRunnableUiService(authService, clientAuth), TaskListService {
 //    val nodeInstanceHandle: PNIHandle? get() = activityAccessToken?.nodeInstanceHandle
@@ -39,7 +39,7 @@ class TaskList constructor(
         serviceName: String,
         authService: AuthService,
         engineService: EngineService,
-        clientAuth: IdSecretAuthInfo,
+        clientAuth: PmaIdSecretAuthInfo,
         principal: PrincipalCompat
     ) : this(serviceName, authService, engineService, clientAuth, listOf(principal))
 
@@ -47,7 +47,7 @@ class TaskList constructor(
 
     override val serviceInstanceId: ServiceId<TaskList> = ServiceId(getServiceId(clientAuth))
 
-    private val engineTokens = mutableMapOf<Long, AuthToken>()
+    private val engineTokens = mutableMapOf<Long, PmaAuthToken>()
 
 /*
     override fun acceptActivity(aic: PMAActivityContext<*>, user: PrincipalCompat) {
@@ -63,7 +63,7 @@ class TaskList constructor(
     }
 
     fun postTask(
-        authInfo: AuthToken,
+        authInfo: PmaAuthToken,
         authorizationCode: AuthorizationCode,
         nodeInstanceHandle: Handle<SecureProcessNodeInstance>
     ) {
@@ -75,7 +75,7 @@ class TaskList constructor(
     }
 
     fun unregisterTask(
-        authToken: AuthInfo,
+        authToken: PmaAuthInfo,
         nodeInstanceHandle: Handle<SecureProcessNodeInstance>
     ) {
         logMe(authToken, nodeInstanceHandle)
@@ -86,7 +86,7 @@ class TaskList constructor(
     fun contextImpl(browser: Browser): Context = ContextImpl(browser)
 
     fun acceptActivity(
-        authToken: AuthToken,
+        authToken: PmaAuthToken,
         principal: PrincipalCompat,
         pendingPermissions: Collection<AbstractDynamicPmaActivityContext.PendingPermission>,
         processNodeInstance: Handle<SecureProcessNodeInstance>
@@ -103,11 +103,11 @@ class TaskList constructor(
     }
 
     interface Context {
-        fun uiServiceLogin(service: AbstractRunnableUiService): AuthToken
+        fun uiServiceLogin(service: AbstractRunnableUiService): PmaAuthToken
     }
 
     private inner class ContextImpl(val browser: Browser) : Context {
-        override fun uiServiceLogin(service: AbstractRunnableUiService): AuthToken {
+        override fun uiServiceLogin(service: AbstractRunnableUiService): PmaAuthToken {
             logMe(service.serviceName)
             return browser.loginToService(service)
 //            return authService.getAuthTokenDirect(browser.user, taskIdentityToken!!, service, ANYSCOPE)

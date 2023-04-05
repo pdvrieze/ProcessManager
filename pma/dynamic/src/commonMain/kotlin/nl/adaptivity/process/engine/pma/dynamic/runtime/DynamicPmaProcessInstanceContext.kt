@@ -4,13 +4,15 @@ import RunnablePmaActivity
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.OutputRef
 import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.IProcessInstance
-import nl.adaptivity.process.engine.pma.*
-import nl.adaptivity.process.engine.pma.dynamic.services.TaskList
+import nl.adaptivity.process.engine.pma.AuthService
+import nl.adaptivity.process.engine.pma.Browser
+import nl.adaptivity.process.engine.pma.EngineService
+import nl.adaptivity.process.engine.pma.GeneralClientService
 import nl.adaptivity.process.engine.pma.runtime.PmaProcessInstanceContext
 import nl.adaptivity.process.engine.processModel.applyData
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-interface DynamicPmaProcessInstanceContext<A : AbstractDynamicPmaActivityContext<A, *>> : PmaProcessInstanceContext<A> {
+interface DynamicPmaProcessInstanceContext<A : DynamicPmaActivityContext<A, *>> : PmaProcessInstanceContext<A> {
     val processInstance: IProcessInstance
     val authService: AuthService
     val engineService: EngineService
@@ -29,8 +31,5 @@ interface DynamicPmaProcessInstanceContext<A : AbstractDynamicPmaActivityContext
     }
 
     fun resolveBrowser(principal: PrincipalCompat): Browser
-
-    @Deprecated("Use contextfactory", ReplaceWith("contextFactory.getOrCreateTaskListForUser(principal)"))
-    fun taskListFor(principal: PrincipalCompat): TaskList = contextFactory.getOrCreateTaskListForUser(principal)
 
 }

@@ -16,10 +16,10 @@
 
 package nl.adaptivity.process.engine.pma.dynamic.services
 
-import nl.adaptivity.process.engine.pma.AuthInfo
 import nl.adaptivity.process.engine.pma.AuthService
-import nl.adaptivity.process.engine.pma.AuthToken
-import nl.adaptivity.process.engine.pma.IdSecretAuthInfo
+import nl.adaptivity.process.engine.pma.PmaAuthInfo
+import nl.adaptivity.process.engine.pma.PmaAuthToken
+import nl.adaptivity.process.engine.pma.PmaIdSecretAuthInfo
 import nl.adaptivity.process.engine.pma.models.ANYSCOPE
 import nl.adaptivity.process.engine.pma.models.AuthScope
 import nl.adaptivity.process.engine.pma.models.Service
@@ -29,10 +29,10 @@ import kotlin.random.Random
 import kotlin.random.nextULong
 
 abstract class ServiceBase(
-    protected val authService: AuthService,
-    protected val serviceAuth: IdSecretAuthInfo
+    protected val authService: AuthService, // TODO, replace with AuthServiceClient
+    protected val serviceAuth: PmaIdSecretAuthInfo
 ) {
-    private val tokens = mutableListOf<AuthToken>()
+    private val tokens = mutableListOf<PmaAuthToken>()
 //    open val serviceInstanceId: ServiceId<*> = getServiceId(serviceAuth)
 
     abstract fun getServiceState(): String
@@ -45,11 +45,11 @@ abstract class ServiceBase(
         )
     )
 
-    protected fun Service.validateAuthInfo(authInfo: AuthInfo, scope: UseAuthScope) {
+    protected fun Service.validateAuthInfo(authInfo: PmaAuthInfo, scope: UseAuthScope) {
         authService.validateAuthInfo(this, authInfo, scope)
     }
 
-    fun globalAuthTokenForService(service: Service, scope: AuthScope = ANYSCOPE): AuthToken {
+    fun globalAuthTokenForService(service: Service, scope: AuthScope = ANYSCOPE): PmaAuthToken {
         logMe(service.serviceInstanceId, scope)
 
         tokens.removeAll { authService.isTokenInvalid(it) }
@@ -71,7 +71,7 @@ abstract class ServiceBase(
     companion object {
         private val counters = mutableMapOf<String, Int>()
 
-        fun getServiceId(serviceAuth: IdSecretAuthInfo): String {
+        fun getServiceId(serviceAuth: PmaIdSecretAuthInfo): String {
             val serviceName = serviceAuth.principal.name
             val id: Int = counters.merge(serviceName, 0) { oldValue, _ -> oldValue + 1 }!!
             return when {

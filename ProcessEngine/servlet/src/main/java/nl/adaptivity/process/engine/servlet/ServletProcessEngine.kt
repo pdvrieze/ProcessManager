@@ -36,7 +36,7 @@ import nl.adaptivity.process.messaging.EndpointServlet
 import nl.adaptivity.process.messaging.GenericEndpoint
 import nl.adaptivity.process.processModel.IXmlMessage
 import nl.adaptivity.process.processModel.RootProcessModel
-import nl.adaptivity.process.processModel.ServiceAuthData
+import nl.adaptivity.process.processModel.AuthorizationInfo
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.rest.annotations.HttpMethod
@@ -118,7 +118,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction> : EndpointServle
             engineData: ProcessEngineDataAccess,
             protoMessage: NewServletMessage,
             activityInstanceContext: ActivityInstanceContext,
-            authData: ServiceAuthData?
+            authData: AuthorizationInfo?
         ): MessageSendingResult {
             val nodeHandle = activityInstanceContext.nodeInstanceHandle
 

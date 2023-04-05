@@ -16,11 +16,23 @@
 
 package nl.adaptivity.process.engine.pma
 
+import nl.adaptivity.process.engine.pma.models.AuthScope
+import nl.adaptivity.process.engine.pma.models.ServiceId
+import nl.adaptivity.process.engine.processModel.PNIHandle
+import nl.adaptivity.process.processModel.AuthorizationInfo
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
+class PmaAuthToken(
+    principal: PrincipalCompat,
+    val nodeInstanceHandle: PNIHandle,
+    override val token: String,
+    val serviceId: ServiceId<*>,
+    val scope: AuthScope
+): PmaAuthInfo(principal), AuthorizationInfo.Token {
 
-sealed class AuthInfo(val principal: PrincipalCompat) {
 
-    abstract override fun toString(): String
+
+    override fun toString(): String {
+        return "AuthToken($token - $principal[act=${nodeInstanceHandle.handleValue}] -> $serviceId.${scope.description})"
+    }
 }
-

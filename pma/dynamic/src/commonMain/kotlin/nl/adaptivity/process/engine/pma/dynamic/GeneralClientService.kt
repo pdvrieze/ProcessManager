@@ -29,7 +29,7 @@ class GeneralClientService(
 
     fun <R> runWithAuthorization(
         authorizationCode: AuthorizationCode,
-        action: ClientServiceContext.(AuthToken) -> R
+        action: ClientServiceContext.(PmaAuthToken) -> R
                                 ): R {
         val authToken = authService.getAuthToken(serviceAuth, authorizationCode)
         return ContextImpl(authToken).action(authToken)
@@ -40,7 +40,7 @@ class GeneralClientService(
 
     val auth get() = serviceAuth
 
-    private inner class ContextImpl(private val authToken: AuthToken) : ClientServiceContext {
+    private inner class ContextImpl(private val authToken: PmaAuthToken) : ClientServiceContext {
         override val automatedService: Principal
             get() = auth.principal
 
@@ -48,7 +48,7 @@ class GeneralClientService(
          * Get a token that provides access to the given service. It is expected that permission for this
          * has been granted.
          */
-        override fun getServiceToken(service: Service, scope: AuthScope): AuthToken {
+        override fun getServiceToken(service: Service, scope: AuthScope): PmaAuthToken {
             logMe(service.serviceName, scope)
             return authService.getAuthTokenDirect(authToken, service, scope)
 
@@ -57,7 +57,7 @@ class GeneralClientService(
 
     interface ClientServiceContext {
         val automatedService: Principal
-        fun getServiceToken(service: Service, scope: AuthScope): AuthToken
+        fun getServiceToken(service: Service, scope: AuthScope): PmaAuthToken
     }
 
 }

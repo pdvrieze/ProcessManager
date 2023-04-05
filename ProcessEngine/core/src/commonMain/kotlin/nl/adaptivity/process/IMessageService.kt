@@ -20,7 +20,7 @@ import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.processModel.IXmlMessage
-import nl.adaptivity.process.processModel.ServiceAuthData
+import nl.adaptivity.process.processModel.AuthorizationInfo
 
 /**
  * Interface signifying that the object can be used to send messages. The message provided is an opaque type
@@ -56,7 +56,7 @@ interface IMessageService<MSG_T> {
       engineData: ProcessEngineDataAccess,
       protoMessage: MSG_T,
       activityInstanceContext: ActivityInstanceContext,
-      authData: ServiceAuthData? = null
+      authData: AuthorizationInfo? = null
   ): MessageSendingResult
 
   /**

@@ -18,7 +18,7 @@ package nl.adaptivity.process.engine.test.loanOrigination.systems
 
 import kotlinx.serialization.Serializable
 import nl.adaptivity.process.engine.pma.AuthService
-import nl.adaptivity.process.engine.pma.AuthToken
+import nl.adaptivity.process.engine.pma.PmaAuthToken
 import nl.adaptivity.process.engine.pma.dynamic.services.AbstractRunnableUiService
 import nl.adaptivity.process.engine.pma.models.AutomatedService
 import nl.adaptivity.process.engine.pma.models.ServiceId
@@ -32,7 +32,7 @@ class SigningService(serviceName: String, authService: AuthService): AbstractRun
 
     override fun getServiceState(): String = ""
 
-    fun <V> signDocument(authInfo: AuthToken, document: V): SignedDocument<V> {
+    fun <V> signDocument(authInfo: PmaAuthToken, document: V): SignedDocument<V> {
         logMe(document)
         validateAuthInfo(authInfo, LoanPermissions.SIGN)
         return SignedDocument(authInfo.principal.name, authInfo.nodeInstanceHandle.handleValue, document)

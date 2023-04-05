@@ -18,14 +18,16 @@ package nl.adaptivity.process.engine.pma
 
 import net.devrieze.util.Handle
 import nl.adaptivity.process.engine.ProcessInstanceContext
-import nl.adaptivity.process.engine.pma.dynamic.services.ServiceBase
 import nl.adaptivity.process.engine.pma.dynamic.runtime.AbstractDynamicPmaActivityContext
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DefaultAuthServiceClient
 import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions.GRANT_GLOBAL_PERMISSION
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions.UPDATE_ACTIVITY_STATE
+import nl.adaptivity.process.engine.pma.dynamic.services.ServiceBase
 import nl.adaptivity.process.engine.pma.dynamic.services.TaskList
 import nl.adaptivity.process.engine.pma.models.*
+import nl.adaptivity.process.engine.pma.runtime.AuthServiceClient
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
@@ -35,8 +37,10 @@ import kotlin.random.Random
 class EngineService(
     serviceName: String,
     authService: AuthService,
-    serviceAuth: IdSecretAuthInfo = newEngineClientAuth(authService),
+    serviceAuth: PmaIdSecretAuthInfo = newEngineClientAuth(authService),
 ) : ServiceBase(authService, serviceAuth), AutomatedService {
+
+    val authServiceClient: AuthServiceClient = DefaultAuthServiceClient(serviceAuth, authService)
 
     private val taskLists: MutableMap<Handle<SecureProcessNodeInstance>, List<TaskList>> = mutableMapOf()
 
@@ -51,7 +55,7 @@ class EngineService(
      * the activity.
      */
     fun acceptActivity(
-        authToken: AuthToken,
+        authToken: PmaAuthToken,
         nodeInstanceHandle: Handle<SecureProcessNodeInstance>,
         principal: Principal,
         pendingPermissions: Collection<AbstractDynamicPmaActivityContext.PendingPermission>,
@@ -154,7 +158,7 @@ class EngineService(
         handle: Handle<SecureProcessNodeInstance>,
         service: Service,
         scope: AuthScope
-    ): AuthToken {
+    ): PmaAuthToken {
         val authorizationCode = authService.createAuthorizationCode(serviceAuth, clientId, handle, service, scope)
         return authService.getAuthToken(serviceAuth, authorizationCode)
     }
@@ -183,7 +187,7 @@ class EngineService(
     }
 }
 
-private fun newEngineClientAuth(authService: AuthService): IdSecretAuthInfo {
+private fun newEngineClientAuth(authService: AuthService): PmaIdSecretAuthInfo {
     return authService.registerClient("ProcessEngine", Random.nextString()).also {
         authService.registerGlobalPermission(null, it.principal, authService, UPDATE_ACTIVITY_STATE)
         authService.registerGlobalPermission(null, it.principal, authService, GRANT_GLOBAL_PERMISSION)

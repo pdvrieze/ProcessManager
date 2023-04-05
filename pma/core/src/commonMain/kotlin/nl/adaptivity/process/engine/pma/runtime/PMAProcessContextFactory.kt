@@ -3,17 +3,19 @@ package nl.adaptivity.process.engine.pma.runtime
 import nl.adaptivity.process.engine.ProcessContextFactory
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.pma.models.IPMAMessageActivity
+import nl.adaptivity.process.engine.pma.models.ResolvedInvokableMethod
 import nl.adaptivity.process.engine.pma.models.TaskListService
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
+import nl.adaptivity.process.messaging.InvokableMethod
 import nl.adaptivity.process.processModel.AccessRestriction
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import java.security.Principal
 
 interface PMAProcessContextFactory<AIC : PmaActivityContext<AIC>>: ProcessContextFactory<AIC> {
-    val authServiceClient: AuthServiceClient
+    val engineServiceAuthServiceClient: AuthServiceClient
 
     fun getOrCreateTaskListForUser(principal: Principal): TaskListService
 
@@ -52,4 +54,6 @@ interface PMAProcessContextFactory<AIC : PmaActivityContext<AIC>>: ProcessContex
             state = state
         )
     }
+
+    fun resolveService(targetService: InvokableMethod): ResolvedInvokableMethod?
 }

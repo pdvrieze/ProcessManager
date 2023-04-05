@@ -1,16 +1,12 @@
 package nl.adaptivity.process.engine.test.loanOrigination
 
-import nl.adaptivity.process.engine.pma.AuthToken
 import nl.adaptivity.process.engine.pma.Browser
-import nl.adaptivity.process.engine.pma.dynamic.services.RunnableUiService
 import nl.adaptivity.process.engine.pma.dynamic.TaskBuilderContext
-import nl.adaptivity.process.engine.pma.models.ServiceName
-import nl.adaptivity.process.engine.pma.models.UiService
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-class LoanBrowserContext(private val delegateContext: LoanPMAActivityContext, private val browser: Browser):
+class LoanBrowserContext(private val delegateContext: LoanPMAActivityContext, override val browser: Browser):
     TaskBuilderContext.BrowserContext<LoanPMAActivityContext, LoanBrowserContext> {
 
     override val processContext: LoanPmaProcessContext
@@ -31,34 +27,10 @@ class LoanBrowserContext(private val delegateContext: LoanPMAActivityContext, pr
         else -> delegateContext.browserContext(browser)
     }
 
-    override val processNode: IProcessNodeInstance
-        get() = delegateContext.processNode
-
-    override fun <S : RunnableUiService, R> uiServiceLogin(
-        serviceId: ServiceName<S>,
-        action: TaskBuilderContext.UIServiceInnerContext<S>.() -> R
-    ): R {
-        val serviceInst: S = processContext.contextFactory.resolveService(serviceId)
-        val authToken : AuthToken = browser.loginToService(serviceInst)
-
-        val context = LoanUIServiceContext(authToken, serviceInst)
-        return context.action()
-    }
-
-    override fun <S : RunnableUiService, R> uiServiceLogin(
-        service: S,
-        action: TaskBuilderContext.UIServiceInnerContext<S>.() -> R
-    ): R {
-        val authToken : AuthToken = browser.loginToService(service)
-
-        val context = LoanUIServiceContext(authToken, service)
-        return context.action()
-    }
+    override val activityInstance: IProcessNodeInstance
+        get() = delegateContext.activityInstance
 
     interface Data {
         val customerData: CustomerData
     }
-
-    class LoanUIServiceContext<S: UiService>(override val authToken: AuthToken, override val service: S):
-        TaskBuilderContext.UIServiceInnerContext<S>
 }

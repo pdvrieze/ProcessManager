@@ -16,7 +16,7 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
-import nl.adaptivity.process.engine.pma.AuthInfo
+import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.dynamic.services.AbstractRunnableUiService
 import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
@@ -43,7 +43,7 @@ class OutputManagementSystem(serviceName: String, authService: AuthService): Abs
     private val _offers = mutableMapOf<String, PricedLoanProductBundle>()
     val offers: Map<String, PricedLoanProductBundle> get() = _offers
 
-    fun registerAndPrintOffer(authInfo: AuthInfo, approvedOffer: PricedLoanProductBundle): Offer {
+    fun registerAndPrintOffer(authInfo: PmaAuthInfo, approvedOffer: PricedLoanProductBundle): Offer {
         logMe(approvedOffer)
         validateAuthInfo(authInfo, LoanPermissions.PRINT_OFFER)
         val offerId = Random.nextString()
@@ -51,7 +51,7 @@ class OutputManagementSystem(serviceName: String, authService: AuthService): Abs
         return Offer(offerId, approvedOffer.customerId)
     }
 
-    fun signAndRegisterContract(authInfo: AuthInfo, offer: Offer, signature: String): Contract {
+    fun signAndRegisterContract(authInfo: PmaAuthInfo, offer: Offer, signature: String): Contract {
         logMe(offer, signature)
         val offerAmount = _offers[offer.id]?.amount ?: throw IllegalArgumentException("Offer not registered")
         validateAuthInfo(authInfo, LoanPermissions.SIGN_LOAN.context(offer.customerId, offerAmount))

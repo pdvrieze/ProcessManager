@@ -1,11 +1,12 @@
 package nl.adaptivity.process.engine.pma.dynamic
 
-import nl.adaptivity.process.engine.pma.AuthToken
-import nl.adaptivity.process.engine.pma.dynamic.services.TaskList
+import nl.adaptivity.process.engine.pma.PmaAuthToken
+import nl.adaptivity.process.engine.pma.Browser
 import nl.adaptivity.process.engine.pma.dynamic.runtime.AbstractDynamicPmaActivityContext
-import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaProcessInstanceContext
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaActivityContext
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaProcessInstanceContext
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableUiService
+import nl.adaptivity.process.engine.pma.dynamic.services.TaskList
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.models.UiService
 import nl.adaptivity.util.multiplatform.PrincipalCompat
@@ -27,14 +28,19 @@ open class TaskBuilderContext<AIC : AbstractDynamicPmaActivityContext<AIC, BIC>,
     */
 
     fun <O> acceptTask(principal: PrincipalCompat, action: BIC.(I) -> O) : AcceptedTask<AIC, BIC, I, O> {
-        return AcceptedTask(principal, action)
+        return acceptTask({principal}, action)
+    }
+
+    fun <O> acceptTask(principalProvider: AIC.() -> PrincipalCompat, action: BIC.(I) -> O) : AcceptedTask<AIC, BIC, I, O> {
+        return AcceptedTask(principalProvider, action)
     }
 
     class AcceptedTask<AIC : AbstractDynamicPmaActivityContext<AIC, BIC>, BIC : BrowserContext<AIC, BIC>, I, O>(
-        val principal: PrincipalCompat,
+        val principalProvider: AIC.() -> PrincipalCompat,
         private val action: BIC.(I) -> O
     ) {
         operator fun invoke(activityContext: AIC, input: I): O {
+            val principal = activityContext.principalProvider()
             val browser = activityContext.resolveBrowser(principal)
             val context = activityContext.browserContext(browser)
 
@@ -59,15 +65,33 @@ open class TaskBuilderContext<AIC : AbstractDynamicPmaActivityContext<AIC, BIC>,
         }
     }
 
-    interface BrowserContext<AIC: AbstractDynamicPmaActivityContext<AIC, BIC>, BIC: BrowserContext<AIC, BIC>> :
+    interface BrowserContext<AIC: DynamicPmaActivityContext<AIC, BIC>, BIC: BrowserContext<AIC, BIC>> :
         DynamicPmaActivityContext<AIC, BIC> {
-        fun <S: RunnableUiService, R> uiServiceLogin(service: ServiceName<S>, action: UIServiceInnerContext<S>.() -> R) : R
-        fun <S: RunnableUiService, R> uiServiceLogin(service: S, action: UIServiceInnerContext<S>.() -> R) : R
+        val browser: Browser
+
+        fun <S: RunnableUiService, R> uiServiceLogin(service: ServiceName<S>, action: UIServiceInnerContext<S>.() -> R) : R {
+            val serviceInst: S = processContext.contextFactory.resolveService(service)
+            val authToken: PmaAuthToken = browser.loginToService(serviceInst)
+
+            return DefaultUIServiceInnerContext(authToken, serviceInst).action()
+        }
+
+        fun <S: RunnableUiService, R> uiServiceLogin(service: S, action: UIServiceInnerContext<S>.() -> R) : R {
+            val authToken: PmaAuthToken = browser.loginToService(service)
+
+            return DefaultUIServiceInnerContext(authToken, service).action()
+        }
+
     }
 
     interface UIServiceInnerContext<S: UiService> {
-        val authToken: AuthToken
+        val authToken: PmaAuthToken
         val service: S
     }
+
+    private class DefaultUIServiceInnerContext<S: UiService>(
+        override val authToken: PmaAuthToken,
+        override val service: S
+    ) : UIServiceInnerContext<S>
 }
 

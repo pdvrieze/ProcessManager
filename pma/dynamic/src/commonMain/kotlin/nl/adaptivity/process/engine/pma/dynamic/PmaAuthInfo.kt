@@ -16,15 +16,12 @@
 
 package nl.adaptivity.process.engine.pma
 
-import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
+import nl.adaptivity.process.processModel.AuthorizationInfo
 import nl.adaptivity.util.multiplatform.PrincipalCompat
-import kotlin.random.Random
 
-class IdSecretAuthInfo(
-    principal: PrincipalCompat,
-    val secret: String = Random.nextString()
-): AuthInfo(principal) {
-    override fun toString(): String {
-        return "PW(${principal.name})=$secret"
-    }
+
+sealed class PmaAuthInfo(val principal: PrincipalCompat): AuthorizationInfo {
+
+    abstract override fun toString(): String
 }
+

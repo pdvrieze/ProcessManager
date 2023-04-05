@@ -20,9 +20,11 @@ import nl.adaptivity.process.engine.IProcessInstance
 import nl.adaptivity.process.engine.PIHandle
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstanceContext
-import nl.adaptivity.process.engine.pma.*
+import nl.adaptivity.process.engine.pma.AuthService
+import nl.adaptivity.process.engine.pma.Browser
+import nl.adaptivity.process.engine.pma.EngineService
+import nl.adaptivity.process.engine.pma.GeneralClientService
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaProcessInstanceContext
-import nl.adaptivity.process.engine.pma.dynamic.services.TaskList
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
 import nl.adaptivity.process.engine.test.loanOrigination.systems.*
@@ -58,7 +60,6 @@ interface LoanProcessContext : CommonLoanProcessContext {
 
 interface LoanPmaProcessContext : DynamicPmaProcessInstanceContext<LoanPMAActivityContext>, CommonLoanProcessContext {
     override val contextFactory: LoanPMAContextFactory
-    override fun taskListFor(principal: PrincipalCompat): TaskList
     override fun resolveBrowser(principal: PrincipalCompat): Browser
 
     val clerk1: Browser
@@ -137,7 +138,4 @@ class LoanPmaProcessContextImpl(
             .toList()
     }
 
-    override fun taskListFor(principal: PrincipalCompat): TaskList {
-        return contextFactory.getOrCreateTaskListForUser(principal)
-    }
 }

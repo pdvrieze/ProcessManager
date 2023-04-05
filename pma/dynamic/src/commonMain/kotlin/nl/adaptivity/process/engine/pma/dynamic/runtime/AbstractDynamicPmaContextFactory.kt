@@ -4,7 +4,7 @@ import nl.adaptivity.process.engine.pma.models.Service
 import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
 
-abstract class AbstractDynamicPmaContextFactory<C: AbstractDynamicPmaActivityContext<C, *>> : DynamicPmaProcessContextFactory<C> {
+abstract class AbstractDynamicPmaContextFactory<C: DynamicPmaActivityContext<C, *>> : DynamicPmaProcessContextFactory<C> {
 
     abstract val services: List<Service>
 

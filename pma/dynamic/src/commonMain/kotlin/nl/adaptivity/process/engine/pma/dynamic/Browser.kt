@@ -18,17 +18,18 @@ package nl.adaptivity.process.engine.pma
 
 import nl.adaptivity.process.engine.impl.Level
 import nl.adaptivity.process.engine.impl.LoggerCompat
-import nl.adaptivity.process.engine.pma.dynamic.services.RunnableUiService
 import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
+import nl.adaptivity.process.engine.pma.dynamic.services.RunnableUiService
 import nl.adaptivity.process.engine.pma.models.ANYSCOPE
 import nl.adaptivity.process.engine.pma.models.Service
+import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import kotlin.random.Random
 
-class Browser private constructor(private val authService: AuthService, val auth: IdSecretAuthInfo) {
+class Browser private constructor(private val authService: AuthService, val auth: PmaIdSecretAuthInfo) {
     val user: PrincipalCompat get() = auth.principal
-    private val tokens = mutableListOf<AuthToken>()
+    private val tokens = mutableListOf<PmaAuthToken>()
     val logger: LoggerCompat get() = authService.logger
 
     constructor(authService: AuthService, user: PrincipalCompat)
@@ -37,7 +38,7 @@ class Browser private constructor(private val authService: AuthService, val auth
         addToken(authService.loginDirect(auth))
     }
 
-    fun addToken(authToken: AuthToken) {
+    fun addToken(authToken: PmaAuthToken) {
         logger.log(Level.INFO, "Browser(${user.name}).addToken($authToken)")
         // Remove previous token for the service
         tokens.removeIf { it.serviceId == authToken.serviceId && it.nodeInstanceHandle == authToken.nodeInstanceHandle }
@@ -53,7 +54,7 @@ class Browser private constructor(private val authService: AuthService, val auth
         addToken(authService.getAuthToken(auth, authorizationCode))
     }
 
-    fun loginToService(service: RunnableUiService): AuthToken {
+    fun loginToService(service: RunnableUiService): PmaAuthToken {
         tokens.removeIf { authService.isTokenInvalid(it) }
         tokens.lastOrNull { it.serviceId == service.serviceInstanceId }?.let {
             logger.log(
@@ -68,11 +69,18 @@ class Browser private constructor(private val authService: AuthService, val auth
     }
 
     fun loginToService(authService: AuthService, service: Service): AuthorizationCode {
-        logger.log(Level.INFO, "Browser(${user.name}).loginToService(${service.serviceInstanceId})")
+        return loginToService(service.serviceInstanceId, authService)
+    }
+
+    private fun loginToService(
+        serviceId: ServiceId<Service>,
+        authService: AuthService
+    ): AuthorizationCode {
+        logger.log(Level.INFO, "Browser(${user.name}).loginToService($serviceId)")
         tokens.removeIf { authService.isTokenInvalid(it) }
         val token =
             tokens.lastOrNull { it.scope == CommonPMAPermissions.IDENTIFY && it.serviceId == authService.serviceInstanceId }
                 ?: throw AuthorizationException("Not logged in to authorization service")
-        return authService.getAuthorizationCode(token, service, ANYSCOPE)
+        return authService.getAuthorizationCode(token, serviceId, ANYSCOPE)
     }
 }

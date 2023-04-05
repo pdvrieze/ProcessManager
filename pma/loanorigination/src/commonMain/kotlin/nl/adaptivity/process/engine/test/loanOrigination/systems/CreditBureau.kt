@@ -16,9 +16,9 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
-import nl.adaptivity.process.engine.pma.AuthInfo
+import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.AuthService
-import nl.adaptivity.process.engine.pma.AuthToken
+import nl.adaptivity.process.engine.pma.PmaAuthToken
 import nl.adaptivity.process.engine.pma.dynamic.services.ServiceBase
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaProcessContextFactory
 import nl.adaptivity.process.engine.pma.models.AutomatedService
@@ -37,7 +37,7 @@ class CreditBureau(serviceName: String, authService: AuthService): ServiceBase(a
 
     override fun getServiceState(): String = ""
 
-    fun getCreditReport(authInfo: AuthInfo, customerData: CustomerData): CreditReport {
+    fun getCreditReport(authInfo: PmaAuthInfo, customerData: CustomerData): CreditReport {
         logMe()
         validateAuthInfo(authInfo, LoanPermissions.GET_CREDIT_REPORT(customerData.taxId))
 
@@ -49,7 +49,7 @@ class CreditBureau(serviceName: String, authService: AuthService): ServiceBase(a
                                                                                       )
     }
 
-    fun getCreditReport(context: DynamicPmaProcessContextFactory<LoanPMAActivityContext>, authInfo: AuthToken, customerId: String, taxId: String): CreditReport {
+    fun getCreditReport(context: DynamicPmaProcessContextFactory<LoanPMAActivityContext>, authInfo: PmaAuthToken, customerId: String, taxId: String): CreditReport {
         logMe()
         validateAuthInfo(authInfo, LoanPermissions.GET_CREDIT_REPORT(taxId))
         val customerFile = context.resolveService(ServiceNames.customerFile)

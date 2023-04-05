@@ -17,7 +17,7 @@
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
 import nl.adaptivity.process.engine.pma.AuthService
-import nl.adaptivity.process.engine.pma.AuthToken
+import nl.adaptivity.process.engine.pma.PmaAuthToken
 import nl.adaptivity.process.engine.pma.dynamic.services.AbstractRunnableUiService
 import nl.adaptivity.process.engine.pma.models.AutomatedService
 import nl.adaptivity.process.engine.pma.models.ServiceId
@@ -36,14 +36,14 @@ class CustomerInformationFile(serviceName: String, authService: AuthService): Ab
 
     override fun getServiceState(): String = ""
 
-    fun enterCustomerData(authToken: AuthToken, data: CustomerData): LoanCustomer {
+    fun enterCustomerData(authToken: PmaAuthToken, data: CustomerData): LoanCustomer {
         logMe()
         validateAuthInfo(authToken, LoanPermissions.CREATE_CUSTOMER)
         customerData[data.customerId] = data
         return LoanCustomer(data.customerId, data.taxId)
     }
 
-    fun getCustomerData(authToken: AuthToken, customerId: String): CustomerData? {
+    fun getCustomerData(authToken: PmaAuthToken, customerId: String): CustomerData? {
         logMe(customerId)
         // TODO make this customer specific and add an identifyCustomer function that only requires less data
         validateAuthInfo(authToken, LoanPermissions.QUERY_CUSTOMER_DATA(customerId))
