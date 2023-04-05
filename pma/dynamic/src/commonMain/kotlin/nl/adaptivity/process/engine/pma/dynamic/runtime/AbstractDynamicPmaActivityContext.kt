@@ -7,7 +7,6 @@ import io.github.pdvrieze.process.processModel.dynamicProcessModel.RunnableActiv
 import kotlinx.serialization.DeserializationStrategy
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.engine.ProcessEnginePermissions
-import nl.adaptivity.process.engine.pma.AuthorizationCode
 import nl.adaptivity.process.engine.pma.Browser
 import nl.adaptivity.process.engine.pma.dynamic.TaskBuilderContext
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
@@ -83,24 +82,6 @@ abstract class AbstractDynamicPmaActivityContext<AIC : DynamicPmaActivityContext
         }
     }
 */
-
-    @Deprecated("Not used at all", level = DeprecationLevel.ERROR)
-    fun serviceTask(): AuthorizationCode {
-        val clientServiceId = processContext.generalClientService.serviceInstanceId
-        val serviceAuthorization = with(processContext) {
-            engineService.createAuthorizationCode(
-                clientServiceId.serviceId,
-                this@AbstractDynamicPmaActivityContext.nodeInstanceHandle,
-                authService,
-                CommonPMAPermissions.IDENTIFY,
-                pendingPermissions
-            )
-        }
-
-        check(pendingPermissions.isEmpty()) { "Pending permissions should be empty after a service task is created" }
-
-        return serviceAuthorization
-    }
 
     /**
      * TODO Function that registers permissions for the task. This should be done based upon task definition

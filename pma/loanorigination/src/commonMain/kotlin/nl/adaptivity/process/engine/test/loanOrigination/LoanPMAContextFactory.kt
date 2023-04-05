@@ -6,6 +6,7 @@ import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaProcessContextFactory
 import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
+import nl.adaptivity.process.engine.pma.dynamic.services.EnumeratedTaskList
 import nl.adaptivity.process.engine.pma.dynamic.services.TaskList
 import nl.adaptivity.process.engine.pma.models.ResolvedInvokableMethod
 import nl.adaptivity.process.engine.pma.models.Service
@@ -29,7 +30,7 @@ class LoanPMAContextFactory(log: Logger, random: Random) :
 
     private val taskList: TaskList by lazy {
         val clientAuth = authService.registerClient("TaskList(GLOBAL)", Random.nextString())
-        TaskList("tasklist", authService, engineService, clientAuth, principals).also { t ->
+        EnumeratedTaskList("tasklist", authService, engineService, clientAuth, principals).also { t ->
             engineService.registerGlobalPermission(
                 SimplePrincipal(engineService.serviceInstanceId.serviceId) as PrincipalCompat,
                 t,

@@ -116,7 +116,6 @@ class LoanPmaProcessContextImpl(
     //
 
     override val authService: AuthService get() = contextFactory.authService
-    override val generalClientService: GeneralClientService get() = contextFactory.generalClientService
     override val engineService: EngineService get() = contextFactory.engineService
 
     override val clerk1: Browser get() = contextFactory.clerk1

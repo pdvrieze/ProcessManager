@@ -8,7 +8,7 @@ import kotlinx.serialization.serializer
 import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.engine.pma.dynamic.ServiceActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.TaskBuilderContext
-import nl.adaptivity.process.engine.pma.dynamic.runtime.AbstractDynamicPmaActivityContext
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.scope.templates.DelegateScopeTemplate
 import nl.adaptivity.process.engine.pma.models.AuthScopeTemplate
 import nl.adaptivity.process.engine.pma.models.AutomatedService
@@ -26,7 +26,7 @@ import kotlin.reflect.KProperty
 
 @OptIn(ExperimentalTypeInference::class)
 abstract class PmaModelBuilderContext<
-    AIC : AbstractDynamicPmaActivityContext<AIC, BIC>,
+    AIC : DynamicPmaActivityContext<AIC, BIC>,
     BIC : TaskBuilderContext.BrowserContext<AIC, BIC>
     > : IModelBuilderContext<AIC> {
 
@@ -156,7 +156,7 @@ abstract class PmaModelBuilderContext<
         return context.modelBuilder
     }
 
-    fun <AIC : AbstractDynamicPmaActivityContext<AIC, *>> delegatePermissions(
+    fun <AIC : DynamicPmaActivityContext<AIC, *>> delegatePermissions(
         targetService: ServiceName<*>,
         vararg permissions: AuthScopeTemplate<AIC>
     ): AuthScopeTemplate<AIC> {
@@ -165,7 +165,7 @@ abstract class PmaModelBuilderContext<
 
     companion object {
         @PublishedApi
-        internal fun <AIC : AbstractDynamicPmaActivityContext<AIC, *>, I : Any, O : Any, S : AutomatedService> serviceAction(
+        internal fun <AIC : DynamicPmaActivityContext<AIC, *>, I : Any, O : Any, S : AutomatedService> serviceAction(
             serviceId: ServiceName<S>,
             action: RunnableAction<I, O, ServiceActivityContext<AIC, S>>
         ): PmaAction.ServiceAction<I, O, AIC, S> {
@@ -186,7 +186,7 @@ abstract class PmaModelBuilderContext<
         }
 
         @PublishedApi
-        internal fun <AIC : AbstractDynamicPmaActivityContext<AIC, BIC>, BIC : TaskBuilderContext.BrowserContext<AIC, BIC>, I : Any, O : Any>
+        internal fun <AIC : DynamicPmaActivityContext<AIC, BIC>, BIC : TaskBuilderContext.BrowserContext<AIC, BIC>, I : Any, O : Any>
             taskListAction(action: TaskBuilderContext<AIC, BIC, I>.() -> TaskBuilderContext.AcceptedTask<AIC, BIC, I, O>): PmaAction.BrowserAction<I, O, AIC, BIC> {
             return PmaAction.BrowserAction<I, O, AIC, BIC>(TaskBuilderContext<AIC, BIC, I>().action())
         }

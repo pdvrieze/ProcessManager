@@ -22,7 +22,7 @@ import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.CompactFragment
 
-class DynamicPmaActivityInstance<InputT : Any, OutputT : Any, C : AbstractDynamicPmaActivityContext<C, *>>(
+class DynamicPmaActivityInstance<InputT : Any, OutputT : Any, C : DynamicPmaActivityContext<C, *>>(
     builder: Builder<InputT, OutputT, C>
 ) : AbstractRunnableActivityInstance<InputT, OutputT, C, RunnablePmaActivity<InputT, OutputT, C>, DynamicPmaActivityInstance<InputT, OutputT, C>>(
     builder
@@ -34,7 +34,7 @@ class DynamicPmaActivityInstance<InputT : Any, OutputT : Any, C : AbstractDynami
         return DynamicPmaActivityInstance.ExtBuilder(this, processInstanceBuilder)
     }
 
-    interface Builder<InputT : Any, OutputT : Any, C : AbstractDynamicPmaActivityContext<C, *>> :
+    interface Builder<InputT : Any, OutputT : Any, C : DynamicPmaActivityContext<C, *>> :
         AbstractRunnableActivityInstance.Builder<InputT, OutputT, C, RunnablePmaActivity<InputT, OutputT, C>, DynamicPmaActivityInstance<InputT, OutputT, C>> {
 
         val isBrowserTask: Boolean get() = node.action is BrowserAction<*, *, *, *>
@@ -108,7 +108,7 @@ class DynamicPmaActivityInstance<InputT : Any, OutputT : Any, C : AbstractDynami
         }
 
         override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {
-            fun <C: AbstractDynamicPmaActivityContext<C, *>> doRun(
+            fun <C: DynamicPmaActivityContext<C, *>> doRun(
                 contextFactory: ProcessContextFactory<C>,
                 builtNodeInstance: DynamicPmaActivityInstance<InputT, OutputT, C>
             ) : CompactFragment? {
@@ -155,7 +155,7 @@ class DynamicPmaActivityInstance<InputT : Any, OutputT : Any, C : AbstractDynami
     }
 
 
-    class BaseBuilder<I : Any, O : Any, C : AbstractDynamicPmaActivityContext<C, *>>(
+    class BaseBuilder<I : Any, O : Any, C : DynamicPmaActivityContext<C, *>>(
         node: RunnablePmaActivity<I, O, C>,
         predecessor: PNIHandle?,
         processInstanceBuilder: ProcessInstance.Builder,
@@ -174,7 +174,7 @@ class DynamicPmaActivityInstance<InputT : Any, OutputT : Any, C : AbstractDynami
         }
     }
 
-    class ExtBuilder<I : Any, O : Any, C : AbstractDynamicPmaActivityContext<C, *>>(
+    class ExtBuilder<I : Any, O : Any, C : DynamicPmaActivityContext<C, *>>(
         base: DynamicPmaActivityInstance<I, O, C>,
         processInstanceBuilder: ProcessInstance.Builder
     ) : AbstractRunnableActivityInstance.ExtBuilder<I, O, C, RunnablePmaActivity<I, O, C>, DynamicPmaActivityInstance<I, O, C>>(

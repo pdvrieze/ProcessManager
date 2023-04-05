@@ -4,7 +4,7 @@ package nl.adaptivity.process.engine.pma.dynamic.model
 
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import nl.adaptivity.process.engine.pma.dynamic.TaskBuilderContext.BrowserContext
-import nl.adaptivity.process.engine.pma.dynamic.runtime.AbstractDynamicPmaActivityContext
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaActivityContext
 import nl.adaptivity.process.processModel.configurableModel.ConfigurationDsl
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.util.multiplatform.PrincipalCompat
@@ -12,7 +12,7 @@ import nl.adaptivity.util.multiplatform.UUID
 import kotlin.experimental.ExperimentalTypeInference
 
 
-fun <AIC : AbstractDynamicPmaActivityContext<AIC, BIC>, BIC : BrowserContext<AIC, BIC>> runnablePmaProcess(
+fun <AIC : DynamicPmaActivityContext<AIC, BIC>, BIC : BrowserContext<AIC, BIC>> runnablePmaProcess(
     name: String,
     owner: PrincipalCompat = SYSTEMPRINCIPAL,
     uuid: UUID = UUID.randomUUID(),

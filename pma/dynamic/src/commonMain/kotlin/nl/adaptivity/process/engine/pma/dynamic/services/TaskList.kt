@@ -26,22 +26,13 @@ import nl.adaptivity.process.engine.pma.models.TaskListService
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-class TaskList constructor(
+abstract class TaskList constructor(
     serviceName: String,
     authService: AuthService,
     private val engineService: EngineService,
-    clientAuth: PmaIdSecretAuthInfo,
-    val principals: List<PrincipalCompat>
+    clientAuth: PmaIdSecretAuthInfo
 ) : AbstractRunnableUiService(authService, clientAuth), TaskListService {
 //    val nodeInstanceHandle: PNIHandle? get() = activityAccessToken?.nodeInstanceHandle
-
-    constructor(
-        serviceName: String,
-        authService: AuthService,
-        engineService: EngineService,
-        clientAuth: PmaIdSecretAuthInfo,
-        principal: PrincipalCompat
-    ) : this(serviceName, authService, engineService, clientAuth, listOf(principal))
 
     override val serviceName: ServiceName<TaskList> = ServiceName(serviceName)
 
@@ -56,11 +47,7 @@ class TaskList constructor(
     }
 */
 
-    override fun getServiceState(): String = principals.joinToString(prefix = "[", postfix = "]")
-
-    override fun servesFor(principal: PrincipalCompat): Boolean {
-        return principal in principals
-    }
+    override fun getServiceState(): String = engineTokens.entries.joinToString(prefix = "Active tasks: [", postfix = "]") { (handle, token) -> "$handle -> $token" }
 
     fun postTask(
         authInfo: PmaAuthToken,

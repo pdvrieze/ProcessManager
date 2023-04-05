@@ -24,6 +24,7 @@ import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions.*
 import nl.adaptivity.process.engine.pma.models.*
+import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.nl.adaptivity.util.kotlin.removeIfTo
@@ -73,19 +74,18 @@ class AuthService(
 
     /**
      * Validate whether the authentication information will authenticate to the service with the given scope
-     * @param serviceId The service that is being accessed
      * @param authInfo The authentication information being used
+     * @param serviceId The service that is being accessed
      * @param scope The scope of the access requested
      */
     fun validateAuthInfo(
-        service: Service,
         authInfo: PmaAuthInfo,
+        serviceId: ServiceId<Service>,
         scope: UseAuthScope
     ) {
-        val serviceId = service.serviceInstanceId
         when (authInfo) {
-            is PmaIdSecretAuthInfo -> validateUserPermission(serviceId, authInfo, scope)
-            is PmaAuthToken -> validateAuthTokenPermission(serviceId, authInfo, scope)
+            is PmaIdSecretAuthInfo -> validateUserPermission(authInfo, serviceId, scope)
+            is PmaAuthToken -> validateAuthTokenPermission(authInfo, serviceId, scope)
             else -> doLog(
                 authInfo,
                 "validateAuthInfo(clientId = $serviceId, authInfo = $authInfo, scope = $scope)"
@@ -98,16 +98,16 @@ class AuthService(
         scope: UseAuthScope
     ) {
         when (authInfo) {
-            is PmaIdSecretAuthInfo -> validateUserPermission(authServiceId, authInfo, scope)
-            is PmaAuthToken -> validateAuthTokenPermission(authServiceId, authInfo, scope)
+            is PmaIdSecretAuthInfo -> validateUserPermission(authInfo, authServiceId, scope)
+            is PmaAuthToken -> validateAuthTokenPermission(authInfo, authServiceId, scope)
             else -> doLog(authInfo, "validateAuthInfo(authInfo = $authInfo, scope = $scope)")
         }
 
     }
 
     private fun validateAuthTokenPermission(
-        serviceId: ServiceId<*>,
         authToken: PmaAuthToken,
+        serviceId: ServiceId<*>,
         useScope: UseAuthScope
     ) {
         if (authToken !in activeTokens) throw AuthorizationException("Token not active: $authToken")
@@ -134,8 +134,8 @@ class AuthService(
     }
 
     private fun validateUserPermission(
-        serviceId: ServiceId<*>,
         authInfo: PmaIdSecretAuthInfo,
+        serviceId: ServiceId<*>,
         useScope: UseAuthScope
     ) {
         if (serviceId != authServiceId) throw AuthorizationException("Only authService allows password auth")
@@ -176,129 +176,95 @@ class AuthService(
         return createAuthorizationCodeImpl(auth, clientId, nodeInstanceHandle, service, scope)
     }
 
-    /**
-     * Create an authorization code for a client to access the service with given scope
-     * @param auth Authorization for this action
-     * @param clientId The client that is being authorized
-     * @param nodeInstanceHandle The node instance related to this authorization
-     * @param service The service being authorized
-     * @param scope The scope being authorized
-     */
-    fun createAuthorizationCode(
-        auth: PmaAuthInfo,
-        clientId: String,
-        service: Service,
+    fun requestPmaAuthToken(
+        engineAuth: PmaAuthInfo,
+        nodeInstanceHandle: PNIHandle,
+        serviceId: ServiceId<*>,
         scope: AuthScope
-    ): AuthorizationCode {
-        val nodeInstanceHandle = auth.getNodeInstanceHandle()
-        return createAuthorizationCodeImpl(auth, clientId, nodeInstanceHandle, service, scope)
+    ): PmaAuthToken {
+        return createAuthTokenImpl(engineAuth, engineAuth.principal, nodeInstanceHandle, serviceId, scope)
     }
 
-    /**
-     * Create an authorization code for a client to access the service with given scope
-     * @param auth Authorization for this action
-     * @param clientId The client that is being authorized
-     * @param nodeInstanceHandle The node instance related to this authorization
-     * @param service The service being authorized
-     * @param scope The scope being authorized
-     */
-    fun exchangeDelegateCode(
-        auth: PmaAuthToken,
-        client: Service,
-        service: Service,
-        scope: AuthScope
-    ): AuthorizationCode {
-        val nodeInstanceHandle = auth.getNodeInstanceHandle()
-        return exchangeDelegateCode(auth, client, nodeInstanceHandle, service, scope)
-    }
-
-    private fun PmaAuthInfo.getNodeInstanceHandle(): Handle<SecureProcessNodeInstance> =
-        when (this) {
-            is PmaAuthToken -> nodeInstanceHandle
-            else -> Handle.invalid()
-        }
-
-    private fun exchangeDelegateCode(
-        auth: PmaAuthToken,
-        client: Service,
-        nodeInstanceHandle: Handle<SecureProcessNodeInstance>,
-        service: Service,
-        scope: AuthScope
-    ): AuthorizationCode {
-        val clientId = client.serviceInstanceId
-        // We know the task handle so permission limited to the task handle is sufficient
+    fun exchangeDelegateToken(
+        clientAuth: PmaAuthInfo,
+        exchangedToken: PmaAuthToken,
+        service: ServiceId<*>,
+        requestedScope: AuthScope,
+    ) : PmaAuthToken {
+        val clientServiceId = clientAuth.principal.name
         validateAuthTokenPermission(
-            clientId,
-            auth,
-            CommonPMAPermissions.DELEGATED_PERMISSION.context(clientId.serviceId, service, scope)
+            exchangedToken,
+            ServiceId<Service>(clientServiceId),
+            DELEGATED_PERMISSION.context(clientServiceId, service, requestedScope)
         )
+        val newToken = createAuthTokenNonValidated(clientAuth.principal, exchangedToken.nodeInstanceHandle, service, requestedScope)
 
-        val clientPrincipal = clientFromId(clientId.serviceId)
+        doLog(clientAuth, "exchangeDelegateToken(exchanged = ${exchangedToken}, token = $newToken)")
+        return newToken
+    }
+
+    private fun createAuthTokenImpl(
+        auth: PmaAuthInfo,
+        client: PrincipalCompat,
+        nodeInstanceHandle: PNIHandle,
+        targetServiceId: ServiceId<*>,
+        scope: AuthScope
+    ): PmaAuthToken {
+        // We know the task handle so permission limited to the task handle is sufficient
+        internalValidateAuthInfo(auth, GRANT_ACTIVITY_PERMISSION.context(nodeInstanceHandle, client.name, targetServiceId, scope))
+
+        return createAuthTokenNonValidated(client, nodeInstanceHandle, targetServiceId, scope)
+    }
+
+    private fun createAuthTokenNonValidated(
+        client: PrincipalCompat,
+        nodeInstanceHandle: PNIHandle,
+        targetServiceId: ServiceId<*>,
+        scope: AuthScope
+    ): PmaAuthToken {
         val existingToken = activeTokens.lastOrNull {
-            it.principal == clientPrincipal &&
-                it.nodeInstanceHandle == nodeInstanceHandle &&
-                it.serviceId == serviceInstanceId &&
-                it.scope == scope
+            it.principal == client &&
+                    it.nodeInstanceHandle == nodeInstanceHandle &&
+                    it.serviceId == targetServiceId &&
+                    it.scope == scope
         }
 
         val token = if (existingToken != null) {
-            random.nextString()
+    //            Random.nextString()
             existingToken
         } else {
-            PmaAuthToken(clientPrincipal, nodeInstanceHandle, Random.nextString(), service.serviceInstanceId, scope)
+            PmaAuthToken(client, nodeInstanceHandle, Random.nextString(), targetServiceId, scope)
         }
-        val authorizationCode = AuthorizationCode(Random.nextString(), clientPrincipal)
-        authorizationCodes[authorizationCode] = token
         activeTokens.add(token)
-        doLog(
-            auth,
-            "createAuthorizationCode(code = ${authorizationCode.code}, token${if (existingToken != null) " - reused" else ""} = $token)"
-        )
-        return authorizationCode
+        return token
     }
 
     private fun createAuthorizationCodeImpl(
         auth: PmaAuthInfo,
         clientId: String,
-        nodeInstanceHandle: Handle<SecureProcessNodeInstance>,
+        nodeInstanceHandle: PNIHandle,
         service: Service,
         scope: AuthScope
     ): AuthorizationCode {
-        // We know the task handle so permission limited to the task handle is sufficient
-        internalValidateAuthInfo(auth, GRANT_ACTIVITY_PERMISSION.context(nodeInstanceHandle, clientId, service, scope))
 
         val clientPrincipal = clientFromId(clientId)
-        val existingToken = activeTokens.lastOrNull {
-            it.principal == clientPrincipal &&
-                it.nodeInstanceHandle == nodeInstanceHandle &&
-                it.serviceId == serviceInstanceId &&
-                it.scope == scope
-        }
 
-        val token = if (existingToken != null) {
-//            Random.nextString()
-            existingToken
-        } else {
-            PmaAuthToken(clientPrincipal, nodeInstanceHandle, Random.nextString(), service.serviceInstanceId, scope)
-        }
+        // We know the task handle so permission limited to the task handle is sufficient
+        internalValidateAuthInfo(auth, GRANT_ACTIVITY_PERMISSION.context(nodeInstanceHandle, clientPrincipal.name, service.serviceInstanceId, scope))
+
+        val token = createAuthTokenNonValidated(clientPrincipal, nodeInstanceHandle, service.serviceInstanceId, scope)
+
         val authorizationCode = AuthorizationCode(Random.nextString(), clientPrincipal)
         authorizationCodes[authorizationCode] = token
-        activeTokens.add(token)
-        doLog(
-            auth,
-            "createAuthorizationCode(code = ${authorizationCode.code}, token${if (existingToken != null) " - reused" else ""} = $token)"
-        )
+
+        doLog(auth, "createAuthorizationCode(code = ${authorizationCode.code}, token = $token)")
+
         return authorizationCode
     }
 
     private fun clientFromId(clientId: String): PrincipalCompat {
         // TODO look up actual users.
         return SimplePrincipal(clientId)
-    }
-
-    private fun clientFromId(serviceId: ServiceId<*>): PrincipalCompat {
-        // TODO look up actual users.
-        return SimplePrincipal(serviceId.serviceId)
     }
 
     fun getAuthToken(clientAuth: PmaAuthInfo, authorizationCode: AuthorizationCode): PmaAuthToken {

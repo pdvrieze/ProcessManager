@@ -245,6 +245,15 @@ sealed class CommonPMAPermissions : AuthScope {
             return ContextScope(taskHandle, clientId, service.serviceInstanceId, scope)
         }
 
+        fun context(
+            taskHandle: Handle<SecureProcessNodeInstance>,
+            clientId: String,
+            serviceId: ServiceId<*>,
+            scope: AuthScope,
+        ): UseAuthScope {
+            return ContextScope(taskHandle, clientId, serviceId, scope)
+        }
+
         fun restrictTo(
             taskHandle: Handle<SecureProcessNodeInstance>,
             clientId: String? = null,
@@ -412,6 +421,13 @@ sealed class CommonPMAPermissions : AuthScope {
     }
 
     object DELEGATED_PERMISSION : CommonPMAPermissions() {
+        fun context(
+            clientId: String,
+            serviceId: ServiceId<*>,
+            scope: AuthScope,
+        ): UseAuthScope {
+            return DelegateContextScope(serviceId, scope)
+        }
         fun context(
             clientId: String,
             service: Service,

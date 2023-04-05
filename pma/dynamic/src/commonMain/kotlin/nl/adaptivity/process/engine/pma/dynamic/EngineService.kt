@@ -29,6 +29,7 @@ import nl.adaptivity.process.engine.pma.dynamic.services.TaskList
 import nl.adaptivity.process.engine.pma.models.*
 import nl.adaptivity.process.engine.pma.runtime.AuthServiceClient
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import java.security.Principal
@@ -128,9 +129,13 @@ class EngineService(
         taskList.postTask(taskListAuth, taskListToEngineAuthToken, pniHandle)
     }
 
+    fun createServiceAuthToken(handle: PNIHandle, service: Service, scope: AuthScope): PmaAuthToken {
+        return authService.requestPmaAuthToken(serviceAuth, handle, service.serviceInstanceId, scope)
+    }
+
     fun createAuthorizationCode(
         clientId: String,
-        handle: Handle<SecureProcessNodeInstance>,
+        handle: PNIHandle,
         service: Service,
         scope: AuthScope,
         pendingPermissions: Collection<AbstractDynamicPmaActivityContext.PendingPermission>

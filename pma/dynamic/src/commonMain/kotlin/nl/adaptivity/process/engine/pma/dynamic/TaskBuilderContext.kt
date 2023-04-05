@@ -1,8 +1,7 @@
 package nl.adaptivity.process.engine.pma.dynamic
 
-import nl.adaptivity.process.engine.pma.PmaAuthToken
 import nl.adaptivity.process.engine.pma.Browser
-import nl.adaptivity.process.engine.pma.dynamic.runtime.AbstractDynamicPmaActivityContext
+import nl.adaptivity.process.engine.pma.PmaAuthToken
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaProcessInstanceContext
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableUiService
@@ -11,7 +10,7 @@ import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.models.UiService
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-open class TaskBuilderContext<AIC : AbstractDynamicPmaActivityContext<AIC, BIC>, BIC : TaskBuilderContext.BrowserContext<AIC, BIC>, I>() {
+open class TaskBuilderContext<AIC : DynamicPmaActivityContext<AIC, BIC>, BIC : TaskBuilderContext.BrowserContext<AIC, BIC>, I>() {
 
     /*
         open fun ensureTaskList(browser: Browser) : TaskListService {
@@ -35,7 +34,7 @@ open class TaskBuilderContext<AIC : AbstractDynamicPmaActivityContext<AIC, BIC>,
         return AcceptedTask(principalProvider, action)
     }
 
-    class AcceptedTask<AIC : AbstractDynamicPmaActivityContext<AIC, BIC>, BIC : BrowserContext<AIC, BIC>, I, O>(
+    class AcceptedTask<AIC : DynamicPmaActivityContext<AIC, BIC>, BIC : BrowserContext<AIC, BIC>, I, O>(
         val principalProvider: AIC.() -> PrincipalCompat,
         private val action: BIC.(I) -> O
     ) {

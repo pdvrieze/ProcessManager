@@ -46,7 +46,7 @@ abstract class ServiceBase(
     )
 
     protected fun Service.validateAuthInfo(authInfo: PmaAuthInfo, scope: UseAuthScope) {
-        authService.validateAuthInfo(this, authInfo, scope)
+        authService.validateAuthInfo(authInfo, serviceInstanceId, scope)
     }
 
     fun globalAuthTokenForService(service: Service, scope: AuthScope = ANYSCOPE): PmaAuthToken {

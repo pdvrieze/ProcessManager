@@ -5,7 +5,7 @@ import io.github.pdvrieze.process.processModel.dynamicProcessModel.InputRefImpl
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.serializer
 import nl.adaptivity.process.engine.pma.dynamic.TaskBuilderContext
-import nl.adaptivity.process.engine.pma.dynamic.runtime.AbstractDynamicPmaActivityContext
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaActivityContext
 import nl.adaptivity.process.processModel.RootProcessModel
 import nl.adaptivity.process.processModel.RootProcessModelBase
 import nl.adaptivity.process.processModel.XmlResultType
@@ -13,7 +13,7 @@ import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.UUID
 
-class RootPmaModelBuilderContext<AIC : AbstractDynamicPmaActivityContext<AIC, BIC>, BIC: TaskBuilderContext.BrowserContext<AIC, BIC>>(
+class RootPmaModelBuilderContext<AIC : DynamicPmaActivityContext<AIC, BIC>, BIC: TaskBuilderContext.BrowserContext<AIC, BIC>>(
     name: String,
     owner: PrincipalCompat,
     uuid: UUID,

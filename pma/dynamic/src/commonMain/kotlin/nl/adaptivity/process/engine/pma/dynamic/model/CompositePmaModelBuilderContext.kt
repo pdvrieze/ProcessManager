@@ -5,7 +5,7 @@ import io.github.pdvrieze.process.processModel.dynamicProcessModel.InputRef
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.InputRefImpl
 import kotlinx.serialization.DeserializationStrategy
 import nl.adaptivity.process.engine.pma.dynamic.TaskBuilderContext
-import nl.adaptivity.process.engine.pma.dynamic.runtime.AbstractDynamicPmaActivityContext
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaActivityContext
 import nl.adaptivity.process.processModel.ActivityBase
 import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.XmlResultType
@@ -13,7 +13,7 @@ import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xmlutil.Namespace
 
 abstract class CompositePmaModelBuilderContext<
-    AIC : AbstractDynamicPmaActivityContext<AIC, BIC>,
+    AIC : DynamicPmaActivityContext<AIC, BIC>,
     BIC: TaskBuilderContext.BrowserContext<AIC, BIC>
     > : PmaModelBuilderContext<AIC, BIC>(), ICompositeModelBuilderContext<AIC> {
 

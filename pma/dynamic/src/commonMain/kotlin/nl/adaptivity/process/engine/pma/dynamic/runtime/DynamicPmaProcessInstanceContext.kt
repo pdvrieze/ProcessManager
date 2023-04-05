@@ -7,7 +7,6 @@ import nl.adaptivity.process.engine.IProcessInstance
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.Browser
 import nl.adaptivity.process.engine.pma.EngineService
-import nl.adaptivity.process.engine.pma.GeneralClientService
 import nl.adaptivity.process.engine.pma.runtime.PmaProcessInstanceContext
 import nl.adaptivity.process.engine.processModel.applyData
 import nl.adaptivity.util.multiplatform.PrincipalCompat
@@ -16,11 +15,10 @@ interface DynamicPmaProcessInstanceContext<A : DynamicPmaActivityContext<A, *>> 
     val processInstance: IProcessInstance
     val authService: AuthService
     val engineService: EngineService
-    val generalClientService: GeneralClientService
     override val contextFactory: DynamicPmaProcessContextFactory<A>
 
 
-    fun <I: Any, O: Any, C : AbstractDynamicPmaActivityContext<C, *>> nodeResult(node: RunnablePmaActivity<I, O, C>, reference: OutputRef<O>): I {
+    fun <I: Any, O: Any, C : DynamicPmaActivityContext<C, *>> nodeResult(node: RunnablePmaActivity<I, O, C>, reference: OutputRef<O>): I {
         val defines = node.defines.map {
             // TODO the cast shouldn't be needed
             it.applyData(processInstance, this as ActivityInstanceContext)

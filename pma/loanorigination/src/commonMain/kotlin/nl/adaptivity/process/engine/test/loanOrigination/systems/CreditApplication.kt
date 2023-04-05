@@ -46,14 +46,7 @@ class CreditApplication(
         logMe(application)
         validateAuthInfo(authInfo, LoanPermissions.EVALUATE_LOAN.context(application.customerId, application.amount))
 
-        val delegateAuthorization = authService.exchangeDelegateCode(
-            authInfo,
-            this,
-            customerInformationFile,
-            LoanPermissions.QUERY_CUSTOMER_DATA(application.customerId)
-        )
-
-        val cifServiceAuth = authService.getAuthToken(serviceAuth, delegateAuthorization)
+        val cifServiceAuth = authService.exchangeDelegateToken(serviceAuth, authInfo, customerInformationFile.serviceInstanceId, LoanPermissions.QUERY_CUSTOMER_DATA(application.customerId))
         val customer = customerInformationFile.getCustomerData(cifServiceAuth, application.customerId)!!
 
         if (application.amount<creditReport.maxLoan) {

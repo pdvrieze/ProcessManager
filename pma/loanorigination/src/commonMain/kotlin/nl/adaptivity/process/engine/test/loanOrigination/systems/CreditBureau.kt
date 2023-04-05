@@ -16,11 +16,11 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
-import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.AuthService
+import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.PmaAuthToken
-import nl.adaptivity.process.engine.pma.dynamic.services.ServiceBase
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaProcessContextFactory
+import nl.adaptivity.process.engine.pma.dynamic.services.ServiceBase
 import nl.adaptivity.process.engine.pma.models.AutomatedService
 import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
@@ -54,9 +54,7 @@ class CreditBureau(serviceName: String, authService: AuthService): ServiceBase(a
         validateAuthInfo(authInfo, LoanPermissions.GET_CREDIT_REPORT(taxId))
         val customerFile = context.resolveService(ServiceNames.customerFile)
 
-        // TODO this shouldn't need a code
-        val customerFileCode = authService.exchangeDelegateCode(authInfo, this@CreditBureau, customerFile, LoanPermissions.QUERY_CUSTOMER_DATA(customerId))
-        val customerFileToken = authService.getAuthToken(serviceAuth, customerFileCode)
+        val customerFileToken = authService.exchangeDelegateToken(serviceAuth, authInfo, customerFile.serviceInstanceId, LoanPermissions.QUERY_CUSTOMER_DATA(customerId))
 
         val customerData = customerFile.getCustomerData(customerFileToken, customerId) ?: throw IllegalStateException("Unknown customer")
 

@@ -19,9 +19,10 @@ package nl.adaptivity.process.engine.test.loanOrigination
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.PIHandle
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
-import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
-import nl.adaptivity.process.engine.pma.dynamic.services.TaskList
 import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
+import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
+import nl.adaptivity.process.engine.pma.dynamic.services.EnumeratedTaskList
+import nl.adaptivity.process.engine.pma.dynamic.services.TaskList
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import java.security.Principal
@@ -71,7 +72,7 @@ class LoanContextFactory(log: Logger, random: Random): AbstractLoanContextFactor
         return taskLists.getOrPut(principal) {
             log.log(Level.INFO, "Creating tasklist service for ${principal.name}")
             val clientAuth = authService.registerClient("TaskList(${principal.name})", Random.nextString())
-            val t = TaskList("tasklist-${principal.name}", authService, engineService, clientAuth, listOf(principal))
+            val t = EnumeratedTaskList("tasklist-${principal.name}", authService, engineService, clientAuth, listOf(principal))
             engineService.registerGlobalPermission(principal, t, CommonPMAPermissions.ACCEPT_TASK)
 
             // TODO, use an activity specific permission/token instead.

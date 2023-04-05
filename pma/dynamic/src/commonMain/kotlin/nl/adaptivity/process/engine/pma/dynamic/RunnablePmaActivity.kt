@@ -24,6 +24,7 @@ import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.pma.dynamic.model.PmaAction
 import nl.adaptivity.process.engine.pma.dynamic.runtime.AbstractDynamicPmaActivityContext
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaActivityInstance
 import nl.adaptivity.process.engine.pma.models.AuthScopeTemplate
 import nl.adaptivity.process.engine.pma.models.IPMAMessageActivity
@@ -36,7 +37,7 @@ import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.util.Identified
 
-class RunnablePmaActivity<I : Any, O : Any, C : AbstractDynamicPmaActivityContext<C, *>>(
+class RunnablePmaActivity<I : Any, O : Any, C : DynamicPmaActivityContext<C, *>>(
     builder: Builder<I, O, C>,
     newOwner: ProcessModel<*>,
     otherNodes: Iterable<ProcessNode.Builder>
@@ -73,7 +74,7 @@ class RunnablePmaActivity<I : Any, O : Any, C : AbstractDynamicPmaActivityContex
         )
     }
 
-    class Builder<I : Any, O : Any, C : AbstractDynamicPmaActivityContext<C, *>> :
+    class Builder<I : Any, O : Any, C : DynamicPmaActivityContext<C, *>> :
         AbstractRunnableActivity.Builder<I, O, C>, IPMAMessageActivity.Builder<C> {
 
         var action: PmaAction<I, O, C>
