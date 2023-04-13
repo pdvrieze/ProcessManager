@@ -64,7 +64,7 @@ class AgfilContextFactory(private val logger: Logger, private val random: Random
     override val engineServiceAuthServiceClient: AuthServiceClient
         get() = engineService.authServiceClient
 
-    val garageServices = ServiceNames.garageServices.arrayMap { GarageService(it, authService, random) }
+    val garageServices = ServiceNames.garageServices.arrayMap { GarageService(it, authService, TODO("pass engine for garage"), random) }
 
     val europAssistService = EuropAssistService(ServiceNames.europAssistService, authService, random, garageServices.toList())
 

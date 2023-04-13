@@ -17,6 +17,10 @@ class AgfilActivityContextImpl(
         TODO("not implemented")
     }
 
+    override fun randomGarageReceptionist(): PrincipalCompat {
+        TODO("not implemented")
+    }
+
     override fun randomAccidentDetails(): String {
         processContext.contextFactory
         return random.nextString()
