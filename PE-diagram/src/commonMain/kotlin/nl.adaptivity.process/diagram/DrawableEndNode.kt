@@ -17,7 +17,7 @@
 package nl.adaptivity.process.diagram
 
 import nl.adaptivity.diagram.*
-import nl.adaptivity.process.diagram.ProcessThemeItems.ENDNODEOUTERLINE
+import nl.adaptivity.process.diagram.ProcessThemeItems.*
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ENDNODEINNERRRADIUS
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ENDNODEOUTERRADIUS
 import nl.adaptivity.process.diagram.RootDrawableProcessModel.Companion.ENDNODEOUTERSTROKEWIDTH
@@ -43,12 +43,12 @@ interface IDrawableEndNode : IDrawableProcessNode {
         if (hasPos()) with(canvas) {
             val outerLinePen = theme.getPen(ENDNODEOUTERLINE,
                                             state and Drawable.STATE_TOUCHED.inv())
-            val innerPen = theme.getPen(ProcessThemeItems.LINEBG, state and Drawable.STATE_TOUCHED.inv())
+            val innerPen = theme.getPen(LINEBG, state and Drawable.STATE_TOUCHED.inv())
 
             val hsw = ENDNODEOUTERSTROKEWIDTH / 2
 
             if (state and Drawable.STATE_TOUCHED != 0) {
-                val touchedPen = theme.getPen(ProcessThemeItems.LINE, Drawable.STATE_TOUCHED)
+                val touchedPen = theme.getPen(LINE, Drawable.STATE_TOUCHED)
                 drawCircle(ENDNODEOUTERRADIUS + hsw,
                            ENDNODEOUTERRADIUS + hsw,
                            ENDNODEOUTERRADIUS, touchedPen)

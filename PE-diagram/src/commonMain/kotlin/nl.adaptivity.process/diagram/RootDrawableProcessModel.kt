@@ -461,6 +461,10 @@ object DRAWABLE_NODE_FACTORY :
     ) : ProcessNode.BuilderVisitor<DrawableProcessNode> {
         override fun visitStartNode(startNode: StartNode.Builder) = DrawableStartNode(startNode, buildHelper)
 
+        override fun visitEventNode(eventNode: EventNode.Builder): DrawableProcessNode {
+            return DrawableEventNode(eventNode, buildHelper)
+        }
+
         override fun visitActivity(activity: MessageActivity.Builder) =
             DrawableActivity(activity, buildHelper, otherNodes)
 
