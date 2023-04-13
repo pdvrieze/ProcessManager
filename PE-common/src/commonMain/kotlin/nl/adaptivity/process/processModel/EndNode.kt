@@ -23,13 +23,15 @@ import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xmlutil.QName
 
 
-interface EndNode : ProcessNode {
+interface EndNode : IEventNode {
 
     val predecessor: Identified?
 
+    override val eventType: IEventNode.Type
+
     override fun builder(): Builder
 
-    interface Builder : ProcessNode.Builder {
+    interface Builder : IEventNode.Builder {
 
         var predecessor: Identifiable?
 

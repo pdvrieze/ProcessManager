@@ -158,6 +158,8 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode>,
 val EXEC_BUILDER_VISITOR = object : ProcessNode.Visitor<ProcessNode.Builder> {
     override fun visitStartNode(startNode: StartNode) = ExecutableStartNode.Builder(startNode)
 
+    override fun visitEventNode(eventNode: EventNode): ProcessNode.Builder = ExecutableEventNode.Builder(eventNode)
+
     override fun visitActivity(messageActivity: MessageActivity) = MessageActivityBase.Builder(messageActivity)
 
     override fun visitCompositeActivity(compositeActivity: CompositeActivity) =
@@ -186,6 +188,12 @@ object EXEC_NODEFACTORY :
             return (startNode as? ExecutableStartNode.Builder)
                 ?.build(buildHelper, otherNodes)
                 ?: ExecutableStartNode(startNode, buildHelper)
+        }
+
+        override fun visitEventNode(eventNode: EventNode.Builder): ExecutableProcessNode {
+            return (eventNode as? ExecutableEventNode.Builder)
+                ?.build(buildHelper, otherNodes)
+                ?: ExecutableEventNode(eventNode, buildHelper)
         }
 
         override fun visitActivity(activity: MessageActivity.Builder): ExecutableProcessNode {

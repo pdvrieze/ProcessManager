@@ -4,4 +4,4 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @JvmInline
-value class ClaimId(val data: String) {}
+value class CarRegistration(val value: String)

@@ -7,6 +7,7 @@ interface AgfilActivityContext: DynamicPmaActivityContext<AgfilActivityContext, 
     override val processContext: AgfilProcessContext
 
     fun randomEaCallHandler(): PrincipalCompat
+    fun randomGarageReceptionist(): PrincipalCompat
     fun randomAccidentDetails(): String
 
 }

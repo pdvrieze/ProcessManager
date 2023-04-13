@@ -40,6 +40,11 @@ internal class RootModelBuilderContextImpl<AIC: ActivityInstanceContext>(
     override fun compositeActivityContext(predecessor: Identified): CompositeModelBuilderContext<AIC> {
         return CompositeModelBuilderContextImpl(predecessor, this)
     }
+
+    override fun <T> InputRef<T>.named(name: String): DefineHolder<T> {
+        val defineType = RunnableActivity.DefineType(name, nodeRef, propertyName, null, serializer)
+        return DefineHolder(defineType)
+    }
 }
 
 

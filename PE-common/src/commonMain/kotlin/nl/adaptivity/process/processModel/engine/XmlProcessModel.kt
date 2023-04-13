@@ -16,7 +16,9 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import kotlinx.serialization.*
+import kotlinx.serialization.InternalSerializationApi
+import kotlinx.serialization.KSerializer
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
@@ -169,6 +171,10 @@ object XML_NODE_FACTORY : ProcessModelBase.NodeFactory<XmlProcessNode, XmlProces
         private val otherNodes: Iterable<ProcessNode.Builder>
     ) : ProcessNode.BuilderVisitor<XmlProcessNode> {
         override fun visitStartNode(startNode: StartNode.Builder) = XmlStartNode(startNode, buildHelper.newOwner)
+
+        override fun visitEventNode(eventNode: EventNode.Builder): XmlProcessNode {
+            return XmlEventNode(eventNode, buildHelper.newOwner)
+        }
 
         override fun visitActivity(activity: MessageActivity.Builder) =
             XmlActivity(activity, buildHelper.newOwner, otherNodes)

@@ -324,6 +324,10 @@ abstract class ProcessNodeBase : ProcessNode {
                         return StartNodeBase.SerialDelegate(startNode)
                     }
 
+                    override fun visitEventNode(eventNode: EventNode.Builder): SerialDelegate {
+                        return EventNodeBase.SerialDelegate(eventNode)
+                    }
+
                     override fun visitActivity(activity: MessageActivity.Builder): SerialDelegate {
                         return ActivityBase.SerialDelegate(activity)
                     }
@@ -400,6 +404,7 @@ abstract class ProcessNodeBase : ProcessNode {
         internal companion object {
             operator fun invoke(serialDelegate: SerialDelegate): Builder = when (serialDelegate) {
                 is StartNodeBase.SerialDelegate -> StartNodeBase.Builder(serialDelegate)
+                is EventNodeBase.SerialDelegate -> EventNodeBase.Builder(serialDelegate)
                 is JoinBase.SerialDelegate      -> JoinBase.Builder(serialDelegate)
                 is ActivityBase.SerialDelegate  -> when (serialDelegate.childId) {
                     null -> MessageActivityBase.Builder(serialDelegate)

@@ -18,7 +18,6 @@ package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
@@ -34,9 +33,10 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
 
     @Suppress("ConvertSecondaryConstructorToPrimary")
     constructor(builder: EndNode.Builder, newOwner: ProcessModel<*>, otherNodes: Iterable<ProcessNode.Builder>) :
-        super(builder, newOwner, otherNodes)
+        super(builder, newOwner, otherNodes) {
+        eventType = builder.eventType ?: IEventNode.Type.TERMINATE
+    }
 
-    @Suppress("DEPRECATION")
     override val predecessor: Identified? get() = predecessors.singleOrNull()
 
     override val maxSuccessorCount: Int
@@ -45,6 +45,7 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
     override val successors: IdentifyableSet<Identified>
         get() = IdentifyableSet.empty<Identified>()
 
+    final override val eventType: IEventNode.Type
 
     override fun builder(): EndNode.Builder = Builder(this)
 
@@ -57,6 +58,7 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
     @XmlSerialName(EndNode.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     class SerialDelegate : ProcessNodeBase.SerialDelegate {
         val predecessor: Identifier?
+        var eventType: IEventNode.Type = IEventNode.Type.TERMINATE
 
         constructor(
             id: String?,
@@ -66,7 +68,8 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
             x: Double,
             y: Double,
             isMultiInstance: Boolean,
-            predecessor: Identifier?
+            predecessor: Identifier?,
+            eventType: IEventNode.Type,
         ) : super(
             id,
             label,
@@ -87,7 +90,8 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
             base.x,
             base.y,
             base.isMultiInstance,
-            base.predecessor?.identifier
+            base.predecessor?.identifier,
+            base.eventType
         )
 
         constructor(base: EndNode.Builder) : this(
@@ -98,7 +102,8 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
             base.x,
             base.y,
             base.isMultiInstance,
-            base.predecessor?.identifier
+            base.predecessor?.identifier,
+            base.eventType ?: IEventNode.Type.TERMINATE,
         )
     }
 
@@ -108,36 +113,30 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
 
         final override var predecessor: Identifiable? = null
 
-        constructor() : this(
-            null,
-            null,
-            null,
-            null,
-            null,
-            Double.NaN,
-            Double.NaN,
-            false
-        )
+        override var eventType: IEventNode.Type? = null
 
         constructor(
-            id: String?,
-            predecessor: Identified?,
-            label: String?,
-            defines: Collection<IXmlDefineType>?,
-            results: Collection<IXmlResultType>?,
-            x: Double,
-            y: Double,
-            isMultiInstance: Boolean
+            id: String? = null,
+            predecessor: Identified? = null,
+            label: String? = null,
+            defines: Collection<IXmlDefineType>? = null,
+            results: Collection<IXmlResultType>? = null,
+            x: Double = Double.NaN,
+            y: Double = Double.NaN,
+            isMultiInstance: Boolean = false,
+            eventType: IEventNode.Type = IEventNode.Type.TERMINATE
         ) : super(id, label, defines, results, x, y, isMultiInstance) {
             this.predecessor = predecessor
+            this.eventType = eventType
         }
 
 
         constructor(node: EndNode) : super(node) {
             this.predecessor = node.predecessor
+            this.eventType = node.eventType
         }
 
-        internal constructor(serialDelegate: SerialDelegate): this(
+        internal constructor(serialDelegate: SerialDelegate) : this(
             serialDelegate.id,
             serialDelegate.predecessor,
             serialDelegate.label,
@@ -145,7 +144,8 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
             serialDelegate.results ?: emptyList(),
             serialDelegate.x,
             serialDelegate.y,
-            serialDelegate.isMultiInstance
+            serialDelegate.isMultiInstance,
+            serialDelegate.eventType
         )
     }
 }

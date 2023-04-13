@@ -23,11 +23,11 @@ import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xmlutil.QName
 
-interface StartNode : ProcessNode {
+interface StartNode : IEventNode {
 
     val successor: Identifiable?
 
-    interface Builder : ProcessNode.Builder {
+    interface Builder : IEventNode.Builder {
         override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitStartNode(this)
 
         var successor: Identifiable?

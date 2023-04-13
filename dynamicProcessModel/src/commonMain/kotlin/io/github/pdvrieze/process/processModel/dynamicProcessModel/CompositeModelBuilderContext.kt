@@ -76,4 +76,4 @@ internal class CompositeModelBuilderContextImpl<AIC: ActivityInstanceContext>(
     }
 }
 
-class DefineHolder<T> internal constructor(val define: RunnableActivity.DefineType<T>)
+class DefineHolder<T> constructor(val define: RunnableActivity.DefineType<T>)

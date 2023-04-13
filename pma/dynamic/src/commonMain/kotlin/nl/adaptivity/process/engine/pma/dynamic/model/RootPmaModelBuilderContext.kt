@@ -1,7 +1,9 @@
 package nl.adaptivity.process.engine.pma.dynamic.model
 
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.DefineHolder
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.InputRef
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.InputRefImpl
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.RunnableActivity
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.serializer
 import nl.adaptivity.process.engine.pma.dynamic.TaskBuilderContext
@@ -40,4 +42,10 @@ class RootPmaModelBuilderContext<AIC : DynamicPmaActivityContext<AIC, BIC>, BIC:
         modelBuilder.imports.add(XmlResultType(name, path ?: "/*"))
         return InputRefImpl(name, deserializer)
     }
+
+    override fun <T> InputRef<T>.named(name: String): DefineHolder<T> {
+        val defineType = RunnableActivity.DefineType(name, nodeRef, propertyName, null, serializer)
+        return DefineHolder(defineType)
+    }
+
 }

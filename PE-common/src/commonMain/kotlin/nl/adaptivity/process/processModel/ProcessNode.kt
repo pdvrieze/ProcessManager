@@ -103,6 +103,7 @@ interface ProcessNode : Positioned, Identifiable {
 
     interface BuilderVisitor<R> {
         fun visitStartNode(startNode: StartNode.Builder): R
+        fun visitEventNode(eventNode: EventNode.Builder): R
         fun visitActivity(activity: MessageActivity.Builder): R = visitGenericActivity(activity)
 
         fun visitActivity(activity: CompositeActivity.ModelBuilder): R = visitGenericActivity(activity)
@@ -119,6 +120,7 @@ interface ProcessNode : Positioned, Identifiable {
 
     interface Visitor<R> {
         fun visitStartNode(startNode: StartNode): R = visitGeneralNode(startNode)
+        fun visitEventNode(eventNode: EventNode): R = visitGeneralNode(eventNode)
         fun visitActivity(messageActivity: MessageActivity): R = visitGenericActivity(messageActivity)
         fun visitCompositeActivity(compositeActivity: CompositeActivity): R = visitGenericActivity(compositeActivity)
 

@@ -17,6 +17,12 @@ interface IModelBuilderContext<AIC: ActivityInstanceContext> : IModelBuilderCont
     fun startNode(config: @ConfigurationDsl() (StartNode.Builder.() -> Unit)): StartNode.Builder =
         StartNodeBase.Builder().apply(config)
 
+    fun eventNode(predecessor: Identified, eventType: IEventNode.Type): EventNode.Builder =
+        EventNodeBase.Builder(predecessor=predecessor, eventType = eventType)
+
+    fun eventNode(predecessor: Identified, config: @ConfigurationDsl (EventNode.Builder.() -> Unit)): EventNode.Builder =
+        EventNodeBase.Builder()
+
     @ConfigurationDsl
     fun split(predecessor: Identified): Split.Builder =
         SplitBase.Builder().apply { this.predecessor = predecessor }

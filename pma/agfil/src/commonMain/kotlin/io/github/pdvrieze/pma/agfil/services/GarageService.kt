@@ -1,7 +1,6 @@
 package io.github.pdvrieze.pma.agfil.services
 
 import io.github.pdvrieze.pma.agfil.data.AccidentInfo
-import io.github.pdvrieze.pma.agfil.parties.estimateRepairProcess
 import io.github.pdvrieze.pma.agfil.parties.repairProcess
 import net.devrieze.util.Handle
 import nl.adaptivity.process.engine.ProcessEngine
@@ -26,19 +25,17 @@ class GarageService(
     authService,
     processEngine,
     random,
-    estimateRepairProcess,
     repairProcess,
 ), RunnableAutomatedService {
     val xml = XML { this.recommended() }
-    val hEstimateRepairProcess: Handle<ExecutableProcessModel> get() = processHandles[0]
-    val hRepairProcess: Handle<ExecutableProcessModel> get() = processHandles[1]
+    val hRepairProcess: Handle<ExecutableProcessModel> get() = processHandles[0]
 
     override val serviceInstanceId: ServiceId<GarageService> = ServiceId(getServiceId(serviceAuth))
 
     fun informGarageOfIncomingCar(accidentInfo: AccidentInfo) {
         val payload = CompactFragment { xml.encodeToWriter(it, AccidentInfo.serializer(), accidentInfo) }
          processEngine.inTransaction { tr ->
-             startProcess(tr, serviceAuth.principal, hEstimateRepairProcess, "estimate repair", UUID.randomUUID(), payload)
+             startProcess(tr, serviceAuth.principal, hRepairProcess, "estimate repair", UUID.randomUUID(), payload)
          }
     }
 
