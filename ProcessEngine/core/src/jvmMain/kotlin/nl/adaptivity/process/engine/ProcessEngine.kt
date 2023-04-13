@@ -1010,7 +1010,7 @@ class ProcessEngine<TR : ContextProcessTransaction> {
         val tr = startTransaction()
         var success = true
         try {
-            action(tr)
+            return action(tr)
         } catch (e: Throwable) {
             success = false
             throw e
