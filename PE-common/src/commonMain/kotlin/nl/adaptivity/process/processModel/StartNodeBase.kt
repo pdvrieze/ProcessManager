@@ -21,6 +21,7 @@ import kotlinx.serialization.Serializable
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
+import nl.adaptivity.xmlutil.serialization.XmlElement
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 
@@ -81,7 +82,8 @@ abstract class StartNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?>
     @XmlSerialName(StartNode.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     @Serializable
     class SerialDelegate : ProcessNodeBase.SerialDelegate {
-        var eventType: IEventNode.Type?
+        @XmlElement(false)
+        var eventType: IEventNode.Type? = null
 
         constructor(source: StartNode) :
             super(source.id, source.label, x = source.x, y = source.y, isMultiInstance = source.isMultiInstance) {

@@ -22,6 +22,7 @@ import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
+import nl.adaptivity.xmlutil.serialization.XmlElement
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 
@@ -93,6 +94,7 @@ abstract class EventNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?>
         var isThrowing: Boolean = false
 
         @SerialName("type")
+        @XmlElement(false)
         var eventType: IEventNode.Type
 
         constructor(

@@ -23,6 +23,8 @@ import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
+import nl.adaptivity.xmlutil.serialization.XmlDefault
+import nl.adaptivity.xmlutil.serialization.XmlElement
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 
 
@@ -58,6 +60,8 @@ abstract class EndNodeBase : ProcessNodeBase, EndNode {
     @XmlSerialName(EndNode.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
     class SerialDelegate : ProcessNodeBase.SerialDelegate {
         val predecessor: Identifier?
+        @XmlElement(false)
+        @XmlDefault("terminate")
         var eventType: IEventNode.Type = IEventNode.Type.TERMINATE
 
         constructor(
