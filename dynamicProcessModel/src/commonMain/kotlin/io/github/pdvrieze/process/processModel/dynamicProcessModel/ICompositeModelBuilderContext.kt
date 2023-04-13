@@ -25,7 +25,7 @@ interface ICompositeModelBuilderContext<AIC: ActivityInstanceContext>: IModelBui
         deserializer: DeserializationStrategy<T>,
     ): InputRef<T>
 
-    infix fun <T> InputRef<T>.named(name: String): DefineHolder<T> {
+    override infix fun <T> InputRef<T>.named(name: String): DefineHolder<T> {
         val defineType = RunnableActivity.DefineType(name, nodeRef, propertyName, null, serializer)
         return DefineHolder(defineType)
     }

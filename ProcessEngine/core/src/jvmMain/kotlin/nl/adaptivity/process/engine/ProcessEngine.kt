@@ -48,6 +48,9 @@ import javax.activation.DataSource
 import javax.naming.Context
 import javax.naming.InitialContext
 import javax.xml.parsers.ParserConfigurationException
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 
 private const val MODEL_CACHE_SIZE = 5
@@ -109,6 +112,7 @@ private fun <T : ContextProcessTransaction> wrapModelCache(
 /**
  * This class represents the process engine. XXX make sure this is thread safe!!
  */
+@OptIn(ExperimentalContracts::class)
 class ProcessEngine<TR : ContextProcessTransaction> {
 
     private val messageService: IMessageService<*>
@@ -997,6 +1001,25 @@ class ProcessEngine<TR : ContextProcessTransaction> {
 
     fun startTransaction(): TR {
         return engineData.startTransaction()
+    }
+
+    inline fun <R> inTransaction(action: ProcessEngine<TR>.(TR) -> R): R {
+        contract {
+            callsInPlace(action, InvocationKind.EXACTLY_ONCE)
+        }
+        val tr = startTransaction()
+        var success = true
+        try {
+            action(tr)
+        } catch (e: Throwable) {
+            success = false
+            throw e
+        } finally {
+            when {
+                success -> tr.commit()
+                else -> tr.rollback()
+            }
+        }
     }
 
     val localEndpoint: EndpointDescriptor

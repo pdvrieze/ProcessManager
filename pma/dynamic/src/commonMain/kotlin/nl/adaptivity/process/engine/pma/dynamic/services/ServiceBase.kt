@@ -35,7 +35,7 @@ abstract class ServiceBase(
     private val tokens = mutableListOf<PmaAuthToken>()
 //    open val serviceInstanceId: ServiceId<*> = getServiceId(serviceAuth)
 
-    abstract fun getServiceState(): String
+    open fun getServiceState(): String = "<No state>"
 
     constructor(authService: AuthService, name: String) : this(
         authService,

@@ -19,6 +19,7 @@ import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions.*
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.*
 import nl.adaptivity.process.engine.test.loanOrigination.systems.*
 import nl.adaptivity.util.multiplatform.PrincipalCompat
+import nl.adaptivity.process.engine.pma.dynamic.uiServiceLogin
 
 val pmaLoanModel =
     runnablePmaProcess<LoanPMAActivityContext, LoanBrowserContext>("pmaLoanModel", SimplePrincipal("modelOwner")) {

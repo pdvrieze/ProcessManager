@@ -1,5 +1,8 @@
 package io.github.pdvrieze.pma.agfil.contexts
 
+import io.github.pdvrieze.pma.agfil.services.EuropAssistService
+import io.github.pdvrieze.pma.agfil.services.GarageService
+import io.github.pdvrieze.pma.agfil.services.ServiceNames
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.SimpleRolePrincipal
 import nl.adaptivity.process.engine.PIHandle
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
@@ -12,12 +15,12 @@ import nl.adaptivity.process.engine.pma.dynamic.services.DynamicTaskList
 import nl.adaptivity.process.engine.pma.dynamic.services.TaskList
 import nl.adaptivity.process.engine.pma.models.ResolvedInvokableMethod
 import nl.adaptivity.process.engine.pma.models.Service
-import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.runtime.AuthServiceClient
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.messaging.InvokableMethod
 import nl.adaptivity.process.processModel.AccessRestriction
+import nl.adaptivity.util.kotlin.arrayMap
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import java.security.Principal
 import java.util.logging.Logger
@@ -61,11 +64,16 @@ class AgfilContextFactory(private val logger: Logger, private val random: Random
     override val engineServiceAuthServiceClient: AuthServiceClient
         get() = engineService.authServiceClient
 
+    val garageServices = ServiceNames.garageServices.arrayMap { GarageService(it, authService, random) }
+
+    val europAssistService = EuropAssistService(ServiceNames.europAssistService, authService, random, garageServices.toList())
+
     override val services: List<Service> = listOf(
         authService,
         engineService,
         taskListService,
-    )
+        europAssistService,
+    ) + garageServices.toList()
 
     override fun resolveService(targetService: InvokableMethod): ResolvedInvokableMethod? {
         return null // TODO support proper messaging
@@ -84,8 +92,3 @@ class AgfilContextFactory(private val logger: Logger, private val random: Random
     }
 }
 
-object ServiceNames {
-    val authService = ServiceName<AuthService>("authService")
-    val engineService = ServiceName<EngineService>("engineService")
-    val taskListService = ServiceName<TaskList>("engineService")
-}

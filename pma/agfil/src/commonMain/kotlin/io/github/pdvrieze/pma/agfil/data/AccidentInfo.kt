@@ -1,4 +1,4 @@
-package nl.adaptivity.process.engine.pma.data
+package io.github.pdvrieze.pma.agfil.data
 
 import kotlinx.serialization.Serializable
 

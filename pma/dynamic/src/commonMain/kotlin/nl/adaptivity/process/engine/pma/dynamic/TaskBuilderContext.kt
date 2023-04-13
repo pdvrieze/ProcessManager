@@ -1,3 +1,5 @@
+@file:OptIn(ExperimentalContracts::class)
+
 package nl.adaptivity.process.engine.pma.dynamic
 
 import nl.adaptivity.process.engine.pma.Browser
@@ -9,6 +11,9 @@ import nl.adaptivity.process.engine.pma.dynamic.services.TaskList
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.models.UiService
 import nl.adaptivity.util.multiplatform.PrincipalCompat
+import kotlin.contracts.ExperimentalContracts
+import kotlin.contracts.InvocationKind
+import kotlin.contracts.contract
 
 open class TaskBuilderContext<AIC : DynamicPmaActivityContext<AIC, BIC>, BIC : TaskBuilderContext.BrowserContext<AIC, BIC>, I>() {
 
@@ -68,29 +73,35 @@ open class TaskBuilderContext<AIC : DynamicPmaActivityContext<AIC, BIC>, BIC : T
         DynamicPmaActivityContext<AIC, BIC> {
         val browser: Browser
 
-        fun <S: RunnableUiService, R> uiServiceLogin(service: ServiceName<S>, action: UIServiceInnerContext<S>.() -> R) : R {
-            val serviceInst: S = processContext.contextFactory.resolveService(service)
-            val authToken: PmaAuthToken = browser.loginToService(serviceInst)
-
-            return DefaultUIServiceInnerContext(authToken, serviceInst).action()
-        }
-
-        fun <S: RunnableUiService, R> uiServiceLogin(service: S, action: UIServiceInnerContext<S>.() -> R) : R {
-            val authToken: PmaAuthToken = browser.loginToService(service)
-
-            return DefaultUIServiceInnerContext(authToken, service).action()
-        }
-
     }
 
     interface UIServiceInnerContext<S: UiService> {
         val authToken: PmaAuthToken
         val service: S
     }
-
-    private class DefaultUIServiceInnerContext<S: UiService>(
-        override val authToken: PmaAuthToken,
-        override val service: S
-    ) : UIServiceInnerContext<S>
 }
+
+fun <AIC : DynamicPmaActivityContext<AIC, BIC>, BIC : TaskBuilderContext.BrowserContext<AIC, BIC>, S : RunnableUiService, R> TaskBuilderContext.BrowserContext<AIC, BIC>.uiServiceLogin(service: S, action: TaskBuilderContext.UIServiceInnerContext<S>.() -> R) : R {
+    contract {
+        callsInPlace(action, InvocationKind.EXACTLY_ONCE)
+    }
+    val authToken: PmaAuthToken = browser.loginToService(service)
+
+    return DefaultUIServiceInnerContext(authToken, service).action()
+}
+
+fun <AIC : DynamicPmaActivityContext<AIC, BIC>, BIC : TaskBuilderContext.BrowserContext<AIC, BIC>, S : RunnableUiService, R> TaskBuilderContext.BrowserContext<AIC, BIC>.uiServiceLogin(service: ServiceName<S>, action: TaskBuilderContext.UIServiceInnerContext<S>.() -> R) : R {
+    contract {
+        callsInPlace(action, InvocationKind.EXACTLY_ONCE)
+    }
+    val serviceInst: S = processContext.contextFactory.resolveService(service)
+    val authToken: PmaAuthToken = browser.loginToService(serviceInst)
+
+    return DefaultUIServiceInnerContext(authToken, serviceInst).action()
+}
+
+private class DefaultUIServiceInnerContext<S: UiService>(
+    override val authToken: PmaAuthToken,
+    override val service: S
+) : TaskBuilderContext.UIServiceInnerContext<S>
 

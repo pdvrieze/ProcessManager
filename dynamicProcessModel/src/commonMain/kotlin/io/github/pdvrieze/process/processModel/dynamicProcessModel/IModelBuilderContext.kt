@@ -164,6 +164,8 @@ interface IModelBuilderContext<AIC: ActivityInstanceContext> : IModelBuilderCont
         return DefineInputCombiner(inputs.map { it.define }, combiner)
     }
 
+    infix fun <T> InputRef<T>.named(name: String): DefineHolder<T>
+
 }
 
 inline fun <AIC : ActivityInstanceContext, reified T> IModelBuilderContext<AIC>.processResult(
