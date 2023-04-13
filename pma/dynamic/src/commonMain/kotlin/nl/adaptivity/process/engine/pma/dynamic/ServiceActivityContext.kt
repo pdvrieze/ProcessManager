@@ -9,7 +9,7 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 open class ServiceActivityContext<AIC : DynamicPmaActivityContext<AIC, *>, S : AutomatedService>(
-    protected val activityContext: AIC,
+    val activityContext: AIC,
     val service: S,
     val authToken: PmaAuthToken
 ) : PmaActivityContext<AIC> {

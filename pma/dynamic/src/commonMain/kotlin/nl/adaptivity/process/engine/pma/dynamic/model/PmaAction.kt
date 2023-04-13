@@ -6,17 +6,16 @@ import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaActivityContex
 import nl.adaptivity.process.engine.pma.models.AutomatedService
 import nl.adaptivity.process.engine.pma.models.ServiceName
 
-sealed class PmaAction<I : Any, O : Any, C : DynamicPmaActivityContext<C, *>> {
+sealed class PmaAction<in I : Any, out O : Any, in C : DynamicPmaActivityContext<*, *>> {
 
-class BrowserAction<I : Any, O : Any, AIC : DynamicPmaActivityContext<AIC, BIC>, BIC : TaskBuilderContext.BrowserContext<AIC, BIC>>(
-    val action: TaskBuilderContext.AcceptedTask<AIC, BIC, I, O>
-) : PmaAction<I, O, AIC>() {
+    class BrowserAction<I : Any, O : Any, AIC : DynamicPmaActivityContext<AIC, BIC>, BIC : TaskBuilderContext.BrowserContext<AIC, BIC>>(
+        val action: TaskBuilderContext.AcceptedTask<AIC, BIC, I, O>
+    ) : PmaAction<I, O, AIC>() {
 
-}
+    }
 
-class ServiceAction<I : Any, O : Any, C : DynamicPmaActivityContext<C, *>, S : AutomatedService>(
-    val serviceId: ServiceName<S>,
-    val action: RunnableAction<I, O, C>
-) : PmaAction<I, O, C>()
-
+    open class ServiceAction<in I : Any, O : Any, C : DynamicPmaActivityContext<C, *>, S : AutomatedService>(
+        val serviceId: ServiceName<S>,
+        val action: RunnableAction<I, O, C>
+    ) : PmaAction<I, O, C>()
 }

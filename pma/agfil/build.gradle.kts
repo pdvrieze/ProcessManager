@@ -55,6 +55,7 @@ kotlin {
                 implementation(project(":ProcessEngine:testLib"))
                 implementation(project(":multiplatform"))
                 implementation(project(":dynamicProcessModel"))
+                implementation(project(":ProcessEngine:simulator"))
 
                 implementation(libs.kotlinx.serialization.core)
                 implementation(libs.xmlutil.core)

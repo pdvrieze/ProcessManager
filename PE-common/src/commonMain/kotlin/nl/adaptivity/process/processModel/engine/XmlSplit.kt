@@ -19,13 +19,15 @@ package nl.adaptivity.process.processModel.engine
 import nl.adaptivity.process.processModel.*
 
 class XmlSplit : SplitBase, XmlProcessNode {
+    override val condition: XmlCondition?
 
     @Suppress("ConvertSecondaryConstructorToPrimary")
     constructor(
         builder: Split.Builder,
         newOwner: ProcessModel<*>,
         otherNodes: Iterable<ProcessNode.Builder>
-               ) :
-        super(builder.ensureExportable(), newOwner, otherNodes)
+    ) : super(builder.ensureExportable(), newOwner, otherNodes) {
+        condition = builder.condition?.let{ XmlCondition(it.condition) }
+    }
 
 }

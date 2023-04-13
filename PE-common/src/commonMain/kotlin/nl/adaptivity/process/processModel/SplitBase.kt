@@ -84,6 +84,8 @@ abstract class SplitBase : JoinSplitBase, Split {
 
         val max: Int
 
+        var condition: Condition? = null
+
         constructor(
             id: String?,
             label: String?,
@@ -93,11 +95,12 @@ abstract class SplitBase : JoinSplitBase, Split {
             predecessor: Identifier?,
             min: Int,
             max: Int,
-        ) :
-            super(id, label, x = x, y = y, isMultiInstance = isMultiInstance) {
+            condition: Condition?,
+        ) : super(id, label, x = x, y = y, isMultiInstance = isMultiInstance) {
             this.predecessor = predecessor
             this.min = min
             this.max = max
+            this.condition = condition
         }
 
         constructor(base: Split) : this(
@@ -108,7 +111,8 @@ abstract class SplitBase : JoinSplitBase, Split {
             base.isMultiInstance,
             base.predecessor?.identifier,
             base.min,
-            base.max
+            base.max,
+            base.condition
         )
 
         constructor(base: Split.Builder) : this(
@@ -119,7 +123,8 @@ abstract class SplitBase : JoinSplitBase, Split {
             base.isMultiInstance,
             base.predecessor?.identifier,
             base.min,
-            base.max
+            base.max,
+            base.condition
         )
     }
 
@@ -137,48 +142,35 @@ abstract class SplitBase : JoinSplitBase, Split {
 
         final override var predecessor: Identifiable? = null
 
-        constructor() : this(null, null, emptyList(), null, emptyList(), emptyList(), Double.NaN, Double.NaN, -1, -1, false)
+        override var condition: Condition? = null
 
-        @Deprecated("use the constructor that takes a single predecessor")
-        constructor(
-            id: String? /*= null*/,
-            predecessors: Collection<Identified>,
-            successors: Collection<Identified> /*= emptyList()*/,
-            label: String? /*= null*/,
-            defines: Collection<IXmlDefineType> /*= emptyList()*/,
-            results: Collection<IXmlResultType> /*= emptyList()*/,
-            x: Double /*= Double.NaN*/,
-            y: Double /*= Double.NaN*/,
-            min: Int /*= -1*/,
-            max: Int /*= -1*/,
-            isMultiInstance: Boolean /*= false*/
-        ) : this(
-            id,
-            predecessors.singleOrNull(),
-            successors,
-            label,
-            defines,
-            results,
-            x,
-            y,
-            min,
-            max,
-            isMultiInstance
+        constructor() : this(
+            null,
+            null,
+            emptyList(),
+            label = null,
+            defines = emptyList(),
+            results = emptyList(),
+            x = Double.NaN,
+            y = Double.NaN,
+            min = -1,
+            max = -1,
+            multiInstance = false
         )
 
-
         constructor(
-            id: String? /*= null*/,
-            predecessor: Identifiable? /*= null*/,
-            successors: Collection<Identified> /*= emptyList()*/,
-            label: String? /*= null*/,
-            defines: Iterable<IXmlDefineType>? /*= emptyList()*/,
-            results: Iterable<IXmlResultType>? /*= emptyList()*/,
-            x: Double /*= Double.NaN*/,
-            y: Double /*= Double.NaN*/,
-            min: Int /*= -1*/,
-            max: Int /*= -1*/,
-            multiInstance: Boolean /*= false*/
+            id: String? = null,
+            predecessor: Identifiable? = null,
+            successors: Collection<Identified> = emptyList(),
+            condition: Condition? = null,
+            label: String? = null,
+            defines: Iterable<IXmlDefineType>? = emptyList(),
+            results: Iterable<IXmlResultType>? = emptyList(),
+            x: Double = Double.NaN,
+            y: Double = Double.NaN,
+            min: Int = -1,
+            max: Int = -1,
+            multiInstance: Boolean = false
         ) : super(
             id, label, defines,
             results, x,
@@ -198,14 +190,14 @@ abstract class SplitBase : JoinSplitBase, Split {
             serialDelegate.id,
             serialDelegate.predecessor,
             emptyList(),
-            serialDelegate.label,
-            serialDelegate.defines,
-            serialDelegate.results,
-            serialDelegate.x,
-            serialDelegate.y,
-            serialDelegate.min,
-            serialDelegate.max,
-            serialDelegate.isMultiInstance
+            label = serialDelegate.label,
+            defines = serialDelegate.defines,
+            results = serialDelegate.results,
+            x = serialDelegate.x,
+            y = serialDelegate.y,
+            min = serialDelegate.min,
+            max = serialDelegate.max,
+            multiInstance = serialDelegate.isMultiInstance
         )
     }
 

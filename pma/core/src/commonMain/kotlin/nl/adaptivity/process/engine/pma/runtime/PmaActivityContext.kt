@@ -12,7 +12,7 @@ import nl.adaptivity.process.processModel.AuthorizationInfo
 import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-interface PmaActivityContext<AIC : PmaActivityContext<AIC>> : ActivityInstanceContext {
+interface PmaActivityContext<out AIC : PmaActivityContext<AIC>> : ActivityInstanceContext {
 
     val activityInstance: IProcessNodeInstance
 

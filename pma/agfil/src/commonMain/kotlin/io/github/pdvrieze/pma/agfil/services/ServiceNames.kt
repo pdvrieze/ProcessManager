@@ -16,4 +16,5 @@ object ServiceNames {
         ServiceName<GarageService>("Scrapemall"),
     )
     val agfilService = ServiceName<AgfilService>("agfilService")
+    val leeCsService = ServiceName<LeeCsService>("leeCsService")
 }

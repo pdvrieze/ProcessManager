@@ -2,9 +2,8 @@ package io.github.pdvrieze.pma.agfil.parties
 
 import io.github.pdvrieze.pma.agfil.contexts.AgfilActivityContext
 import io.github.pdvrieze.pma.agfil.contexts.AgfilBrowserContext
-import io.github.pdvrieze.pma.agfil.data.AccidentInfo
-import io.github.pdvrieze.pma.agfil.data.CallerInfo
-import io.github.pdvrieze.pma.agfil.data.GarageInfo
+import io.github.pdvrieze.pma.agfil.data.*
+import io.github.pdvrieze.pma.agfil.services.ServiceNames
 import io.github.pdvrieze.pma.agfil.services.ServiceNames.agfilService
 import io.github.pdvrieze.pma.agfil.services.ServiceNames.europAssistService
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.DataNodeHandle
@@ -14,22 +13,28 @@ import nl.adaptivity.process.engine.pma.dynamic.uiServiceLogin
 import java.util.*
 
 val europAssistProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>("EuropAssistHandleCall", uuid = UUID.randomUUID()) {
+    val registration = input<CarRegistration>("carRegistration")
+    val claimInfo = input<String>("claimInfo")
+
     val callInfo = input<CallerInfo>("callerInfo")
-    val start by startNode
+    val start by startNode // TODO add inputs
 
 
-    val gatherInfo: DataNodeHandle<AccidentInfo> by taskActivity(
+    val registerClaim: DataNodeHandle<AccidentInfo> by taskActivity(
         predecessor = start,
-        input = callInfo,
+        input = combine(registration named "registration", claimInfo named "claimInfo", callInfo named "callInfo"),
         accessRestrictions = RoleRestriction("ea:callhandler")
     ) {
-        acceptTask({ randomEaCallHandler() }) {callInfo ->
-            AccidentInfo(callInfo, randomAccidentDetails())
+        acceptTask({ randomEaCallHandler() }) {(registration, claimInfo, callInfo) ->
+            val customerId = uiServiceLogin(agfilService) {
+                service.findCustomerId(authToken, callInfo)
+            }
+            AccidentInfo(customerId, registration, randomAccidentDetails())
         }
     }
 
     val validateInfo: DataNodeHandle<Boolean> by taskActivity(
-        gatherInfo,
+        registerClaim,
         accessRestrictions = RoleRestriction("ea:callhandler")
     ) {
         acceptTask({ randomEaCallHandler() }) { accidentInfo ->
@@ -37,12 +42,30 @@ val europAssistProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserCo
         }
     }
 
+/*
     val continueSplit by split(validateInfo) {
         min = 1
         max = 1
     }
+*/
 
-    val pickGarage: DataNodeHandle<GarageInfo> by taskActivity(continueSplit, input = gatherInfo) {
+
+
+    val recordClaim: DataNodeHandle<ClaimId> by serviceActivity(
+        predecessor = validateInfo,
+        authorizationTemplates = listOf(),
+        input = combine(validateInfo named "validated", registerClaim named "claim"),
+        service = ServiceNames.agfilService
+    ) {(validated, claim) ->
+        if (!validated) throw IllegalArgumentException("Storing an invalid claim is invalid")
+
+        service.recordClaimInDatabase(authToken, claim)
+    }
+
+    val pickGarage: DataNodeHandle<GarageInfo> by taskActivity(
+        recordClaim,
+        input = registerClaim
+    ) {
         acceptTask( { randomEaCallHandler() }) { accidentInfo ->
             uiServiceLogin(europAssistService) {
                 val garage: GarageInfo = service.pickGarage(authToken, accidentInfo)
@@ -54,15 +77,17 @@ val europAssistProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserCo
     val assignGarage: DataNodeHandle<GarageInfo> by serviceActivity(
         predecessor = pickGarage,
         service = europAssistService,
-        input = combine(pickGarage named "garage", gatherInfo named "accidentInfo")) {(garage, accidentInfo) ->
-        service.informGarage(garage, accidentInfo)
+        input = combine(pickGarage named "garage", recordClaim named "claimId", registerClaim named "accidentInfo")) { (garage, claimId, accidentInfo) ->
+        service.informGarage(authToken, garage, claimId, accidentInfo)
     }
 
-    val informAgfil: DataNodeHandle<Unit> by serviceActivity(
+    val notifyAgfil: DataNodeHandle<Unit> by serviceActivity(
         assignGarage,
         service = agfilService,
-        input = combine(assignGarage named "assignedGarage", gatherInfo named "accidentInfo")
-    ) { (garage, accidentInfo) ->
-        service.notifyClaim(authToken, accidentInfo, garage)
+        input = combine(assignGarage named "assignedGarage", recordClaim named "claimId", registerClaim named "accidentInfo")
+    ) { (garage, claimId, accidentInfo) ->
+        service.notifyClaim(authToken, claimId, accidentInfo, garage)
     }
+
+    val end by endNode(notifyAgfil)
 }

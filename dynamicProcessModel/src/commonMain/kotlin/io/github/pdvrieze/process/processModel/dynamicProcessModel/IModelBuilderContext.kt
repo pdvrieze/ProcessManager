@@ -2,6 +2,7 @@ package io.github.pdvrieze.process.processModel.dynamicProcessModel
 
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.serializer
+import net.devrieze.util.Tripple
 import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.configurableModel.ConfigurationDsl
@@ -159,6 +160,19 @@ interface IModelBuilderContext<AIC : ActivityInstanceContext> : IModelBuilderCon
             listOf(input1.define, input2.define, input3.define),
             InputCombiner {
                 combiner(input1(), input2(), input3())
+            }
+        )
+    }
+
+    fun <I1, I2, I3> combine(
+        input1: DefineHolder<I1>,
+        input2: DefineHolder<I2>,
+        input3: DefineHolder<I3>,
+    ): DefineInputCombiner<Tripple<I1, I2, I3>> {
+        return DefineInputCombiner(
+            listOf(input1.define, input2.define, input3.define),
+            InputCombiner {
+                Tripple(input1(), input2(), input3())
             }
         )
     }

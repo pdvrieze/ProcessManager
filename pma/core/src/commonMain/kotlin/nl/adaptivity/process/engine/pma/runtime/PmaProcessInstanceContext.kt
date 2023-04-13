@@ -7,7 +7,7 @@ import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.messaging.InvokableMethod
 import nl.adaptivity.process.processModel.AuthorizationInfo
 
-interface PmaProcessInstanceContext<A: PmaActivityContext<A>>: ProcessInstanceContext {
+interface PmaProcessInstanceContext<out A: PmaActivityContext<A>>: ProcessInstanceContext {
 
     val contextFactory: PMAProcessContextFactory<A>
 

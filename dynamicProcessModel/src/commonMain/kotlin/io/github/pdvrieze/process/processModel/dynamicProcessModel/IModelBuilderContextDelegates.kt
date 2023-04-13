@@ -11,7 +11,7 @@ import kotlin.reflect.KProperty
 interface IModelBuilderContextDelegates {
     val modelBuilder: ProcessModel.Builder
 
-    operator fun <I> EventNodeHolder<I>.provideDelegate(thisRef: Nothing?, property: KProperty<*>): NodeHandle<I> {
+    operator fun <I> EventNodeHolder<I>.provideDelegate(thisRef: Nothing?, property: KProperty<*>): DataNodeHandle<I> {
         addNodeToModel(builder, property)
         val outputName = builder.results.singleOrNull()?.name ?: ""
         return DataNodeHandleImpl(builder.id!!, outputName, serializer)

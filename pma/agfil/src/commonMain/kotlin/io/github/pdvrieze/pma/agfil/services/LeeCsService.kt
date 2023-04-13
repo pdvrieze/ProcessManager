@@ -1,6 +1,8 @@
 package io.github.pdvrieze.pma.agfil.services
 
+import io.github.pdvrieze.pma.agfil.data.ClaimId
 import nl.adaptivity.process.engine.pma.AuthService
+import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.dynamic.services.AbstractRunnableUiService
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableAutomatedService
 import nl.adaptivity.process.engine.pma.models.ServiceId
@@ -25,4 +27,7 @@ class LeeCsService(override val serviceName: ServiceName<LeeCsService>, authServ
 
     /** From Lai's thesis */
     fun sendInvoice(): Unit = TODO()
+    fun startClaimProcessing(authToken: PmaAuthInfo, claimId: ClaimId) {
+        TODO("not implemented")
+    }
 }

@@ -35,6 +35,8 @@ class ExecutableSplit(
         checkPredSuccCounts(succRange = 1..Int.MAX_VALUE)
     }
 
+    override val condition: Condition? = builder.condition?.toExecutableCondition()
+
     override val ownerModel: ExecutableModelCommon
         get() = super.ownerModel as ExecutableModelCommon
 
@@ -64,6 +66,7 @@ class ExecutableSplit(
             id: String? = null,
             predecessor: Identified? = null,
             successors: Collection<Identified> = emptyList(), label: String? = null,
+            condition: Condition? = null,
             defines: Collection<IXmlDefineType> = emptyList(),
             results: Collection<IXmlResultType> = emptyList(),
             min: Int = -1,
@@ -71,7 +74,20 @@ class ExecutableSplit(
             x: Double = Double.NaN,
             y: Double = Double.NaN,
             multiInstance: Boolean = false
-        ) : super(id, predecessor, successors, label, defines, results, x, y, min, max, multiInstance)
+        ) : super(
+            id,
+            predecessor,
+            successors,
+            label = label,
+            defines = defines,
+            results = results,
+            x = x,
+            y = y,
+            min = min,
+            max = max,
+            multiInstance = multiInstance,
+            condition = condition
+        )
 
         constructor(node: Split) : super(node)
 

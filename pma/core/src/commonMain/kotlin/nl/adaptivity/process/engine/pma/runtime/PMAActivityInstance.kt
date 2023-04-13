@@ -75,7 +75,8 @@ class PMAActivityInstance <C : PmaActivityContext<C>> : ProcessNodeInstance<PMAA
                 }
             }
 
-            val sendingResult = createAndSendMessage(engineData.processContextFactory as PMAProcessContextFactory<*>, messageService)
+            @Suppress("UNCHECKED_CAST")
+            val sendingResult = createAndSendMessage(engineData.processContextFactory as PMAProcessContextFactory<C>, messageService)
 
             when (sendingResult) {
                 MessageSendingResult.SENT -> state = NodeInstanceState.Sent

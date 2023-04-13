@@ -5,7 +5,7 @@ import nl.adaptivity.process.engine.pma.dynamic.TaskBuilderContext
 import nl.adaptivity.process.engine.pma.runtime.PmaActivityContext
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-interface DynamicPmaActivityContext<AIC : DynamicPmaActivityContext<AIC, BIC>, BIC : TaskBuilderContext.BrowserContext<AIC, BIC>> :
+interface DynamicPmaActivityContext<out AIC : DynamicPmaActivityContext<AIC, BIC>, out BIC : TaskBuilderContext.BrowserContext<AIC, BIC>> :
     PmaActivityContext<AIC> {
     override val processContext: DynamicPmaProcessInstanceContext<AIC>
 

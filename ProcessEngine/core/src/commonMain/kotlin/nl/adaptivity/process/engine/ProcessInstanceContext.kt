@@ -46,7 +46,7 @@ interface ActivityInstanceContext {
     fun canBeAssignedTo(principal: PrincipalCompat?): Boolean
 }
 
-interface ProcessContextFactory<C : ActivityInstanceContext> {
+interface ProcessContextFactory<out C : ActivityInstanceContext> {
 
     fun newActivityInstanceContext(
         engineDataAccess: ProcessEngineDataAccess,

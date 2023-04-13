@@ -1,5 +1,6 @@
 package io.github.pdvrieze.pma.agfil.contexts
 
+import io.github.pdvrieze.pma.agfil.data.Money
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaActivityContext
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
@@ -8,7 +9,9 @@ interface AgfilActivityContext: DynamicPmaActivityContext<AgfilActivityContext, 
 
     fun randomEaCallHandler(): PrincipalCompat
     fun randomGarageReceptionist(): PrincipalCompat
+    fun randomMechanic(): PrincipalCompat
     fun randomAccidentDetails(): String
+    fun randomRepairCosts(): Money
 
 }
 

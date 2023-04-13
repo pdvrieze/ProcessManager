@@ -17,7 +17,6 @@
 package nl.adaptivity.process.processModel
 
 
-import kotlinx.serialization.Transient
 import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.util.Identifiable
@@ -30,11 +29,18 @@ interface Split : ProcessNode, JoinSplit {
 
     val predecessor: Identifiable?
 
+    /**
+     * The condition that needs to be true to start this node. A null value means that the node can run.
+     */
+    val condition: Condition?
+
     override fun builder(): Builder
 
     interface Builder : JoinSplit.Builder {
 
         override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitSplit(this)
+
+        var condition: Condition?
 
         var predecessor: Identifiable?
 

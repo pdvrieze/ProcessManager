@@ -1,8 +1,6 @@
 package io.github.pdvrieze.pma.agfil.contexts
 
-import io.github.pdvrieze.pma.agfil.services.EuropAssistService
-import io.github.pdvrieze.pma.agfil.services.GarageService
-import io.github.pdvrieze.pma.agfil.services.ServiceNames
+import io.github.pdvrieze.pma.agfil.services.*
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.SimpleRolePrincipal
 import nl.adaptivity.process.engine.PIHandle
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
@@ -37,7 +35,7 @@ class AgfilContextFactory(private val logger: Logger, private val random: Random
         val hProcessInstance = processNodeInstance.hProcessInstance
 
         val processContext = processContexts.getOrPut(hProcessInstance) {
-            AgfilProcessContext(engineDataAccess, this, hProcessInstance)
+            AgfilProcessContext(engineDataAccess, this, hProcessInstance, random)
         }
         return AgfilActivityContextImpl(processContext, processNodeInstance, random)
     }
@@ -61,18 +59,24 @@ class AgfilContextFactory(private val logger: Logger, private val random: Random
         ""
     )
 
+    val agfilService: AgfilService = AgfilService(ServiceNames.agfilService, authService)
+
     override val engineServiceAuthServiceClient: AuthServiceClient
         get() = engineService.authServiceClient
 
     val garageServices = ServiceNames.garageServices.arrayMap { GarageService(it, authService, TODO("pass engine for garage"), random) }
 
-    val europAssistService = EuropAssistService(ServiceNames.europAssistService, authService, random, garageServices.toList())
+    val europAssistService = EuropAssistService(ServiceNames.europAssistService, authService, random, agfilService, garageServices.toList())
+
+    val leeCsService = LeeCsService(ServiceNames.leeCsService, authService)
 
     override val services: List<Service> = listOf(
         authService,
         engineService,
         taskListService,
         europAssistService,
+        agfilService,
+        leeCsService,
     ) + garageServices.toList()
 
     override fun resolveService(targetService: InvokableMethod): ResolvedInvokableMethod? {

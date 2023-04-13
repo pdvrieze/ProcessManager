@@ -39,7 +39,7 @@ abstract class ProcessNodeBase : ProcessNode {
 
     private var _predecessors: MutableIdentifyableSet<Identified> = IdentifyableSet.processNodeSet()
 
-    override val predecessors: IdentifyableSet<Identified>
+    final override val predecessors: IdentifyableSet<Identified>
         get() = _predecessors
 
     private var _successors: MutableIdentifyableSet<Identified> = IdentifyableSet.processNodeSet()

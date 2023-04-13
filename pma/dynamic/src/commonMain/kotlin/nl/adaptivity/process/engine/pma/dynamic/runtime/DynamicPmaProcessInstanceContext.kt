@@ -11,7 +11,7 @@ import nl.adaptivity.process.engine.pma.runtime.PmaProcessInstanceContext
 import nl.adaptivity.process.engine.processModel.applyData
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-interface DynamicPmaProcessInstanceContext<A : DynamicPmaActivityContext<A, *>> : PmaProcessInstanceContext<A> {
+interface DynamicPmaProcessInstanceContext<out A : DynamicPmaActivityContext<A, *>> : PmaProcessInstanceContext<A> {
     val processInstance: IProcessInstance
     val authService: AuthService
     val engineService: EngineService

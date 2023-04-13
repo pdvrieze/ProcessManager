@@ -23,7 +23,6 @@ import kotlinx.serialization.SerializationStrategy
 import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.pma.dynamic.model.PmaAction
-import nl.adaptivity.process.engine.pma.dynamic.runtime.AbstractDynamicPmaActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaActivityInstance
 import nl.adaptivity.process.engine.pma.models.AuthScopeTemplate

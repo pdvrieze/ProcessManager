@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.Serializable
 import nl.adaptivity.process.util.Identified
 
 
@@ -44,8 +43,8 @@ abstract class JoinSplitBase : ProcessNodeBase, JoinSplit {
     }
 
 
-    override var min: Int
-    override var max: Int
+    final override var min: Int
+    final override var max: Int
 
     constructor(builder: JoinSplit.Builder, newOwner: ProcessModel<*>, otherNodes: Iterable<ProcessNode.Builder>) :
         super(builder, newOwner, otherNodes) {

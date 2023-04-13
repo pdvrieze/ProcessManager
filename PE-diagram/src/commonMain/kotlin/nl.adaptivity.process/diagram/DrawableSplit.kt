@@ -36,22 +36,27 @@ interface IDrawableSplit : IDrawableJoinSplit {
 
     override fun <S : DrawingStrategy<S, PEN_T, PATH_T>, PEN_T : Pen<PEN_T>, PATH_T : DiagramPath<PATH_T>> drawDecoration(
         canvas: Canvas<S, PEN_T, PATH_T>,
-        clipBounds: Rectangle?) {
+        clipBounds: Rectangle?
+    ) {
         if (hasPos()) {
             val path = itemCache.getPath(canvas.strategy, 1) {
                 if (DrawableJoinSplit.CURVED_ARROWS) {
                     moveTo(CENTER_X - HORIZONTALDECORATIONLEN, CENTER_Y)
                     lineTo(CENTER_X - INLEN, CENTER_Y)
-                    cubicTo(CENTER_X - INLEN * (1 - ARROWCONTROLRATIO), CENTER_Y,
-                            CENTER_X + ARROWHEADDX * (1 - ARROWCONTROLRATIO) - ARROWHEADADJUST,
-                            CENTER_Y - ARROWHEADDY * (1 - ARROWCONTROLRATIO) + ARROWHEADADJUST,
-                            CENTER_X + ARROWHEADDX - ARROWHEADADJUST, CENTER_Y - ARROWHEADDY + ARROWHEADADJUST)
+                    cubicTo(
+                        CENTER_X - INLEN * (1 - ARROWCONTROLRATIO), CENTER_Y,
+                        CENTER_X + ARROWHEADDX * (1 - ARROWCONTROLRATIO) - ARROWHEADADJUST,
+                        CENTER_Y - ARROWHEADDY * (1 - ARROWCONTROLRATIO) + ARROWHEADADJUST,
+                        CENTER_X + ARROWHEADDX - ARROWHEADADJUST, CENTER_Y - ARROWHEADDY + ARROWHEADADJUST
+                    )
                     lineTo(CENTER_X + ARROWHEADDX, CENTER_Y - ARROWHEADDY)
                     moveTo(CENTER_X - INLEN, CENTER_Y)
-                    cubicTo(CENTER_X - INLEN * (1 - ARROWCONTROLRATIO), CENTER_Y,
-                            CENTER_X + ARROWHEADDX * (1 - ARROWCONTROLRATIO) - ARROWHEADADJUST,
-                            CENTER_Y + ARROWHEADDY * (1 - ARROWCONTROLRATIO) - ARROWHEADADJUST,
-                            CENTER_X + ARROWHEADDX - ARROWHEADADJUST, CENTER_Y + ARROWHEADDY - ARROWHEADADJUST)
+                    cubicTo(
+                        CENTER_X - INLEN * (1 - ARROWCONTROLRATIO), CENTER_Y,
+                        CENTER_X + ARROWHEADDX * (1 - ARROWCONTROLRATIO) - ARROWHEADADJUST,
+                        CENTER_Y + ARROWHEADDY * (1 - ARROWCONTROLRATIO) - ARROWHEADADJUST,
+                        CENTER_X + ARROWHEADDX - ARROWHEADADJUST, CENTER_Y + ARROWHEADDY - ARROWHEADADJUST
+                    )
                     lineTo(CENTER_X + ARROWHEADDX, CENTER_Y + ARROWHEADDY)
                 } else {
                     moveTo(CENTER_X - HORIZONTALDECORATIONLEN, CENTER_Y)
@@ -80,9 +85,12 @@ interface IDrawableSplit : IDrawableJoinSplit {
         private const val ARROWHEADDY = JOINWIDTH * 0.2
 
         private val ARROWHEADADJUST = 0.5 * STROKEWIDTH * sqrt(
-            0.5 / (sin(DrawableJoinSplit.ARROWHEADANGLE) * sin(DrawableJoinSplit.ARROWHEADANGLE)))
+            0.5 / (sin(DrawableJoinSplit.ARROWHEADANGLE) * sin(DrawableJoinSplit.ARROWHEADANGLE))
+        )
+
         /** The y coordinate if the line were horizontal.  */
         private val ARROWDFAR = DrawableJoinSplit.ARROWLEN * sin(0.25 * PI - DrawableJoinSplit.ARROWHEADANGLE)
+
         /** The x coordinate if the line were horizontal.  */
         private val ARROWDNEAR = DrawableJoinSplit.ARROWLEN * cos(0.25 * PI - DrawableJoinSplit.ARROWHEADANGLE)
 
@@ -96,10 +104,11 @@ class DrawableSplit(
     builder: Split.Builder,
     buildHelper: ProcessModel.BuildHelper<*, *, *, *>,
     otherNodes: Iterable<ProcessNode.Builder>
-                   ) :
-    SplitBase(builder, buildHelper.newOwner, otherNodes),
+) : SplitBase(builder, buildHelper.newOwner, otherNodes),
     Split, DrawableJoinSplit {
 
+    override val condition: Condition?
+        get() = null // TODO support conditions
 
     override val _delegate: DrawableJoinSplit.Delegate
 
@@ -123,9 +132,12 @@ class DrawableSplit(
         private const val ARROWHEADDY = JOINWIDTH * 0.2
 
         private val ARROWHEADADJUST = 0.5 * STROKEWIDTH * sqrt(
-            0.5 / (sin(DrawableJoinSplit.ARROWHEADANGLE) * sin(DrawableJoinSplit.ARROWHEADANGLE)))
+            0.5 / (sin(DrawableJoinSplit.ARROWHEADANGLE) * sin(DrawableJoinSplit.ARROWHEADANGLE))
+        )
+
         /** The y coordinate if the line were horizontal.  */
         private val ARROWDFAR = DrawableJoinSplit.ARROWLEN * sin(0.25 * PI - DrawableJoinSplit.ARROWHEADANGLE)
+
         /** The x coordinate if the line were horizontal.  */
         private val ARROWDNEAR = DrawableJoinSplit.ARROWLEN * cos(0.25 * PI - DrawableJoinSplit.ARROWHEADANGLE)
         private val INLEN = sqrt(ARROWHEADDX * ARROWHEADDX + ARROWHEADDY * ARROWHEADDY)
@@ -145,19 +157,23 @@ class DrawableSplit(
 
         constructor() : this(id = null)
 
-        constructor(id: String? = null,
-                    predecessor: Identified? = null,
-                    successors: Collection<Identified> = emptyList(),
-                    label: String? = null,
-                    defines: Collection<IXmlDefineType> = emptyList(),
-                    results: Collection<IXmlResultType> = emptyList(),
-                    x: Double = Double.NaN,
-                    y: Double = Double.NaN,
-                    min: Int = 1,
-                    max: Int = -1,
-                    state: DrawableState = Drawable.STATE_DEFAULT,
-                    multiInstance: Boolean = false) : super(id, predecessor, successors, label, defines, results, x, y,
-                                                            min, max, multiInstance) {
+        constructor(
+            id: String? = null,
+            predecessor: Identified? = null,
+            successors: Collection<Identified> = emptyList(),
+            label: String? = null,
+            defines: Collection<IXmlDefineType> = emptyList(),
+            results: Collection<IXmlResultType> = emptyList(),
+            x: Double = Double.NaN,
+            y: Double = Double.NaN,
+            min: Int = 1,
+            max: Int = -1,
+            state: DrawableState = Drawable.STATE_DEFAULT,
+            multiInstance: Boolean = false
+        ) : super(
+            id, predecessor, successors, label = label, defines = defines, results = results, x = x, y = y,
+            min = min, max = max, multiInstance = multiInstance
+        ) {
             _delegate = DrawableProcessNode.Builder.Delegate(state, false)
         }
 
@@ -167,8 +183,10 @@ class DrawableSplit(
             _delegate = DrawableProcessNode.Builder.Delegate(node)
         }
 
-        override fun copy() = Builder(id, predecessor?.identifier, successors, label, defines, results, x, y, min, max,
-                                      state, isMultiInstance)
+        override fun copy() = Builder(
+            id, predecessor?.identifier, successors, label, defines, results, x, y, min, max,
+            state, isMultiInstance
+        )
 
     }
 

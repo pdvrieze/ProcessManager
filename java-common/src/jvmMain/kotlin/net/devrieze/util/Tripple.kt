@@ -41,12 +41,19 @@ package net.devrieze.util
  *
  */
 class Tripple<S, T, U>(
-        var elem1: S,
-        var elem2: T,
-        var elem3: U) {
+    var elem1: S,
+    var elem2: T,
+    var elem3: U
+) {
 
     fun copy(elem1: S = this.elem1, elem2: T = this.elem2, elem3: U = this.elem3) =
         Tripple(elem1, elem2, elem3)
+
+    operator fun component1(): S = elem1
+
+    operator fun component2(): T = elem2
+
+    operator fun component3(): U = elem3
 
     override fun toString(): String {
         return "($elem1, $elem2, $elem3)"
