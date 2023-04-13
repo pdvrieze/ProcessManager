@@ -17,12 +17,12 @@ import nl.adaptivity.xmlutil.util.CompactFragment
 import java.util.*
 import kotlin.test.*
 
-class TestPMA : ProcessEngineTestSupport<TestPMAActivityContext>() {
+class TestPMA : ProcessEngineTestSupport() {
 
     @Test
     fun testPMAActivity() {
         val activityUser = SimplePrincipal("activityUser")
-        val factory: ProcessEngineFactory<TestPMAActivityContext> = { messageService, transactionFactory ->
+        val factory: ProcessEngineFactory = { messageService, transactionFactory ->
             defaultEngineFactory(
                 messageService,
                 transactionFactory,
@@ -79,7 +79,7 @@ class TestPMA : ProcessEngineTestSupport<TestPMAActivityContext>() {
             val message = messageService.messages.singleOrNull() ?: fail("Expected a single message, found [${messageService.messages.joinToString()}]")
             val authData = assertIs<DummyTokenServiceAuthData>(message.authData)
             assertEquals(EvalMessageScope, authData.authorizations.single())
-            assertEquals(dest, authData.targetService)
+            assertEquals(dest, authData.targetService.method)
 
             engine.updateTaskState(transaction, message.source, NodeInstanceState.Started, testModelOwnerPrincipal)
             engine.finishTask(transaction, message.source, null, testModelOwnerPrincipal)
