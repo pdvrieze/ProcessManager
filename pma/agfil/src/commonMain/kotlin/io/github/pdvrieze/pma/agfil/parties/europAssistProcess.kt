@@ -7,7 +7,7 @@ import io.github.pdvrieze.pma.agfil.data.CallerInfo
 import io.github.pdvrieze.pma.agfil.data.GarageInfo
 import io.github.pdvrieze.pma.agfil.services.ServiceNames.agfilService
 import io.github.pdvrieze.pma.agfil.services.ServiceNames.europAssistService
-import io.github.pdvrieze.process.processModel.dynamicProcessModel.ActivityHandle
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.DataNodeHandle
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.RoleRestriction
 import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
 import nl.adaptivity.process.engine.pma.dynamic.uiServiceLogin
@@ -18,7 +18,7 @@ val europAssistProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserCo
     val start by startNode
 
 
-    val gatherInfo: ActivityHandle<AccidentInfo> by taskActivity(
+    val gatherInfo: DataNodeHandle<AccidentInfo> by taskActivity(
         predecessor = start,
         input = callInfo,
         accessRestrictions = RoleRestriction("ea:callhandler")
@@ -28,7 +28,7 @@ val europAssistProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserCo
         }
     }
 
-    val validateInfo: ActivityHandle<Boolean> by taskActivity(
+    val validateInfo: DataNodeHandle<Boolean> by taskActivity(
         gatherInfo,
         accessRestrictions = RoleRestriction("ea:callhandler")
     ) {
@@ -42,7 +42,7 @@ val europAssistProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserCo
         max = 1
     }
 
-    val pickGarage: ActivityHandle<GarageInfo> by taskActivity(continueSplit, input = gatherInfo) {
+    val pickGarage: DataNodeHandle<GarageInfo> by taskActivity(continueSplit, input = gatherInfo) {
         acceptTask( { randomEaCallHandler() }) { accidentInfo ->
             uiServiceLogin(europAssistService) {
                 val garage: GarageInfo = service.pickGarage(authToken, accidentInfo)
@@ -51,14 +51,14 @@ val europAssistProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserCo
         }
     }
 
-    val assignGarage: ActivityHandle<GarageInfo> by serviceActivity(
+    val assignGarage: DataNodeHandle<GarageInfo> by serviceActivity(
         predecessor = pickGarage,
         service = europAssistService,
         input = combine(pickGarage named "garage", gatherInfo named "accidentInfo")) {(garage, accidentInfo) ->
         service.informGarage(garage, accidentInfo)
     }
 
-    val informAgfil: ActivityHandle<Unit> by serviceActivity(
+    val informAgfil: DataNodeHandle<Unit> by serviceActivity(
         assignGarage,
         service = agfilService,
         input = combine(assignGarage named "assignedGarage", gatherInfo named "accidentInfo")

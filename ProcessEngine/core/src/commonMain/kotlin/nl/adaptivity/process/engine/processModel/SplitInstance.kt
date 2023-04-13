@@ -74,10 +74,10 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
 
     }
 
-    class ExtBuilder(private val instance: SplitInstance, processInstanceBuilder: ProcessInstance.Builder) :
+    class ExtBuilder(instance: SplitInstance, processInstanceBuilder: ProcessInstance.Builder) :
         ProcessNodeInstance.ExtBuilder<ExecutableSplit, SplitInstance>(instance, processInstanceBuilder), Builder {
 
-        override var node: ExecutableSplit by overlay { instance.node }
+        override var node: ExecutableSplit by overlay { base.node }
 
         override fun build() = when {
             changed -> SplitInstance(this).also { invalidateBuilder(it) }

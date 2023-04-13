@@ -11,25 +11,26 @@ import kotlin.reflect.KProperty
 interface IModelBuilderContextDelegates {
     val modelBuilder: ProcessModel.Builder
 
+    operator fun <I> EventNodeHolder<I>.provideDelegate(thisRef: Nothing?, property: KProperty<*>): NodeHandle<I> {
+        addNodeToModel(builder, property)
+        val outputName = builder.results.singleOrNull()?.name ?: ""
+        return DataNodeHandleImpl(builder.id!!, outputName, serializer)
+    }
+
     operator fun <I: Any, O: Any> RunnableActivity.Builder<I, O, *>.provideDelegate(
         thisRef: Nothing?,
         property: KProperty<*>
-    ): ActivityHandle<O> {
-        val nodeBuilder = this
-        if (id == null && modelBuilder.nodes.firstOrNull { it.id == property.name } == null) id = property.name
-        with(modelBuilder) {
-            nodes.add(nodeBuilder.ensureId())
-        }
+    ): DataNodeHandle<O> {
+        addNodeToModel(this, property)
         val outputName = results.singleOrNull()?.name ?: ""
-        return ActivityHandleImpl(id!!, outputName, this.outputSerializer as KSerializer<O>)
+        return DataNodeHandleImpl(id!!, outputName, this.outputSerializer as KSerializer<O>)
     }
 
-    operator fun ProcessNode.Builder.provideDelegate(
-        thisRef: Nothing?,
+    fun addNodeToModel(
+        nodeBuilder: ProcessNode.Builder,
         property: KProperty<*>
-    ): NodeHandle<Unit> {
-        val nodeBuilder = this
-        if (id == null && modelBuilder.nodes.firstOrNull { it.id == property.name } == null) id = property.name
+    ) {
+        if (nodeBuilder.id == null && modelBuilder.nodes.firstOrNull { it.id == property.name } == null) nodeBuilder.id = property.name
         with(modelBuilder) {
             if (nodeBuilder is CompositeActivity.ModelBuilder) {
                 modelBuilder.rootBuilder.childModels.add(nodeBuilder.ensureChildId())
@@ -37,6 +38,14 @@ interface IModelBuilderContextDelegates {
 
             nodes.add(nodeBuilder.ensureId())
         }
+    }
+
+    operator fun ProcessNode.Builder.provideDelegate(
+        thisRef: Nothing?,
+        property: KProperty<*>
+    ): NodeHandle<Unit> {
+        addNodeToModel(this, property)
+
         return NonActivityNodeHandleImpl(id!!)
     }
 

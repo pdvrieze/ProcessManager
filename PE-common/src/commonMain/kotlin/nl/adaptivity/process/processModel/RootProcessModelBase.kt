@@ -16,7 +16,8 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.*
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.CompositeDecoder
 import net.devrieze.util.*
@@ -42,7 +43,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
     /**
      * The name of the model.
      */
-    override val name: String?
+    final override val name: String?
 
     private var _handle = -1L
 
@@ -54,7 +55,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
      */
     final override var owner: PrincipalCompat = SYSTEMPRINCIPAL
 
-    override val roles: Set<String>
+    final override val roles: Set<String>
 
     final override val uuid: UUID?
 

@@ -113,7 +113,7 @@ class AuthService(
         if (authToken !in activeTokens) throw AuthorizationException("Token not active: $authToken")
         if (authToken.serviceId != serviceId) throw AuthorizationException("The token $authToken is not for the expected service $serviceId")
 //        val tokenPermissions = tokenPermissions.get(authToken.tokenValue) ?:emptyList<Permission>()
-        val hasTransparentPermission = authToken.serviceId == serviceId && authToken.scope.includes(useScope)
+        val hasTransparentPermission = authToken.scope.includes(useScope)
         if (!hasTransparentPermission) {
             val opaquePermissions = tokenPermissions[authToken.token] ?: emptyList()
             val hasExtPermission = opaquePermissions.any { it.scope.includes(useScope) }

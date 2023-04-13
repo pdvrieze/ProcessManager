@@ -34,8 +34,6 @@ class ExecutableEndNode(
         get() = super.ownerModel as ExecutableModelCommon
 
     class Builder : EndNodeBase.Builder, ExecutableProcessNode.Builder {
-        constructor() : this(predecessor = null)
-
         constructor(
             id: String? = null,
             predecessor: Identified? = null,
@@ -44,8 +42,9 @@ class ExecutableEndNode(
             results: Collection<IXmlResultType> = emptyList(),
             x: Double = Double.NaN,
             y: Double = Double.NaN,
-            multiInstance: Boolean = false
-        ) : super(id, predecessor, label, defines, results, x, y, multiInstance)
+            multiInstance: Boolean = false,
+            eventType: IEventNode.Type = IEventNode.Type.MESSAGE
+        ) : super(id, predecessor, label, defines, results, x, y, multiInstance, eventType)
 
         constructor(node: EndNode) : super(node)
 

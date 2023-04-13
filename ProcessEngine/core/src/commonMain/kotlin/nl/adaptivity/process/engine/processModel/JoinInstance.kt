@@ -140,7 +140,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
     ) : ProcessNodeInstance.ExtBuilder<ExecutableJoin, JoinInstance>(instance, processInstanceBuilder),
         Builder {
 
-        override var node: ExecutableJoin by overlay { instance.node }
+        override var node: ExecutableJoin by overlay { base.node }
 
         override fun build() = if (changed) JoinInstance(this).also { invalidateBuilder(it) } else base
 

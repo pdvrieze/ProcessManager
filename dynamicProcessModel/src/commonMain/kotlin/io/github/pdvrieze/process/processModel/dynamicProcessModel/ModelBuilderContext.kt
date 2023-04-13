@@ -73,7 +73,7 @@ abstract class ModelBuilderContext<AIC : ActivityInstanceContext> : IModelBuilde
     }
 
     fun <I : Any, O : Any> activity(
-        predecessor: ActivityHandle<I>,
+        predecessor: DataNodeHandle<I>,
         outputSerializer: SerializationStrategy<O>,
         accessRestrictions: RunnableAccessRestriction? = null,
         onActivityProvided: OnActivityProvided<I, O, AIC> = OnActivityProvided.DEFAULT,

@@ -200,7 +200,7 @@ val loanModel2 = runnableProcess<LoanActivityContext>("foo", SimplePrincipal("mo
                 }
             }
         )
-        val approveOffer: ActivityHandle<PricedLoanProductBundle> by cmbc.activity(
+        val approveOffer: DataNodeHandle<PricedLoanProductBundle> by cmbc.activity(
             predecessor = priceBundledProduct,
             input = priceBundledProduct
         ) { draftOffer ->
@@ -212,7 +212,7 @@ val loanModel2 = runnableProcess<LoanActivityContext>("foo", SimplePrincipal("mo
 
         approvedOfferOut = output("approvedOffer", approveOffer)
     }
-    val printOffer: ActivityHandle<Offer> by activity(
+    val printOffer: DataNodeHandle<Offer> by activity(
         predecessor = offerPriceLoan,
         input = approvedOfferOut
     ) { approvedOffer ->
@@ -233,7 +233,7 @@ val loanModel2 = runnableProcess<LoanActivityContext>("foo", SimplePrincipal("mo
         }
     }
 
-    val bankSignsContract: ActivityHandle<Contract> by activity(
+    val bankSignsContract: DataNodeHandle<Contract> by activity(
         predecessor = customerSignsContract,
         input = customerSignsContract
     ) { offer ->
@@ -247,7 +247,7 @@ val loanModel2 = runnableProcess<LoanActivityContext>("foo", SimplePrincipal("mo
             outputManagementSystem.signAndRegisterContract(omsToken, offer, "Signed by 'the bank manager'")
         }
     }
-    val openAccount: ActivityHandle<BankAccountNumber> by activity(
+    val openAccount: DataNodeHandle<BankAccountNumber> by activity(
         predecessor = bankSignsContract,
         bankSignsContract
     ) { contract ->

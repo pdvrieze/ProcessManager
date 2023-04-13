@@ -5,11 +5,12 @@ import kotlinx.serialization.serializer
 import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.configurableModel.ConfigurationDsl
+import nl.adaptivity.process.processModel.engine.ExecutableEventNode
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.xmlutil.Namespace
 
-interface IModelBuilderContext<AIC: ActivityInstanceContext> : IModelBuilderContextDelegates {
+interface IModelBuilderContext<AIC : ActivityInstanceContext> : IModelBuilderContextDelegates {
     val startNode: StartNode.Builder
         get() = StartNodeBase.Builder()
 
@@ -17,11 +18,25 @@ interface IModelBuilderContext<AIC: ActivityInstanceContext> : IModelBuilderCont
     fun startNode(config: @ConfigurationDsl() (StartNode.Builder.() -> Unit)): StartNode.Builder =
         StartNodeBase.Builder().apply(config)
 
-    fun eventNode(predecessor: Identified, eventType: IEventNode.Type): EventNode.Builder =
-        EventNodeBase.Builder(predecessor=predecessor, eventType = eventType)
+    fun <T> eventNode(
+        predecessor: Identified,
+        messageSerializer: KSerializer<T>,
+        eventType: IEventNode.Type = IEventNode.Type.MESSAGE
+    ): EventNodeHolder<T> {
+        val results = listOf(XmlResultType("event"))
+        val builder = ExecutableEventNode.Builder(predecessor = predecessor, eventType = eventType, results = results)
+        return EventNodeHolder(builder, messageSerializer)
+    }
 
-    fun eventNode(predecessor: Identified, config: @ConfigurationDsl (EventNode.Builder.() -> Unit)): EventNode.Builder =
-        EventNodeBase.Builder()
+    fun eventNode(predecessor: Identified, eventType: IEventNode.Type = IEventNode.Type.MESSAGE): EventNode.Builder =
+        EventNodeBase.Builder(predecessor = predecessor, eventType = eventType)
+
+    fun eventNode(
+        predecessor: Identified,
+        eventType: IEventNode.Type = IEventNode.Type.MESSAGE,
+        config: @ConfigurationDsl (EventNode.Builder.() -> Unit)
+    ): EventNode.Builder =
+        EventNodeBase.Builder(predecessor = predecessor, eventType = eventType).apply(config)
 
     @ConfigurationDsl
     fun split(predecessor: Identified): Split.Builder =
@@ -54,7 +69,7 @@ interface IModelBuilderContext<AIC: ActivityInstanceContext> : IModelBuilderCont
     fun join(
         predecessors: Collection<Identified>,
         config: @ConfigurationDsl() (Join.Builder.() -> Unit)
-    ): Join.Builder =join(predecessors).apply(config)
+    ): Join.Builder = join(predecessors).apply(config)
 
     fun endNode(predecessor: Identified): EndNode.Builder =
         EndNodeBase.Builder().apply {
@@ -174,6 +189,11 @@ interface IModelBuilderContext<AIC: ActivityInstanceContext> : IModelBuilderCont
 
 }
 
+class EventNodeHolder<I> internal constructor(
+    internal val builder: ExecutableEventNode.Builder,
+    val serializer: KSerializer<I>,
+)
+
 inline fun <AIC : ActivityInstanceContext, reified T> IModelBuilderContext<AIC>.processResult(
     name: String,
     refNode: OutputRef<T>,
@@ -186,7 +206,7 @@ inline fun <AIC : ActivityInstanceContext, reified T> IModelBuilderContext<AIC>.
 
 inline fun <AIC : ActivityInstanceContext, I> IModelBuilderContext<AIC>.processResult(
     name: String,
-    refNode: ActivityHandle<I>,
+    refNode: DataNodeHandle<I>,
     path: String? = null,
     content: CharArray? = null,
     nsContext: Iterable<Namespace> = emptyList()

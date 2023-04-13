@@ -33,14 +33,14 @@ abstract class PmaModelBuilderContext<
     operator fun <I : Any, O : Any> RunnablePmaActivity.Builder<I, O, *>.provideDelegate(
         thisRef: Nothing?,
         property: KProperty<*>
-    ): ActivityHandle<O> {
+    ): DataNodeHandle<O> {
         val nodeBuilder = this
         if (id == null && modelBuilder.nodes.firstOrNull { it.id == property.name } == null) id = property.name
         with(modelBuilder) {
             nodes.add(nodeBuilder.ensureId())
         }
         val outputName = results.singleOrNull()?.name ?: ""
-        return ActivityHandleImpl(id!!, outputName, this.outputSerializer as KSerializer<O>)
+        return DataNodeHandleImpl(id!!, outputName, this.outputSerializer as KSerializer<O>)
     }
 
     @PublishedApi

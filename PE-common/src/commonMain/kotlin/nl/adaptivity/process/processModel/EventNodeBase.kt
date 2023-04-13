@@ -44,6 +44,7 @@ abstract class EventNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?>
 
     constructor(
         ownerModel: ModelT,
+        predecessor: Identified? = null,
         successor: Identified? = null,
         id: String? = null,
         label: String? = null,
@@ -55,16 +56,16 @@ abstract class EventNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?>
         eventType: IEventNode.Type = IEventNode.Type.MESSAGE,
         isMultiInstance: Boolean = false,
     ) : super(
-        ownerModel,
-        emptyList(),
-        listOfNotNull(successor),
-        id,
-        label,
-        x,
-        y,
-        emptyList(),
-        results,
-        isMultiInstance
+        _ownerModel = ownerModel,
+        predecessors = listOfNotNull(predecessor),
+        successors = listOfNotNull(successor),
+        id = id,
+        label = label,
+        x = x,
+        y = y,
+        defines = emptyList(),
+        results = results,
+        isMultiInstance = isMultiInstance,
     ) {
         this.isThrowing = isThrowing
         this.eventType = eventType

@@ -94,6 +94,7 @@ kotlin {
                 implementation(libs.xmlutil.core)
                 implementation(kotlin("test"))
                 implementation(kotlin("test-annotations-common"))
+                implementation(project(":ProcessEngine:testLib"))
             }
         }
 /*

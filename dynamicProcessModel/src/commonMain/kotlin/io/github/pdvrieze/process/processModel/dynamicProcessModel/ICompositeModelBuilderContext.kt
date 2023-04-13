@@ -64,7 +64,7 @@ inline fun <AIC : ActivityInstanceContext, reified T> ICompositeModelBuilderCont
 
 inline fun <AIC : ActivityInstanceContext, reified T> ICompositeModelBuilderContext<AIC>.input(
     name: String,
-    refNode: ActivityHandle<T>,
+    refNode: DataNodeHandle<T>,
     path: String? = null,
     content: CharArray? = null,
     nsContext: Iterable<Namespace> = emptyList(),
@@ -85,7 +85,7 @@ inline fun <AIC : ActivityInstanceContext, reified T> ICompositeModelBuilderCont
 
 inline fun <AIC : ActivityInstanceContext, reified T> ICompositeModelBuilderContext<AIC>.output(
     name: String,
-    refNode: ActivityHandle<T>,
+    refNode: DataNodeHandle<T>,
     path: String? = null,
     content: CharArray? = null,
     nsContext: Iterable<Namespace> = emptyList()

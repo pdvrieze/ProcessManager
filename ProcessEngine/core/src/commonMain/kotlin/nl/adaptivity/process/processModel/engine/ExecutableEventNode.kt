@@ -16,8 +16,10 @@
 
 package nl.adaptivity.process.processModel.engine
 
+import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
 import nl.adaptivity.process.engine.ProcessInstance
-import nl.adaptivity.process.engine.processModel.DefaultProcessNodeInstance
+import nl.adaptivity.process.engine.processModel.EventNodeInstance
+import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
@@ -53,6 +55,7 @@ class ExecutableEventNode(
             eventType: IEventNode.Type = IEventNode.Type.MESSAGE,
         ) : super(
             id = id,
+            predecessor = predecessor,
             successor = successor,
             label = label,
             defines = defines,
@@ -76,16 +79,20 @@ class ExecutableEventNode(
 
     override val id: String get() = super.id ?: throw IllegalStateException("Excecutable nodes must have an id")
 
-    fun createOrReuseInstance(
+    override fun createOrReuseInstance(
+        data: MutableProcessEngineDataAccess,
         processInstanceBuilder: ProcessInstance.Builder,
-        entryNo: Int
-    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*>> =
-        processInstanceBuilder.getChildNodeInstance(this, entryNo)
-            ?: DefaultProcessNodeInstance.BaseBuilder(
-                this, emptyList(),
+        predecessor: IProcessNodeInstance,
+        entryNo: Int,
+        allowFinalInstance: Boolean
+    ): ProcessNodeInstance.Builder<out ExecutableProcessNode, ProcessNodeInstance<*>> {
+        return processInstanceBuilder.getChildNodeInstance(this, entryNo)
+            ?: EventNodeInstance.BaseBuilder(
+                this, predecessor.handle,
                 processInstanceBuilder,
                 processInstanceBuilder.owner,
                 entryNo
             )
+    }
 
 }

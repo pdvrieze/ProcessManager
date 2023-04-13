@@ -25,7 +25,7 @@ val pmaLoanModel =
     runnablePmaProcess<LoanPMAActivityContext, LoanBrowserContext>("pmaLoanModel", SimplePrincipal("modelOwner")) {
         val start by startNode
 
-        val inputCustomerMasterData: ActivityHandle<LoanCustomer> by taskActivity(
+        val inputCustomerMasterData: DataNodeHandle<LoanCustomer> by taskActivity(
             predecessor = start,
             permissions = listOf(
                 delegatePermissions(customerFile, QUERY_CUSTOMER_DATA, CREATE_CUSTOMER, UPDATE_CUSTOMER_DATA)
@@ -40,7 +40,7 @@ val pmaLoanModel =
             }
         }
 
-        val createLoanRequest: ActivityHandle<LoanApplication> by taskActivity(
+        val createLoanRequest: DataNodeHandle<LoanApplication> by taskActivity(
             predecessor = inputCustomerMasterData,
             permissions = listOf(
                 delegatePermissions(
@@ -72,7 +72,7 @@ val pmaLoanModel =
 
             val startCreditEvaluate by startNode
 
-            val getCustomerApproval: ActivityHandle<SignedDocument<Approval>> by taskActivity(
+            val getCustomerApproval: DataNodeHandle<SignedDocument<Approval>> by taskActivity(
                 predecessor = startCreditEvaluate,
                 authorizationTemplates = listOf(delegatePermissions(signingService, SIGN)),
                 accessRestrictions = RoleRestriction("customer"), // TODO support dynamic restrictions
@@ -85,7 +85,7 @@ val pmaLoanModel =
                 }
             }
 
-            val verifyCustomerApproval: ActivityHandle<SignedDocument<SignedDocument<Approval>>> by taskActivity(
+            val verifyCustomerApproval: DataNodeHandle<SignedDocument<SignedDocument<Approval>>> by taskActivity(
                 predecessor = getCustomerApproval,
                 authorizationTemplates = listOf(
                     delegatePermissions(
@@ -116,7 +116,7 @@ val pmaLoanModel =
                 }
             }
 
-            val getCreditReport: ActivityHandle<CreditReport> by serviceActivity<LoanCustomer, CreditReport, CreditBureau>(
+            val getCreditReport: DataNodeHandle<CreditReport> by serviceActivity<LoanCustomer, CreditReport, CreditBureau>(
                 predecessor = verifyCustomerApproval,
                 service = ServiceNames.creditBureau,
                 input = customerIdInput,
@@ -187,7 +187,7 @@ val pmaLoanModel =
             }
 
 
-            val getLoanEvaluation: ActivityHandle<LoanEvaluation> by serviceActivity(
+            val getLoanEvaluation: DataNodeHandle<LoanEvaluation> by serviceActivity(
 
                 predecessor = getCreditReport,
                 input = combine(
@@ -231,7 +231,7 @@ val pmaLoanModel =
 
             val start by startNode
 
-            val priceBundledProduct: ActivityHandle<PricedLoanProductBundle> by taskActivity(
+            val priceBundledProduct: DataNodeHandle<PricedLoanProductBundle> by taskActivity(
                 predecessor = start,
                 input = combine(loanEvalInput named "loanEval", chosenProductInput named "prod") { e, p ->
                     PricingInput(e, p)
@@ -250,7 +250,7 @@ val pmaLoanModel =
                 }
             }
 
-            val approveOffer: ActivityHandle<PricedLoanProductBundle> by taskActivity(
+            val approveOffer: DataNodeHandle<PricedLoanProductBundle> by taskActivity(
                 predecessor = priceBundledProduct,
                 input = priceBundledProduct,
             ) {
@@ -263,7 +263,7 @@ val pmaLoanModel =
 
             approvedOfferOut = output("approvedOffer", approveOffer)
         }
-        val printOffer: ActivityHandle<Offer> by taskActivity(
+        val printOffer: DataNodeHandle<Offer> by taskActivity(
             predecessor = offerPriceLoan,
             input = approvedOfferOut,
             authorizationTemplates = listOf(delegatePermissions(outputManagementSystem, PRINT_OFFER))
@@ -283,7 +283,7 @@ val pmaLoanModel =
             }
         }
 
-        val bankSignsContract: ActivityHandle<Contract> by taskActivity(
+        val bankSignsContract: DataNodeHandle<Contract> by taskActivity(
             predecessor = customerSignsContract,
             input = customerSignsContract,
             authorizationTemplates = listOf(
@@ -303,7 +303,7 @@ val pmaLoanModel =
                 }
             }
         }
-        val openAccount: ActivityHandle<BankAccountNumber> by taskActivity(
+        val openAccount: DataNodeHandle<BankAccountNumber> by taskActivity(
             predecessor = bankSignsContract,
             permissions = listOf(
                 delegatePermissions(
