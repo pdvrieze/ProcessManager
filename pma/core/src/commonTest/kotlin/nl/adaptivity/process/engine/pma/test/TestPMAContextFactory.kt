@@ -6,7 +6,6 @@ import nl.adaptivity.process.engine.pma.models.ResolvedInvokableMethod
 import nl.adaptivity.process.engine.pma.models.Service
 import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.TaskListService
-import nl.adaptivity.process.engine.pma.runtime.AuthServiceClient
 import nl.adaptivity.process.engine.pma.runtime.PMAProcessContextFactory
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.messaging.InvokableMethod
@@ -32,7 +31,7 @@ class TestPMAContextFactory(principals: List<PrincipalCompat>) : PMAProcessConte
         return principals.getOrPut(userName) { SimplePrincipal(userName) }
     }
 
-    override val engineServiceAuthServiceClient: AuthServiceClient = TestAuthServiceClient()
+    override val engineServiceAuthServiceClient: TestAuthServiceClient = TestAuthServiceClient()
 
     override fun getOrCreateTaskListForRestrictions(accessRestrictions: AccessRestriction?): List<TaskListService> {
         TODO("not implemented")

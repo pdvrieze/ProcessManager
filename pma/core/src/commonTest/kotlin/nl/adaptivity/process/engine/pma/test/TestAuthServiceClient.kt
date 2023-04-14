@@ -20,7 +20,16 @@ class TestAuthServiceClient() : AuthServiceClient<AuthorizationInfo, Authorizati
         authorizations: List<AuthScope>,
         processNodeInstanceHandle: PNIHandle
     ): DummyTokenServiceAuthData {
-        return DummyTokenServiceAuthData(authorizationTarget, authorizations)
+        return DummyTokenServiceAuthData(authorizationTarget.serviceId, authorizations)
+    }
+
+    override fun requestPmaAuthCode(
+        client: ServiceId<*>,
+        nodeInstanceHandle: PNIHandle,
+        serviceId: ServiceId<*>,
+        requestedScope: AuthScope
+    ): AuthorizationInfo.Token {
+        return DummyTokenServiceAuthData(serviceId, listOf(requestedScope))
     }
 
     override fun exchangeAuthCode(authorizationCode: AuthorizationInfo.Token): AuthorizationInfo.Token {
@@ -28,7 +37,7 @@ class TestAuthServiceClient() : AuthServiceClient<AuthorizationInfo, Authorizati
     }
 }
 
-class DummyTokenServiceAuthData(val targetService: ResolvedInvokableMethod, val authorizations: List<AuthScope>) :
+class DummyTokenServiceAuthData(val targetService: ServiceId<*>, val authorizations: List<AuthScope>) :
     AuthorizationInfo.Token {
     override val token: String
         get() = "$targetService:::$authorizations"

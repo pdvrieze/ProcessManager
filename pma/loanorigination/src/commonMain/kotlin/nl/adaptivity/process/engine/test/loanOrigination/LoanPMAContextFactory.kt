@@ -10,10 +10,7 @@ import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions.VALIDATE_AUTH
 import nl.adaptivity.process.engine.pma.dynamic.services.EnumeratedTaskList
 import nl.adaptivity.process.engine.pma.dynamic.services.TaskList
-import nl.adaptivity.process.engine.pma.models.ResolvedInvokableMethod
-import nl.adaptivity.process.engine.pma.models.Service
-import nl.adaptivity.process.engine.pma.models.ServiceId
-import nl.adaptivity.process.engine.pma.models.ServiceName
+import nl.adaptivity.process.engine.pma.models.*
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.messaging.InvokableMethod
 import nl.adaptivity.process.processModel.AccessRestriction
@@ -25,7 +22,9 @@ import kotlin.random.Random
 
 class LoanPMAContextFactory(log: Logger, random: Random) :
     AbstractLoanContextFactory<LoanPMAActivityContext>(log, random),
-    DynamicPmaProcessContextFactory<LoanPMAActivityContext> {
+    DynamicPmaProcessContextFactory<LoanPMAActivityContext>, ServiceResolver {
+
+    override val serviceResolver: ServiceResolver get() = this
 
     private val processContexts = mutableMapOf<PIHandle, LoanPmaProcessContext>()
 

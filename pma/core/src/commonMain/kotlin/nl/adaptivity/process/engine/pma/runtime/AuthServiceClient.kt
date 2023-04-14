@@ -14,6 +14,13 @@ interface AuthServiceClient<InfoT: AuthorizationInfo, TokenT: AuthorizationInfo.
 
     fun exchangeAuthCode(authorizationCode: CodeT): TokenT
 
+    fun requestPmaAuthCode(
+        client: ServiceId<*>,
+        nodeInstanceHandle: PNIHandle,
+        serviceId: ServiceId<*>,
+        requestedScope: AuthScope
+    ): CodeT
+
     fun requestAuthToken(
         authorizationTarget: ResolvedInvokableMethod,
         authorizations: List<AuthScope>,

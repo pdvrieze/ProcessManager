@@ -26,6 +26,15 @@ class DefaultAuthServiceClient(private val originatingClientAuth: PmaAuthInfo, p
         return authService.exchangeAuthCode(originatingClientAuth, authCode)
     }
 
+    override fun requestPmaAuthCode(
+        client: ServiceId<*>,
+        nodeInstanceHandle: PNIHandle,
+        serviceId: ServiceId<*>,
+        requestedScope: AuthScope
+    ): AuthorizationCode {
+        return authService.requestPmaAuthCode(originatingClientAuth, client, nodeInstanceHandle, serviceId, requestedScope)
+    }
+
     override fun exchangeAuthCode(authorizationCode: AuthorizationCode): PmaAuthToken {
         return authService.exchangeAuthCode(originatingClientAuth, authorizationCode)
     }

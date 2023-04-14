@@ -81,7 +81,7 @@ class LoanActivityContext(
         val clientServiceId = processContext.generalClientService.serviceInstanceId
         val serviceAuthorization = with(processContext) {
             engineService.createAuthorizationCode(
-                clientServiceId.serviceId,
+                clientServiceId,
                 nodeInstanceHandle,
                 authService,
                 CommonPMAPermissions.IDENTIFY,

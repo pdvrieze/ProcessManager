@@ -15,7 +15,6 @@ import nl.adaptivity.process.engine.pma.dynamic.services.TaskList
 import nl.adaptivity.process.engine.pma.models.ResolvedInvokableMethod
 import nl.adaptivity.process.engine.pma.models.Service
 import nl.adaptivity.process.engine.pma.models.ServiceName
-import nl.adaptivity.process.engine.pma.runtime.AuthServiceClient
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.messaging.InvokableMethod
@@ -68,9 +67,9 @@ class AgfilContextFactory(private val logger: Logger, private val random: Random
 
     val garageServices = ServiceNames.garageServices.arrayMap { GarageService(it, authService, TODO("pass engine for garage"), random) }
 
-    val europAssistService = EuropAssistService(ServiceNames.europAssistService, authService, random, agfilService, garageServices.toList())
+    val europAssistService = EuropAssistService(ServiceNames.europAssistService, authService, random, agfilService, serviceResolver)
 
-    val leeCsService = LeeCsService(ServiceNames.leeCsService, authService)
+    val leeCsService = LeeCsService(ServiceNames.leeCsService, authService, serviceResolver)
 
     override val services: List<Service> = listOf(
         authService,

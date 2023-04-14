@@ -33,5 +33,6 @@ value class ServiceName<out S: Service>(val serviceName: String)
 value class ServiceId<out S: Service>(val serviceId: String)
 
 interface ServiceResolver {
-    fun <S: Service> resolve(serviceName: ServiceName<S>): S
+    fun <S: Service> resolveService(serviceName: ServiceName<S>): S
+    fun <S: Service> resolveService(serviceId: ServiceId<S>): S
 }

@@ -80,7 +80,7 @@ class DynamicPmaActivityInstance<InputT : Any, OutputT : Any, C : DynamicPmaActi
                             val scope: AuthScope?
                             when (it) {
                                 is CommonPMAPermissions.DELEGATED_PERMISSION.DelegateContextScope -> {
-                                    service = it.serviceId?.let { id -> aic.processContext.contextFactory.resolveService(id) }
+                                    service = it.serviceId?.let { id -> aic.processContext.contextFactory.serviceResolver.resolveService(id) }
                                     scope = it.childScope
                                 }
 

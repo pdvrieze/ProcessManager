@@ -12,7 +12,7 @@ class DelegateScopeTemplate<AIC: DynamicPmaActivityContext<AIC, *>>(val targetSe
     override fun instantiateScope(context: AIC): AuthScope? {
         val scopes = scopeTemplates.mapNotNull { it.instantiateScope(context) }.toTypedArray()
         val scope = scopes.reduce { left, right -> left.union(right)}
-        val targetService: ServiceId<*> = context.processContext.contextFactory.resolveService(targetServiceName).serviceInstanceId
+        val targetService: ServiceId<*> = context.processContext.contextFactory.serviceResolver.resolveService(targetServiceName).serviceInstanceId
 
         return CommonPMAPermissions.DELEGATED_PERMISSION.restrictTo(serviceId = targetService, scope = scope)
     }

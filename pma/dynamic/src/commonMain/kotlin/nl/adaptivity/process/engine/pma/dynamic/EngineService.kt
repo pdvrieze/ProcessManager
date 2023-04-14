@@ -18,8 +18,10 @@ package nl.adaptivity.process.engine.pma
 
 import net.devrieze.util.Handle
 import nl.adaptivity.process.engine.ProcessInstanceContext
+import nl.adaptivity.process.engine.pma.dynamic.ServiceActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.runtime.AbstractDynamicPmaActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DefaultAuthServiceClient
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions.GRANT_GLOBAL_PERMISSION
@@ -65,36 +67,18 @@ class EngineService(
             authToken,
             CommonPMAPermissions.ACCEPT_TASK(nodeInstanceHandle)
         ) // TODO mark correct expected permission
-        if (nodeInstanceHandle != authToken.nodeInstanceHandle) throw IllegalArgumentException("Mismatch with node instances")
+        require(nodeInstanceHandle == authToken.nodeInstanceHandle) { "Mismatch with node instances" }
+
         // Should register owner.
-//        val taskAuthorizationCode = authService.createAuthorizationCode(serviceAuth, authToken.principal.name, authToken.nodeInstanceHandle, this)
-        return authService.createAuthorizationCode(
+
+        val authCode = authService.requestPmaAuthCode(
             serviceAuth,
-            principal.name,
+            principal,
             authToken.nodeInstanceHandle,
-            authService,
+            authService.serviceInstanceId,
             CommonPMAPermissions.IDENTIFY
-        ).also { authorizationCode ->
-            val permissionsToProvide = ArrayDeque(pendingPermissions)
-
-            val clientId = principal.name
-            // Also use the result to register permissions for it
-            while (permissionsToProvide.isNotEmpty()) {
-                val pendingPermission = permissionsToProvide.removeFirst()
-                authService.grantPermission(
-                    serviceAuth,
-                    authorizationCode,
-                    authService,
-                    CommonPMAPermissions.GRANT_ACTIVITY_PERMISSION.restrictTo(
-                        nodeInstanceHandle,
-                        clientId,
-                        pendingPermission.service,
-                        pendingPermission.scope
-                    )
-                )
-            }
-
-        }
+        )
+        return registerPendingPermissions(authCode, authToken.nodeInstanceHandle, ArrayDeque(pendingPermissions))
     }
 
 
@@ -128,43 +112,40 @@ class EngineService(
         taskList.postTask(taskListAuth, taskListToEngineAuthToken, pniHandle)
     }
 
-    fun createServiceAuthToken(handle: PNIHandle, service: Service, scope: AuthScope): PmaAuthToken {
-        return authService.requestPmaAuthToken(serviceAuth, handle, service.serviceInstanceId, scope)
-    }
-
     fun createAuthorizationCode(
-        clientId: String,
+        clientId: ServiceId<*>,
         handle: PNIHandle,
         service: Service,
-        scope: AuthScope,
+        requestedScope: AuthScope,
         pendingPermissions: Collection<AbstractDynamicPmaActivityContext.PendingPermission>
     ): AuthorizationCode {
-        val pendingPermissions = ArrayDeque(pendingPermissions)
-        return authService.createAuthorizationCode(serviceAuth, clientId, handle, service, scope)
-            .also { serviceAuthorization ->
-                while (pendingPermissions.isNotEmpty()) {
-                    val pendingPermission = pendingPermissions.removeFirst()
-                    authService.grantPermission(
-                        serviceAuth, serviceAuthorization, authService,
-                        CommonPMAPermissions.GRANT_ACTIVITY_PERMISSION.restrictTo(
-                            handle,
-                            pendingPermission.clientId ?: clientId,
-                            pendingPermission.service,
-                            pendingPermission.scope
-                        )
-                    )
-                }
-            }
+        //        authService.requestPmaAuthCode(serviceAuth, client, handle, service, requestedScope)
+
+        val serviceAuthCode =
+            authService.requestPmaAuthCode(serviceAuth, clientId, handle, service.serviceInstanceId, requestedScope)
+
+        return registerPendingPermissions(serviceAuthCode, handle, ArrayDeque(pendingPermissions))
     }
 
-    fun createAuthToken(
-        clientId: String,
-        handle: Handle<SecureProcessNodeInstance>,
-        service: Service,
-        scope: AuthScope
-    ): PmaAuthToken {
-        val authorizationCode = authService.createAuthorizationCode(serviceAuth, clientId, handle, service, scope)
-        return authService.exchangeAuthCode(serviceAuth, authorizationCode)
+    private fun registerPendingPermissions(
+        serviceAuthCode: AuthorizationCode,
+        handle: PNIHandle,
+        pendingPermissions: ArrayDeque<AbstractDynamicPmaActivityContext.PendingPermission>
+    ): AuthorizationCode {
+        val clientId = serviceAuthCode.principal.name
+        while (pendingPermissions.isNotEmpty()) {
+            val pendingPermission = pendingPermissions.removeFirst()
+            authService.grantPermission(
+                serviceAuth, serviceAuthCode, authService,
+                CommonPMAPermissions.GRANT_ACTIVITY_PERMISSION.restrictTo(
+                    handle,
+                    pendingPermission.clientId ?: clientId,
+                    pendingPermission.service,
+                    pendingPermission.scope
+                )
+            )
+        }
+        return serviceAuthCode
     }
 
     fun ProcessInstanceContext.onActivityTermination(
@@ -192,6 +173,30 @@ class EngineService(
         scope: AuthScope
     ) {
         authService.registerGlobalPermission(serviceAuth, principal, service, scope)
+    }
+
+    fun <AIC : DynamicPmaActivityContext<AIC, *>, S : AutomatedService, I : Any, O : Any> invokeAction(
+        activityContext: AIC,
+        serviceId: ServiceName<S>,
+        input: I,
+        action: ServiceActivityContext<AIC, S>.(I) -> O
+    ): O {
+        val service: S = activityContext.processContext.contextFactory.serviceResolver.resolveService(serviceId)
+
+        @Suppress("UNCHECKED_CAST")
+        val scope: AuthScope = (activityContext.node as IPMAMessageActivity<AIC>).authorizationTemplates
+            .mapNotNull { it.instantiateScope(activityContext) }
+            .reduce { left, right -> left.union(right) }
+
+        val authToken = authService.requestPmaAuthToken(
+            serviceAuth,
+            activityContext.nodeInstanceHandle,
+            service.serviceInstanceId,
+            scope
+        )
+
+        val serviceContext = ServiceActivityContext(activityContext, service, authToken)
+        return serviceContext.action(input)
     }
 }
 

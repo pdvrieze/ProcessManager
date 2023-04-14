@@ -37,7 +37,8 @@ class AuthService(
     private val nodeLookup: Map<Handle<SecureProcessNodeInstance>, String>,
     private val random: Random
 ) : AutomatedService {
-    override val serviceInstanceId: ServiceId<AuthService> = ServiceId("${serviceName}:${random.nextUInt().toString(16)}")
+    override val serviceInstanceId: ServiceId<AuthService> =
+        ServiceId("${serviceName}:${random.nextUInt().toString(16)}")
 
     override val serviceName: ServiceName<AutomatedService> = ServiceName(serviceName)
 
@@ -143,7 +144,10 @@ class AuthService(
         scope: AuthScope
     ): PmaAuthToken {
         // We know the task handle so permission limited to the task handle is sufficient
-        internalValidateAuthInfo(auth, GRANT_ACTIVITY_PERMISSION.context(nodeInstanceHandle, client.name, targetServiceId, scope))
+        internalValidateAuthInfo(
+            auth,
+            GRANT_ACTIVITY_PERMISSION.context(nodeInstanceHandle, client.name, targetServiceId, scope)
+        )
 
         return createAuthTokenWithoutValidation(client, nodeInstanceHandle, targetServiceId, scope)
     }
@@ -156,35 +160,19 @@ class AuthService(
     ): PmaAuthToken {
         val existingToken = activeTokens.lastOrNull {
             it.principal == client &&
-                    it.nodeInstanceHandle == nodeInstanceHandle &&
-                    it.serviceId == targetServiceId &&
-                    it.scope == scope
+                it.nodeInstanceHandle == nodeInstanceHandle &&
+                it.serviceId == targetServiceId &&
+                it.scope == scope
         }
 
         val token = if (existingToken != null) {
-    //            Random.nextString()
+            //            Random.nextString()
             existingToken
         } else {
             PmaAuthToken(client, nodeInstanceHandle, Random.nextString(), targetServiceId, scope)
         }
         activeTokens.add(token)
         return token
-    }
-
-    private fun requestPmaAuthCode(
-        requestorAuth: PmaAuthInfo,
-        clientId: String,
-        nodeInstanceHandle: Handle<SecureProcessNodeInstance>,
-        serviceId: ServiceId<*>,
-        requestedScope: AuthScope
-    ): AuthorizationCode {
-        return requestPmaAuthCodeImpl(
-            clientId,
-            requestorAuth,
-            nodeInstanceHandle,
-            serviceId,
-            requestedScope
-        )
     }
 
     private fun requestPmaAuthCodeImpl(
@@ -333,25 +321,6 @@ class AuthService(
      * @param clientId The client that is being authorized
      * @param nodeInstanceHandle The node instance related to this authorization
      * @param service The service being authorized
-     * @param scope The scope being authorized
-     */
-    @Deprecated("Use RequestPmaAuthCode")
-    fun createAuthorizationCode(
-        requestorAuth: PmaAuthInfo,
-        clientId: String,
-        nodeInstanceHandle: Handle<SecureProcessNodeInstance>,
-        service: Service,
-        scope: AuthScope
-    ): AuthorizationCode {
-        return requestPmaAuthCode(requestorAuth, clientId, nodeInstanceHandle, service.serviceInstanceId, scope)
-    }
-
-    /**
-     * Create an authorization code for a client to access the service with given scope
-     * @param requestorAuth Authorization for this action
-     * @param clientId The client that is being authorized
-     * @param nodeInstanceHandle The node instance related to this authorization
-     * @param service The service being authorized
      * @param requestedScope The scope being authorized
      */
     fun requestPmaAuthCode(
@@ -360,7 +329,13 @@ class AuthService(
         nodeInstanceHandle: Handle<SecureProcessNodeInstance>,
         serviceId: ServiceId<*>,
         requestedScope: AuthScope
-    ): AuthorizationCode = requestPmaAuthCode(requestorAuth, client.name, nodeInstanceHandle, serviceId, requestedScope)
+    ): AuthorizationCode = requestPmaAuthCodeImpl(
+        client.name,
+        requestorAuth,
+        nodeInstanceHandle,
+        serviceId,
+        requestedScope
+    )
 
     /**
      * Create an authorization code for a client to access the service with given scope
@@ -376,7 +351,14 @@ class AuthService(
         nodeInstanceHandle: Handle<SecureProcessNodeInstance>,
         serviceId: ServiceId<*>,
         requestedScope: AuthScope
-    ): AuthorizationCode = requestPmaAuthCode(requestorAuth, client.serviceId, nodeInstanceHandle, serviceId, requestedScope)
+    ): AuthorizationCode =
+        requestPmaAuthCodeImpl(
+            client.serviceId,
+            requestorAuth,
+            nodeInstanceHandle,
+            serviceId,
+            requestedScope
+        )
 
     fun requestPmaAuthToken(
         requestorAuth: PmaAuthInfo,
@@ -407,7 +389,7 @@ class AuthService(
         internalValidateAuthInfo(clientAuth, IDENTIFY)
 
         val token = authorizationCodes[authorizationCode]
-                ?: throw AuthorizationException("authorization code invalid")
+            ?: throw AuthorizationException("authorization code invalid")
 
         if (token !in activeTokens) activeTokens.add(token)
 
@@ -426,14 +408,19 @@ class AuthService(
         exchangedToken: PmaAuthToken,
         service: ServiceId<*>,
         requestedScope: AuthScope,
-    ) : PmaAuthToken {
+    ): PmaAuthToken {
         val clientServiceId = clientAuth.principal.name
         validateAuthTokenPermission(
             exchangedToken,
             ServiceId<Service>(clientServiceId),
             DELEGATED_PERMISSION.context(clientServiceId, service, requestedScope)
         )
-        val newToken = createAuthTokenWithoutValidation(clientAuth.principal, exchangedToken.nodeInstanceHandle, service, requestedScope)
+        val newToken = createAuthTokenWithoutValidation(
+            clientAuth.principal,
+            exchangedToken.nodeInstanceHandle,
+            service,
+            requestedScope
+        )
 
         doLog(clientAuth, "exchangeDelegateToken(exchanged = ${exchangedToken}, token = $newToken)")
         return newToken
@@ -583,7 +570,7 @@ class AuthService(
             )
         }
         globalPermissions.compute(principal.name) { _, map ->
-            when(map) {
+            when (map) {
                 null -> mutableMapOf(service.serviceInstanceId.serviceId to scope)
                 else -> map.apply {
                     compute(service.serviceInstanceId.serviceId) { k, oldScope ->
@@ -612,7 +599,8 @@ class AuthService(
 
         private operator fun Map<String, AuthScope>.get(key: ServiceId<*>) = get(key.serviceId)
 
-        private operator fun MutableMap<String, AuthScope>.set(key: ServiceId<*>, value: AuthScope) = set(key.serviceId, value)
+        private operator fun MutableMap<String, AuthScope>.set(key: ServiceId<*>, value: AuthScope) =
+            set(key.serviceId, value)
 
     }
 }
