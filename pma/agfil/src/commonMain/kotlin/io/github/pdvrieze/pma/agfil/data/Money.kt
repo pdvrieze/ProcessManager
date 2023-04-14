@@ -18,6 +18,7 @@ value class Money(val onlyCents: Long) {
     operator fun minus(other: Money) = Money(onlyCents - other.onlyCents)
     operator fun times(other: Int) = Money(onlyCents * other)
     operator fun div(other: Int) = Money(onlyCents / other)
+    operator fun compareTo(other: Money) = onlyCents.compareTo(other.onlyCents)
 
     override fun toString(): String {
         return "$units.${cents.toString().padStart(2, '0')}"

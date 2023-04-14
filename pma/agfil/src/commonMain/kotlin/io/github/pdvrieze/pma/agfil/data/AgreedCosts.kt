@@ -6,7 +6,7 @@ import kotlinx.serialization.Serializable
 data class AgreedCosts(
     val claimId: ClaimId,
     val carRegistration: CarRegistration,
-    val assesorId: Int,
+    val assessorId: Int,
     val amount: Money
 ) {
 }

@@ -2,14 +2,16 @@ package io.github.pdvrieze.pma.agfil.parties
 
 import io.github.pdvrieze.pma.agfil.contexts.AgfilActivityContext
 import io.github.pdvrieze.pma.agfil.contexts.AgfilBrowserContext
-import io.github.pdvrieze.pma.agfil.data.AccidentInfo
-import io.github.pdvrieze.pma.agfil.data.CarRegistration
-import io.github.pdvrieze.pma.agfil.data.ClaimId
-import io.github.pdvrieze.pma.agfil.data.Estimate
+import io.github.pdvrieze.pma.agfil.data.*
+import io.github.pdvrieze.pma.agfil.services.GarageService
 import io.github.pdvrieze.pma.agfil.services.ServiceNames
 import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
+import nl.adaptivity.process.engine.pma.dynamic.uiServiceLogin
+import nl.adaptivity.process.engine.pma.models.ServiceName
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-val repairProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>("insuranceCarRepair") {
+fun repairProcess(owner: PrincipalCompat, ownerService: ServiceName<GarageService>) =
+    runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>("insuranceCarRepair (${owner.name})", owner) {
 
     val claimId = input<ClaimId>("claim")
     val accidentInfo = input<AccidentInfo>("accidentInfo")
@@ -18,15 +20,21 @@ val repairProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext
 
     val onReceiveCar by eventNode(start, CarRegistration.serializer())
 
-    val handleReceiveCar by taskActivity(onReceiveCar) {
-        acceptTask({  randomGarageReceptionist() }) {
-
+    val handleReceiveCar by taskActivity(onReceiveCar, input = combine(onReceiveCar named "registration", claimId named "claimId")) {
+        acceptTask({  randomGarageReceptionist() }) { (carRegistration, claimId) ->
+            uiServiceLogin(ownerService) {
+                service.internal.registerCarReceipt(authToken, claimId, carRegistration)
+            }
         }
     }
 
-    val estimateRepairCost by taskActivity(handleReceiveCar) {
-        acceptTask({ randomMechanic() }) {
-            randomRepairCosts()
+    val estimateRepairCost by taskActivity(handleReceiveCar, input = claimId) {
+        acceptTask({ randomMechanic() }) { claimId ->
+            val costs = randomRepairCosts()
+            uiServiceLogin(ownerService) {
+                service.internal.recordEstimatedRepairCost(authToken, claimId, costs)
+            }
+            costs
         }
     }
 
@@ -38,5 +46,23 @@ val repairProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext
     ) { (estimate, claimId, accidentInfo) ->
         service.sendGarageEstimate(authToken, Estimate(claimId, accidentInfo.carRegistration, estimate))
     }
+
+    val onRepairAgreed by eventNode(sendEstimate, RepairAgreement.serializer())
+
+    val repairCar by serviceActivity(onRepairAgreed, listOf(), ownerService) { repairAgreement ->
+        service.internal.repairCar(authToken, repairAgreement)
+    }
+
+    val onReceivePayment by eventNode(sendEstimate, Payment.serializer())
+
+    val confirmPayment by serviceActivity(onReceivePayment, listOf(), ownerService) { payment ->
+        service.internal.handlePayment(authToken, payment)
+    }
+
+    val closeRecord by serviceActivity(confirmPayment, listOf(), ownerService, claimId) { claimId ->
+        service.internal.closeRecord(authToken, claimId)
+    }
+
+    val end by endNode(closeRecord)
 
 }
