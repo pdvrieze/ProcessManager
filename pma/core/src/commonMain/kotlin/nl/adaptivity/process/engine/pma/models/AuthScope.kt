@@ -67,6 +67,8 @@ class UnionPermissionScope(members: List<AuthScope>):
         (it as? UnionPermissionScope)?.members ?: listOf(it)
     }
 
+    constructor(vararg members: AuthScope): this(members.toList())
+
     override fun includes(useScope: UseAuthScope): Boolean {
         return members.any { it.includes(useScope) }
     }

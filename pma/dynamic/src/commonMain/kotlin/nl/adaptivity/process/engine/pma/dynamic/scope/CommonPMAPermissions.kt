@@ -19,18 +19,36 @@ package nl.adaptivity.process.engine.pma.dynamic.scope
 import net.devrieze.util.Handle
 import nl.adaptivity.process.engine.pma.ExtScope
 import nl.adaptivity.process.engine.pma.models.*
+import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 
 sealed class CommonPMAPermissions : AuthScope {
+    /**
+     * Permission to post a task to a task list.
+     */
     object POST_TASK : CommonPMAPermissions(), UseAuthScope
+
+    /**
+     * Permission to validate whether
+     */
+    object VALIDATE_AUTH: CommonPMAPermissions(), AuthScope {
+        operator fun invoke(serviceId: ServiceId<*>) =
+            contextImpl<ServiceId<*>>(serviceId)
+    }
+
+    /**
+     * Permission to accept a task for a task list.
+     */
     object ACCEPT_TASK : CommonPMAPermissions(), UseAuthScope {
-        operator fun invoke(hNodeInstance: Handle<SecureProcessNodeInstance>) =
+        operator fun invoke(hNodeInstance: PNIHandle): ExtScope<PNIHandle> =
             contextImpl(hNodeInstance)
     }
 
-
+    /**
+     * Permission to invalidate an activity on the authorization service.
+     */
     object INVALIDATE_ACTIVITY : CommonPMAPermissions() {
-        fun context(hNodeInstance: Handle<SecureProcessNodeInstance>) =
+        fun context(hNodeInstance: PNIHandle): ExtScope<PNIHandle> =
             UPDATE_ACTIVITY_STATE.contextImpl(hNodeInstance)
 
         override fun includes(useScope: UseAuthScope): Boolean {
@@ -41,10 +59,12 @@ sealed class CommonPMAPermissions : AuthScope {
         }
     }
 
-
+    /**
+     * Permission against the process engine to update the state of an activity
+     */
     object UPDATE_ACTIVITY_STATE : CommonPMAPermissions() {
 
-        operator fun invoke(hNodeInstance: Handle<SecureProcessNodeInstance>) =
+        operator fun invoke(hNodeInstance: Handle<SecureProcessNodeInstance>): ExtScope<PNIHandle> =
             contextImpl(hNodeInstance)
 
         override fun includes(useScope: UseAuthScope): Boolean {
@@ -61,13 +81,16 @@ sealed class CommonPMAPermissions : AuthScope {
     }
 
 
-    /** Identify the user as themselves */
+    /** Identify the client (user/service) as themselves */
     object IDENTIFY : CommonPMAPermissions(), UseAuthScope
 
     /** Create a token that allows a "user" to identify as task */
     object CREATE_TASK_IDENTITY : CommonPMAPermissions(), UseAuthScope
 
-
+    /**
+     * Permission to grant permissions to other clients. This can be very powerful. This
+     * should be very restricted. It isn't even bound to activities
+     */
     object GRANT_GLOBAL_PERMISSION : CommonPMAPermissions() {
         fun context(
             clientId: String,
@@ -235,6 +258,9 @@ sealed class CommonPMAPermissions : AuthScope {
         }
     }
 
+    /**
+     * Permission to grant permissions to activities to access the relevant services.
+     */
     object GRANT_ACTIVITY_PERMISSION : CommonPMAPermissions() {
         fun context(
             taskHandle: Handle<SecureProcessNodeInstance>,
@@ -420,6 +446,9 @@ sealed class CommonPMAPermissions : AuthScope {
         }
     }
 
+    /**
+     * The permission to delegate permissions to other services.
+     */
     object DELEGATED_PERMISSION : CommonPMAPermissions() {
         fun context(
             clientId: String,

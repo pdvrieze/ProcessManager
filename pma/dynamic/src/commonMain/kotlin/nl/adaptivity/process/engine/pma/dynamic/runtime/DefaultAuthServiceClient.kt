@@ -4,12 +4,16 @@ import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.AuthorizationCode
 import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.PmaAuthToken
-import nl.adaptivity.process.engine.pma.models.AuthScope
-import nl.adaptivity.process.engine.pma.models.ResolvedInvokableMethod
+import nl.adaptivity.process.engine.pma.models.*
 import nl.adaptivity.process.engine.pma.runtime.AuthServiceClient
 import nl.adaptivity.process.engine.processModel.PNIHandle
 
-class DefaultAuthServiceClient(private val originatingClientAuth: PmaAuthInfo, private val authService: AuthService) : AuthServiceClient {
+class DefaultAuthServiceClient(private val originatingClientAuth: PmaAuthInfo, private val authService: AuthService) :
+    AuthServiceClient<PmaAuthInfo, PmaAuthToken, AuthorizationCode> {
+
+    override fun validateAuthInfo(authInfoToCheck: PmaAuthInfo, serviceId: ServiceId<Service>, scope: UseAuthScope) {
+        authService.validateAuthInfo(originatingClientAuth, authInfoToCheck, serviceId, scope)
+    }
 
     override fun requestAuthToken(
         authorizationTarget: ResolvedInvokableMethod,
@@ -22,7 +26,7 @@ class DefaultAuthServiceClient(private val originatingClientAuth: PmaAuthInfo, p
         return authService.exchangeAuthCode(originatingClientAuth, authCode)
     }
 
-    fun exchangeAuthCode(authorizationCode: AuthorizationCode): PmaAuthToken {
+    override fun exchangeAuthCode(authorizationCode: AuthorizationCode): PmaAuthToken {
         return authService.exchangeAuthCode(originatingClientAuth, authorizationCode)
     }
 }

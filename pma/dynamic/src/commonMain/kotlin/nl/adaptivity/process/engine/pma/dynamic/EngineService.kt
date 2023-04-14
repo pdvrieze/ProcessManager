@@ -27,7 +27,6 @@ import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions.UPDAT
 import nl.adaptivity.process.engine.pma.dynamic.services.ServiceBase
 import nl.adaptivity.process.engine.pma.dynamic.services.TaskList
 import nl.adaptivity.process.engine.pma.models.*
-import nl.adaptivity.process.engine.pma.runtime.AuthServiceClient
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
@@ -38,10 +37,10 @@ import kotlin.random.Random
 class EngineService(
     serviceName: String,
     authService: AuthService,
-    serviceAuth: PmaIdSecretAuthInfo = newEngineClientAuth(authService),
+    serviceAuth: PmaIdSecretAuthInfo = newEngineClientAuth(authService, ServiceName(serviceName)),
 ) : ServiceBase(authService, serviceAuth), AutomatedService {
 
-    val authServiceClient: AuthServiceClient = DefaultAuthServiceClient(serviceAuth, authService)
+    val authServiceClient: DefaultAuthServiceClient = DefaultAuthServiceClient(serviceAuth, authService)
 
     private val taskLists: MutableMap<Handle<SecureProcessNodeInstance>, List<TaskList>> = mutableMapOf()
 
@@ -105,16 +104,16 @@ class EngineService(
     ) {
         logMe(pniHandle)
 
-        val permissions = listOf(
+        val permissions = UnionPermissionScope(
             UPDATE_ACTIVITY_STATE(pniHandle),
             CommonPMAPermissions.ACCEPT_TASK(pniHandle)
         )
-        val taskListToEngineAuthToken = authService.createAuthorizationCode(
-            serviceAuth,
-            taskList.serviceInstanceId.serviceId,
-            pniHandle,
-            this,
-            UnionPermissionScope(permissions)
+        val taskListToEngineAuthToken = authService.requestPmaAuthCode(
+            requestorAuth = serviceAuth,
+            client = taskList.serviceInstanceId,
+            nodeInstanceHandle = pniHandle,
+            serviceId = this.serviceInstanceId,
+            requestedScope = permissions
         )
 
 
@@ -183,6 +182,10 @@ class EngineService(
 
     }
 
+    /**
+     * This function performs the registration of global permissions with the engine's auth.
+     * This is a hack for testing.
+     */
     fun registerGlobalPermission(
         principal: PrincipalCompat,
         service: Service,
@@ -192,8 +195,8 @@ class EngineService(
     }
 }
 
-private fun newEngineClientAuth(authService: AuthService): PmaIdSecretAuthInfo {
-    return authService.registerClient("ProcessEngine", Random.nextString()).also {
+private fun newEngineClientAuth(authService: AuthService, serviceName: ServiceName<EngineService>): PmaIdSecretAuthInfo {
+    return authService.registerClient(serviceName, Random.nextString()).also {
         authService.registerGlobalPermission(null, it.principal, authService, UPDATE_ACTIVITY_STATE)
         authService.registerGlobalPermission(null, it.principal, authService, GRANT_GLOBAL_PERMISSION)
     }

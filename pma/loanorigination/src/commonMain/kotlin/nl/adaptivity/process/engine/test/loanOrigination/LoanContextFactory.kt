@@ -23,6 +23,7 @@ import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.dynamic.services.EnumeratedTaskList
 import nl.adaptivity.process.engine.pma.dynamic.services.TaskList
+import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import java.security.Principal
@@ -71,7 +72,7 @@ class LoanContextFactory(log: Logger, random: Random): AbstractLoanContextFactor
     fun getOrCreateTaskListForUser(principal: PrincipalCompat): TaskList {
         return taskLists.getOrPut(principal) {
             log.log(Level.INFO, "Creating tasklist service for ${principal.name}")
-            val clientAuth = authService.registerClient("TaskList(${principal.name})", Random.nextString())
+            val clientAuth = authService.registerClient(ServiceName<TaskList>("TaskList(${principal.name})"), Random.nextString())
             val t = EnumeratedTaskList("tasklist-${principal.name}", authService, engineService, clientAuth, listOf(principal))
             engineService.registerGlobalPermission(principal, t, CommonPMAPermissions.ACCEPT_TASK)
 

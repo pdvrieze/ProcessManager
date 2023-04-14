@@ -20,10 +20,7 @@ import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.PmaAuthToken
 import nl.adaptivity.process.engine.pma.PmaIdSecretAuthInfo
-import nl.adaptivity.process.engine.pma.models.ANYSCOPE
-import nl.adaptivity.process.engine.pma.models.AuthScope
-import nl.adaptivity.process.engine.pma.models.Service
-import nl.adaptivity.process.engine.pma.models.UseAuthScope
+import nl.adaptivity.process.engine.pma.models.*
 import java.util.logging.Level
 import kotlin.random.Random
 import kotlin.random.nextULong
@@ -45,13 +42,13 @@ abstract class ServiceBase(
     constructor(authService: AuthService, name: String) : this(
         authService,
         authService.registerClient(
-            name,
+            ServiceName<ServiceBase>( name),
             Random.nextULong().toString(16)
         )
     )
 
     protected fun Service.validateAuthInfo(authInfo: PmaAuthInfo, scope: UseAuthScope) {
-        authService.validateAuthInfo(authInfo, serviceInstanceId, scope)
+        authService.validateAuthInfo(serviceAuth, authInfo, serviceInstanceId, scope)
     }
 
     fun globalAuthTokenForService(service: Service, scope: AuthScope = ANYSCOPE): PmaAuthToken {

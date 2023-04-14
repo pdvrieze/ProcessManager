@@ -8,11 +8,13 @@ import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.Browser
 import nl.adaptivity.process.engine.pma.EngineService
 import nl.adaptivity.process.engine.pma.dynamic.runtime.AbstractDynamicPmaContextFactory
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DefaultAuthServiceClient
 import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.pma.dynamic.services.DynamicTaskList
 import nl.adaptivity.process.engine.pma.dynamic.services.TaskList
 import nl.adaptivity.process.engine.pma.models.ResolvedInvokableMethod
 import nl.adaptivity.process.engine.pma.models.Service
+import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.runtime.AuthServiceClient
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.PNIHandle
@@ -55,13 +57,13 @@ class AgfilContextFactory(private val logger: Logger, private val random: Random
         ServiceNames.taskListService.serviceName,
         authService,
         engineService,
-        authService.registerClient("TaskList(GLOBAL)", Random.nextString()),
+        authService.registerClient(ServiceName<TaskList>("TaskList(GLOBAL)"), Random.nextString()),
         ""
     )
 
     val agfilService: AgfilService = AgfilService(ServiceNames.agfilService, authService)
 
-    override val engineServiceAuthServiceClient: AuthServiceClient
+    override val engineServiceAuthServiceClient: DefaultAuthServiceClient
         get() = engineService.authServiceClient
 
     val garageServices = ServiceNames.garageServices.arrayMap { GarageService(it, authService, TODO("pass engine for garage"), random) }

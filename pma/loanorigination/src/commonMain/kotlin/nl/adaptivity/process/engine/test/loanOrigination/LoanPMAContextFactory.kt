@@ -3,16 +3,17 @@ package nl.adaptivity.process.engine.test.loanOrigination
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.PIHandle
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DefaultAuthServiceClient
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaProcessContextFactory
 import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
+import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions.VALIDATE_AUTH
 import nl.adaptivity.process.engine.pma.dynamic.services.EnumeratedTaskList
 import nl.adaptivity.process.engine.pma.dynamic.services.TaskList
 import nl.adaptivity.process.engine.pma.models.ResolvedInvokableMethod
 import nl.adaptivity.process.engine.pma.models.Service
 import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
-import nl.adaptivity.process.engine.pma.runtime.AuthServiceClient
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.messaging.InvokableMethod
 import nl.adaptivity.process.processModel.AccessRestriction
@@ -29,16 +30,19 @@ class LoanPMAContextFactory(log: Logger, random: Random) :
     private val processContexts = mutableMapOf<PIHandle, LoanPmaProcessContext>()
 
     private val taskList: TaskList by lazy {
-        val clientAuth = authService.registerClient("TaskList(GLOBAL)", Random.nextString())
+        val clientAuth = authService.registerClient(ServiceName<TaskList>("TaskList(GLOBAL)"), Random.nextString())
+        engineService.registerGlobalPermission(clientAuth.principal, authService, VALIDATE_AUTH(ServiceId<TaskList>(clientAuth.id)))
+
         EnumeratedTaskList("tasklist", authService, engineService, clientAuth, principals).also { t ->
             engineService.registerGlobalPermission(
                 SimplePrincipal(engineService.serviceInstanceId.serviceId) as PrincipalCompat,
                 t,
                 CommonPMAPermissions.POST_TASK
             )
+            engineService.registerGlobalPermission(t.serviceAuth.principal, authService, VALIDATE_AUTH(t.serviceInstanceId))
         }
     }
-    override val engineServiceAuthServiceClient: AuthServiceClient
+    override val engineServiceAuthServiceClient: DefaultAuthServiceClient
         get() = engineService.authServiceClient
 
     private val services: List<Service> = listOf(

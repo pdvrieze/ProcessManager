@@ -38,7 +38,7 @@ class GarageService(
         processEngine: ProcessEngine<StubProcessTransaction>,
         random: Random,
     ) : this(
-        authService.registerClient(serviceName.serviceName, random.nextString()),
+        authService.registerClient(serviceName, random.nextString()),
         serviceName, authService, processEngine, random
     )
 
