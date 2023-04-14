@@ -1,0 +1,77 @@
+package io.github.pdvrieze.pma.agfil.parties
+
+import io.github.pdvrieze.pma.agfil.contexts.AgfilActivityContext
+import io.github.pdvrieze.pma.agfil.contexts.AgfilBrowserContext
+import io.github.pdvrieze.pma.agfil.data.AgreedCosts
+import io.github.pdvrieze.pma.agfil.data.ClaimId
+import io.github.pdvrieze.pma.agfil.data.Estimate
+import io.github.pdvrieze.pma.agfil.data.Invoice
+import io.github.pdvrieze.pma.agfil.services.ServiceNames
+import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
+import nl.adaptivity.process.processModel.engine.ExecutableCondition
+import nl.adaptivity.process.processModel.engine.ExecutableXPathCondition
+
+val leeCsProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>("LeeCsManageClaim") {
+    val claimIdInput = input<ClaimId>("claimId")
+
+    val start by startNode
+
+    val retrieveAccidentInfo by serviceActivity(start, listOf(), ServiceNames.agfilService, claimIdInput) { claimId ->
+        // TODO When getting the service token, try to use the token used to start the process.
+        service.getFullClaim(authToken, claimId)
+    }
+
+    val contactGarage by serviceActivity(retrieveAccidentInfo, listOf(), ServiceNames.leeCsService) { claim ->
+        // has to use delegate service because there are multiple garages.
+        service.internal.contactGarage(authToken, claim)
+    }
+
+    val receiveEstimate by eventNode(contactGarage, Estimate.serializer())
+
+    val splitClaim by split(receiveEstimate) {
+        min = 1
+        max = 1
+    }
+
+    val assignAssessor by serviceActivity(
+        predecessor = splitClaim,
+        authorizationTemplates = listOf(),
+        service = ServiceNames.leeCsService,
+        input = combine(receiveEstimate named "estimate", retrieveAccidentInfo named "accidentInfo"),
+        configure = { condition = ExecutableCondition.OTHERWISE}
+    ) { (estimate, accidentInfo) ->
+        service.internal.assignAssessor(authToken, accidentInfo, estimate)
+    }
+
+    val receiveAssessorAgreedCosts by eventNode(assignAssessor, AgreedCosts.serializer())
+
+    val joinClaim by join(splitClaim, receiveAssessorAgreedCosts) {
+        conditions[splitClaim.identifier] = ExecutableXPathCondition("node(\"receiveEstimate\")/estimatedCosts/text() < 500")
+    }
+
+    val agreeClaim by serviceActivity(joinClaim, listOf(), ServiceNames.leeCsService, retrieveAccidentInfo) { claim ->
+        service.internal.agreeClaim(authToken, claim)
+    }
+
+    val receiveInvoice by eventNode(agreeClaim, Invoice.serializer())
+
+    val verifyInvoice by serviceActivity(
+        predecessor = receiveInvoice,
+        authorizationTemplates = listOf(),
+        service = ServiceNames.leeCsService,
+    ) { invoice ->
+        service.internal.verifyInvoice(authToken, invoice)
+    }
+
+    val forwardInvoice by serviceActivity(
+        verifyInvoice,
+        listOf(),
+        ServiceNames.agfilService,
+        receiveInvoice
+    ) { invoice ->
+        service.forwardInvoice(authToken, invoice)
+    }
+
+    val end by endNode(forwardInvoice)
+
+}

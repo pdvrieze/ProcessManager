@@ -159,7 +159,7 @@ fun kfail(message: String): Nothing {
 }
 
 internal fun Boolean.toXPath() = if (this) "true()" else "false()"
-internal fun Boolean.toCondition() = if (this) ExecutableCondition.TRUE else ExecutableCondition.FALSE
+internal fun Boolean.toCondition() = if (this) ExecutableCondition.ALWAYS_TRUE else ExecutableCondition.ALWAYS_FALSE
 
 operator fun ContextProcessTransaction.get(handle: PIHandle): ProcessInstance {
     return this.readableEngineData.instance(handle).withPermission()

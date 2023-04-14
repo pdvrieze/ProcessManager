@@ -36,8 +36,8 @@ import javax.xml.xpath.*
  *
  * TODO: Add namespace inheritance support
  */
-@Serializable(ExecutableXSLTConditionSerializer::class)
-actual class ExecutableXSLTCondition actual constructor(condition: String, override val label: String?) : ExecutableCondition() {
+@Serializable(ExecutableXPathConditionSerializer::class)
+actual class ExecutableXPathCondition actual constructor(condition: String, override val label: String?) : ExecutableCondition() {
 
     actual constructor(condition: Condition): this(condition.condition, condition.label)
 

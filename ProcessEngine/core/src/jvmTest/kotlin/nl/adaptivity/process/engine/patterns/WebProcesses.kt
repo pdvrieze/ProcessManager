@@ -18,7 +18,7 @@ package nl.adaptivity.process.engine.patterns
 
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.configurableModel.*
-import nl.adaptivity.process.processModel.engine.ExecutableXSLTCondition
+import nl.adaptivity.process.processModel.engine.ExecutableXPathCondition
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 
@@ -74,16 +74,16 @@ private object WebProcess1Config : TraceTest.ConfigBase() {
             val join1 by this.let { tcm ->
                 join(split2, split3) {
                     conditions[tcm.split2] =
-                        ExecutableXSLTCondition("pe:node('ac1')/coverage_exists", "There is coverage")
+                        ExecutableXPathCondition("pe:node('ac1')/coverage_exists", "There is coverage")
                     conditions[tcm.split3] =
-                        ExecutableXSLTCondition("pe:node('ac2')/accepted", "Offer accepted")
+                        ExecutableXPathCondition("pe:node('ac2')/accepted", "Offer accepted")
                     min = 2
                     max = 2
                 }
             }
 
             val ac3 by activity(split2) {
-                condition = ExecutableXSLTCondition("otherwise", "No coverage")
+                condition = ExecutableXPathCondition("otherwise", "No coverage")
                 label = "Send out offer for emergency help"
             }
 
@@ -93,7 +93,7 @@ private object WebProcess1Config : TraceTest.ConfigBase() {
 
             val ac5 by activity(split3) {
                 label = "Ask for rejection notification"
-                condition = ExecutableXSLTCondition("otherwise", "Offer rejected")
+                condition = ExecutableXPathCondition("otherwise", "Offer rejected")
             }
 
             val join2 by join(ac4, ac5) {
@@ -170,16 +170,16 @@ private object WebProcess1Config2 : TraceTest.ConfigBase() {
             val join1 by this.let { tcm ->
                 join(split2, split3) {
                     conditions[tcm.split2] =
-                        ExecutableXSLTCondition("pe:node('ac1')/coverage_exists", "There is coverage")
+                        ExecutableXPathCondition("pe:node('ac1')/coverage_exists", "There is coverage")
                     conditions[tcm.split3] =
-                        ExecutableXSLTCondition("pe:node('ac2')/accepted", "Offer accepted")
+                        ExecutableXPathCondition("pe:node('ac2')/accepted", "Offer accepted")
                     min = 2
                     max = 2
                 }
             }
 
             val ac3 by activity(split2) {
-                condition = ExecutableXSLTCondition("otherwise", "No coverage")
+                condition = ExecutableXPathCondition("otherwise", "No coverage")
                 label = "Send out offer for emergency help"
             }
 
@@ -189,7 +189,7 @@ private object WebProcess1Config2 : TraceTest.ConfigBase() {
 
             val ac5 by activity(split3) {
                 label = "Ask for rejection notification"
-                condition = ExecutableXSLTCondition("otherwise", "Offer rejected")
+                condition = ExecutableXPathCondition("otherwise", "Offer rejected")
             }
 
 /*

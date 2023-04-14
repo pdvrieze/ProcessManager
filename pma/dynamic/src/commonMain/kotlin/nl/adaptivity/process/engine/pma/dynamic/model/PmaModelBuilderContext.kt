@@ -111,6 +111,7 @@ abstract class PmaModelBuilderContext<
         authorizationTemplates: List<AuthScopeTemplate<AIC>> = emptyList(),
         service: ServiceName<S>,
         input: DefineInputCombiner<I>,
+        configure: RunnablePmaActivity.Builder<I, O, AIC>.() -> Unit = {},
         @BuilderInference
         noinline action: RunnableAction<I, O, ServiceActivityContext<AIC, S>>
     ): RunnablePmaActivity.Builder<I, O, AIC> {
@@ -122,6 +123,7 @@ abstract class PmaModelBuilderContext<
             action = serviceAction(service, action)
         ).apply {
             defines.replaceBy(input.defines)
+            configure()
         }
     }
 
@@ -160,7 +162,7 @@ abstract class PmaModelBuilderContext<
             outputSerializer = serializer<O>(),
             authorizationTemplates = authorizationTemplates,
             action = serviceAction(service, action)
-        )
+        ).apply(configure)
     }
 
     @OptIn(ExperimentalContracts::class)

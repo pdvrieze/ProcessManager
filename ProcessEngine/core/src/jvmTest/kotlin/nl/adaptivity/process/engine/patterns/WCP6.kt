@@ -20,7 +20,7 @@ import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.configurableModel.endNode
 import nl.adaptivity.process.processModel.configurableModel.split
 import nl.adaptivity.process.processModel.configurableModel.startNode
-import nl.adaptivity.process.processModel.engine.ExecutableXSLTCondition
+import nl.adaptivity.process.processModel.engine.ExecutableXPathCondition
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
 
@@ -50,8 +50,8 @@ class WCP6 {
             val model = object : TestConfigurableModel("WCP6") {
                 val start by startNode
                 val split by split(start) { min = 1; max = 2 }
-                val ac1 by activity(split) { condition = ExecutableXSLTCondition(ac1Condition.toXPath()) }
-                val ac2 by activity(split) { condition = ExecutableXSLTCondition(ac2Condition.toXPath()) }
+                val ac1 by activity(split) { condition = ExecutableXPathCondition(ac1Condition.toXPath()) }
+                val ac2 by activity(split) { condition = ExecutableXPathCondition(ac2Condition.toXPath()) }
                 val end1 by endNode(ac1)
                 val end2 by endNode(ac2)
             }

@@ -38,7 +38,7 @@ class EuropAssistService(
         garageServices.first { it.serviceInstanceId.serviceId == garage.name }
             .also { garage ->
                 val delegateToken = authService.exchangeDelegateToken(serviceAuth, authToken, garage.serviceInstanceId, CommonPMAPermissions.IDENTIFY)
-                garage.informGarageOfIncomingCar(delegateToken, accidentInfo)
+                garage.informGarageOfIncomingCar(delegateToken,, accidentInfo)
             }
 
         val delegateToken = authService.exchangeDelegateToken(serviceAuth, authToken, agfilService.serviceInstanceId, CommonPMAPermissions.IDENTIFY)

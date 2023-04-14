@@ -18,7 +18,7 @@ fun policyHolderProcess(owner: PrincipalCompat) = runnablePmaProcess<AgfilActivi
     }
 
     val sendCar by serviceActivity(reportClaim, listOf(), ServiceNames.garageServices.first()) {
-        service.sendCar(agfilProcessContext.carRegistration)
+        service.sendCar(, agfilProcessContext.carRegistration)
     }
 
     val receiveClaimForm by eventNode(sendCar, IncompleteClaimForm.serializer())

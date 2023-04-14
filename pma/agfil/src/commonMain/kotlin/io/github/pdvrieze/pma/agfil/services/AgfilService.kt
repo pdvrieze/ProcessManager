@@ -17,22 +17,27 @@ class AgfilService(override val serviceName: ServiceName<AgfilService>, authServ
     private val claims = mutableListOf<ClaimData>()
 
     /** From Lai's thesis */
-    fun notifyClaim(authToken: PmaAuthInfo, claimId: ClaimId, accidentInfo: AccidentInfo, garage: GarageInfo): Unit = TODO()
+    fun notifyClaim(authToken: PmaAuthInfo, claimId: ClaimId, accidentInfo: AccidentInfo, garage: GarageInfo): Unit =
+        TODO()
 
     /** From Lai's thesis */
     fun returnClaimForm(completedClaimForm: CompletedClaimForm): Unit = TODO()
 
     /** From Lai's thesis */
-    fun forwardInvoice(): Unit = TODO()
+    fun forwardInvoice(authToken: PmaAuthToken, invoice: Invoice): Unit = TODO()
 
     fun recordClaimInDatabase(authToken: PmaAuthInfo, accidentInfo: AccidentInfo): ClaimId {
-        val claim = ClaimData(claims.size.toLong(), accidentInfo, ClaimData.Outcome.Undecided)
+        val claim = ClaimData(claims.size.toLong(), accidentInfo, Claim.Outcome.Undecided)
         claims.add(claim)
         return ClaimId(claim.id)
     }
 
-    fun getClaim(authToken: PmaAuthToken, claimId: ClaimId): AccidentInfo {
+    fun getAccidentInfo(authToken: PmaAuthToken, claimId: ClaimId): AccidentInfo {
         return claims[claimId.id.toInt()].accidentInfo
+    }
+
+    fun getFullClaim(authToken: PmaAuthToken, claimId: ClaimId): Claim {
+        return claims[claimId.id.toInt()]
     }
 
     fun recordAssignedGarage(authToken: PmaAuthInfo, claimId: ClaimId, garage: GarageInfo) {
@@ -47,44 +52,35 @@ class AgfilService(override val serviceName: ServiceName<AgfilService>, authServ
         TODO("not implemented")
     }
 
-    val internal: Internal = Inner()
+    val internal: Internal = Internal()
 
-    interface Internal {
-        fun sendClaimFormToCustomer(authToken: PmaAuthToken, claimId: ClaimId)
-        fun terminateClaim(authToken: PmaAuthToken, claimId: ClaimId)
-        fun notifyInvalidClaim(authToken: PmaAuthToken, claimId: ClaimId)
-        fun processCompletedClaimForm(authToken: PmaAuthToken, claimForm: CompletedClaimForm)
-        fun payGarageInvoice(authToken: PmaAuthToken, invoice: Invoice)
-    }
-
-    private inner class Inner constructor() : Internal {
-        override fun sendClaimFormToCustomer(authToken: PmaAuthToken, claimId: ClaimId) {
+    inner class Internal internal constructor(){
+        fun sendClaimFormToCustomer(authToken: PmaAuthToken, claimId: ClaimId) {
             val claim = claims[claimId.id.toInt()]
         }
 
-        override fun terminateClaim(authToken: PmaAuthToken, claimId: ClaimId) {
-            claims[claimId.id.toInt()].outcome= ClaimData.Outcome.Terminated
+        fun terminateClaim(authToken: PmaAuthToken, claimId: ClaimId) {
+            claims[claimId.id.toInt()].outcome = Claim.Outcome.Terminated
         }
 
-        override fun notifyInvalidClaim(authToken: PmaAuthToken, claimId: ClaimId) {
+        fun notifyInvalidClaim(authToken: PmaAuthToken, claimId: ClaimId) {
             TODO("not implemented")
         }
 
-        override fun processCompletedClaimForm(authToken: PmaAuthToken, claimForm: CompletedClaimForm) {
+        fun processCompletedClaimForm(authToken: PmaAuthToken, claimForm: CompletedClaimForm) {
             TODO("not implemented")
         }
 
-        override fun payGarageInvoice(authToken: PmaAuthToken, invoice: Invoice) {
+        fun payGarageInvoice(authToken: PmaAuthToken, invoice: Invoice) {
             TODO("not implemented")
         }
     }
 
-    private class ClaimData(val id: Long, val accidentInfo: AccidentInfo, var outcome: Outcome) {
-        enum class Outcome {
-            Terminated,
-            Completed,
-            Undecided,
-            Pending
-        }
+    private class ClaimData(
+        override val id: Long,
+        override val accidentInfo: AccidentInfo,
+        override var outcome: Claim.Outcome,
+        override var assignedGarageInfo: GarageInfo? = null
+    ) : Claim {
     }
 }

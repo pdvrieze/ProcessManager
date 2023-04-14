@@ -30,7 +30,7 @@ import nl.adaptivity.process.processModel.Condition
  *
  * @author Paul de Vrieze
  */
-expect class ExecutableXSLTCondition(condition: String, label: String? = null) : ExecutableCondition {
+expect class ExecutableXPathCondition(condition: String, label: String? = null) : ExecutableCondition {
 
     constructor(condition: Condition)
 
@@ -46,17 +46,17 @@ expect class ExecutableXSLTCondition(condition: String, label: String? = null) :
     override fun eval(nodeInstanceSource: IProcessInstance, nodeInstance: IProcessNodeInstance): ConditionResult
 }
 
-object ExecutableXSLTConditionSerializer: KSerializer<ExecutableXSLTCondition> {
+object ExecutableXPathConditionSerializer: KSerializer<ExecutableXPathCondition> {
     private val delegateSerializer = XmlCondition.serializer()
 
     @OptIn(ExperimentalSerializationApi::class)
-    override val descriptor: SerialDescriptor = SerialDescriptor("ExecutableXSLTCondition", delegateSerializer.descriptor)
+    override val descriptor: SerialDescriptor = SerialDescriptor("ExecutableXPathCondition", delegateSerializer.descriptor)
 
-    override fun deserialize(decoder: Decoder): ExecutableXSLTCondition {
-        return ExecutableXSLTCondition(delegateSerializer.deserialize(decoder))
+    override fun deserialize(decoder: Decoder): ExecutableXPathCondition {
+        return ExecutableXPathCondition(delegateSerializer.deserialize(decoder))
     }
 
-    override fun serialize(encoder: Encoder, value: ExecutableXSLTCondition) {
+    override fun serialize(encoder: Encoder, value: ExecutableXPathCondition) {
         delegateSerializer.serialize(encoder, XmlCondition(value.condition, value.label))
     }
 }

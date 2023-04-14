@@ -175,7 +175,7 @@ class TestProcessEngine : ProcessEngineTestSupport() {
         val model = ExecutableProcessModel.build {
             owner = testModelOwnerPrincipal
             val start = startNode { id = "start" }
-            val ac = activity { id = "ac"; predecessor = start.identifier; condition = ExecutableCondition.FALSE }
+            val ac = activity { id = "ac"; predecessor = start.identifier; condition = ExecutableCondition.ALWAYS_FALSE }
             val end = endNode { id = "end"; predecessor = ac }
         }
         testProcess(model = model) { processEngine, transaction, model, instanceHandle ->

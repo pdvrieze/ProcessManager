@@ -3,6 +3,7 @@ package io.github.pdvrieze.pma.agfil.parties
 import io.github.pdvrieze.pma.agfil.contexts.AgfilActivityContext
 import io.github.pdvrieze.pma.agfil.contexts.AgfilBrowserContext
 import io.github.pdvrieze.pma.agfil.data.CarRegistration
+import io.github.pdvrieze.pma.agfil.services.ServiceNames
 import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
 
 val repairProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>("insuranceCarRepair") {
@@ -21,6 +22,14 @@ val repairProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext
         acceptTask({ randomMechanic() }) {
             randomRepairCosts()
         }
+    }
+
+    val sendEstimate by serviceActivity(
+        estimateRepairCost,
+        listOf(),
+        ServiceNames.leeCsService
+    ) { estimate ->
+        service.sendGarageEstimate(authToken, estimate)
     }
 
 }

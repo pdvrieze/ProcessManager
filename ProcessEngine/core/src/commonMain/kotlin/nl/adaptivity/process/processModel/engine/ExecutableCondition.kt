@@ -45,14 +45,14 @@ abstract class ExecutableCondition : Condition, ((IProcessInstance, IProcessNode
 
     override val condition: String get() = "class:${this::class.qualifiedName}"
 
-    object TRUE: ExecutableCondition() {
+    object ALWAYS_TRUE: ExecutableCondition() {
         override fun eval(nodeInstanceSource: IProcessInstance, nodeInstance: IProcessNodeInstance): ConditionResult = ConditionResult.TRUE
 
         override val condition: String get() = "true()"
         override val label: String? get() = null
     }
 
-    object FALSE: ExecutableCondition() {
+    object ALWAYS_FALSE: ExecutableCondition() {
         override fun eval(nodeInstanceSource: IProcessInstance, nodeInstance: IProcessNodeInstance): ConditionResult = NEVER
 
         override val condition: String get() = "false()"
@@ -71,7 +71,7 @@ abstract class ExecutableCondition : Condition, ((IProcessInstance, IProcessNode
 
 fun Condition.toExecutableCondition(): ExecutableCondition = when (this) {
     is ExecutableCondition -> this
-    else                   -> ExecutableXSLTCondition(this)
+    else                   -> ExecutableXPathCondition(this)
 }
 
 enum class ConditionResult {

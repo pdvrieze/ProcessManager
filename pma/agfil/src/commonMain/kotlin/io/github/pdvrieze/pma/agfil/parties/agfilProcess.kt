@@ -8,6 +8,7 @@ import io.github.pdvrieze.pma.agfil.data.Invoice
 import io.github.pdvrieze.pma.agfil.services.ServiceNames
 import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
 import nl.adaptivity.process.processModel.engine.ExecutableCondition
+import nl.adaptivity.process.processModel.engine.ExecutableXPathCondition
 
 val agfilProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>("agfilClaimHandling") {
     val claimIdInput = input<ClaimId>("claimId")
@@ -15,7 +16,7 @@ val agfilProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>
     val start by startNode
 
     val checkPolicyValidity by serviceActivity(start, listOf(), ServiceNames.agfilService, claimIdInput) { claimId ->
-        val claim = service.getClaim(authToken, claimId)
+        val claim = service.getAccidentInfo(authToken, claimId)
         val policy = service.getPolicy(authToken, claim.customerId, claim.carRegistration)
         policy != null // TODO have more complex validation (like claim category)
     }
@@ -50,7 +51,7 @@ val agfilProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>
     val handleValidSplit by split(invalidSplit) {
         min = 2
         max = 2
-        condition = ExecutableCondition.TRUE
+        condition = ExecutableXPathCondition("text()=true")
     }
 
     val sendClaimForm by serviceActivity(
