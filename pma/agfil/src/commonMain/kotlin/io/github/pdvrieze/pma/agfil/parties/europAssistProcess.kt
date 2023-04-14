@@ -68,7 +68,7 @@ val europAssistProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserCo
     ) {
         acceptTask( { randomEaCallHandler() }) { accidentInfo ->
             uiServiceLogin(europAssistService) {
-                val garage: GarageInfo = service.pickGarage(authToken, accidentInfo)
+                val garage: GarageInfo = service.internal.pickGarage(authToken, accidentInfo)
                 garage
             }
         }
@@ -78,7 +78,7 @@ val europAssistProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserCo
         predecessor = pickGarage,
         service = europAssistService,
         input = combine(pickGarage named "garage", recordClaim named "claimId", registerClaim named "accidentInfo")) { (garage, claimId, accidentInfo) ->
-        service.informGarage(authToken, garage, claimId, accidentInfo)
+        service.internal.informGarage(authToken, garage, claimId, accidentInfo)
     }
 
     val notifyAgfil: DataNodeHandle<Unit> by serviceActivity(

@@ -27,9 +27,9 @@ class AgfilService(override val serviceName: ServiceName<AgfilService>, authServ
     fun forwardInvoice(authToken: PmaAuthToken, invoice: Invoice): Unit = TODO()
 
     fun recordClaimInDatabase(authToken: PmaAuthInfo, accidentInfo: AccidentInfo): ClaimId {
-        val claim = ClaimData(claims.size.toLong(), accidentInfo, Claim.Outcome.Undecided)
-        claims.add(claim)
-        return ClaimId(claim.id)
+        val claimId = ClaimId(claims.size.toLong())
+        claims.add(ClaimData(claimId, accidentInfo, Claim.Outcome.Undecided))
+        return claimId
     }
 
     fun getAccidentInfo(authToken: PmaAuthToken, claimId: ClaimId): AccidentInfo {
@@ -77,7 +77,7 @@ class AgfilService(override val serviceName: ServiceName<AgfilService>, authServ
     }
 
     private class ClaimData(
-        override val id: Long,
+        override val id: ClaimId,
         override val accidentInfo: AccidentInfo,
         override var outcome: Claim.Outcome,
         override var assignedGarageInfo: GarageInfo? = null

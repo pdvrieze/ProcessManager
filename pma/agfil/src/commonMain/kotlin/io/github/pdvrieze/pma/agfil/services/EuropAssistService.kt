@@ -19,8 +19,8 @@ class EuropAssistService(
     authService: AuthService,
     private val random: Random,
     private val agfilService: AgfilService,
-    private val garageServices: List<GarageService>
-) : AbstractRunnableUiService(authService, serviceName.serviceName), RunnableAutomatedService {
+    override val garageServices: List<GarageService>
+) : AbstractRunnableUiService(authService, serviceName.serviceName), RunnableAutomatedService, GarageAccessService {
 
     override val serviceInstanceId: ServiceId<EuropAssistService> = ServiceId(getServiceId(serviceAuth))
 
@@ -28,32 +28,37 @@ class EuropAssistService(
         GarageInfo("Fix'R'Us"),
         GarageInfo("")
     )
+    override val internal: Internal = Internal()
 
-    fun pickGarage(authToken: PmaAuthInfo, accidentInfo: AccidentInfo): GarageInfo {
-        validateAuthInfo(authToken, AgfilPermissions.PICK_GARAGE)
-        return GarageInfo(garageServices.random(random).serviceInstanceId.serviceId)
+
+    /** From Lai's thesis */
+    fun phoneClaim(authToken: PmaAuthInfo, carRegistration: CarRegistration, claimInfo: String) : ClaimId {
+        TODO()
     }
 
-    fun informGarage(authToken: PmaAuthToken, garage: GarageInfo, claimId: ClaimId, accidentInfo: AccidentInfo): GarageInfo {
-        garageServices.first { it.serviceInstanceId.serviceId == garage.name }
-            .also { garage ->
-                val delegateToken = authService.exchangeDelegateToken(serviceAuth, authToken, garage.serviceInstanceId, CommonPMAPermissions.IDENTIFY)
-                garage.informGarageOfIncomingCar(delegateToken,, accidentInfo)
+    /** From Lai's thesis */
+    fun receiveInfo(authToken: PmaAuthInfo, info: String): ClaimId {
+        TODO()
+    }
+
+    inner class Internal : GarageAccessService.Internal {
+        override val outer: EuropAssistService get() = this@EuropAssistService
+
+        fun pickGarage(authToken: PmaAuthInfo, accidentInfo: AccidentInfo): GarageInfo {
+            validateAuthInfo(authToken, AgfilPermissions.PICK_GARAGE)
+            return GarageInfo(garageServices.random(random).serviceInstanceId.serviceId)
+        }
+
+        fun informGarage(authToken: PmaAuthToken, garage: GarageInfo, claimId: ClaimId, accidentInfo: AccidentInfo): GarageInfo {
+            withGarage(authToken, garage) {
+                service.informGarageOfIncomingCar(this.authToken, claimId, accidentInfo)
             }
 
-        val delegateToken = authService.exchangeDelegateToken(serviceAuth, authToken, agfilService.serviceInstanceId, CommonPMAPermissions.IDENTIFY)
-        agfilService.recordAssignedGarage(delegateToken, claimId, garage)
+            val agfilToken = authService.exchangeDelegateToken(serviceAuth, authToken, agfilService.serviceInstanceId, CommonPMAPermissions.IDENTIFY)
+            agfilService.recordAssignedGarage(agfilToken, claimId, garage)
 
-        return garage // Smarter way to do something here
-    }
+            return garage // Smarter way to do something here
+        }
 
-    /** From Lai's thesis */
-    fun phoneClaim(carRegistration: CarRegistration, claimInfo: String) : ClaimId {
-        TODO()
-    }
-
-    /** From Lai's thesis */
-    fun receiveInfo(info: String): ClaimId {
-        TODO()
     }
 }

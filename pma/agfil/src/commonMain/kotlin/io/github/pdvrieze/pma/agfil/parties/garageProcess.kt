@@ -2,11 +2,17 @@ package io.github.pdvrieze.pma.agfil.parties
 
 import io.github.pdvrieze.pma.agfil.contexts.AgfilActivityContext
 import io.github.pdvrieze.pma.agfil.contexts.AgfilBrowserContext
+import io.github.pdvrieze.pma.agfil.data.AccidentInfo
 import io.github.pdvrieze.pma.agfil.data.CarRegistration
+import io.github.pdvrieze.pma.agfil.data.ClaimId
+import io.github.pdvrieze.pma.agfil.data.Estimate
 import io.github.pdvrieze.pma.agfil.services.ServiceNames
 import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
 
 val repairProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>("insuranceCarRepair") {
+
+    val claimId = input<ClaimId>("claim")
+    val accidentInfo = input<AccidentInfo>("accidentInfo")
 
     val start by startNode
 
@@ -27,9 +33,10 @@ val repairProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext
     val sendEstimate by serviceActivity(
         estimateRepairCost,
         listOf(),
-        ServiceNames.leeCsService
-    ) { estimate ->
-        service.sendGarageEstimate(authToken, estimate)
+        ServiceNames.leeCsService,
+        input = combine(estimateRepairCost named "estimate", claimId named "claimId", accidentInfo named "accidentInfo")
+    ) { (estimate, claimId, accidentInfo) ->
+        service.sendGarageEstimate(authToken, Estimate(claimId, accidentInfo.carRegistration, estimate))
     }
 
 }

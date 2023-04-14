@@ -14,7 +14,7 @@ fun policyHolderProcess(owner: PrincipalCompat) = runnablePmaProcess<AgfilActivi
     val start by startNode
 
     val reportClaim by serviceActivity(start, listOf(), ServiceNames.europAssistService) {
-        service.phoneClaim(agfilProcessContext.carRegistration, "Random Accident info")
+        service.phoneClaim(, agfilProcessContext.carRegistration, "Random Accident info")
     }
 
     val sendCar by serviceActivity(reportClaim, listOf(), ServiceNames.garageServices.first()) {

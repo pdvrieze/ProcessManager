@@ -29,8 +29,8 @@ import kotlin.random.Random
 import kotlin.random.nextULong
 
 abstract class ServiceBase(
-    protected val authService: AuthService, // TODO, replace with AuthServiceClient
-    protected val serviceAuth: PmaIdSecretAuthInfo
+    val authService: AuthService, // TODO, replace with AuthServiceClient
+    val serviceAuth: PmaIdSecretAuthInfo
 ) {
     private val tokens = mutableListOf<PmaAuthToken>()
 //    open val serviceInstanceId: ServiceId<*> = getServiceId(serviceAuth)
