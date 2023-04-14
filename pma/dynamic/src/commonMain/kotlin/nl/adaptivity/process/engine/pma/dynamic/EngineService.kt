@@ -165,7 +165,7 @@ class EngineService(
         scope: AuthScope
     ): PmaAuthToken {
         val authorizationCode = authService.createAuthorizationCode(serviceAuth, clientId, handle, service, scope)
-        return authService.getAuthToken(serviceAuth, authorizationCode)
+        return authService.exchangeAuthCode(serviceAuth, authorizationCode)
     }
 
     fun ProcessInstanceContext.onActivityTermination(

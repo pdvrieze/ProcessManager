@@ -62,7 +62,7 @@ class GarageService(
     }
 
     /** From Lai's thesis. Receive car. */
-    fun sendCar(authToken: PmaAuthInfo, carRegistration: CarRegistration): Unit = TODO()
+    fun sendCar(authToken: PmaAuthInfo, carRegistration: CarRegistration, claimId: ClaimId): Unit = TODO()
 
     /** From Lai's thesis */
     fun agreeRepair(authToken: PmaAuthInfo, id: ClaimId, carRegistration: CarRegistration): Unit = TODO()

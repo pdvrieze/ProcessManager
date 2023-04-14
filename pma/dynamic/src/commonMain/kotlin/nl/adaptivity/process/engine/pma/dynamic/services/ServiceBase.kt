@@ -28,10 +28,15 @@ import java.util.logging.Level
 import kotlin.random.Random
 import kotlin.random.nextULong
 
-abstract class ServiceBase(
-    val authService: AuthService, // TODO, replace with AuthServiceClient
+interface PmaService: Service {
+    val authService: AuthService
     val serviceAuth: PmaIdSecretAuthInfo
-) {
+}
+
+abstract class ServiceBase(
+    override val authService: AuthService, // TODO, replace with AuthServiceClient
+    override val serviceAuth: PmaIdSecretAuthInfo
+): PmaService {
     private val tokens = mutableListOf<PmaAuthToken>()
 //    open val serviceInstanceId: ServiceId<*> = getServiceId(serviceAuth)
 

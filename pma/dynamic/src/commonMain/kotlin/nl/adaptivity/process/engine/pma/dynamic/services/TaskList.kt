@@ -56,7 +56,7 @@ abstract class TaskList constructor(
     ) {
         logMe(authInfo, authorizationCode, nodeInstanceHandle)
         validateAuthInfo(authInfo, CommonPMAPermissions.POST_TASK)
-        val token = authService.getAuthToken(serviceAuth, authorizationCode)
+        val token = authService.exchangeAuthCode(serviceAuth, authorizationCode)
         assert(token.nodeInstanceHandle == nodeInstanceHandle)
         engineTokens[nodeInstanceHandle.handleValue] = token
     }

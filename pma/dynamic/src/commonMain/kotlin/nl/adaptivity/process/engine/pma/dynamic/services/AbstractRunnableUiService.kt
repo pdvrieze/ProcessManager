@@ -17,7 +17,7 @@ abstract class AbstractRunnableUiService : ServiceBase, RunnableUiService {
 
     override fun loginBrowser(browser: Browser): PmaAuthToken {
         val authorization = browser.loginToService(authService, this)
-        return authService.getAuthToken(browser.auth, authorization)
+        return authService.exchangeAuthCode(browser.auth, authorization)
     }
 
 }

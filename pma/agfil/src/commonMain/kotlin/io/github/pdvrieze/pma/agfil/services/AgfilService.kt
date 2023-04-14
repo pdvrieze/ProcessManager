@@ -52,6 +52,11 @@ class AgfilService(override val serviceName: ServiceName<AgfilService>, authServ
         TODO("not implemented")
     }
 
+    fun getContractedGarages(authToken: PmaAuthInfo): List<GarageInfo> {
+        validateAuthInfo(authToken, AgfilPermissions.LIST_GARAGES)
+        TODO()
+    }
+
     val internal: Internal = Internal()
 
     inner class Internal internal constructor(){

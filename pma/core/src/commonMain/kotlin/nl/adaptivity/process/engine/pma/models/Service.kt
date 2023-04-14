@@ -2,7 +2,7 @@ package nl.adaptivity.process.engine.pma.models
 
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-sealed interface Service {
+interface Service {
     val serviceName: ServiceName<Service>
     val serviceInstanceId: ServiceId<Service>
 }
@@ -31,3 +31,7 @@ value class ServiceName<out S: Service>(val serviceName: String)
 
 @JvmInline
 value class ServiceId<out S: Service>(val serviceId: String)
+
+interface ServiceResolver {
+    fun <S: Service> resolve(serviceName: ServiceName<S>): S
+}

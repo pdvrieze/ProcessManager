@@ -31,7 +31,7 @@ class GeneralClientService(
         authorizationCode: AuthorizationCode,
         action: ClientServiceContext.(PmaAuthToken) -> R
                                 ): R {
-        val authToken = authService.getAuthToken(serviceAuth, authorizationCode)
+        val authToken = authService.exchangeAuthCode(serviceAuth, authorizationCode)
         return ContextImpl(authToken).action(authToken)
         // Perhaps explicitly release the token.
     }

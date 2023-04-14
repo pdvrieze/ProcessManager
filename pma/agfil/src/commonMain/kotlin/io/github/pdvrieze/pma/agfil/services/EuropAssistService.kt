@@ -12,6 +12,7 @@ import nl.adaptivity.process.engine.pma.dynamic.services.AbstractRunnableUiServi
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableAutomatedService
 import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
+import nl.adaptivity.process.engine.pma.models.ServiceResolver
 import kotlin.random.Random
 
 class EuropAssistService(
@@ -19,20 +20,16 @@ class EuropAssistService(
     authService: AuthService,
     private val random: Random,
     private val agfilService: AgfilService,
-    override val garageServices: List<GarageService>
-) : AbstractRunnableUiService(authService, serviceName.serviceName), RunnableAutomatedService, GarageAccessService {
+    override val serviceResolver: ServiceResolver,
+) : AbstractRunnableUiService(authService, serviceName.serviceName), RunnableAutomatedService, AutoService {
 
     override val serviceInstanceId: ServiceId<EuropAssistService> = ServiceId(getServiceId(serviceAuth))
 
-    val garages = listOf<GarageInfo>(
-        GarageInfo("Fix'R'Us"),
-        GarageInfo("")
-    )
-    override val internal: Internal = Internal()
+    val internal: Internal = Internal()
 
 
     /** From Lai's thesis */
-    fun phoneClaim(authToken: PmaAuthInfo, carRegistration: CarRegistration, claimInfo: String) : ClaimId {
+    fun phoneClaim(authToken: PmaAuthInfo, carRegistration: CarRegistration, claimInfo: String): ClaimId {
         TODO()
     }
 
@@ -41,20 +38,36 @@ class EuropAssistService(
         TODO()
     }
 
-    inner class Internal : GarageAccessService.Internal {
-        override val outer: EuropAssistService get() = this@EuropAssistService
-
-        fun pickGarage(authToken: PmaAuthInfo, accidentInfo: AccidentInfo): GarageInfo {
+    inner class Internal {
+        fun pickGarage(authToken: PmaAuthToken, accidentInfo: AccidentInfo): GarageInfo {
             validateAuthInfo(authToken, AgfilPermissions.PICK_GARAGE)
-            return GarageInfo(garageServices.random(random).serviceInstanceId.serviceId)
-        }
-
-        fun informGarage(authToken: PmaAuthToken, garage: GarageInfo, claimId: ClaimId, accidentInfo: AccidentInfo): GarageInfo {
-            withGarage(authToken, garage) {
-                service.informGarageOfIncomingCar(this.authToken, claimId, accidentInfo)
+            val garageServices = withService(service = agfilService, authToken, AgfilPermissions.LIST_GARAGES) {
+                service.getContractedGarages(serviceAccessToken)
             }
 
-            val agfilToken = authService.exchangeDelegateToken(serviceAuth, authToken, agfilService.serviceInstanceId, CommonPMAPermissions.IDENTIFY)
+            return garageServices.random(random)
+        }
+
+        fun informGarage(
+            authToken: PmaAuthToken,
+            garage: GarageInfo,
+            claimId: ClaimId,
+            accidentInfo: AccidentInfo
+        ): GarageInfo {
+            withService(
+                garage.service,
+                authToken,
+                AgfilPermissions.INFORM_GARAGE
+            ) {
+                service.informGarageOfIncomingCar(serviceAccessToken, claimId, accidentInfo)
+            }
+
+            val agfilToken = authService.exchangeDelegateToken(
+                serviceAuth,
+                authToken,
+                agfilService.serviceInstanceId,
+                CommonPMAPermissions.IDENTIFY
+            )
             agfilService.recordAssignedGarage(agfilToken, claimId, garage)
 
             return garage // Smarter way to do something here

@@ -6,15 +6,16 @@ import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.PmaAuthToken
 import nl.adaptivity.process.engine.pma.dynamic.services.AbstractRunnableUiService
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableAutomatedService
-import nl.adaptivity.process.engine.pma.models.AutomatedService
+import nl.adaptivity.process.engine.pma.models.Service
 import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
+import nl.adaptivity.process.engine.pma.models.ServiceResolver
 
 class LeeCsService(
     override val serviceName: ServiceName<LeeCsService>,
     authService: AuthService,
-    override val garageServices: List<GarageService>
-) : AbstractRunnableUiService(authService, serviceName.serviceName), RunnableAutomatedService , GarageAccessService {
+    override val serviceResolver: ServiceResolver
+) : AbstractRunnableUiService(authService, serviceName.serviceName), RunnableAutomatedService, AutoService {
 
     override val serviceInstanceId: ServiceId<GarageService> = ServiceId(getServiceId(serviceAuth))
 
@@ -39,14 +40,13 @@ class LeeCsService(
         TODO("not implemented")
     }
 
-    override val internal: Internal = Internal()
+    val internal: Internal = Internal()
 
-    inner class Internal internal constructor() : GarageAccessService.Internal {
-        override val outer: GarageAccessService get() = this@LeeCsService
+    inner class Internal internal constructor(){
 
         fun contactGarage(authToken: PmaAuthToken, claim: Claim) {
             withGarage(authToken, claim.assignedGarageInfo) {
-                this.service.informGarageOfIncomingCar(this.authToken, claim.id, claim.accidentInfo)
+                this.service.informGarageOfIncomingCar(serviceAccessToken, claim.id, claim.accidentInfo)
             }
         }
 
@@ -67,4 +67,4 @@ class LeeCsService(
     }
 }
 
-class ServiceInvocationContext<S: AutomatedService>(val service: S, val authToken: PmaAuthToken)
+class ServiceInvocationContext<S: Service>(val service: S, val serviceAccessToken: PmaAuthToken)

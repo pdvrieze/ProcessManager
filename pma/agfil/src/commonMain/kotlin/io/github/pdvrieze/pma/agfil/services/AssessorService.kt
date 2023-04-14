@@ -6,14 +6,13 @@ import io.github.pdvrieze.pma.agfil.data.DamageAssessment
 import nl.adaptivity.process.engine.pma.PmaAuthToken
 import nl.adaptivity.process.engine.pma.models.AutomatedService
 
-class AssessorService : AutomatedService, GarageAccessService {
-    override val internal: Internal = Internal()
+class AssessorService : AutomatedService, AutoService {
+    val internal: Internal = Internal()
 
     /** From Lai's thesis */
     fun assignAssessor(): Unit = TODO()
 
-    inner class Internal : GarageAccessService.Internal {
-        override val outer: AssessorService get() = this@AssessorService
+    inner class Internal {
 
         fun assessDamage(authToken: PmaAuthToken, claim: Claim): DamageAssessment {
             withGarage(authToken, claim.assignedGarageInfo) {

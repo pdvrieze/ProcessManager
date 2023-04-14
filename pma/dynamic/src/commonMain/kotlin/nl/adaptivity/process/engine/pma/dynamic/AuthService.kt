@@ -51,7 +51,7 @@ class AuthService(
 
     private val tokenPermissions = mutableMapOf<String, MutableList<Permission>>()
 
-    private inline fun doLog(authInfo: PmaAuthInfo?, message: String) {
+    private fun doLog(authInfo: PmaAuthInfo?, message: String) {
         when (authInfo) {
             is PmaAuthToken -> {
                 val processNodeInstance = authInfo.nodeInstanceHandle
@@ -68,7 +68,7 @@ class AuthService(
         }
     }
 
-    inline fun doLog(message: String) {
+    fun doLog(message: String) {
         logger.log(Level.INFO, "[UNAUTH] - $message")
     }
 
@@ -176,6 +176,34 @@ class AuthService(
         return createAuthorizationCodeImpl(auth, clientId, nodeInstanceHandle, service, scope)
     }
 
+
+    @Deprecated(
+        "Use exchangeAuthCode",
+        ReplaceWith("exchangeAuthCode(clientAuth, authorizationCode)"),
+        DeprecationLevel.ERROR,
+    )
+    fun getAuthToken(clientAuth: PmaAuthInfo, authorizationCode: AuthorizationCode): PmaAuthToken {
+        return exchangeAuthCode(clientAuth, authorizationCode)
+    }
+
+    /**
+     * Exchange authorization code for a token
+     */
+    fun exchangeAuthCode(clientAuth: PmaAuthInfo, authorizationCode: AuthorizationCode): PmaAuthToken {
+        internalValidateAuthInfo(clientAuth, IDENTIFY)
+        val token =
+            authorizationCodes.get(authorizationCode) ?: throw AuthorizationException("authorization code invalid")
+
+        if (token !in activeTokens) activeTokens.add(token)
+
+        if (authorizationCode.principal != clientAuth.principal)
+            throw AuthorizationException("Invalid client for authorization code ${token.principal} != ${clientAuth.principal}")
+
+        doLog(clientAuth, "authTokenFromAuthorization(authorization = $authorizationCode) = $token")
+        authorizationCodes.remove(authorizationCode)
+        return token
+    }
+
     fun requestPmaAuthToken(
         engineAuth: PmaAuthInfo,
         nodeInstanceHandle: PNIHandle,
@@ -197,7 +225,7 @@ class AuthService(
             ServiceId<Service>(clientServiceId),
             DELEGATED_PERMISSION.context(clientServiceId, service, requestedScope)
         )
-        val newToken = createAuthTokenNonValidated(clientAuth.principal, exchangedToken.nodeInstanceHandle, service, requestedScope)
+        val newToken = createAuthTokenWithoutValidation(clientAuth.principal, exchangedToken.nodeInstanceHandle, service, requestedScope)
 
         doLog(clientAuth, "exchangeDelegateToken(exchanged = ${exchangedToken}, token = $newToken)")
         return newToken
@@ -213,10 +241,10 @@ class AuthService(
         // We know the task handle so permission limited to the task handle is sufficient
         internalValidateAuthInfo(auth, GRANT_ACTIVITY_PERMISSION.context(nodeInstanceHandle, client.name, targetServiceId, scope))
 
-        return createAuthTokenNonValidated(client, nodeInstanceHandle, targetServiceId, scope)
+        return createAuthTokenWithoutValidation(client, nodeInstanceHandle, targetServiceId, scope)
     }
 
-    private fun createAuthTokenNonValidated(
+    private fun createAuthTokenWithoutValidation(
         client: PrincipalCompat,
         nodeInstanceHandle: PNIHandle,
         targetServiceId: ServiceId<*>,
@@ -252,7 +280,7 @@ class AuthService(
         // We know the task handle so permission limited to the task handle is sufficient
         internalValidateAuthInfo(auth, GRANT_ACTIVITY_PERMISSION.context(nodeInstanceHandle, clientPrincipal.name, service.serviceInstanceId, scope))
 
-        val token = createAuthTokenNonValidated(clientPrincipal, nodeInstanceHandle, service.serviceInstanceId, scope)
+        val token = createAuthTokenWithoutValidation(clientPrincipal, nodeInstanceHandle, service.serviceInstanceId, scope)
 
         val authorizationCode = AuthorizationCode(Random.nextString(), clientPrincipal)
         authorizationCodes[authorizationCode] = token
@@ -265,21 +293,6 @@ class AuthService(
     private fun clientFromId(clientId: String): PrincipalCompat {
         // TODO look up actual users.
         return SimplePrincipal(clientId)
-    }
-
-    fun getAuthToken(clientAuth: PmaAuthInfo, authorizationCode: AuthorizationCode): PmaAuthToken {
-        internalValidateAuthInfo(clientAuth, IDENTIFY)
-        val token =
-            authorizationCodes.get(authorizationCode) ?: throw AuthorizationException("authorization code invalid")
-
-        if (token !in activeTokens) activeTokens.add(token)
-
-        if (authorizationCode.principal != clientAuth.principal)
-            throw AuthorizationException("Invalid client for authorization code ${token.principal} != ${clientAuth.principal}")
-
-        doLog(clientAuth, "authTokenFromAuthorization(authorization = $authorizationCode) = $token")
-        authorizationCodes.remove(authorizationCode)
-        return token
     }
 
     /** Common implementation that is used for authorization codes/authtokens but doesn't log*/

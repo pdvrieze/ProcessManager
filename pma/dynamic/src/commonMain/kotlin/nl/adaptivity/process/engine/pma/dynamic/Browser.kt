@@ -51,7 +51,7 @@ class Browser private constructor(private val authService: AuthService, val auth
             tokens.lastOrNull { it.scope == CommonPMAPermissions.IDENTIFY && it.serviceId == authService.serviceInstanceId }
                 ?: this.auth
 
-        addToken(authService.getAuthToken(auth, authorizationCode))
+        addToken(authService.exchangeAuthCode(auth, authorizationCode))
     }
 
     fun loginToService(service: RunnableUiService): PmaAuthToken {
