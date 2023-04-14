@@ -595,13 +595,6 @@ class AuthService(
                 }
             }
         }
-        globalPermissions.getOrPut(principal.name) { mutableMapOf() }
-            .compute(service.serviceInstanceId.serviceId) { k, oldScope ->
-                when (oldScope) {
-                    null -> scope
-                    else -> oldScope.union(scope)
-                }
-            }
     }
 
 
