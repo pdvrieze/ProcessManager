@@ -1,12 +1,16 @@
 package nl.adaptivity.process.engine.pma.test
 
+import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.pma.models.*
 import nl.adaptivity.process.engine.pma.runtime.AuthServiceClient
 import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.processModel.AuthorizationInfo
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 
 class TestAuthServiceClient() : AuthServiceClient<AuthorizationInfo, AuthorizationInfo.Token, AuthorizationInfo.Token> {
+    override val principal: PrincipalCompat = SimplePrincipal("TestClient")
+
     override fun validateAuthInfo(
         authInfoToCheck: AuthorizationInfo,
         serviceId: ServiceId<Service>,
@@ -30,6 +34,19 @@ class TestAuthServiceClient() : AuthServiceClient<AuthorizationInfo, Authorizati
         requestedScope: AuthScope
     ): AuthorizationInfo.Token {
         return DummyTokenServiceAuthData(serviceId, listOf(requestedScope))
+    }
+
+    override fun requestPmaAuthCode(
+        client: PrincipalCompat,
+        nodeInstanceHandle: PNIHandle,
+        serviceId: ServiceId<*>,
+        requestedScope: AuthScope
+    ): AuthorizationInfo.Token {
+        return DummyTokenServiceAuthData(serviceId, listOf(requestedScope))
+    }
+
+    override fun invalidateActivityTokens(hNodeInstance: PNIHandle) {
+        // Doesn't do anything
     }
 
     override fun exchangeAuthCode(authorizationCode: AuthorizationInfo.Token): AuthorizationInfo.Token {

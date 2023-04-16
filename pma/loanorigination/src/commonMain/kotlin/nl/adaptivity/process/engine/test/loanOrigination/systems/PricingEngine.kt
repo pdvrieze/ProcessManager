@@ -16,21 +16,18 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
-import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.AuthService
+import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.dynamic.services.AbstractRunnableUiService
 import nl.adaptivity.process.engine.pma.models.AutomatedService
-import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanEvaluation
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanProductBundle
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.PricedLoanProductBundle
 
-class PricingEngine(serviceName: String, authService: AuthService): AbstractRunnableUiService(authService, "Pricing_Engine"), AutomatedService {
-
-    override val serviceName: ServiceName<PricingEngine> = ServiceName(serviceName)
-    override val serviceInstanceId: ServiceId<PricingEngine> = ServiceId(getServiceId(serviceAuth))
+class PricingEngine(serviceName: ServiceName<PricingEngine>, authService: AuthService, adminAuth: PmaAuthInfo):
+    AbstractRunnableUiService<PricingEngine>(authService, adminAuth, serviceName), AutomatedService {
 
     override fun getServiceState(): String = ""
 

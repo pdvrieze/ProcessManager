@@ -9,7 +9,7 @@ import java.security.Principal
 interface DynamicPmaProcessContextFactory<out A : DynamicPmaActivityContext<A, *>> : PMAProcessContextFactory<A> {
     val serviceResolver: ServiceResolver
 
-    override fun getOrCreateTaskListForUser(principal: Principal): TaskList
-    override fun getOrCreateTaskListForRestrictions(accessRestrictions: AccessRestriction?): List<TaskList>
+    override fun getOrCreateTaskListForUser(principal: Principal): TaskList<*>
+    override fun getOrCreateTaskListForRestrictions(accessRestrictions: AccessRestriction?): List<TaskList<*>>
 
 }

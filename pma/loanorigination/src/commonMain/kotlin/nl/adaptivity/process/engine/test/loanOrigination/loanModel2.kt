@@ -101,10 +101,18 @@ val loanModel2 = runnableProcess<LoanActivityContext>("foo", SimplePrincipal("mo
             generalClientService.runWithAuthorization(serviceTask()) { tknTID ->
 
                 assertForbidden {
-                    authService.getAuthTokenDirect(tknTID, customerFile, LoanPermissions.CREATE_CUSTOMER)
+                    authService.getAuthTokenDirect(
+                        tknTID,
+                        customerFile.serviceInstanceId,
+                        LoanPermissions.CREATE_CUSTOMER
+                    )
                 }
                 assertForbidden {
-                    authService.getAuthTokenDirect(tknTID, customerFile, LoanPermissions.QUERY_CUSTOMER_DATA)
+                    authService.getAuthTokenDirect(
+                        tknTID,
+                        customerFile.serviceInstanceId,
+                        LoanPermissions.QUERY_CUSTOMER_DATA
+                    )
                 }
 
                 val custInfoAuthToken = getServiceToken(
@@ -116,17 +124,24 @@ val loanModel2 = runnableProcess<LoanActivityContext>("foo", SimplePrincipal("mo
                     ?: throw NullPointerException("Missing customer data")
 
                 assertForbidden {
-                    authService.getAuthTokenDirect(tknTID, creditBureau, LoanPermissions.CREATE_CUSTOMER)
+                    authService.getAuthTokenDirect(
+                        tknTID,
+                        creditBureau.serviceInstanceId,
+                        LoanPermissions.CREATE_CUSTOMER
+                    )
                 }
 
                 assertForbidden {
-                    authService.getAuthTokenDirect(tknTID, creditBureau, LoanPermissions.GET_CREDIT_REPORT)
+                    authService.getAuthTokenDirect(
+                        tknTID,
+                        creditBureau.serviceInstanceId,
+                        LoanPermissions.GET_CREDIT_REPORT
+                    )
                 }
                 assertForbidden {
                     authService.getAuthTokenDirect(
                         tknTID,
-                        creditBureau,
-                        LoanPermissions.GET_CREDIT_REPORT.invoke("taxId5")
+                        creditBureau.serviceInstanceId, LoanPermissions.GET_CREDIT_REPORT.invoke("taxId5")
                     )
                 }
                 val creditAuthToken = getServiceToken(

@@ -18,9 +18,7 @@ package nl.adaptivity.process.engine.test.loanOrigination.auth
 
 import net.devrieze.util.Handle
 import nl.adaptivity.process.engine.pma.ExtScope
-import nl.adaptivity.process.engine.pma.models.AuthScope
-import nl.adaptivity.process.engine.pma.models.UnionPermissionScope
-import nl.adaptivity.process.engine.pma.models.UseAuthScope
+import nl.adaptivity.process.engine.pma.models.*
 import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanApplication
 
@@ -101,11 +99,11 @@ sealed class LoanPermissions {
             return useScope is ExtScope<*> && useScope.scope == this
         }
 
-        override fun intersect(otherScope: AuthScope): AuthScope? {
+        override fun intersect(otherScope: AuthScope): AuthScope {
             return when {
                 otherScope == UPDATE_ACTIVITY_STATE -> this
                 otherScope is ExtScope<*> && otherScope.scope == this -> otherScope
-                else -> null
+                else -> super.intersect(otherScope)
             }
         }
     }
@@ -168,6 +166,8 @@ class MonetaryRestrictionPermissionScope(
     }
 
     override fun union(otherScope: AuthScope): AuthScope {
+        require(otherScope != ANYSCOPE) { "Union with ANYSCOPE is insecure" }
+
         if (otherScope !is MonetaryRestrictionPermissionScope ||
             scope != otherScope.scope ||
             (customerId != null && otherScope.customerId != null && customerId != otherScope.customerId)
@@ -181,19 +181,23 @@ class MonetaryRestrictionPermissionScope(
         return MonetaryRestrictionPermissionScope(scope, effectiveCustomerId, effectiveMax)
     }
 
-    override fun intersect(otherScope: AuthScope): AuthScope? {
-        if (otherScope is UnionPermissionScope) return otherScope.intersect(this)
-        if (otherScope !is MonetaryRestrictionPermissionScope) return null
-        if (scope != otherScope.scope) return null
-        if (customerId != null && otherScope.customerId != null && customerId != otherScope.customerId) return null
-        val effectiveCustomerId = customerId ?: otherScope.customerId
-        val effectiveMax = when {
-            !maxAmount.isFinite() -> otherScope.maxAmount
-            !otherScope.maxAmount.isFinite() -> maxAmount
-            else -> minOf(maxAmount, otherScope.maxAmount)
+    override fun intersect(otherScope: AuthScope): AuthScope {
+        when {
+            otherScope is UnionPermissionScope -> return otherScope.intersect(this)
+            otherScope !is MonetaryRestrictionPermissionScope -> return super.intersect(otherScope)
+            scope != otherScope.scope -> return EMPTYSCOPE
+            customerId != null && otherScope.customerId != null && customerId != otherScope.customerId -> return EMPTYSCOPE
+            else -> {
+                val effectiveCustomerId = customerId ?: otherScope.customerId
+                val effectiveMax = when {
+                    !maxAmount.isFinite() -> otherScope.maxAmount
+                    !otherScope.maxAmount.isFinite() -> maxAmount
+                    else -> minOf(maxAmount, otherScope.maxAmount)
+                }
+                if (effectiveMax <= 0.0) return EMPTYSCOPE
+                return MonetaryRestrictionPermissionScope(scope, effectiveCustomerId, effectiveMax)
+            }
         }
-        if (effectiveMax <= 0.0) return null
-        return MonetaryRestrictionPermissionScope(scope, effectiveCustomerId, effectiveMax)
     }
 
     override val description: String

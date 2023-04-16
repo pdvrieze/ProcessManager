@@ -17,32 +17,36 @@
 package nl.adaptivity.process.engine.pma
 
 import nl.adaptivity.process.engine.pma.dynamic.services.ServiceBase
-import nl.adaptivity.process.engine.pma.models.*
+import nl.adaptivity.process.engine.pma.models.AuthScope
+import nl.adaptivity.process.engine.pma.models.AutomatedService
+import nl.adaptivity.process.engine.pma.models.Service
+import nl.adaptivity.process.engine.pma.models.ServiceName
 import java.security.Principal
 
 class GeneralClientService(
-    serviceName: String,
-    authService: AuthService
-) : ServiceBase(authService, "<automated>"), AutomatedService {
-    override val serviceName: ServiceName<GeneralClientService> = ServiceName(serviceName)
-    override val serviceInstanceId: ServiceId<GeneralClientService> = ServiceId(getServiceId(serviceAuth))
+    serviceName: ServiceName<GeneralClientService>,
+    authService: AuthService,
+    adminAuth: PmaAuthInfo
+) : ServiceBase<GeneralClientService>(authService, adminAuth, serviceName), AutomatedService {
+//    override val serviceName: ServiceName<GeneralClientService> = ServiceName(serviceName)
+//    override val serviceInstanceId: ServiceId<GeneralClientService> = ServiceId(getServiceId(serviceAuth))
 
     fun <R> runWithAuthorization(
         authorizationCode: AuthorizationCode,
         action: ClientServiceContext.(PmaAuthToken) -> R
-                                ): R {
-        val authToken = authService.exchangeAuthCode(serviceAuth, authorizationCode)
+    ): R {
+        val authToken = authServiceClient.exchangeAuthCode(authorizationCode)
         return ContextImpl(authToken).action(authToken)
         // Perhaps explicitly release the token.
     }
 
     override fun getServiceState(): String = ""
 
-    val auth get() = serviceAuth
+    val auth get() = authServiceClient.originatingClientAuth
 
     private inner class ContextImpl(private val authToken: PmaAuthToken) : ClientServiceContext {
         override val automatedService: Principal
-            get() = auth.principal
+            get() = authServiceClient.principal
 
         /**
          * Get a token that provides access to the given service. It is expected that permission for this
@@ -50,7 +54,7 @@ class GeneralClientService(
          */
         override fun getServiceToken(service: Service, scope: AuthScope): PmaAuthToken {
             logMe(service.serviceName, scope)
-            return authService.getAuthTokenDirect(authToken, service, scope)
+            return authServiceClient.exchangeDelegateToken(authToken, service.serviceInstanceId, scope)
 
         }
     }

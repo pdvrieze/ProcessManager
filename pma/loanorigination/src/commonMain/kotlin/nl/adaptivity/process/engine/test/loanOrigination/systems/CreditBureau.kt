@@ -22,7 +22,6 @@ import nl.adaptivity.process.engine.pma.PmaAuthToken
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaProcessContextFactory
 import nl.adaptivity.process.engine.pma.dynamic.services.ServiceBase
 import nl.adaptivity.process.engine.pma.models.AutomatedService
-import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.test.loanOrigination.LoanPMAActivityContext
 import nl.adaptivity.process.engine.test.loanOrigination.ServiceNames
@@ -30,10 +29,8 @@ import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CreditReport
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
 
-class CreditBureau(serviceName: String, authService: AuthService): ServiceBase(authService, "CreditBureau"), AutomatedService {
-
-    override val serviceName: ServiceName<CreditBureau> = ServiceName(serviceName)
-    override val serviceInstanceId: ServiceId<CreditBureau> = ServiceId(getServiceId(serviceAuth))
+class CreditBureau(serviceName: ServiceName<CreditBureau>, authService: AuthService, adminAuth: PmaAuthInfo):
+    ServiceBase<CreditBureau>(authService, adminAuth, serviceName), AutomatedService {
 
     override fun getServiceState(): String = ""
 
@@ -52,9 +49,9 @@ class CreditBureau(serviceName: String, authService: AuthService): ServiceBase(a
     fun getCreditReport(context: DynamicPmaProcessContextFactory<LoanPMAActivityContext>, authInfo: PmaAuthToken, customerId: String, taxId: String): CreditReport {
         logMe()
         validateAuthInfo(authInfo, LoanPermissions.GET_CREDIT_REPORT(taxId))
-        val customerFile = context.resolveService(ServiceNames.customerFile)
+        val customerFile = context.serviceResolver.resolveService(ServiceNames.customerFile)
 
-        val customerFileToken = authService.exchangeDelegateToken(serviceAuth, authInfo, customerFile.serviceInstanceId, LoanPermissions.QUERY_CUSTOMER_DATA(customerId))
+        val customerFileToken = authServiceClient.exchangeDelegateToken(authInfo, customerFile.serviceInstanceId, LoanPermissions.QUERY_CUSTOMER_DATA(customerId))
 
         val customerData = customerFile.getCustomerData(customerFileToken, customerId) ?: throw IllegalStateException("Unknown customer")
 

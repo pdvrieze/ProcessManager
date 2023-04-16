@@ -35,7 +35,7 @@ import kotlin.random.Random
 class LoanContextFactory(log: Logger, random: Random): AbstractLoanContextFactory<LoanActivityContext>(log, random) {
 
     private val processContexts = mutableMapOf<PIHandle, LoanProcessContext>()
-    private val taskLists = mutableMapOf<Principal, TaskList>()
+    private val taskLists = mutableMapOf<Principal, TaskList<*>>()
 
     override fun newActivityInstanceContext(
         engineDataAccess: ProcessEngineDataAccess,
@@ -69,16 +69,19 @@ class LoanContextFactory(log: Logger, random: Random): AbstractLoanContextFactor
         with(engineService) { context.onActivityTermination(processNodeInstance) }
     }
 
-    fun getOrCreateTaskListForUser(principal: PrincipalCompat): TaskList {
+    fun getOrCreateTaskListForUser(principal: PrincipalCompat): TaskList<*> {
+        val serviceName = ServiceName<EnumeratedTaskList>("TaskList(${principal.name})")
         return taskLists.getOrPut(principal) {
             log.log(Level.INFO, "Creating tasklist service for ${principal.name}")
-            val clientAuth = authService.registerClient(ServiceName<TaskList>("TaskList(${principal.name})"), Random.nextString())
-            val t = EnumeratedTaskList("tasklist-${principal.name}", authService, engineService, clientAuth, listOf(principal))
-            engineService.registerGlobalPermission(principal, t, CommonPMAPermissions.ACCEPT_TASK)
+            val clientAuth = authServiceClient.registerClient(serviceName, Random.nextString())
+
+            val t = EnumeratedTaskList(serviceName, authService, engineService, clientAuth, listOf(principal))
+
+            authServiceClient.registerGlobalPermission(principal, t, CommonPMAPermissions.ACCEPT_TASK)
 
             // TODO, use an activity specific permission/token instead.
-            engineService.registerGlobalPermission(
-                SimplePrincipal(engineService.serviceInstanceId.serviceId) as Principal,
+            authServiceClient.registerGlobalPermission(
+                SimplePrincipal(engineService.serviceInstanceId.serviceId) as PrincipalCompat,
                 t,
                 CommonPMAPermissions.POST_TASK
             )

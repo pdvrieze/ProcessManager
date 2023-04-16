@@ -21,7 +21,6 @@ import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.impl.Level
 import nl.adaptivity.process.engine.impl.LoggerCompat
 import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
-import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions.*
 import nl.adaptivity.process.engine.pma.models.*
 import nl.adaptivity.process.engine.processModel.PNIHandle
@@ -32,15 +31,14 @@ import kotlin.random.Random
 import kotlin.random.nextUInt
 
 class AuthService(
-    serviceName: String,
+    override val serviceName: ServiceName<AuthService>,
+    adminUser: PmaIdSecretAuthInfo,
     val logger: LoggerCompat,
     private val nodeLookup: Map<Handle<SecureProcessNodeInstance>, String>,
     private val random: Random
 ) : AutomatedService {
     override val serviceInstanceId: ServiceId<AuthService> =
         ServiceId("${serviceName}:${random.nextUInt().toString(16)}")
-
-    override val serviceName: ServiceName<AutomatedService> = ServiceName(serviceName)
 
     private val registeredClients = mutableMapOf<String, ClientInfo>()
     private val authorizationCodes = mutableMapOf<AuthorizationCode, PmaAuthToken>()
@@ -49,6 +47,11 @@ class AuthService(
         mutableMapOf<String, MutableMap<String, AuthScope>>()
 
     private val tokenPermissions = mutableMapOf<String, MutableList<Permission>>()
+
+    init {
+        registeredClients[adminUser.id] = ClientInfo(adminUser.id, adminUser.id, adminUser.secret)
+        globalPermissions[adminUser.id] = mutableMapOf(serviceInstanceId.serviceId to ADMIN)
+    }
 
     private fun doLog(authInfo: PmaAuthInfo?, message: String) {
         when (authInfo) {
@@ -89,7 +92,7 @@ class AuthService(
         useScope: UseAuthScope
     ) {
         if (authToken !in activeTokens) throw AuthorizationException("Token not active: $authToken")
-        if (authToken.serviceId != serviceId) throw AuthorizationException("The token $authToken is not for the expected service $serviceId")
+        if (authToken.serviceId != serviceId) throw AuthorizationException("The token $authToken is not for the expected service (${authToken.serviceId} != $serviceId)")
 //        val tokenPermissions = tokenPermissions.get(authToken.tokenValue) ?:emptyList<Permission>()
         val hasTransparentPermission = authToken.scope.includes(useScope)
         if (!hasTransparentPermission) {
@@ -220,14 +223,24 @@ class AuthService(
 
         val effectiveScope: AuthScope
         val tokenAssociatedPermissions: Sequence<AuthScope> = if (identityToken is PmaAuthToken) {
-            val scopes = (tokenPermissions[identityToken.token]
+
+            val tokenFullScope = (tokenPermissions[identityToken.token]
                 ?.asSequence()
                 ?: emptySequence())
                 .map { it.scope }
+                .fold(identityToken.scope) { left, right ->
+                    left.union(right)
+                }
+            val scopes = when (tokenFullScope) {
+                is UnionPermissionScope -> tokenFullScope.members.asSequence()
+                else -> sequenceOf(tokenFullScope)
+            }
 
             if (identityToken.nodeInstanceHandle.isValid) {
                 scopes.mapNotNull {
                     when {
+                        it is DELEGATED_PERMISSION.DelegateContextScope &&
+                            it.serviceId == serviceId -> it.childScope ?: ANYSCOPE
                         // Any child scopes for activity limited grants
                         it is GRANT_ACTIVITY_PERMISSION.ContextScope &&
                             it.taskInstanceHandle == identityToken.nodeInstanceHandle -> it.childScope ?: ANYSCOPE
@@ -360,6 +373,14 @@ class AuthService(
             requestedScope
         )
 
+    /**
+     * Request a PMA token for accessing a specific service with specific scope.
+     * @param requestorAuth The authorization for the service making the request. This will also be the identity
+     *          attached to the token.
+     * @param nodeInstanceHandle The handle of the node instance to associate with the token
+     * @param serviceId The service that the token is for
+     * @param scope The requested authorization.
+     */
     fun requestPmaAuthToken(
         requestorAuth: PmaAuthInfo,
         nodeInstanceHandle: PNIHandle,
@@ -403,29 +424,57 @@ class AuthService(
         return token
     }
 
+    /**
+     * Acquire a delegate token, based upon both client authentication and a token used to invoke the service.
+     * @param clientAuth The authorization of the client (could be clientId/password).
+     * @param exchangedToken The token to use as basis for the delegate token (allowing the client ot invoke a specific service)
+     * @param service The service targeted by the token
+     * @param requestedScope The scope needed
+     */
     fun exchangeDelegateToken(
         clientAuth: PmaAuthInfo,
         exchangedToken: PmaAuthToken,
         service: ServiceId<*>,
         requestedScope: AuthScope,
     ): PmaAuthToken {
-        val clientServiceId = clientAuth.principal.name
+//        val clientServiceId = clientAuth.principal.name
+        val clientName  =clientAuth.principal.name
+        val exchangedTarget = exchangedToken
+        if (clientAuth.principal.name != exchangedToken.serviceId.serviceId) {
+            throw AuthorizationException("The exchanged token does not match the client wishing to exchange it.")
+        }
         validateAuthTokenPermission(
             exchangedToken,
-            ServiceId<Service>(clientServiceId),
-            DELEGATED_PERMISSION.context(clientServiceId, service, requestedScope)
+            exchangedToken.serviceId,
+            DELEGATED_PERMISSION.context(service, requestedScope)
         )
+
+        val effectiveScope = when(requestedScope) {
+            ANYSCOPE -> {
+                val subToken = exchangedToken.scope.intersect(DELEGATED_PERMISSION.restrictTo(service, ANYSCOPE))
+                if (subToken !is DELEGATED_PERMISSION.DelegateContextScope) throw AuthorizationException("No effective scope could be determined")
+                subToken.childScope
+            }
+            else -> requestedScope
+        }
+
         val newToken = createAuthTokenWithoutValidation(
             clientAuth.principal,
             exchangedToken.nodeInstanceHandle,
             service,
-            requestedScope
+            effectiveScope
         )
 
         doLog(clientAuth, "exchangeDelegateToken(exchanged = ${exchangedToken}, token = $newToken)")
         return newToken
     }
 
+    /**
+     * Get a global authorization code.
+     * @param identityToken as basis.
+     * @param serviceId The service to be invoked
+     * @param reqScope The requested scope.
+     */
     fun getAuthorizationCode(
         identityToken: PmaAuthInfo,
         serviceId: ServiceId<*>,
@@ -441,14 +490,6 @@ class AuthService(
             doLog(identityToken, "getAuthorizationCode($identityToken) = $authorizationCode -> $token")
         }
         return authorizationCode
-    }
-
-    fun getAuthTokenDirect(
-        identityToken: PmaAuthInfo,
-        service: Service,
-        reqScope: AuthScope
-    ): PmaAuthToken {
-        return getAuthTokenDirect(identityToken, service.serviceInstanceId, reqScope)
     }
 
     fun getAuthTokenDirect(
@@ -530,29 +571,31 @@ class AuthService(
         }
     }
 
-    private fun registerClient(name: String, secret: String): PmaIdSecretAuthInfo {
-        val clientId = "$name:${Random.nextUInt().toString(16)}"
-        return registerClient(clientFromId(clientId), secret, name)
-    }
+    fun registerClient(auth: PmaAuthInfo, serviceName: ServiceName<Service>, secret: String): PmaIdSecretAuthInfo {
+        val clientId = clientFromId("${serviceName.serviceName}:${Random.nextUInt().toString(16)}")
+        val clientAuthInfo = registerClient(auth, clientId, secret, serviceName.serviceName)
 
-    fun registerClient(serviceName: ServiceName<*>, secret: String): PmaIdSecretAuthInfo {
-        val authInfo = registerClient(serviceName.serviceName, secret)
-
-        registerGlobalPermission(null, authInfo.principal, this, VALIDATE_AUTH(ServiceId<Service>(authInfo.id)))
-        return authInfo
+        registerGlobalPermission(null, clientAuthInfo.principal, this, VALIDATE_AUTH(ServiceId<Service>(clientAuthInfo.id)))
+        return clientAuthInfo
     }
 
 
-    fun registerClient(user: PrincipalCompat, secret: String, name: String = user.name): PmaIdSecretAuthInfo {
+    fun registerClient(auth: PmaAuthInfo, user: PrincipalCompat, secret: String, name: String = user.name.substringBeforeLast(':')): PmaIdSecretAuthInfo {
         doLog("registerClient($user)")
-        val clientId = user.name
-        if (registeredClients[clientId] != null) return registerClient(name, secret)
-        registeredClients[clientId] = ClientInfo(clientId, name, secret)
-        return PmaIdSecretAuthInfo(user, secret)
+        internalValidateAuthInfo(auth, REGISTER_CLIENT)
+
+        var actualPrincipal = user
+        while (actualPrincipal.name in registeredClients) { actualPrincipal = clientFromId("${name}:${random.nextUInt().toString(16)}") }
+
+        registeredClients[actualPrincipal.name] = ClientInfo(actualPrincipal.name, name, secret)
+        return PmaIdSecretAuthInfo(actualPrincipal, secret)
     }
 
-    fun isTokenInvalid(token: PmaAuthToken): Boolean {
-        return token !in activeTokens
+    fun isTokenValid(clientAuth: PmaAuthInfo, token: PmaAuthToken): Boolean {
+        if (token.principal != clientAuth.principal) { // A user/service can always verify their own tokens
+            internalValidateAuthInfo(clientAuth, VALIDATE_AUTH(token.serviceId))
+        }
+        return token in activeTokens
     }
 
     fun registerGlobalPermission(
@@ -566,7 +609,7 @@ class AuthService(
             val clientId = authInfo.principal.name
             internalValidateAuthInfo(
                 authInfo,
-                CommonPMAPermissions.GRANT_GLOBAL_PERMISSION.context(clientId, service, scope)
+                GRANT_GLOBAL_PERMISSION.context(clientId, service, scope)
             )
         }
         globalPermissions.compute(principal.name) { _, map ->

@@ -69,6 +69,7 @@ open class TaskBuilderContext<AIC : DynamicPmaActivityContext<AIC, BIC>, BIC : T
     }
 }
 
+@OptIn(ExperimentalContracts::class)
 fun <S : RunnableUiService, R> TaskBuilderContext.BrowserContext<*, *>.uiServiceLogin(service: S, action: TaskBuilderContext.UIServiceInnerContext<S>.() -> R) : R {
     contract {
         callsInPlace(action, InvocationKind.EXACTLY_ONCE)

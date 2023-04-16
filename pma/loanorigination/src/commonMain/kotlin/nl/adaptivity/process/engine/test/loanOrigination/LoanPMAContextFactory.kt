@@ -28,17 +28,18 @@ class LoanPMAContextFactory(log: Logger, random: Random) :
 
     private val processContexts = mutableMapOf<PIHandle, LoanPmaProcessContext>()
 
-    private val taskList: TaskList by lazy {
-        val clientAuth = authService.registerClient(ServiceName<TaskList>("TaskList(GLOBAL)"), Random.nextString())
-        engineService.registerGlobalPermission(clientAuth.principal, authService, VALIDATE_AUTH(ServiceId<TaskList>(clientAuth.id)))
+    private val taskList: EnumeratedTaskList by lazy {
+        val serviceName = ServiceName<EnumeratedTaskList>("TaskList(GLOBAL)")
+        val clientAuth = authServiceClient.registerClient(serviceName, Random.nextString())
+        authServiceClient.registerGlobalPermission(clientAuth.principal, authService, VALIDATE_AUTH(ServiceId<EnumeratedTaskList>(clientAuth.id)))
 
-        EnumeratedTaskList("tasklist", authService, engineService, clientAuth, principals).also { t ->
-            engineService.registerGlobalPermission(
+        EnumeratedTaskList(serviceName, authService, engineService, clientAuth, principals).also { t ->
+            authServiceClient.registerGlobalPermission(
                 SimplePrincipal(engineService.serviceInstanceId.serviceId) as PrincipalCompat,
                 t,
                 CommonPMAPermissions.POST_TASK
             )
-            engineService.registerGlobalPermission(t.serviceAuth.principal, authService, VALIDATE_AUTH(t.serviceInstanceId))
+            authServiceClient.registerGlobalPermission(SimplePrincipal(t.serviceInstanceId.serviceId), authService, VALIDATE_AUTH(t.serviceInstanceId))
         }
     }
     override val engineServiceAuthServiceClient: DefaultAuthServiceClient
@@ -58,7 +59,7 @@ class LoanPMAContextFactory(log: Logger, random: Random) :
         signingService
     )
 
-    override fun getOrCreateTaskListForRestrictions(accessRestrictions: AccessRestriction?): List<TaskList> {
+    override fun getOrCreateTaskListForRestrictions(accessRestrictions: AccessRestriction?): List<TaskList<*>> {
         return listOf(taskList)
     }
 
@@ -121,13 +122,13 @@ class LoanPMAContextFactory(log: Logger, random: Random) :
         with(engineService) { context.onActivityTermination(processNodeInstance) }
     }
 
-    override fun getOrCreateTaskListForUser(principal: PrincipalCompat): TaskList {
+    override fun getOrCreateTaskListForUser(principal: PrincipalCompat): TaskList<*> {
         log.log(Level.INFO, "Creating tasklist service for ${principal.name}")
 
-        engineService.registerGlobalPermission(principal, taskList, CommonPMAPermissions.ACCEPT_TASK)
+        authServiceClient.registerGlobalPermission(principal, taskList, CommonPMAPermissions.ACCEPT_TASK)
 
         // TODO, use an activity specific permission/token instead.
-        engineService.registerGlobalPermission(
+        authServiceClient.registerGlobalPermission(
             SimplePrincipal(engineService.serviceInstanceId.serviceId) as Principal,
             taskList,
             CommonPMAPermissions.POST_TASK

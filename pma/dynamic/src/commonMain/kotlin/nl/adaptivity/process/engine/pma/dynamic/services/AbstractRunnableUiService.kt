@@ -1,23 +1,35 @@
 package nl.adaptivity.process.engine.pma.dynamic.services
 
-import nl.adaptivity.process.engine.pma.AuthService
-import nl.adaptivity.process.engine.pma.Browser
-import nl.adaptivity.process.engine.pma.PmaAuthToken
-import nl.adaptivity.process.engine.pma.PmaIdSecretAuthInfo
-import nl.adaptivity.process.engine.pma.models.ServiceId
+import nl.adaptivity.process.engine.pma.*
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DefaultAuthServiceClient
 import nl.adaptivity.process.engine.pma.models.ServiceName
+import java.util.logging.Logger
 
-abstract class AbstractRunnableUiService : ServiceBase, RunnableUiService {
+abstract class AbstractRunnableUiService<S: AbstractRunnableUiService<S>> : ServiceBase<S>, RunnableUiService {
 
-    constructor(authService: AuthService, serviceAuth: PmaIdSecretAuthInfo) : super(authService, serviceAuth)
-    constructor(authService: AuthService, name: String) : super(authService, name)
+    constructor(
+        authService: AuthService,
+        serviceAuth: PmaIdSecretAuthInfo,
+        serviceName: ServiceName<S>,
+        logger: Logger = authService.logger
+    ) : super(authService, serviceAuth, serviceName, logger)
 
-    abstract override val serviceName: ServiceName<AbstractRunnableUiService>
-    abstract override val serviceInstanceId: ServiceId<AbstractRunnableUiService>
+    constructor(authServiceClient: DefaultAuthServiceClient, serviceName: ServiceName<S>, logger: Logger) : super(
+        authServiceClient,
+        serviceName,
+        logger
+    )
+
+    constructor(authService: AuthService, adminAuth: PmaAuthInfo, serviceName: ServiceName<S>, logger: Logger = authService.logger) : super(
+        authService,
+        adminAuth,
+        serviceName,
+        logger
+    )
 
     override fun loginBrowser(browser: Browser): PmaAuthToken {
-        val authorization = browser.loginToService(authService, this)
-        return authService.exchangeAuthCode(browser.auth, authorization)
+        val authorization = browser.loginToService(authServiceClient.authService, this)
+        return authServiceClient.authService.exchangeAuthCode(browser.auth, authorization)
     }
 
 }

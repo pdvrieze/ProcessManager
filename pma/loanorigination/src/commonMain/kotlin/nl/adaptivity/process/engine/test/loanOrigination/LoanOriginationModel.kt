@@ -117,10 +117,10 @@ class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<Ex
             generalClientService.runWithAuthorization(serviceTask()) { tknTID ->
 
                 assertForbidden {
-                    authService.getAuthTokenDirect(tknTID, customerFile, CREATE_CUSTOMER)
+                    authService.getAuthTokenDirect(tknTID, customerFile.serviceInstanceId, CREATE_CUSTOMER)
                 }
                 assertForbidden {
-                    authService.getAuthTokenDirect(tknTID, customerFile, QUERY_CUSTOMER_DATA)
+                    authService.getAuthTokenDirect(tknTID, customerFile.serviceInstanceId, QUERY_CUSTOMER_DATA)
                 }
 
                 val custInfoAuthToken = getServiceToken(customerFile,
@@ -131,17 +131,16 @@ class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<Ex
                     ?: throw NullPointerException("Missing customer data")
 
                 assertForbidden {
-                    authService.getAuthTokenDirect(tknTID, creditBureau, CREATE_CUSTOMER)
+                    authService.getAuthTokenDirect(tknTID, creditBureau.serviceInstanceId, CREATE_CUSTOMER)
                 }
 
                 assertForbidden {
-                    authService.getAuthTokenDirect(tknTID, creditBureau, GET_CREDIT_REPORT)
+                    authService.getAuthTokenDirect(tknTID, creditBureau.serviceInstanceId, GET_CREDIT_REPORT)
                 }
                 assertForbidden {
                     authService.getAuthTokenDirect(
                         tknTID,
-                        creditBureau,
-                        GET_CREDIT_REPORT.invoke("taxId5")
+                        creditBureau.serviceInstanceId, GET_CREDIT_REPORT.invoke("taxId5")
                     )
                 }
                 val creditAuthToken = getServiceToken(creditBureau,
@@ -354,7 +353,7 @@ data class PricingInput(val loanEvaluation: LoanEvaluation, val chosenProduct: L
 data class VerifyCustomerApprovalInput(val customer: LoanCustomer, val approval: SignedDocument<Approval>)
 
 
-@Deprecated("These are testing things")
+//@Deprecated("These are testing things")
 @Suppress("NOTHING_TO_INLINE")
 internal inline fun assertForbidden(noinline action: () -> Unit) {
     Assertions.assertThrows(AuthorizationException::class.java, action)

@@ -2,11 +2,13 @@ package io.github.pdvrieze.pma.agfil.contexts
 
 import io.github.pdvrieze.pma.agfil.services.*
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.SimpleRolePrincipal
+import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.PIHandle
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.Browser
 import nl.adaptivity.process.engine.pma.EngineService
+import nl.adaptivity.process.engine.pma.PmaIdSecretAuthInfo
 import nl.adaptivity.process.engine.pma.dynamic.runtime.AbstractDynamicPmaContextFactory
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DefaultAuthServiceClient
 import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
@@ -25,7 +27,9 @@ import java.security.Principal
 import java.util.logging.Logger
 import kotlin.random.Random
 
-class AgfilContextFactory(private val logger: Logger, private val random: Random = Random) : AbstractDynamicPmaContextFactory<AgfilActivityContext>() {
+class AgfilContextFactory(private val logger: Logger, private val random: Random = Random) :
+    AbstractDynamicPmaContextFactory<AgfilActivityContext>() {
+
     private val processContexts = mutableMapOf<PIHandle, AgfilProcessContext>()
     private val browsers = mutableMapOf<String, Browser>()
 
@@ -48,22 +52,29 @@ class AgfilContextFactory(private val logger: Logger, private val random: Random
 
     private val nodes = mutableMapOf<PNIHandle, String>()
 
-    val authService: AuthService = AuthService(ServiceNames.authService.serviceName, logger, nodes, random)
+    val authService: AuthService
+
+    override val engineServiceAuthServiceClient: DefaultAuthServiceClient
+
+    init {
+        val adminAuth = PmaIdSecretAuthInfo(SimplePrincipal("<PMA-Admin>"))
+        authService = AuthService(ServiceNames.authService, adminAuth, logger, nodes, random)
+        engineServiceAuthServiceClient = DefaultAuthServiceClient(adminAuth, authService)
+    }
+
+
     val engineService: EngineService = EngineService(ServiceNames.engineService.serviceName, authService)
 
     // TODO have separate task lists for each organization.
-    val taskListService: TaskList = DynamicTaskList(
+    val taskListService: DynamicTaskList = DynamicTaskList(
         ServiceNames.taskListService.serviceName,
         authService,
         engineService,
-        authService.registerClient(ServiceName<TaskList>("TaskList(GLOBAL)"), Random.nextString()),
+        engineServiceAuthServiceClient.registerClient(ServiceName<DynamicTaskList>("TaskList(GLOBAL)"), Random.nextString()),
         ""
     )
 
     val agfilService: AgfilService = AgfilService(ServiceNames.agfilService, authService)
-
-    override val engineServiceAuthServiceClient: DefaultAuthServiceClient
-        get() = engineService.authServiceClient
 
     val garageServices = ServiceNames.garageServices.arrayMap { GarageService(it, authService, TODO("pass engine for garage"), random) }
 
@@ -84,16 +95,16 @@ class AgfilContextFactory(private val logger: Logger, private val random: Random
         return null // TODO support proper messaging
     }
 
-    override fun getOrCreateTaskListForUser(principal: Principal): TaskList {
+    override fun getOrCreateTaskListForUser(principal: Principal): TaskList<*> {
         return taskListService
     }
 
-    override fun getOrCreateTaskListForRestrictions(accessRestrictions: AccessRestriction?): List<TaskList> {
+    override fun getOrCreateTaskListForRestrictions(accessRestrictions: AccessRestriction?): List<TaskList<*>> {
         return listOf(taskListService)
     }
 
     fun resolveBrowser(principal: PrincipalCompat): Browser {
-        return browsers.getOrPut(principal.name) { Browser(authService, principal) }
+        return browsers.getOrPut(principal.name) { Browser(authService, engineServiceAuthServiceClient.registerClient(principal, Random.nextString())) }
     }
 }
 

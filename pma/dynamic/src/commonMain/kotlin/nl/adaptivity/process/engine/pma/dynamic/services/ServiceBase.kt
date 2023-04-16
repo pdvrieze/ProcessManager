@@ -20,45 +20,64 @@ import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.PmaAuthToken
 import nl.adaptivity.process.engine.pma.PmaIdSecretAuthInfo
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DefaultAuthServiceClient
+import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.pma.models.*
 import java.util.logging.Level
+import java.util.logging.Logger
 import kotlin.random.Random
-import kotlin.random.nextULong
 
-interface PmaService: Service {
-    val authService: AuthService
-    val serviceAuth: PmaIdSecretAuthInfo
+interface PmaService : Service {
+    val authServiceClient: DefaultAuthServiceClient
 }
 
-abstract class ServiceBase(
-    override val authService: AuthService, // TODO, replace with AuthServiceClient
-    override val serviceAuth: PmaIdSecretAuthInfo
-): PmaService {
-    private val tokens = mutableListOf<PmaAuthToken>()
+abstract class ServiceBase<S: ServiceBase<S>>(
+    final override val authServiceClient: DefaultAuthServiceClient,
+    final override val serviceName: ServiceName<S>,
+    protected val logger: Logger
+) : PmaService {
+
+    final override val serviceInstanceId: ServiceId<S> =
+        ServiceId(authServiceClient.originatingClientAuth.principal.name)
+
+    constructor(authService: AuthService, serviceAuth: PmaIdSecretAuthInfo, serviceName: ServiceName<S>, logger: Logger = authService.logger)
+        : this(DefaultAuthServiceClient(serviceAuth, authService), serviceName, logger)
+
+    constructor(authService: AuthService, adminAuth: PmaAuthInfo , serviceName: ServiceName<S>, logger: Logger = authService.logger)
+        : this(DefaultAuthServiceClient(authService.registerClient(adminAuth, serviceName, Random.nextString()), authService), serviceName, logger)
+
+    private val tokens: MutableList<PmaAuthToken> = mutableListOf<PmaAuthToken>()
 //    open val serviceInstanceId: ServiceId<*> = getServiceId(serviceAuth)
 
     open fun getServiceState(): String = "<No state>"
 
-    constructor(authService: AuthService, name: String) : this(
-        authService,
-        authService.registerClient(
-            ServiceName<ServiceBase>( name),
-            Random.nextULong().toString(16)
-        )
+/*
+    constructor(authService: AuthService, name: String, logger: Logger = authService.logger) : this(
+        authService = authService,
+        serviceName = ServiceName<S>(name),
+        logger = logger
     )
 
+    constructor(authService: AuthService, serviceName: ServiceName<S>, logger: Logger = authService.logger) : this(
+        authService = authService,
+        serviceAuth = authService.registerClient(serviceName, Random.nextULong().toString(16)),
+        serviceName = serviceName,
+        logger = logger
+    )
+*/
+
     protected fun Service.validateAuthInfo(authInfo: PmaAuthInfo, scope: UseAuthScope) {
-        authService.validateAuthInfo(serviceAuth, authInfo, serviceInstanceId, scope)
+        authServiceClient.validateAuthInfo(authInfo, serviceInstanceId, scope)
     }
 
     fun globalAuthTokenForService(service: Service, scope: AuthScope = ANYSCOPE): PmaAuthToken {
         logMe(service.serviceInstanceId, scope)
 
-        tokens.removeAll { authService.isTokenInvalid(it) }
+        tokens.removeAll { !authServiceClient.isTokenValid(it) } // TODO have bulk option
 
         tokens.lastOrNull { it.serviceId == service.serviceInstanceId }?.let { return it }
 
-        return authService.getAuthTokenDirect(serviceAuth, service, ANYSCOPE).also { tokens.add(it) }
+        return authServiceClient.getAuthTokenDirect(service.serviceInstanceId, ANYSCOPE).also { tokens.add(it) }
     }
 
     fun logMe(vararg params: Any?) {
@@ -67,7 +86,7 @@ abstract class ServiceBase(
         val methodName = Throwable().stackTrace[1].methodName.substringBefore('-')
         val serviceState = getServiceState()
         val quotedServiceState = if (serviceState.isEmpty()) "" else "($serviceState)"
-        authService.logger.log(Level.INFO, "$service$quotedServiceState.$methodName($args)")
+        logger.log(Level.INFO, "$service$quotedServiceState.$methodName($args)")
     }
 
     companion object {

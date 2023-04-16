@@ -3,8 +3,11 @@ package nl.adaptivity.process.engine.pma.runtime
 import nl.adaptivity.process.engine.pma.models.*
 import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.processModel.AuthorizationInfo
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 interface AuthServiceClient<InfoT: AuthorizationInfo, TokenT: AuthorizationInfo.Token, CodeT> {
+
+    val principal: PrincipalCompat
 
     fun validateAuthInfo(
         authInfoToCheck: InfoT,
@@ -14,8 +17,29 @@ interface AuthServiceClient<InfoT: AuthorizationInfo, TokenT: AuthorizationInfo.
 
     fun exchangeAuthCode(authorizationCode: CodeT): TokenT
 
+    /**
+     * Create an authorization code for a client to access the service with given scope
+     * @param client The client that is being authorized
+     * @param nodeInstanceHandle The node instance related to this authorization
+     * @param serviceId The service being authorized
+     * @param requestedScope The scope being authorized
+     */
     fun requestPmaAuthCode(
         client: ServiceId<*>,
+        nodeInstanceHandle: PNIHandle,
+        serviceId: ServiceId<*>,
+        requestedScope: AuthScope
+    ): CodeT
+
+    /**
+     * Create an authorization code for a client to access the service with given scope
+     * @param client The client that is being authorized
+     * @param nodeInstanceHandle The node instance related to this authorization
+     * @param serviceId The service being authorized
+     * @param requestedScope The scope being authorized
+     */
+    fun requestPmaAuthCode(
+        client: PrincipalCompat,
         nodeInstanceHandle: PNIHandle,
         serviceId: ServiceId<*>,
         requestedScope: AuthScope
@@ -26,6 +50,10 @@ interface AuthServiceClient<InfoT: AuthorizationInfo, TokenT: AuthorizationInfo.
         authorizations: List<AuthScope>,
         processNodeInstanceHandle: PNIHandle
     ): TokenT
+
+    fun invalidateActivityTokens(
+        hNodeInstance: PNIHandle
+    )
 
 }
 

@@ -17,10 +17,10 @@
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
 import nl.adaptivity.process.engine.pma.AuthService
+import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.PmaAuthToken
 import nl.adaptivity.process.engine.pma.dynamic.services.ServiceBase
 import nl.adaptivity.process.engine.pma.models.AutomatedService
-import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CreditReport
@@ -28,13 +28,11 @@ import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanApplicati
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.LoanEvaluation
 
 class CreditApplication(
-    serviceName: String,
+    serviceName: ServiceName<CreditApplication>,
     authService: AuthService,
+    adminAuth: PmaAuthInfo,
     val customerInformationFile: CustomerInformationFile,
-) : ServiceBase(authService, "Credit_Application"), AutomatedService {
-
-    override val serviceName: ServiceName<CreditApplication> = ServiceName(serviceName)
-    override val serviceInstanceId: ServiceId<CreditApplication> = ServiceId(getServiceId(serviceAuth))
+) : ServiceBase<CreditApplication>(authService, adminAuth, serviceName), AutomatedService {
 
     override fun getServiceState(): String = ""
 
@@ -46,7 +44,7 @@ class CreditApplication(
         logMe(application)
         validateAuthInfo(authInfo, LoanPermissions.EVALUATE_LOAN.context(application.customerId, application.amount))
 
-        val cifServiceAuth = authService.exchangeDelegateToken(serviceAuth, authInfo, customerInformationFile.serviceInstanceId, LoanPermissions.QUERY_CUSTOMER_DATA(application.customerId))
+        val cifServiceAuth = authServiceClient.exchangeDelegateToken(authInfo, customerInformationFile.serviceInstanceId, LoanPermissions.QUERY_CUSTOMER_DATA(application.customerId))
         val customer = customerInformationFile.getCustomerData(cifServiceAuth, application.customerId)!!
 
         if (application.amount<creditReport.maxLoan) {

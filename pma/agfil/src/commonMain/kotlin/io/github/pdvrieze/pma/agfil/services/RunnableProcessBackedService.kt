@@ -5,12 +5,15 @@ import nl.adaptivity.process.engine.ProcessEngine
 import nl.adaptivity.process.engine.StubProcessTransaction
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.PmaIdSecretAuthInfo
-import nl.adaptivity.process.engine.pma.dynamic.services.AbstractRunnableUiService
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DefaultAuthServiceClient
+import nl.adaptivity.process.engine.pma.dynamic.services.ServiceBase
+import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.util.kotlin.arrayMap
+import java.util.logging.Logger
 import kotlin.random.Random
 
-abstract class RunnableProcessBackedService : AbstractRunnableUiService {
+abstract class RunnableProcessBackedService<S: RunnableProcessBackedService<S>> : ServiceBase<S> {
 
     protected val processEngine: ProcessEngine<StubProcessTransaction>
     protected val random: Random
@@ -21,23 +24,42 @@ abstract class RunnableProcessBackedService : AbstractRunnableUiService {
         processEngine: ProcessEngine<StubProcessTransaction>,
         random: Random,
         vararg processes: ExecutableProcessModel
-    ) : super(authService, serviceName) {
+    ) : this(serviceName, authService, processEngine, random, authService.logger, *processes)
+
+    constructor(
+        serviceName: String,
+        authService: AuthService,
+        processEngine: ProcessEngine<StubProcessTransaction>,
+        random: Random,
+        logger: Logger,
+        vararg processes: ExecutableProcessModel
+    ) : super(authService, serviceName, logger) {
         this.processEngine = processEngine
         this.random = random
-        this.processHandles= ensureProcessHandles(processEngine, serviceAuth, processes)
+        this.processHandles= ensureProcessHandles(processEngine, authServiceClient, processes)
     }
-
 
     constructor(
         serviceAuth: PmaIdSecretAuthInfo,
+        serviceName: ServiceName<S>,
         authService: AuthService,
         processEngine: ProcessEngine<StubProcessTransaction>,
         random: Random,
         vararg processes: ExecutableProcessModel,
-    ) : super(authService, serviceAuth) {
+    ) : this (serviceAuth, serviceName, authService, processEngine, random, authService.logger, *processes)
+
+    constructor(
+        serviceAuth: PmaIdSecretAuthInfo,
+        serviceName: ServiceName<S>,
+        authService: AuthService,
+        processEngine: ProcessEngine<StubProcessTransaction>,
+        random: Random,
+        logger: Logger,
+        vararg processes: ExecutableProcessModel,
+    ) : super(authService, serviceAuth, serviceName, logger) {
         this.processEngine = processEngine
         this.random = random
-        this.processHandles= ensureProcessHandles(processEngine, serviceAuth, processes)
+        this.processHandles= ensureProcessHandles(processEngine, authServiceClient, processes)
     }
 
     protected val processHandles: Array<Handle<ExecutableProcessModel>>
@@ -46,17 +68,17 @@ abstract class RunnableProcessBackedService : AbstractRunnableUiService {
 
         private fun ensureProcessHandles(
             processEngine: ProcessEngine<StubProcessTransaction>,
-            serviceAuth: PmaIdSecretAuthInfo,
+            authServiceClient: DefaultAuthServiceClient,
             processes: Array<out ExecutableProcessModel>
-        ) : Array<Handle<ExecutableProcessModel>> {
+        ) : Array<Handle<ExecutableProcessModel>> { // TODO use processEngineService
             return processEngine.inTransaction { tr ->
-                val existingModels = getProcessModels(tr.readableEngineData, serviceAuth.principal)
+                val existingModels = getProcessModels(tr.readableEngineData, authServiceClient.principal)
                     .map { it.withPermission() }
                     .filter { it.uuid != null }
                     .associate { (it.uuid!!) to it.handle }
 
                 processes.arrayMap { model ->
-                    existingModels[model.uuid] ?: addProcessModel(tr, model, serviceAuth.principal).handle
+                    existingModels[model.uuid] ?: addProcessModel(tr, model, authServiceClient.principal).handle
                 }
             }
         }

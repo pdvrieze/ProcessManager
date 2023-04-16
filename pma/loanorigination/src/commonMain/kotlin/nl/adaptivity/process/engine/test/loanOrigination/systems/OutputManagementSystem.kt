@@ -16,12 +16,11 @@
 
 package nl.adaptivity.process.engine.test.loanOrigination.systems
 
-import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.AuthService
-import nl.adaptivity.process.engine.pma.dynamic.services.AbstractRunnableUiService
+import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
+import nl.adaptivity.process.engine.pma.dynamic.services.AbstractRunnableUiService
 import nl.adaptivity.process.engine.pma.models.AutomatedService
-import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.test.loanOrigination.auth.LoanPermissions
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.Contract
@@ -29,11 +28,9 @@ import nl.adaptivity.process.engine.test.loanOrigination.datatypes.Offer
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.PricedLoanProductBundle
 import kotlin.random.Random
 
-class OutputManagementSystem(serviceName: String, authService: AuthService): AbstractRunnableUiService(authService, "Output_Management_System"),
+class OutputManagementSystem(serviceName: ServiceName<OutputManagementSystem>, authService: AuthService, adminAuth: PmaAuthInfo):
+    AbstractRunnableUiService<OutputManagementSystem>(authService, adminAuth, serviceName),
     AutomatedService {
-
-    override val serviceName: ServiceName<OutputManagementSystem> = ServiceName(serviceName)
-    override val serviceInstanceId: ServiceId<OutputManagementSystem> = ServiceId(getServiceId(serviceAuth))
 
     override fun getServiceState(): String = ""
 

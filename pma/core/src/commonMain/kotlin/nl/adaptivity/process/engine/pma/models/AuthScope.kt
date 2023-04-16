@@ -44,9 +44,13 @@ interface AuthScope : AuthScopeTemplate<ActivityInstanceContext> {
      * and may very well be nothing.
      * @return `null` if there is no permission, otherwise a narrower permission.
      */
-    fun intersect(otherScope: AuthScope): AuthScope? {
-        if (otherScope is UnionPermissionScope) return otherScope.intersect(this)
-        return if (otherScope is UseAuthScope && includes(otherScope)) otherScope else null
+    fun intersect(otherScope: AuthScope): AuthScope {
+        return when {
+            otherScope == ANYSCOPE -> this
+            otherScope is UnionPermissionScope -> otherScope.intersect(this)
+            otherScope is UseAuthScope && includes(otherScope) -> otherScope
+            else -> EMPTYSCOPE
+        }
     }
 
     /**
@@ -61,9 +65,9 @@ interface AuthScope : AuthScopeTemplate<ActivityInstanceContext> {
 
 }
 
-class UnionPermissionScope(members: List<AuthScope>):
-    AuthScope {
-    val members: List<AuthScope> = members.flatMap {
+class UnionPermissionScope(members: List<AuthScope>): AuthScope {
+
+    val members: List<AuthScope> = members.filterNot { it == EMPTYSCOPE }.flatMap {
         (it as? UnionPermissionScope)?.members ?: listOf(it)
     }
 
@@ -73,11 +77,14 @@ class UnionPermissionScope(members: List<AuthScope>):
         return members.any { it.includes(useScope) }
     }
 
-    override fun intersect(otherScope: AuthScope): AuthScope? {
-        val newMembers = members.mapNotNull {
+    override fun intersect(otherScope: AuthScope): AuthScope {
+        if (otherScope==ANYSCOPE) return this
+
+        val newMembers = members.map {
             it.intersect(otherScope)
-        }
-        if (newMembers.isEmpty()) return null
+        }.filterNot { it == EMPTYSCOPE }
+
+        if (newMembers.isEmpty()) return EMPTYSCOPE
         if (newMembers.size == 1) return newMembers.single()
         return UnionPermissionScope(newMembers)
     }
@@ -119,6 +126,14 @@ class UnionPermissionScope(members: List<AuthScope>):
  */
 interface UseAuthScope: AuthScope {
 
+}
+
+object EMPTYSCOPE: AuthScope {
+    override val description: String get() = "-"
+    override fun includes(useScope: UseAuthScope): Boolean = false
+    override fun intersect(otherScope: AuthScope): EMPTYSCOPE = EMPTYSCOPE
+    override fun union(otherScope: AuthScope): AuthScope = otherScope
+    override fun instantiateScope(context: ActivityInstanceContext): EMPTYSCOPE = EMPTYSCOPE
 }
 
 object ANYSCOPE: AuthScope {

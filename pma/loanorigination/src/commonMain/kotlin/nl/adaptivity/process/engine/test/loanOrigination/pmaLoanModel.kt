@@ -139,51 +139,6 @@ val pmaLoanModel =
             ) { customer: LoanCustomer ->
                 // TODO maybe retrieve the customer data to pass it to the creditBureau
                 service.getCreditReport(processContext.contextFactory, authToken, customer.customerId, customer.taxId)
-
-                /*
-                generalClientService.runWithAuthorization(serviceTask()) { tknTID ->
-
-                    assertForbidden {
-                        authService.getAuthTokenDirect(tknTID, customerFile, LoanPermissions.CREATE_CUSTOMER)
-                    }
-                    assertForbidden {
-                        authService.getAuthTokenDirect(tknTID, customerFile, LoanPermissions.QUERY_CUSTOMER_DATA)
-                    }
-
-                    val custInfoAuthToken = getServiceToken(
-                        customerFile,
-                        LoanPermissions.QUERY_CUSTOMER_DATA.invoke(customer.customerId)
-                    )
-
-                    val customerData: CustomerData =
-                        customerFile.getCustomerData(custInfoAuthToken, customer.customerId)
-                            ?: throw NullPointerException("Missing customer data")
-
-                    assertForbidden {
-                        authService.getAuthTokenDirect(tknTID, creditBureau, LoanPermissions.CREATE_CUSTOMER)
-                    }
-
-                    assertForbidden {
-                        authService.getAuthTokenDirect(tknTID, creditBureau, LoanPermissions.GET_CREDIT_REPORT)
-                    }
-                    assertForbidden {
-                        authService.getAuthTokenDirect(
-                            tknTID,
-                            creditBureau,
-                            LoanPermissions.GET_CREDIT_REPORT.invoke("taxId5")
-                        )
-                    }
-                    val creditAuthToken = getServiceToken(
-                        creditBureau,
-                        LoanPermissions.GET_CREDIT_REPORT.invoke(customerData.taxId)
-                    )
-
-
-                    assertForbidden { creditBureau.getCreditReport(custInfoAuthToken, customerData) }
-                    assertForbidden { creditBureau.getCreditReport(tknTID, customerData) }
-
-                    creditBureau.getCreditReport(creditAuthToken, customerData)
-*/
             }
 
 
@@ -213,7 +168,7 @@ val pmaLoanModel =
             creditReportOut = output("creditReport", getCreditReport)
         }
 
-        val chooseBundledProduct by taskActivity(
+        val chooseBundledProduct: DataNodeHandle<LoanProductBundle> by taskActivity(
             predecessor = evaluateCredit,
             accessRestrictions = RoleRestriction("customer"),
             input = loanEvaluationOut
@@ -342,22 +297,3 @@ private inline val TaskBuilderContext<LoanPMAActivityContext, *, *>.customer: Pr
 private inline val TaskBuilderContext<LoanPMAActivityContext, *, *>.clerk1: PrincipalCompat get() = AbstractLoanContextFactory.principals.clerk1
 private inline val TaskBuilderContext<LoanPMAActivityContext, *, *>.postProcClerk: PrincipalCompat get() = AbstractLoanContextFactory.principals.clerk2
 
-object ServiceNames {
-    val accountManagementSystem: ServiceName<AccountManagementSystem> = ServiceName("accountManagementSystem")
-    val authService: ServiceName<AuthService> = ServiceName("authService")
-    val engineService: ServiceName<EngineService> = ServiceName("engineService")
-
-    //    val clerk1 : ServiceId = ServiceId("clerk1")
-    val creditApplication: ServiceName<CreditApplication> = ServiceName("creditApplication")
-    val creditBureau: ServiceName<CreditBureau> = ServiceName("creditBureau")
-
-    //    val customer : ServiceId = ServiceId("customer")
-//    val customerData : ServiceId<CustomerData> = ServiceId("customerData")
-    val customerFile: ServiceName<CustomerInformationFile> = ServiceName("customerFile")
-    val generalClientService: ServiceName<GeneralClientService> = ServiceName("generalClientService")
-    val outputManagementSystem: ServiceName<OutputManagementSystem> = ServiceName("outputManagementSystem")
-
-    //    val postProcClerk : ServiceId = ServiceId("postProcClerk")
-    val pricingEngine: ServiceName<PricingEngine> = ServiceName("pricingEngine")
-    val signingService: ServiceName<SigningService> = ServiceName("signingService")
-}

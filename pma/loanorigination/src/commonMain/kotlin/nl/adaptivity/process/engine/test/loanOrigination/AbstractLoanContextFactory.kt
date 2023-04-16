@@ -4,10 +4,9 @@ import io.github.pdvrieze.process.processModel.dynamicProcessModel.SimpleRolePri
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.ProcessContextFactory
-import nl.adaptivity.process.engine.pma.AuthService
-import nl.adaptivity.process.engine.pma.Browser
-import nl.adaptivity.process.engine.pma.EngineService
-import nl.adaptivity.process.engine.pma.GeneralClientService
+import nl.adaptivity.process.engine.pma.*
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DefaultAuthServiceClient
+import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
 import nl.adaptivity.process.engine.test.loanOrigination.systems.*
@@ -20,16 +19,22 @@ abstract class AbstractLoanContextFactory<AIC: ActivityInstanceContext>(val log:
 
     protected val nodes = mutableMapOf<PNIHandle, String>()
 
-    val authService: AuthService = AuthService(ServiceNames.authService.serviceName, log, nodes, random)
-    val engineService : EngineService = EngineService(ServiceNames.engineService.serviceName, authService)
-    val customerFile = CustomerInformationFile(ServiceNames.customerFile.serviceName, authService)
-    val outputManagementSystem = OutputManagementSystem(ServiceNames.outputManagementSystem.serviceName, authService)
-    val accountManagementSystem = AccountManagementSystem(ServiceNames.accountManagementSystem.serviceName, authService)
-    val creditBureau = CreditBureau(ServiceNames.creditBureau.serviceName, authService)
-    val creditApplication = CreditApplication(ServiceNames.creditApplication.serviceName, authService, customerFile)
-    val pricingEngine = PricingEngine(ServiceNames.pricingEngine.serviceName, authService)
-    val generalClientService = GeneralClientService(ServiceNames.generalClientService.serviceName, authService)
-    val signingService = SigningService(ServiceNames.signingService.serviceName, authService)
+    val authServiceClient = run {
+        val adminAuth = PmaIdSecretAuthInfo(SimplePrincipal("<AuthServiceAdmin>"))
+        val authService = AuthService(ServiceNames.authService, adminAuth, log, nodes, random)
+        DefaultAuthServiceClient(adminAuth, authService)
+    }
+    val authService: AuthService get()=  authServiceClient.authService
+    val engineService: EngineService = EngineService(ServiceNames.engineService, authService, authServiceClient.originatingClientAuth)
+    val customerFile = CustomerInformationFile(ServiceNames.customerFile, authService, authServiceClient.originatingClientAuth)
+    val outputManagementSystem = OutputManagementSystem(ServiceNames.outputManagementSystem, authService, authServiceClient.originatingClientAuth)
+    val accountManagementSystem = AccountManagementSystem(ServiceNames.accountManagementSystem, authService, authServiceClient.originatingClientAuth)
+    val creditBureau = CreditBureau(ServiceNames.creditBureau, authService, authServiceClient.originatingClientAuth)
+    val creditApplication = CreditApplication(ServiceNames.creditApplication, authService, authServiceClient.originatingClientAuth, customerFile)
+    val pricingEngine = PricingEngine(ServiceNames.pricingEngine, authService, authServiceClient.originatingClientAuth)
+    val generalClientService =
+        GeneralClientService(ServiceNames.generalClientService, authService, authServiceClient.originatingClientAuth)
+    val signingService = SigningService(ServiceNames.signingService, authService, authServiceClient.originatingClientAuth)
 
 
     val customerData = CustomerData(
@@ -58,9 +63,9 @@ abstract class AbstractLoanContextFactory<AIC: ActivityInstanceContext>(val log:
         override fun get(index: Int): PrincipalCompat = all[index]
     }
 
-    val clerk1: Browser = Browser(authService, principals.clerk1)
-    val postProcClerk: Browser = Browser(authService, principals.clerk2)
-    val customer: Browser = Browser(authService, principals.customer)
+    val clerk1: Browser = Browser(authService, authServiceClient.registerClient(principals.clerk1, random.nextString()))
+    val postProcClerk: Browser = Browser(authService, authServiceClient.registerClient(principals.clerk2, random.nextString()))
+    val customer: Browser = Browser(authService, authServiceClient.registerClient(principals.customer, random.nextString()))
 
 
     override fun getPrincipal(userName: String): PrincipalCompat {

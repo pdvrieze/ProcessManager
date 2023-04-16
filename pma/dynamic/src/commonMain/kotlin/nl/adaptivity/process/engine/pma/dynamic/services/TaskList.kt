@@ -20,23 +20,18 @@ import net.devrieze.util.Handle
 import nl.adaptivity.process.engine.pma.*
 import nl.adaptivity.process.engine.pma.dynamic.runtime.AbstractDynamicPmaActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
-import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.models.TaskListService
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-abstract class TaskList constructor(
-    serviceName: String,
+abstract class TaskList<S: TaskList<S>> constructor(
+    serviceName: ServiceName<S>,
     authService: AuthService,
     private val engineService: EngineService,
     clientAuth: PmaIdSecretAuthInfo
-) : AbstractRunnableUiService(authService, clientAuth), TaskListService {
+) : AbstractRunnableUiService<S>(authService, clientAuth, serviceName), TaskListService {
 //    val nodeInstanceHandle: PNIHandle? get() = activityAccessToken?.nodeInstanceHandle
-
-    override val serviceName: ServiceName<TaskList> = ServiceName(serviceName)
-
-    override val serviceInstanceId: ServiceId<TaskList> = ServiceId(getServiceId(clientAuth))
 
     private val engineTokens = mutableMapOf<Long, PmaAuthToken>()
 
@@ -56,7 +51,7 @@ abstract class TaskList constructor(
     ) {
         logMe(authInfo, authorizationCode, nodeInstanceHandle)
         validateAuthInfo(authInfo, CommonPMAPermissions.POST_TASK)
-        val token = authService.exchangeAuthCode(serviceAuth, authorizationCode)
+        val token = authServiceClient.exchangeAuthCode(authorizationCode)
         assert(token.nodeInstanceHandle == nodeInstanceHandle)
         engineTokens[nodeInstanceHandle.handleValue] = token
     }
@@ -90,11 +85,11 @@ abstract class TaskList constructor(
     }
 
     interface Context {
-        fun uiServiceLogin(service: AbstractRunnableUiService): PmaAuthToken
+        fun uiServiceLogin(service: AbstractRunnableUiService<*>): PmaAuthToken
     }
 
     private inner class ContextImpl(val browser: Browser) : Context {
-        override fun uiServiceLogin(service: AbstractRunnableUiService): PmaAuthToken {
+        override fun uiServiceLogin(service: AbstractRunnableUiService<*>): PmaAuthToken {
             logMe(service.serviceName)
             return browser.loginToService(service)
 //            return authService.getAuthTokenDirect(browser.user, taskIdentityToken!!, service, ANYSCOPE)

@@ -101,7 +101,7 @@ abstract class AbstractDynamicPmaActivityContext<AIC : DynamicPmaActivityContext
         scope: AuthScope
     ) {
         val delegateScope =
-            CommonPMAPermissions.DELEGATED_PERMISSION.restrictTo(clientService.serviceInstanceId.serviceId, service, scope)
+            CommonPMAPermissions.DELEGATED_PERMISSION.restrictTo(service, scope)
         pendingPermissions.add(PendingPermission(null, clientService, delegateScope))
     }
 

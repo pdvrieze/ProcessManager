@@ -18,24 +18,20 @@ package nl.adaptivity.process.engine.pma
 
 import nl.adaptivity.process.engine.impl.Level
 import nl.adaptivity.process.engine.impl.LoggerCompat
-import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableUiService
 import nl.adaptivity.process.engine.pma.models.ANYSCOPE
 import nl.adaptivity.process.engine.pma.models.Service
 import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.util.multiplatform.PrincipalCompat
-import kotlin.random.Random
 
-class Browser private constructor(private val authService: AuthService, val auth: PmaIdSecretAuthInfo) {
+class Browser constructor(private val authService: AuthService, val auth: PmaIdSecretAuthInfo) {
     val user: PrincipalCompat get() = auth.principal
     private val tokens = mutableListOf<PmaAuthToken>()
     val logger: LoggerCompat get() = authService.logger
 
-    constructor(authService: AuthService, user: PrincipalCompat)
-        : this(authService, authService.registerClient(user, Random.nextString())) {
-        
-        addToken(authService.loginDirect(auth))
+    init {
+        tokens.add(authService.loginDirect(auth))
     }
 
     fun addToken(authToken: PmaAuthToken) {
@@ -55,7 +51,7 @@ class Browser private constructor(private val authService: AuthService, val auth
     }
 
     fun loginToService(service: RunnableUiService): PmaAuthToken {
-        tokens.removeIf { authService.isTokenInvalid(it) }
+        tokens.removeIf { ! authService.isTokenValid(auth, it) }
         tokens.lastOrNull { it.serviceId == service.serviceInstanceId }?.let {
             logger.log(
                 Level.INFO,
@@ -77,9 +73,9 @@ class Browser private constructor(private val authService: AuthService, val auth
         authService: AuthService
     ): AuthorizationCode {
         logger.log(Level.INFO, "Browser(${user.name}).loginToService($serviceId)")
-        tokens.removeIf { authService.isTokenInvalid(it) }
+        tokens.removeIf { ! authService.isTokenValid(auth, it) }
         val token =
-            tokens.lastOrNull { it.scope == CommonPMAPermissions.IDENTIFY && it.serviceId == authService.serviceInstanceId }
+            tokens.lastOrNull { it.scope.includes(CommonPMAPermissions.IDENTIFY) && it.serviceId == authService.serviceInstanceId }
                 ?: throw AuthorizationException("Not logged in to authorization service")
         return authService.getAuthorizationCode(token, serviceId, ANYSCOPE)
     }
