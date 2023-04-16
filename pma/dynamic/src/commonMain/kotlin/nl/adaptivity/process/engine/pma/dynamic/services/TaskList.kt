@@ -69,16 +69,16 @@ abstract class TaskList<S: TaskList<S>> constructor(
 
     fun acceptActivity(
         authToken: PmaAuthToken,
-        principal: PrincipalCompat,
+        user: PrincipalCompat,
         pendingPermissions: Collection<AbstractDynamicPmaActivityContext.PendingPermission>,
         processNodeInstance: Handle<SecureProcessNodeInstance>
     ): AuthorizationCode {
-        logMe(processNodeInstance, principal)
+        logMe(processNodeInstance, user)
 
         validateAuthInfo(authToken, CommonPMAPermissions.ACCEPT_TASK)
         val activityAccessToken = engineTokens[processNodeInstance.handleValue] ?: throw AuthorizationException("Task list has no access to activity $processNodeInstance")
         val userAuthorization =
-            engineService.acceptActivity(activityAccessToken,  processNodeInstance, principal, pendingPermissions)
+            engineService.acceptActivity(activityAccessToken,  processNodeInstance, user, pendingPermissions)
 
         return userAuthorization
 

@@ -12,6 +12,7 @@ import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaActivityContex
 import nl.adaptivity.process.engine.pma.dynamic.scope.templates.DelegateScopeTemplate
 import nl.adaptivity.process.engine.pma.models.AuthScopeTemplate
 import nl.adaptivity.process.engine.pma.models.AutomatedService
+import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.processModel.ActivityBase
 import nl.adaptivity.process.processModel.configurableModel.ConfigurationDsl
@@ -127,6 +128,27 @@ abstract class PmaModelBuilderContext<
     }
 
     inline fun <I : Any, reified O : Any, S : AutomatedService> serviceActivity(
+        predecessor: NodeHandle<*>,
+        authorizationTemplates: List<AuthScopeTemplate<AIC>> = emptyList(),
+        service: ServiceId<S>,
+        input: DefineInputCombiner<I>,
+        configure: RunnablePmaActivity.Builder<I, O, AIC>.() -> Unit = {},
+        @BuilderInference
+        noinline action: RunnableAction<I, O, ServiceActivityContext<AIC, S>>
+    ): RunnablePmaActivity.Builder<I, O, AIC> {
+        return RunnablePmaActivity.Builder<I, O, AIC>(
+            predecessor = predecessor,
+            inputCombiner = input.combiner,
+            outputSerializer = serializer<O>(),
+            authorizationTemplates = authorizationTemplates,
+            action = serviceAction(service, action)
+        ).apply {
+            defines.replaceBy(input.defines)
+            configure()
+        }
+    }
+
+    inline fun <I : Any, reified O : Any, S : AutomatedService> serviceActivity(
         predecessor: NodeHandle<I>,
         authorizationTemplates: List<AuthScopeTemplate<AIC>> = emptyList(),
         service: ServiceName<S>,
@@ -186,10 +208,20 @@ abstract class PmaModelBuilderContext<
     companion object {
         @PublishedApi
         internal fun <AIC : DynamicPmaActivityContext<AIC, *>, I : Any, O : Any, S : AutomatedService> serviceAction(
-            serviceId: ServiceName<S>,
+            serviceName: ServiceName<S>,
             action: RunnableAction<I, O, ServiceActivityContext<AIC, S>>
         ): PmaAction.ServiceAction<I, O, AIC, S> {
-            return PmaAction.ServiceAction(serviceId) { input: I ->
+            return PmaAction.ServiceNameAction(serviceName) { input: I ->
+                processContext.engineService.invokeAction(this, serviceName, input, action)
+            }
+        }
+
+        @PublishedApi
+        internal fun <AIC : DynamicPmaActivityContext<AIC, *>, I : Any, O : Any, S : AutomatedService> serviceAction(
+            serviceId: ServiceId<S>,
+            action: RunnableAction<I, O, ServiceActivityContext<AIC, S>>
+        ): PmaAction.ServiceAction<I, O, AIC, S> {
+            return PmaAction.ServiceIdAction(serviceId) { input: I ->
                 processContext.engineService.invokeAction(this, serviceId, input, action)
             }
         }

@@ -1,17 +1,14 @@
 package io.github.pdvrieze.pma.agfil.services
 
-import nl.adaptivity.process.engine.pma.AuthService
-import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.PmaAuthToken
+import nl.adaptivity.process.engine.pma.dynamic.runtime.DefaultAuthServiceClient
 import nl.adaptivity.process.engine.pma.models.*
 
 interface AutoService {
     /** The authentication service */
-    val authService: AuthService
+    val authServiceClient: DefaultAuthServiceClient
     /** A function that can resolve services from their name */
     val serviceResolver: ServiceResolver
-    /** The authentication that identifies this service against the authentication service */
-    val serviceAuth: PmaAuthInfo
 }
 
 inline fun <S : Service, R> AutoService.withService(
@@ -38,7 +35,7 @@ internal fun <S : Service> AutoService.resolveService(
     authToken: PmaAuthToken,
     requestedScope: AuthScope
 ): ServiceInvocationContext<S> {
-    return resolveService(serviceResolver.resolve(serviceName), authToken, requestedScope)
+    return resolveService(serviceResolver.resolveService(serviceName), authToken, requestedScope)
 }
 
 @PublishedApi
@@ -47,7 +44,7 @@ internal fun <S : Service> AutoService.resolveService(
     baseToken: PmaAuthToken,
     requestedScope: AuthScope
 ): ServiceInvocationContext<S> {
-    val serviceToken = authService.exchangeDelegateToken(serviceAuth, baseToken, service.serviceInstanceId, requestedScope)
+    val serviceToken = authServiceClient.exchangeDelegateToken(baseToken, service.serviceInstanceId, requestedScope)
     return ServiceInvocationContext(service, serviceToken)
 }
 

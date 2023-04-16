@@ -19,15 +19,15 @@ interface AuthServiceClient<InfoT: AuthorizationInfo, TokenT: AuthorizationInfo.
 
     /**
      * Create an authorization code for a client to access the service with given scope
-     * @param client The client that is being authorized
+     * @param authorizedService The client that is being authorized
      * @param nodeInstanceHandle The node instance related to this authorization
-     * @param serviceId The service being authorized
+     * @param tokenTargetService The service being authorized
      * @param requestedScope The scope being authorized
      */
     fun requestPmaAuthCode(
-        client: ServiceId<*>,
+        authorizedService: ServiceId<*>,
         nodeInstanceHandle: PNIHandle,
-        serviceId: ServiceId<*>,
+        tokenTargetService: ServiceId<*>,
         requestedScope: AuthScope
     ): CodeT
 
@@ -39,9 +39,10 @@ interface AuthServiceClient<InfoT: AuthorizationInfo, TokenT: AuthorizationInfo.
      * @param requestedScope The scope being authorized
      */
     fun requestPmaAuthCode(
-        client: PrincipalCompat,
+        identifiedUser: PrincipalCompat,
         nodeInstanceHandle: PNIHandle,
-        serviceId: ServiceId<*>,
+        authorizedService: ServiceId<*>,
+        tokenTargetService: ServiceId<*>,
         requestedScope: AuthScope
     ): CodeT
 

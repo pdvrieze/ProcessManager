@@ -1,23 +1,56 @@
 package io.github.pdvrieze.pma.agfil.services
 
 import io.github.pdvrieze.pma.agfil.data.*
+import io.github.pdvrieze.pma.agfil.parties.leeCsProcess
+import nl.adaptivity.process.engine.ProcessEngine
+import nl.adaptivity.process.engine.StubProcessTransaction
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.PmaAuthToken
-import nl.adaptivity.process.engine.pma.dynamic.services.AbstractRunnableUiService
+import nl.adaptivity.process.engine.pma.PmaIdSecretAuthInfo
+import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableAutomatedService
 import nl.adaptivity.process.engine.pma.models.Service
-import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.models.ServiceResolver
+import java.util.logging.Logger
+import kotlin.random.Random
 
 class LeeCsService(
-    override val serviceName: ServiceName<LeeCsService>,
+    serviceAuth: PmaIdSecretAuthInfo,
+    serviceName: ServiceName<LeeCsService>,
     authService: AuthService,
-    override val serviceResolver: ServiceResolver
-) : AbstractRunnableUiService(authService, serviceName.serviceName), RunnableAutomatedService, AutoService {
+    processEngine: ProcessEngine<StubProcessTransaction>,
+    override val serviceResolver: ServiceResolver,
+    random: Random,
+    logger: Logger,
+) : RunnableProcessBackedService<LeeCsService>(
+    serviceAuth = serviceAuth,
+    serviceName = serviceName,
+    authService = authService,
+    processEngine = processEngine,
+    random = random,
+    logger = logger,
+    leeCsProcess
+), RunnableAutomatedService, AutoService {
 
-    override val serviceInstanceId: ServiceId<GarageService> = ServiceId(getServiceId(serviceAuth))
+    constructor(
+        serviceName: ServiceName<LeeCsService>,
+        authService: AuthService,
+        adminAuthInfo: PmaAuthInfo,
+        processEngine: ProcessEngine<StubProcessTransaction>,
+        serviceResolver: ServiceResolver,
+        random: Random,
+        logger: Logger = authService.logger
+    ) : this(
+        authService.registerClient(adminAuthInfo, serviceName, random.nextString()),
+        serviceName,
+        authService,
+        processEngine,
+        serviceResolver,
+        random,
+        logger
+    )
 
     /** From Lai's thesis: sendRepairCosts */
     fun sendGarageEstimate(authToken: PmaAuthInfo, estimate: Estimate) {

@@ -11,35 +11,66 @@ import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.PmaIdSecretAuthInfo
 import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableAutomatedService
-import nl.adaptivity.process.engine.pma.models.ServiceId
+import nl.adaptivity.process.engine.pma.dynamic.services.RunnableUiService
 import nl.adaptivity.process.engine.pma.models.ServiceName
+import nl.adaptivity.process.engine.pma.models.ServiceResolver
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.xmlutil.serialization.XML
 import java.util.*
+import java.util.logging.Logger
 import kotlin.random.Random
 
-class GarageService(
+class GarageService private constructor(
     serviceAuth: PmaIdSecretAuthInfo,
-    override val serviceName: ServiceName<GarageService>,
+    serviceName: ServiceName<GarageService>,
     authService: AuthService,
     processEngine: ProcessEngine<StubProcessTransaction>,
+    override val serviceResolver: ServiceResolver,
     random: Random,
-) : RunnableProcessBackedService(
-    serviceName.serviceName,
+    logger: Logger,
+) : RunnableProcessBackedService<GarageService>(
+    serviceAuth,
+    serviceName,
     authService,
     processEngine,
     random,
+    logger,
     repairProcess(serviceAuth.principal, serviceName),
-), RunnableAutomatedService {
+), RunnableAutomatedService, RunnableUiService, AutoService {
 
     constructor(
         serviceName: ServiceName<GarageService>,
         authService: AuthService,
+        adminAuthInfo: PmaAuthInfo,
         processEngine: ProcessEngine<StubProcessTransaction>,
+        serviceResolver: ServiceResolver,
+        random: Random,
+        logger: Logger = authService.logger
+    ) : this(
+        serviceAuth = authService.registerClient(adminAuthInfo, serviceName, random.nextString()),
+        serviceName = serviceName,
+        authService = authService,
+        processEngine = processEngine,
+        serviceResolver = serviceResolver,
+        random = random,
+        logger = logger
+    )
+
+    constructor(
+        serviceName: ServiceName<GarageService>,
+        authService: AuthService,
+        adminAuth: PmaAuthInfo,
+        processEngine: ProcessEngine<StubProcessTransaction>,
+        serviceResolver: ServiceResolver,
         random: Random,
     ) : this(
-        authService.registerClient(serviceName, random.nextString()),
-        serviceName, authService, processEngine, random
+        serviceAuth = authService.registerClient(adminAuth, serviceName, random.nextString()),
+        serviceName = serviceName,
+        authService = authService,
+        processEngine = processEngine,
+        serviceResolver = serviceResolver,
+        random = random,
+        logger = authService.logger
     )
 
     val internal: Internal = Internal()
@@ -48,15 +79,13 @@ class GarageService(
 
     private val repairs = mutableMapOf<ClaimId, RepairInfo>()
 
-    override val serviceInstanceId: ServiceId<GarageService> = ServiceId(getServiceId(serviceAuth))
-
     /**
      * ContactGarage from Lai's thesis
      */
     fun informGarageOfIncomingCar(authToken: PmaAuthInfo, claimId: ClaimId, accidentInfo: AccidentInfo) {
         val payload = CompactFragment { xml.encodeToWriter(it, AccidentInfo.serializer(), accidentInfo) }
         processEngine.inTransaction { tr ->
-            startProcess(tr, serviceAuth.principal, hRepairProcess, "estimate repair", UUID.randomUUID(), payload)
+            startProcess(tr, authServiceClient.principal, hRepairProcess, "estimate repair", UUID.randomUUID(), payload)
             repairs[claimId]= RepairInfo(claimId, accidentInfo)
         }
     }

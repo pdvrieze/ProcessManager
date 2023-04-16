@@ -4,6 +4,7 @@ import net.devrieze.util.Handle
 import nl.adaptivity.process.engine.ProcessEngine
 import nl.adaptivity.process.engine.StubProcessTransaction
 import nl.adaptivity.process.engine.pma.AuthService
+import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.PmaIdSecretAuthInfo
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DefaultAuthServiceClient
 import nl.adaptivity.process.engine.pma.dynamic.services.ServiceBase
@@ -19,21 +20,23 @@ abstract class RunnableProcessBackedService<S: RunnableProcessBackedService<S>> 
     protected val random: Random
 
     constructor(
-        serviceName: String,
+        serviceName: ServiceName<S>,
         authService: AuthService,
+        adminAuthInfo: PmaAuthInfo,
         processEngine: ProcessEngine<StubProcessTransaction>,
         random: Random,
         vararg processes: ExecutableProcessModel
-    ) : this(serviceName, authService, processEngine, random, authService.logger, *processes)
+    ) : this(serviceName, authService, adminAuthInfo, processEngine, random, authService.logger, *processes)
 
     constructor(
-        serviceName: String,
+        serviceName: ServiceName<S>,
         authService: AuthService,
+        adminAuthInfo: PmaAuthInfo,
         processEngine: ProcessEngine<StubProcessTransaction>,
         random: Random,
         logger: Logger,
         vararg processes: ExecutableProcessModel
-    ) : super(authService, serviceName, logger) {
+    ) : super(authService, adminAuthInfo, serviceName, logger) {
         this.processEngine = processEngine
         this.random = random
         this.processHandles= ensureProcessHandles(processEngine, authServiceClient, processes)

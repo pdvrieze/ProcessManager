@@ -80,13 +80,13 @@ fun <S : RunnableUiService, R> TaskBuilderContext.BrowserContext<*, *>.uiService
 }
 
 fun <AIC : DynamicPmaActivityContext<AIC, BIC>, BIC : TaskBuilderContext.BrowserContext<AIC, BIC>, S : RunnableUiService, R> TaskBuilderContext.BrowserContext<AIC, BIC>.uiServiceLogin(
-    service: ServiceName<S>,
+    serviceName: ServiceName<S>,
     action: TaskBuilderContext.UIServiceInnerContext<S>.() -> R
 ): R {
     contract {
         callsInPlace(action, InvocationKind.EXACTLY_ONCE)
     }
-    val serviceInst: S = processContext.contextFactory.serviceResolver.resolveService(service)
+    val serviceInst: S = processContext.contextFactory.serviceResolver.resolveService(serviceName)
     val authToken: PmaAuthToken = browser.loginToService(serviceInst)
 
     return DefaultUIServiceInnerContext(authToken, serviceInst).action()

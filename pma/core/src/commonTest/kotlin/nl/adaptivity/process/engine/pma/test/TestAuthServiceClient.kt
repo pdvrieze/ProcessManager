@@ -37,12 +37,13 @@ class TestAuthServiceClient() : AuthServiceClient<AuthorizationInfo, Authorizati
     }
 
     override fun requestPmaAuthCode(
-        client: PrincipalCompat,
+        identifiedUser: PrincipalCompat,
         nodeInstanceHandle: PNIHandle,
-        serviceId: ServiceId<*>,
+        authorizedService: ServiceId<*>,
+        tokenTargetService: ServiceId<*>,
         requestedScope: AuthScope
     ): AuthorizationInfo.Token {
-        return DummyTokenServiceAuthData(serviceId, listOf(requestedScope))
+        return DummyTokenServiceAuthData(tokenTargetService, listOf(requestedScope))
     }
 
     override fun invalidateActivityTokens(hNodeInstance: PNIHandle) {

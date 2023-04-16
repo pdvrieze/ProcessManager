@@ -12,7 +12,7 @@ import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-fun policyHolderProcess(owner: PrincipalCompat, ownerService: ServiceName<PolicyHolder>) = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>("get_car_fixed", owner) {
+fun policyHolderProcess(owner: PrincipalCompat, ownerService: ServiceId<PolicyHolder>) = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>("get_car_fixed", owner) {
 
     val start by startNode
 

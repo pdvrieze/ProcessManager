@@ -22,6 +22,15 @@ import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.processModel.AuthorizationInfo
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
+/**
+ * An authorization token for PMA. Note that this is a bearer token (it doesn't record the client itself)
+ * @param principal the user that is identified with the token. This can be a service (process engine/execution service/process owner).
+ * @property nodeInstanceHandle The handle of the nodeInstance with this token (or invalid when relevant)
+ * @property token The actual token
+ * @property serviceId The service for which the token is valid. All tokens are single-target tokens (but can be used
+ *    for delegation if that is in the scope).
+ * @property scope The scope that specifies what this token is authorized to do.
+ */
 class PmaAuthToken(
     principal: PrincipalCompat,
     val nodeInstanceHandle: PNIHandle,

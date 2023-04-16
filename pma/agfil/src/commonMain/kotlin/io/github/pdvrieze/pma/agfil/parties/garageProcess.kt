@@ -22,9 +22,10 @@ fun repairProcess(owner: PrincipalCompat, ownerService: ServiceName<GarageServic
 
     val handleReceiveCar by taskActivity(onReceiveCar, input = combine(onReceiveCar named "registration", claimId named "claimId")) {
         acceptTask({  randomGarageReceptionist() }) { (carRegistration, claimId) ->
-            uiServiceLogin(ownerService) {
+            uiServiceLogin(serviceName = ownerService) {
                 service.internal.registerCarReceipt(authToken, claimId, carRegistration)
             }
+            TODO()
         }
     }
 

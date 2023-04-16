@@ -156,13 +156,13 @@ class AuthService(
     }
 
     private fun createAuthTokenWithoutValidation(
-        client: PrincipalCompat,
+        user: PrincipalCompat,
         nodeInstanceHandle: PNIHandle,
         targetServiceId: ServiceId<*>,
         scope: AuthScope
     ): PmaAuthToken {
         val existingToken = activeTokens.lastOrNull {
-            it.principal == client &&
+            it.principal == user &&
                 it.nodeInstanceHandle == nodeInstanceHandle &&
                 it.serviceId == targetServiceId &&
                 it.scope == scope
@@ -172,35 +172,41 @@ class AuthService(
             //            Random.nextString()
             existingToken
         } else {
-            PmaAuthToken(client, nodeInstanceHandle, Random.nextString(), targetServiceId, scope)
+            PmaAuthToken(user, nodeInstanceHandle, Random.nextString(), targetServiceId, scope)
         }
         activeTokens.add(token)
         return token
     }
 
     private fun requestPmaAuthCodeImpl(
-        clientId: String,
-        auth: PmaAuthInfo,
+        requestorAuth: PmaAuthInfo,
+        identifiedUserName: String?,
         nodeInstanceHandle: PNIHandle,
-        serviceId: ServiceId<Service>,
-        scope: AuthScope
+        authorizedServiceOrUser: String,
+        tokenTargetService: ServiceId<Service>,
+        requestedScope: AuthScope
     ): AuthorizationCode {
-        val clientPrincipal = clientFromId(clientId)
 
         // We know the task handle so permission limited to the task handle is sufficient
         internalValidateAuthInfo(
-            auth, GRANT_ACTIVITY_PERMISSION.context(
-                nodeInstanceHandle, clientPrincipal.name,
-                serviceId, scope
+            requestorAuth, GRANT_ACTIVITY_PERMISSION.context(
+                nodeInstanceHandle, authorizedServiceOrUser,
+                tokenTargetService, requestedScope
             )
         )
 
-        val token = createAuthTokenWithoutValidation(clientPrincipal, nodeInstanceHandle, serviceId, scope)
+        val identifiedUser = clientFromId(identifiedUserName ?: "<unknown user")
 
-        val authorizationCode = AuthorizationCode(Random.nextString(), clientPrincipal)
+        val token = createAuthTokenWithoutValidation(identifiedUser, nodeInstanceHandle, tokenTargetService, requestedScope)
+
+        val authorizationCode = AuthorizationCode(
+            code = Random.nextString(),
+            authorizedServiceOrUser = authorizedServiceOrUser,
+            identifiedUser = clientFromId(identifiedUserName ?: "<unknown user"),
+        )
         authorizationCodes[authorizationCode] = token
 
-        doLog(auth, "createAuthorizationCode(code = ${authorizationCode.code}, token = $token)")
+        doLog(requestorAuth, "createAuthorizationCode(code = ${authorizationCode.code}, token = $token)")
 
         return authorizationCode
     }
@@ -338,16 +344,18 @@ class AuthService(
      */
     fun requestPmaAuthCode(
         requestorAuth: PmaAuthInfo,
-        client: PrincipalCompat,
+        identifiedUser: PrincipalCompat,
         nodeInstanceHandle: Handle<SecureProcessNodeInstance>,
-        serviceId: ServiceId<*>,
+        authorizedService: ServiceId<*>,
+        tokenTargetService: ServiceId<*>,
         requestedScope: AuthScope
     ): AuthorizationCode = requestPmaAuthCodeImpl(
-        client.name,
-        requestorAuth,
-        nodeInstanceHandle,
-        serviceId,
-        requestedScope
+        requestorAuth = requestorAuth,
+        identifiedUserName = identifiedUser.name,
+        nodeInstanceHandle = nodeInstanceHandle,
+        authorizedServiceOrUser = authorizedService.serviceId,
+        tokenTargetService = tokenTargetService,
+        requestedScope = requestedScope
     )
 
     /**
@@ -360,17 +368,18 @@ class AuthService(
      */
     fun requestPmaAuthCode(
         requestorAuth: PmaAuthInfo,
-        client: ServiceId<*>,
+        authorizedService: ServiceId<*>,
         nodeInstanceHandle: Handle<SecureProcessNodeInstance>,
-        serviceId: ServiceId<*>,
+        tokenTargetService: ServiceId<*>,
         requestedScope: AuthScope
     ): AuthorizationCode =
         requestPmaAuthCodeImpl(
-            client.serviceId,
-            requestorAuth,
-            nodeInstanceHandle,
-            serviceId,
-            requestedScope
+            requestorAuth = requestorAuth,
+            identifiedUserName = "<unknown username>",
+            nodeInstanceHandle = nodeInstanceHandle,
+            authorizedServiceOrUser = authorizedService.serviceId,
+            tokenTargetService = tokenTargetService,
+            requestedScope = requestedScope
         )
 
     /**
@@ -414,8 +423,8 @@ class AuthService(
 
         if (token !in activeTokens) activeTokens.add(token)
 
-        if (authorizationCode.principal != clientAuth.principal)
-            throw AuthorizationException("Invalid client for authorization code ${token.principal} != ${clientAuth.principal}")
+        if (authorizationCode.authorizedServiceOrUser != clientAuth.principal.name)
+            throw AuthorizationException("Invalid client for authorization code (code target ${authorizationCode.authorizedServiceOrUser}) != (resolver ${clientAuth.principal})\n    Token: $token")
 
         authorizationCodes.remove(authorizationCode)
 
@@ -477,11 +486,12 @@ class AuthService(
      */
     fun getAuthorizationCode(
         identityToken: PmaAuthInfo,
+        authorizedServiceOrUser: String,
         serviceId: ServiceId<*>,
         reqScope: AuthScope
     ): AuthorizationCode {
         val token = getAuthCommon(identityToken, serviceId, reqScope)
-        val authorizationCode = AuthorizationCode(Random.nextString(), identityToken.principal)
+        val authorizationCode = AuthorizationCode(Random.nextString(), authorizedServiceOrUser, identityToken.principal)
         authorizationCodes[authorizationCode] = token
 
         if (token in activeTokens) {

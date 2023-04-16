@@ -1,18 +1,24 @@
 package io.github.pdvrieze.pma.agfil.services
 
 import io.github.pdvrieze.pma.agfil.data.*
+import io.github.pdvrieze.pma.agfil.parties.agfilProcess
+import nl.adaptivity.process.engine.ProcessEngine
+import nl.adaptivity.process.engine.StubProcessTransaction
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.PmaAuthToken
-import nl.adaptivity.process.engine.pma.dynamic.services.AbstractRunnableUiService
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableAutomatedService
-import nl.adaptivity.process.engine.pma.models.ServiceId
+import nl.adaptivity.process.engine.pma.dynamic.services.RunnableUiService
 import nl.adaptivity.process.engine.pma.models.ServiceName
+import kotlin.random.Random
 
-class AgfilService(override val serviceName: ServiceName<AgfilService>, authService: AuthService) :
-    AbstractRunnableUiService(authService, serviceName.serviceName), RunnableAutomatedService {
-
-    override val serviceInstanceId: ServiceId<GarageService> = ServiceId(getServiceId(serviceAuth))
+class AgfilService(
+    serviceName: ServiceName<AgfilService>,
+    authService: AuthService,
+    adminAuthInfo: PmaAuthInfo,
+    processEngine: ProcessEngine<StubProcessTransaction>,
+    random: Random
+) : RunnableProcessBackedService<AgfilService>(serviceName, authService, adminAuthInfo, processEngine, random, agfilProcess), RunnableAutomatedService, RunnableUiService {
 
     private val claims = mutableListOf<ClaimData>()
 

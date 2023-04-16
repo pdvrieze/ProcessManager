@@ -78,15 +78,15 @@ class LoanActivityContext(
         if (::taskListService.isInitialized) {
             throw UnsupportedOperationException("Attempting to mark as service task an activity that has already been marked for users")
         }
-        val clientServiceId = processContext.generalClientService.serviceInstanceId
+        val generalClient = processContext.generalClientService.serviceInstanceId
 
         val serviceAuthorization = with(processContext) {
             engineService.createAuthorizationCode(
-                clientServiceId,
-                nodeInstanceHandle,
-                clientServiceId,
-                CommonPMAPermissions.IDENTIFY,
-                pendingPermissions
+                authorizedService = generalClient,
+                handle = nodeInstanceHandle,
+                tokenTargetService = generalClient,
+                requestedScope = CommonPMAPermissions.IDENTIFY,
+                pendingPermissions = pendingPermissions
             )
         }
         pendingPermissions.clear()

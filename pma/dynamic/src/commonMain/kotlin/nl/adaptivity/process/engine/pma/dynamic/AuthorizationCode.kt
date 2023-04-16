@@ -18,4 +18,14 @@ package nl.adaptivity.process.engine.pma
 
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-data class AuthorizationCode(val code: String, val principal: PrincipalCompat)
+/**
+ * An authorization code.
+ * @property code the authorization code itself.
+ * @property authorizedServiceOrUser The user/service that is authorized to exchange this token.
+ * @property identifiedUser The user that is ultimately identified by the token.
+ */
+data class AuthorizationCode(
+    val code: String,
+    val authorizedServiceOrUser: String,
+    val identifiedUser: PrincipalCompat? = null
+)

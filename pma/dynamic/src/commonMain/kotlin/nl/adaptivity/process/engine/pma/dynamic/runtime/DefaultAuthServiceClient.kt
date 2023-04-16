@@ -25,42 +25,53 @@ class DefaultAuthServiceClient(val originatingClientAuth: PmaAuthInfo, val authS
         processNodeInstanceHandle: PNIHandle
     ): PmaAuthToken {
         val authorization = authorizations.reduce { l, r -> l.union(r) }
+        return getAuthTokenDirect(authorizationTarget.serviceId, authorization)
+/*
 
         val authCode = authService.getAuthorizationCode(originatingClientAuth, authorizationTarget.serviceId, authorization)
         return authService.exchangeAuthCode(originatingClientAuth, authCode)
+*/
     }
 
 
     /**
      * Create an authorization code for a client to access the service with given scope
-     * @param client The client that is being authorized
+     * @param authorizedService The client that is being authorized
      * @param nodeInstanceHandle The node instance related to this authorization
-     * @param serviceId The service being authorized
+     * @param tokenTargetService The service being authorized
      * @param requestedScope The scope being authorized
      */
     override fun requestPmaAuthCode(
-        client: ServiceId<*>,
+        authorizedService: ServiceId<*>,
         nodeInstanceHandle: PNIHandle,
-        serviceId: ServiceId<*>,
+        tokenTargetService: ServiceId<*>,
         requestedScope: AuthScope
     ): AuthorizationCode {
-        return authService.requestPmaAuthCode(originatingClientAuth, client, nodeInstanceHandle, serviceId, requestedScope)
+        return authService.requestPmaAuthCode(
+            requestorAuth = originatingClientAuth,
+            authorizedService = authorizedService,
+            nodeInstanceHandle = nodeInstanceHandle,
+            tokenTargetService = tokenTargetService,
+            requestedScope = requestedScope
+        )
     }
 
     /**
      * Create an authorization code for a client to access the service with given scope
-     * @param client The client that is being authorized
+     * @param identifiedUser The client that is being authorized
      * @param nodeInstanceHandle The node instance related to this authorization
-     * @param serviceId The service being authorized
+     * @param authorizedService The service that can exchange the auth code
+     * @param tokenTargetService The service that is the target of the resulting token.
      * @param requestedScope The scope being authorized
      */
     override fun requestPmaAuthCode(
-        client: PrincipalCompat,
+        identifiedUser: PrincipalCompat,
         nodeInstanceHandle: PNIHandle,
-        serviceId: ServiceId<*>,
+        authorizedService: ServiceId<Service>,
+        tokenTargetService: ServiceId<Service>,
         requestedScope: AuthScope
     ): AuthorizationCode {
-        return authService.requestPmaAuthCode(originatingClientAuth, client, nodeInstanceHandle, serviceId, requestedScope)
+        return authService.requestPmaAuthCode(originatingClientAuth, identifiedUser, nodeInstanceHandle, authorizedService, tokenTargetService, requestedScope)
     }
 
     /**

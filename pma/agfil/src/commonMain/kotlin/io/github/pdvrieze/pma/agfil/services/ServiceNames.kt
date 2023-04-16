@@ -8,7 +8,7 @@ import nl.adaptivity.process.engine.pma.models.ServiceName
 object ServiceNames {
     val authService = ServiceName<AuthService>("authService")
     val engineService = ServiceName<EngineService>("engineService")
-    val taskListService = ServiceName<TaskList>("engineService")
+    val taskListService = ServiceName<TaskList<*>>("engineService")
     val europAssistService = ServiceName<EuropAssistService>("europAssistService")
     val garageServices = arrayOf(
         ServiceName<GarageService>("Fix'R'Us"),

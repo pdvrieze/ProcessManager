@@ -6,10 +6,11 @@ import io.github.pdvrieze.pma.agfil.data.Claim
 import io.github.pdvrieze.pma.agfil.services.AssessorService
 import io.github.pdvrieze.pma.agfil.services.ServiceNames
 import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
+import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-fun assessorProcess(principal: PrincipalCompat, ownerService: ServiceName<AssessorService>) = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>(
+fun assessorProcess(principal: PrincipalCompat, ownerService: ServiceId<AssessorService>) = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>(
     name = "assessor (${principal.name}) assess car",
     owner = principal
 ) {

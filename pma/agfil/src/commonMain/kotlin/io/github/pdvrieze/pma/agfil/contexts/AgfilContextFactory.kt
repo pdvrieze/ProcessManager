@@ -63,7 +63,7 @@ class AgfilContextFactory(private val logger: Logger, private val random: Random
     }
 
 
-    val engineService: EngineService = EngineService(ServiceNames.engineService.serviceName, authService)
+    val engineService: EngineService = EngineService(ServiceNames.engineService, authService, engineServiceAuthServiceClient.originatingClientAuth)
 
     // TODO have separate task lists for each organization.
     val taskListService: DynamicTaskList = DynamicTaskList(

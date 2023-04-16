@@ -4,26 +4,56 @@ import io.github.pdvrieze.pma.agfil.data.AccidentInfo
 import io.github.pdvrieze.pma.agfil.data.CarRegistration
 import io.github.pdvrieze.pma.agfil.data.ClaimId
 import io.github.pdvrieze.pma.agfil.data.GarageInfo
+import io.github.pdvrieze.pma.agfil.parties.europAssistProcess
+import io.github.pdvrieze.pma.agfil.services.ServiceNames.agfilService
+import nl.adaptivity.process.engine.ProcessEngine
+import nl.adaptivity.process.engine.StubProcessTransaction
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.PmaAuthToken
+import nl.adaptivity.process.engine.pma.PmaIdSecretAuthInfo
+import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
-import nl.adaptivity.process.engine.pma.dynamic.services.AbstractRunnableUiService
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableAutomatedService
-import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.models.ServiceResolver
+import java.util.logging.Logger
 import kotlin.random.Random
 
 class EuropAssistService(
-    override val serviceName: ServiceName<EuropAssistService>,
+    serviceAuth: PmaIdSecretAuthInfo,
+    serviceName: ServiceName<EuropAssistService>,
     authService: AuthService,
-    private val random: Random,
-    private val agfilService: AgfilService,
+    processEngine: ProcessEngine<StubProcessTransaction>,
     override val serviceResolver: ServiceResolver,
-) : AbstractRunnableUiService(authService, serviceName.serviceName), RunnableAutomatedService, AutoService {
-
-    override val serviceInstanceId: ServiceId<EuropAssistService> = ServiceId(getServiceId(serviceAuth))
+    random: Random,
+    logger: Logger,
+) : RunnableProcessBackedService<EuropAssistService>(
+    serviceAuth = serviceAuth,
+    serviceName = serviceName,
+    authService = authService,
+    processEngine = processEngine,
+    random = random,
+    logger = logger,
+    europAssistProcess
+), RunnableAutomatedService, AutoService {
+    constructor(
+        serviceName: ServiceName<EuropAssistService>,
+        authService: AuthService,
+        adminAuthInfo: PmaAuthInfo,
+        processEngine: ProcessEngine<StubProcessTransaction>,
+        serviceResolver: ServiceResolver,
+        random: Random,
+        logger: Logger = authService.logger
+    ) : this(
+        authService.registerClient(adminAuthInfo, serviceName, random.nextString()),
+        serviceName,
+        authService,
+        processEngine,
+        serviceResolver,
+        random,
+        logger
+    )
 
     val internal: Internal = Internal()
 
@@ -41,7 +71,7 @@ class EuropAssistService(
     inner class Internal {
         fun pickGarage(authToken: PmaAuthToken, accidentInfo: AccidentInfo): GarageInfo {
             validateAuthInfo(authToken, AgfilPermissions.PICK_GARAGE)
-            val garageServices = withService(service = agfilService, authToken, AgfilPermissions.LIST_GARAGES) {
+            val garageServices = withService(serviceName = agfilService, authToken, AgfilPermissions.LIST_GARAGES) {
                 service.getContractedGarages(serviceAccessToken)
             }
 
@@ -62,13 +92,20 @@ class EuropAssistService(
                 service.informGarageOfIncomingCar(serviceAccessToken, claimId, accidentInfo)
             }
 
-            val agfilToken = authService.exchangeDelegateToken(
-                serviceAuth,
+            withService(agfilService, authToken, CommonPMAPermissions.IDENTIFY) {
+                service.recordAssignedGarage(serviceAccessToken, claimId, garage)
+            }
+/*
+
+            val agfilService = serviceResolver.resolveService(agfilService)
+
+            val agfilToken = authServiceClient.exchangeDelegateToken(
                 authToken,
                 agfilService.serviceInstanceId,
                 CommonPMAPermissions.IDENTIFY
             )
             agfilService.recordAssignedGarage(agfilToken, claimId, garage)
+*/
 
             return garage // Smarter way to do something here
         }
