@@ -225,6 +225,7 @@ class AuthService(
         // TODO principal should be authorized
         internalValidateAuthInfo(identityToken, IDENTIFY)
         val userPermissions: AuthScope? =
+            globalPermissions[identityToken.principal.name]?.get(this.serviceInstanceId.serviceId)?.takeIf { it==ADMIN } ?:
             globalPermissions.get(identityToken.principal.name)?.get(serviceId)
 
         val effectiveScope: AuthScope
