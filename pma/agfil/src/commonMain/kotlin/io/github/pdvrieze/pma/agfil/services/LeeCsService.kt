@@ -2,12 +2,7 @@ package io.github.pdvrieze.pma.agfil.services
 
 import io.github.pdvrieze.pma.agfil.data.*
 import io.github.pdvrieze.pma.agfil.parties.leeCsProcess
-import nl.adaptivity.process.engine.ProcessEngine
-import nl.adaptivity.process.engine.StubProcessTransaction
-import nl.adaptivity.process.engine.pma.AuthService
-import nl.adaptivity.process.engine.pma.PmaAuthInfo
-import nl.adaptivity.process.engine.pma.PmaAuthToken
-import nl.adaptivity.process.engine.pma.PmaIdSecretAuthInfo
+import nl.adaptivity.process.engine.pma.*
 import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableAutomatedService
 import nl.adaptivity.process.engine.pma.models.Service
@@ -20,7 +15,7 @@ class LeeCsService(
     serviceAuth: PmaIdSecretAuthInfo,
     serviceName: ServiceName<LeeCsService>,
     authService: AuthService,
-    processEngine: ProcessEngine<StubProcessTransaction>,
+    engineService: EngineService,
     override val serviceResolver: ServiceResolver,
     random: Random,
     logger: Logger,
@@ -28,7 +23,7 @@ class LeeCsService(
     serviceAuth = serviceAuth,
     serviceName = serviceName,
     authService = authService,
-    processEngine = processEngine,
+    processEngineService = engineService,
     random = random,
     logger = logger,
     leeCsProcess
@@ -38,7 +33,7 @@ class LeeCsService(
         serviceName: ServiceName<LeeCsService>,
         authService: AuthService,
         adminAuthInfo: PmaAuthInfo,
-        processEngine: ProcessEngine<StubProcessTransaction>,
+        engineService: EngineService,
         serviceResolver: ServiceResolver,
         random: Random,
         logger: Logger = authService.logger
@@ -46,7 +41,7 @@ class LeeCsService(
         authService.registerClient(adminAuthInfo, serviceName, random.nextString()),
         serviceName,
         authService,
-        processEngine,
+        engineService,
         serviceResolver,
         random,
         logger
@@ -64,7 +59,7 @@ class LeeCsService(
     fun sendAssessedCosts(authToken: PmaAuthToken, agreedCosts: AgreedCosts): Unit = TODO()
 
     /** From Lai's thesis */
-    fun sendInvoice(): Unit = TODO()
+    fun sendInvoice(invoice: Invoice): Unit = TODO()
 
     /**
      * forwardClaim from Lai's thesis

@@ -1,77 +1,52 @@
 package io.github.pdvrieze.pma.agfil.services
 
 import io.github.pdvrieze.pma.agfil.data.*
-import io.github.pdvrieze.pma.agfil.parties.repairProcess
 import net.devrieze.util.Handle
-import nl.adaptivity.process.engine.ProcessEngine
-import nl.adaptivity.process.engine.StubProcessTransaction
 import nl.adaptivity.process.engine.impl.CompactFragment
 import nl.adaptivity.process.engine.pma.AuthService
+import nl.adaptivity.process.engine.pma.EngineService
 import nl.adaptivity.process.engine.pma.PmaAuthInfo
-import nl.adaptivity.process.engine.pma.PmaIdSecretAuthInfo
-import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableAutomatedService
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableUiService
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.models.ServiceResolver
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.xmlutil.serialization.XML
-import java.util.*
 import java.util.logging.Logger
 import kotlin.random.Random
 
-class GarageService private constructor(
-    serviceAuth: PmaIdSecretAuthInfo,
-    serviceName: ServiceName<GarageService>,
-    authService: AuthService,
-    processEngine: ProcessEngine<StubProcessTransaction>,
-    override val serviceResolver: ServiceResolver,
-    random: Random,
-    logger: Logger,
-) : RunnableProcessBackedService<GarageService>(
+class GarageService : RunnableProcessBackedService<GarageService>/*(
     serviceAuth,
     serviceName,
     authService,
-    processEngine,
+    engineService,
     random,
     logger,
     repairProcess(serviceAuth.principal, serviceName),
-), RunnableAutomatedService, RunnableUiService, AutoService {
+)*/, RunnableAutomatedService, RunnableUiService, AutoService {
+
+    override val serviceResolver: ServiceResolver
 
     constructor(
         serviceName: ServiceName<GarageService>,
         authService: AuthService,
         adminAuthInfo: PmaAuthInfo,
-        processEngine: ProcessEngine<StubProcessTransaction>,
+        engineService: EngineService,
         serviceResolver: ServiceResolver,
         random: Random,
         logger: Logger = authService.logger
-    ) : this(
-        serviceAuth = authService.registerClient(adminAuthInfo, serviceName, random.nextString()),
+    ) : super(
         serviceName = serviceName,
         authService = authService,
-        processEngine = processEngine,
-        serviceResolver = serviceResolver,
+        processEngineService = engineService,
+        adminAuthInfo = adminAuthInfo,
         random = random,
         logger = logger
-    )
+    ) {
+        this.serviceResolver = serviceResolver
+    }
 
-    constructor(
-        serviceName: ServiceName<GarageService>,
-        authService: AuthService,
-        adminAuth: PmaAuthInfo,
-        processEngine: ProcessEngine<StubProcessTransaction>,
-        serviceResolver: ServiceResolver,
-        random: Random,
-    ) : this(
-        serviceAuth = authService.registerClient(adminAuth, serviceName, random.nextString()),
-        serviceName = serviceName,
-        authService = authService,
-        processEngine = processEngine,
-        serviceResolver = serviceResolver,
-        random = random,
-        logger = authService.logger
-    )
+    val garageInfo = GarageInfo(serviceName.serviceName, serviceInstanceId.serviceId)
 
     val internal: Internal = Internal()
     val xml = XML { this.recommended() }
@@ -84,10 +59,13 @@ class GarageService private constructor(
      */
     fun informGarageOfIncomingCar(authToken: PmaAuthInfo, claimId: ClaimId, accidentInfo: AccidentInfo) {
         val payload = CompactFragment { xml.encodeToWriter(it, AccidentInfo.serializer(), accidentInfo) }
+/*
+        processEngineService.startProcess(hRepairProcess, "estimate repair", payload)
         processEngine.inTransaction { tr ->
             startProcess(tr, authServiceClient.principal, hRepairProcess, "estimate repair", UUID.randomUUID(), payload)
-            repairs[claimId]= RepairInfo(claimId, accidentInfo)
         }
+*/
+        repairs[claimId]= RepairInfo(claimId, accidentInfo)
     }
 
     /** From Lai's thesis. Receive car. */
@@ -96,8 +74,16 @@ class GarageService private constructor(
     /** From Lai's thesis */
     fun agreeRepair(authToken: PmaAuthInfo, id: ClaimId, carRegistration: CarRegistration): Unit = TODO()
 
+    private var _nextInvoiceId=1
+    fun nextInvoiceId(): InvoiceId = InvoiceId(_nextInvoiceId++)
+
     /** From Lai's thesis */
     fun payRepairCost(authToken: PmaAuthInfo): Unit = TODO()
+    fun sendInvoice(agreement: RepairAgreement): InvoiceId {
+        val invoice = Invoice(nextInvoiceId(), agreement.claimId, garageInfo, agreement.agreedCosts)
+        serviceResolver.resolveService(ServiceNames.leeCsService).sendInvoice(invoice)
+        return invoice.invoiceId
+    }
 
     inner class Internal {
         fun registerCarReceipt(authToken: PmaAuthInfo, claimId: ClaimId, carRegistration: CarRegistration) {

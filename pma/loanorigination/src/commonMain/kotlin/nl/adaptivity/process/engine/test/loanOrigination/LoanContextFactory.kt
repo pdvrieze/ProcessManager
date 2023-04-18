@@ -18,6 +18,7 @@ package nl.adaptivity.process.engine.test.loanOrigination
 
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.PIHandle
+import nl.adaptivity.process.engine.ProcessEngine
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
 import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
@@ -32,7 +33,8 @@ import java.util.logging.Logger
 import kotlin.collections.set
 import kotlin.random.Random
 
-class LoanContextFactory(log: Logger, random: Random): AbstractLoanContextFactory<LoanActivityContext>(log, random) {
+class LoanContextFactory(log: Logger, random: Random):
+    AbstractLoanContextFactory<LoanActivityContext>(log, random) {
 
     private val processContexts = mutableMapOf<PIHandle, LoanProcessContext>()
     private val taskLists = mutableMapOf<Principal, TaskList<*>>()

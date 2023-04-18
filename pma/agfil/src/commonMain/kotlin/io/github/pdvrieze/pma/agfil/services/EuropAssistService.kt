@@ -6,13 +6,10 @@ import io.github.pdvrieze.pma.agfil.data.ClaimId
 import io.github.pdvrieze.pma.agfil.data.GarageInfo
 import io.github.pdvrieze.pma.agfil.parties.europAssistProcess
 import io.github.pdvrieze.pma.agfil.services.ServiceNames.agfilService
-import nl.adaptivity.process.engine.ProcessEngine
-import nl.adaptivity.process.engine.StubProcessTransaction
 import nl.adaptivity.process.engine.pma.AuthService
+import nl.adaptivity.process.engine.pma.EngineService
 import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.PmaAuthToken
-import nl.adaptivity.process.engine.pma.PmaIdSecretAuthInfo
-import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableAutomatedService
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableUiService
@@ -22,39 +19,22 @@ import java.util.logging.Logger
 import kotlin.random.Random
 
 class EuropAssistService(
-    serviceAuth: PmaIdSecretAuthInfo,
     serviceName: ServiceName<EuropAssistService>,
     authService: AuthService,
-    processEngine: ProcessEngine<StubProcessTransaction>,
+    adminAuthInfo: PmaAuthInfo,
+    engineService: EngineService,
     override val serviceResolver: ServiceResolver,
     random: Random,
     logger: Logger,
 ) : RunnableProcessBackedService<EuropAssistService>(
-    serviceAuth = serviceAuth,
     serviceName = serviceName,
     authService = authService,
-    processEngine = processEngine,
+    adminAuthInfo = adminAuthInfo,
+    processEngineService = engineService,
     random = random,
     logger = logger,
     europAssistProcess
 ), RunnableAutomatedService, RunnableUiService, AutoService {
-    constructor(
-        serviceName: ServiceName<EuropAssistService>,
-        authService: AuthService,
-        adminAuthInfo: PmaAuthInfo,
-        processEngine: ProcessEngine<StubProcessTransaction>,
-        serviceResolver: ServiceResolver,
-        random: Random,
-        logger: Logger = authService.logger
-    ) : this(
-        authService.registerClient(adminAuthInfo, serviceName, random.nextString()),
-        serviceName,
-        authService,
-        processEngine,
-        serviceResolver,
-        random,
-        logger
-    )
 
     val internal: Internal = Internal()
 

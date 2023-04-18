@@ -18,6 +18,7 @@ package nl.adaptivity.process.engine.pma
 
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SimplePrincipal
+import nl.adaptivity.process.engine.ProcessEngine
 import nl.adaptivity.process.engine.ProcessInstanceContext
 import nl.adaptivity.process.engine.pma.dynamic.ServiceActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.runtime.AbstractDynamicPmaActivityContext
@@ -44,6 +45,9 @@ class EngineService(
     logger: Logger = authService.logger,
 ) : ServiceBase<EngineService>(authService, auth, serviceName, logger), AutomatedService {
 
+    lateinit var processEngine: ProcessEngine<*>
+        private set
+
     constructor(
         serviceName: ServiceName<EngineService>,
         authService: AuthService,
@@ -56,6 +60,11 @@ class EngineService(
     }
 
     private val taskLists: MutableMap<Handle<SecureProcessNodeInstance>, List<TaskList<*>>> = mutableMapOf()
+
+    fun initEngine(processEngine: ProcessEngine<*>) {
+        require (! ::processEngine.isInitialized) { "The process engine can only be initialised once." }
+        this.processEngine = processEngine
+    }
 
     override fun getServiceState(): String = ""
 

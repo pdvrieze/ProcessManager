@@ -65,11 +65,12 @@ class TestLoanOrigination : ProcessEngineTestSupport() {
     private fun testRunModel(model: ExecutableProcessModel, createContextFactory: (Logger, Random) -> AbstractLoanContextFactory<*>) {
         val logger = Logger.getLogger(TestLoanOrigination::class.java.name)
         val pef: ProcessEngineFactory = { messageService, transactionFactory ->
+            val cf = createContextFactory(logger, Random(1234))
             defaultEngineFactory(
                 messageService,
                 transactionFactory,
-                createContextFactory(logger, Random(1234))
-            )
+                cf
+            ).also { cf.engineService.initEngine(it) }
         }
         testProcess(pef, model) { processEngine, tr, model, hinstance ->
             val instance = tr.getInstance(hinstance)

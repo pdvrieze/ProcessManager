@@ -4,12 +4,7 @@ import io.github.pdvrieze.pma.agfil.data.AgreedCosts
 import io.github.pdvrieze.pma.agfil.data.Claim
 import io.github.pdvrieze.pma.agfil.data.DamageAssessment
 import io.github.pdvrieze.pma.agfil.parties.assessorProcess
-import nl.adaptivity.process.engine.ProcessEngine
-import nl.adaptivity.process.engine.StubProcessTransaction
-import nl.adaptivity.process.engine.pma.AuthService
-import nl.adaptivity.process.engine.pma.PmaAuthInfo
-import nl.adaptivity.process.engine.pma.PmaAuthToken
-import nl.adaptivity.process.engine.pma.PmaIdSecretAuthInfo
+import nl.adaptivity.process.engine.pma.*
 import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableAutomatedService
 import nl.adaptivity.process.engine.pma.models.ServiceId
@@ -22,7 +17,7 @@ class AssessorService(
     serviceAuth: PmaIdSecretAuthInfo,
     serviceName: ServiceName<AssessorService>,
     authService: AuthService,
-    processEngine: ProcessEngine<StubProcessTransaction>,
+    engineService: EngineService,
     override val serviceResolver: ServiceResolver,
     random: Random,
     logger: Logger,
@@ -30,7 +25,7 @@ class AssessorService(
     serviceAuth = serviceAuth,
     serviceName = serviceName,
     authService = authService,
-    processEngine = processEngine,
+    processEngineService = engineService,
     random = random,
     logger = logger,
     assessorProcess(serviceAuth.principal, ServiceId(serviceAuth.id))
@@ -40,7 +35,7 @@ class AssessorService(
         serviceName: ServiceName<AssessorService>,
         authService: AuthService,
         adminAuthInfo: PmaAuthInfo,
-        processEngine: ProcessEngine<StubProcessTransaction>,
+        engineService: EngineService,
         serviceResolver: ServiceResolver,
         random: Random,
         logger: Logger = authService.logger
@@ -48,7 +43,7 @@ class AssessorService(
         authService.registerClient(adminAuthInfo, serviceName, random.nextString()),
         serviceName,
         authService,
-        processEngine,
+        engineService,
         serviceResolver,
         random,
         logger

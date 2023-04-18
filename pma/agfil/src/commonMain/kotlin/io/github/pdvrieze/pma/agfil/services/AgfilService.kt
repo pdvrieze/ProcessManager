@@ -2,9 +2,8 @@ package io.github.pdvrieze.pma.agfil.services
 
 import io.github.pdvrieze.pma.agfil.data.*
 import io.github.pdvrieze.pma.agfil.parties.agfilProcess
-import nl.adaptivity.process.engine.ProcessEngine
-import nl.adaptivity.process.engine.StubProcessTransaction
 import nl.adaptivity.process.engine.pma.AuthService
+import nl.adaptivity.process.engine.pma.EngineService
 import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.PmaAuthToken
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableAutomatedService
@@ -17,10 +16,10 @@ class AgfilService(
     serviceName: ServiceName<AgfilService>,
     authService: AuthService,
     adminAuthInfo: PmaAuthInfo,
-    processEngine: ProcessEngine<StubProcessTransaction>,
+    engineService: EngineService,
     random: Random,
     logger: Logger
-) : RunnableProcessBackedService<AgfilService>(serviceName, authService, adminAuthInfo, processEngine, random, logger, agfilProcess), RunnableAutomatedService, RunnableUiService {
+) : RunnableProcessBackedService<AgfilService>(serviceName, authService, adminAuthInfo, engineService, random, logger, agfilProcess), RunnableAutomatedService, RunnableUiService {
 
     private val claims = mutableListOf<ClaimData>()
 

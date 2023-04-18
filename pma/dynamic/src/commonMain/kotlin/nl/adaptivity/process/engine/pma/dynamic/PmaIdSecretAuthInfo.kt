@@ -22,9 +22,9 @@ import nl.adaptivity.util.multiplatform.PrincipalCompat
 import kotlin.random.Random
 
 class PmaIdSecretAuthInfo(
-    principal: PrincipalCompat,
+    override val principal: PrincipalCompat,
     override val secret: String = Random.nextString()
-): PmaAuthInfo(principal), AuthorizationInfo.IdSecret {
+): PmaAuthInfo(), AuthorizationInfo.IdSecret {
     override fun toString(): String {
         return "PW(${principal.name})=${this.secret}"
     }

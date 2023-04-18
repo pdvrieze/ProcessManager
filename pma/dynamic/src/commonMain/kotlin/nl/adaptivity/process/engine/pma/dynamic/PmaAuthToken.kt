@@ -18,6 +18,7 @@ package nl.adaptivity.process.engine.pma
 
 import nl.adaptivity.process.engine.pma.models.AuthScope
 import nl.adaptivity.process.engine.pma.models.ServiceId
+import nl.adaptivity.process.engine.pma.runtime.TokenPrincipal
 import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.processModel.AuthorizationInfo
 import nl.adaptivity.util.multiplatform.PrincipalCompat
@@ -37,11 +38,17 @@ class PmaAuthToken(
     override val token: String,
     val serviceId: ServiceId<*>,
     val scope: AuthScope
-): PmaAuthInfo(principal), AuthorizationInfo.Token {
+): PmaAuthInfo(), AuthorizationInfo.Token {
 
-
+    override val principal: PrincipalCompat = Principal(principal.name)
 
     override fun toString(): String {
         return "AuthToken($token - $principal[act=${nodeInstanceHandle.handleValue}] -> $serviceId.${scope.description})"
+    }
+
+    inner class Principal(private val name: String) : PrincipalCompat, TokenPrincipal {
+        override fun getName(): String = name
+        override val serviceId: ServiceId<*> get() = this@PmaAuthToken.serviceId
+        override val scope: AuthScope get() = this@PmaAuthToken.scope
     }
 }

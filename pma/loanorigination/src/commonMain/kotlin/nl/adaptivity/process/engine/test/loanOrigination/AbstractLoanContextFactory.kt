@@ -4,6 +4,7 @@ import io.github.pdvrieze.process.processModel.dynamicProcessModel.SimpleRolePri
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.ProcessContextFactory
+import nl.adaptivity.process.engine.ProcessEngine
 import nl.adaptivity.process.engine.pma.*
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DefaultAuthServiceClient
 import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString

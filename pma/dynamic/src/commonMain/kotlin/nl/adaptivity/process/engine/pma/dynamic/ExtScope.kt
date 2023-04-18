@@ -16,16 +16,16 @@
 
 package nl.adaptivity.process.engine.pma
 
+import net.devrieze.util.security.SecurityProvider.Permission
 import nl.adaptivity.process.engine.pma.models.AuthScope
 import nl.adaptivity.process.engine.pma.models.EMPTYSCOPE
 import nl.adaptivity.process.engine.pma.models.UnionPermissionScope
 import nl.adaptivity.process.engine.pma.models.UseAuthScope
 
-data class ExtScope<V>(val scope: AuthScope, val extraData: V) :
-    AuthScope, UseAuthScope {
+data class ExtScope<V>(val scope: AuthScope, val extraData: V) : AuthScope, UseAuthScope {
     override val description: String get() = toString()
 
-    override fun includes(useScope: UseAuthScope): Boolean {
+    override fun includes(useScope: Permission): Boolean {
         return this == useScope
     }
 

@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine.pma.dynamic.scope
 
 import net.devrieze.util.Handle
+import net.devrieze.util.security.SecurityProvider.Permission
 import nl.adaptivity.process.engine.pma.ExtScope
 import nl.adaptivity.process.engine.pma.models.*
 import nl.adaptivity.process.engine.processModel.PNIHandle
@@ -51,7 +52,7 @@ sealed class CommonPMAPermissions : AuthScope {
         fun context(hNodeInstance: PNIHandle): ExtScope<PNIHandle> =
             UPDATE_ACTIVITY_STATE.contextImpl(hNodeInstance)
 
-        override fun includes(useScope: UseAuthScope): Boolean {
+        override fun includes(useScope: Permission): Boolean {
             return when (useScope) {
                 is ExtScope<*> -> Handle.invalid<Any>() != useScope.extraData
                 else -> false
@@ -67,7 +68,7 @@ sealed class CommonPMAPermissions : AuthScope {
         operator fun invoke(hNodeInstance: Handle<SecureProcessNodeInstance>): ExtScope<PNIHandle> =
             contextImpl(hNodeInstance)
 
-        override fun includes(useScope: UseAuthScope): Boolean {
+        override fun includes(useScope: Permission): Boolean {
             return useScope is ExtScope<*> && useScope.scope == this
         }
 
@@ -88,7 +89,7 @@ sealed class CommonPMAPermissions : AuthScope {
      * Full administrative permissions against a service.
      */
     object ADMIN: CommonPMAPermissions(), UseAuthScope {
-        override fun includes(useScope: UseAuthScope): Boolean = true
+        override fun includes(useScope: Permission): Boolean = true
         override fun intersect(otherScope: AuthScope): AuthScope = otherScope
     }
 
@@ -125,7 +126,7 @@ sealed class CommonPMAPermissions : AuthScope {
             return ContextScope(null, service?.serviceInstanceId, scope)
         }
 
-        override fun includes(useScope: UseAuthScope): Boolean {
+        override fun includes(useScope: Permission): Boolean {
             if (useScope is ContextScope) return true
             if (useScope is GRANT_ACTIVITY_PERMISSION.ContextScope) return true
             return super.includes(useScope)
@@ -148,7 +149,7 @@ sealed class CommonPMAPermissions : AuthScope {
             val serviceId: ServiceId<*>?,
             val childScope: AuthScope? = null
         ) : UseAuthScope, AuthScope {
-            override fun includes(useScope: UseAuthScope): Boolean = when {
+            override fun includes(useScope: Permission): Boolean = when {
                 useScope is GRANT_ACTIVITY_PERMISSION.ContextScope &&
                     useScope.childScope != null &&
                     (clientId == null || clientId == useScope.clientId) &&
@@ -321,7 +322,7 @@ sealed class CommonPMAPermissions : AuthScope {
             return ContextScope(taskHandle, null, service?.serviceInstanceId, scope)
         }
 
-        override fun includes(useScope: UseAuthScope): Boolean {
+        override fun includes(useScope: Permission): Boolean {
             if (useScope is ContextScope) return true
             return super.includes(useScope)
         }
@@ -348,7 +349,7 @@ sealed class CommonPMAPermissions : AuthScope {
                 assert(taskInstanceHandle.isValid)
             }
 
-            override fun includes(useScope: UseAuthScope): Boolean = when {
+            override fun includes(useScope: Permission): Boolean = when {
                 useScope !is ContextScope ||
                     useScope.childScope == null ||
                     !useScope.taskInstanceHandle.isValid ||
@@ -498,7 +499,7 @@ sealed class CommonPMAPermissions : AuthScope {
             return DelegateContextScope(service?.serviceInstanceId, scope)
         }
 
-        override fun includes(useScope: UseAuthScope): Boolean {
+        override fun includes(useScope: Permission): Boolean {
             if (useScope is DelegateContextScope) return true
             return super.includes(useScope)
         }
@@ -518,7 +519,7 @@ sealed class CommonPMAPermissions : AuthScope {
             val childScope: AuthScope
         ) : UseAuthScope, AuthScope {
 
-            override fun includes(useScope: UseAuthScope): Boolean {
+            override fun includes(useScope: Permission): Boolean {
                 return when {
                     useScope !is DelegateContextScope ||
                         useScope.childScope == EMPTYSCOPE ||
@@ -626,7 +627,7 @@ sealed class CommonPMAPermissions : AuthScope {
         return ExtScope(this, contextData)
     }
 
-    override fun includes(useScope: UseAuthScope): Boolean {
+    override fun includes(useScope: Permission): Boolean {
         return this == useScope
     }
 

@@ -1,6 +1,7 @@
 package io.github.pdvrieze.pma.agfil.services
 
 import io.github.pdvrieze.pma.agfil.data.ClaimId
+import net.devrieze.util.security.SecurityProvider.Permission
 import nl.adaptivity.process.engine.pma.models.AuthScope
 import nl.adaptivity.process.engine.pma.models.UseAuthScope
 
@@ -24,7 +25,7 @@ sealed class AgfilPermissions {
         override val description: String
             get() = "${base.description}(${claimId.id})"
 
-        override fun includes(useScope: UseAuthScope): Boolean = when {
+        override fun includes(useScope: Permission): Boolean = when {
             useScope !is ClaimUseScope -> false
             base!=useScope.base -> false
             else -> claimId==useScope.claimId

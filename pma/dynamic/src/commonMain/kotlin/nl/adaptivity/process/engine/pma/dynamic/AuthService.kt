@@ -38,7 +38,7 @@ class AuthService(
     private val random: Random
 ) : AutomatedService {
     override val serviceInstanceId: ServiceId<AuthService> =
-        ServiceId("${serviceName}:${random.nextUInt().toString(16)}")
+        ServiceId("${serviceName.serviceName}:${random.nextUInt().toString(16)}")
 
     private val registeredClients = mutableMapOf<String, ClientInfo>()
     private val authorizationCodes = mutableMapOf<AuthorizationCode, PmaAuthToken>()
@@ -120,8 +120,9 @@ class AuthService(
         useScope: UseAuthScope
     ) {
         if (serviceId != serviceInstanceId) throw AuthorizationException("Only authService allows password auth")
-        if (registeredClients[authInfo.principal.name]?.secret != authInfo.secret) {
-            throw AuthorizationException("Password mismatch for client ${authInfo.principal} (${registeredClients[authInfo.principal.name]?.secret} != ${authInfo.secret})")
+        val principal = authInfo.principal
+        if (registeredClients[principal.name]?.secret != authInfo.secret) {
+            throw AuthorizationException("Password mismatch for client $principal (${registeredClients[principal.name]?.secret} != ${authInfo.secret})")
         }
 
         val source =
@@ -130,12 +131,12 @@ class AuthService(
             authInfo,
             "validateUserPermissions(clientId = $serviceId, authInfo = $authInfo, scope = ${useScope.description}) from $source"
         )
-        if (useScope != IDENTIFY) { // Identify by password is always allowed
-            val hasGlobalPerms =
-                globalPermissions.get(authInfo.principal.name)?.get(serviceId)?.includes(useScope) ?: false
-            if (!hasGlobalPerms) {
-                throw AuthorizationException("No permission found for user ${authInfo.principal} to $serviceId.${useScope.description}")
-            }
+
+        val hasGlobalPerms = useScope == IDENTIFY ||
+            globalPermissions.get(principal.name)?.get(serviceId)?.includes(useScope) ?: false
+
+        if (!hasGlobalPerms) {
+            throw AuthorizationException("No permission found for user $principal to $serviceId.${useScope.description}")
         }
     }
 
@@ -316,6 +317,16 @@ class AuthService(
             )
         }
     }
+
+    fun userHasPermission(clientAuth: PmaAuthInfo, principal: PrincipalCompat, serviceId: ServiceId<*>, permission: UseAuthScope): Boolean {
+        internalValidateAuthInfo(clientAuth, VALIDATE_AUTH.invoke(serviceId))
+
+        val globalPermission = globalPermissions[principal.name]?.get(serviceId) ?: EMPTYSCOPE
+        val scopePermission = (principal as? PmaAuthToken.Principal)?.scope ?: EMPTYSCOPE
+        val fullPermission = globalPermission.union(scopePermission)
+        return fullPermission.includes(permission)
+    }
+
 
     /**
      * Validate whether the authentication information will authenticate to the service with the given scope
@@ -603,7 +614,7 @@ class AuthService(
     }
 
     fun isTokenValid(clientAuth: PmaAuthInfo, token: PmaAuthToken): Boolean {
-        if (token.principal != clientAuth.principal) { // A user/service can always verify their own tokens
+        if (token.principal.name != clientAuth.principal.name) { // A user/service can always verify their own tokens
             internalValidateAuthInfo(clientAuth, VALIDATE_AUTH(token.serviceId))
         }
         return token in activeTokens

@@ -29,10 +29,10 @@ import java.security.Principal
 import java.util.logging.Logger
 import kotlin.random.Random
 
-class AgfilContextFactory(private val logger: Logger, private val random: Random = Random) :
+class AgfilContextFactory(private val logger: Logger, private val random: Random = Random, processEngineProvider: (AgfilContextFactory) -> ProcessEngine<StubProcessTransaction>) :
     AbstractDynamicPmaContextFactory<AgfilActivityContext>() {
 
-    lateinit var processEngine: ProcessEngine<StubProcessTransaction>
+    private val processEngine: ProcessEngine<StubProcessTransaction>
 
     private val processContexts = mutableMapOf<PIHandle, AgfilProcessContext>()
     private val browsers = mutableMapOf<String, Browser>()
@@ -70,7 +70,9 @@ class AgfilContextFactory(private val logger: Logger, private val random: Random
         val adminAuth = PmaIdSecretAuthInfo(SimplePrincipal("<PMA-Admin>"))
         authService = AuthService(ServiceNames.authService, adminAuth, logger, nodes, random)
         adminAuthServiceClient = DefaultAuthServiceClient(adminAuth, authService)
-        engineService = EngineService(ServiceNames.engineService, authService, adminAuth)
+        val engine = processEngineProvider(this)
+        processEngine = engine
+        engineService = EngineService(ServiceNames.engineService, authService, adminAuth).apply { initEngine(engine) }
 
         // TODO have separate task lists for each organization.
         taskListService = DynamicTaskList(
@@ -81,11 +83,11 @@ class AgfilContextFactory(private val logger: Logger, private val random: Random
             ""
         )
 
-        agfilService = AgfilService(ServiceNames.agfilService, authService, adminAuth, processEngine, random, logger)
+        agfilService = AgfilService(ServiceNames.agfilService, authService, adminAuth, engineService, random, logger)
 
-        garageServices = ServiceNames.garageServices.arrayMap { GarageService(it, authService, adminAuth, processEngine, serviceResolver, random) }
-        europAssistService = EuropAssistService(ServiceNames.europAssistService, authService, adminAuth, processEngine, serviceResolver, random, logger)
-        leeCsService = LeeCsService(ServiceNames.leeCsService, authService, adminAuth, processEngine, serviceResolver, random, logger)
+        garageServices = ServiceNames.garageServices.arrayMap { GarageService(it, authService, adminAuth, engineService, serviceResolver, random) }
+        europAssistService = EuropAssistService(ServiceNames.europAssistService, authService, adminAuth, engineService, serviceResolver, random, logger)
+        leeCsService = LeeCsService(ServiceNames.leeCsService, authService, adminAuth, engineService, serviceResolver, random, logger)
     }
 
 

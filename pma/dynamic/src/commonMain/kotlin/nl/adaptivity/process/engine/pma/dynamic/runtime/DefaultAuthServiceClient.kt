@@ -11,7 +11,7 @@ class DefaultAuthServiceClient(val originatingClientAuth: PmaAuthInfo, val authS
 
     override val principal: PrincipalCompat get() = originatingClientAuth.principal
 
-    fun isTokenValid(token : PmaAuthToken): Boolean {
+    override fun isTokenValid(token : PmaAuthToken): Boolean {
         return authService.isTokenValid(originatingClientAuth, token)
     }
 
@@ -82,7 +82,7 @@ class DefaultAuthServiceClient(val originatingClientAuth: PmaAuthInfo, val authS
      * @param serviceId The service that the token is for
      * @param scope The requested authorization.
      */
-    fun requestPmaAuthToken(
+    override fun requestPmaAuthToken(
         nodeInstanceHandle: PNIHandle,
         serviceId: ServiceId<*>,
         scope: AuthScope
@@ -101,7 +101,7 @@ class DefaultAuthServiceClient(val originatingClientAuth: PmaAuthInfo, val authS
      * @param service The service targeted by the token
      * @param requestedScope The scope needed
      */
-    fun exchangeDelegateToken(
+    override fun exchangeDelegateToken(
         exchangedToken: PmaAuthToken,
         service: ServiceId<*>,
         requestedScope: AuthScope,
@@ -113,7 +113,7 @@ class DefaultAuthServiceClient(val originatingClientAuth: PmaAuthInfo, val authS
         return authService.exchangeAuthCode(originatingClientAuth, authorizationCode)
     }
 
-    fun getAuthTokenDirect(
+    override fun getAuthTokenDirect(
         serviceId: ServiceId<Service>,
         reqScope: AuthScope
     ): PmaAuthToken {
@@ -123,7 +123,7 @@ class DefaultAuthServiceClient(val originatingClientAuth: PmaAuthInfo, val authS
     /**
      * Register a global permission against a user/client
      */
-    fun registerGlobalPermission(
+    override fun registerGlobalPermission(
         principal: PrincipalCompat,
         service: Service,
         scope: AuthScope
@@ -138,7 +138,7 @@ class DefaultAuthServiceClient(val originatingClientAuth: PmaAuthInfo, val authS
      * @param secret The password for the service
      * @return The actual userId for the service. This name is made to be unique.
      */
-    fun registerClient(serviceName: ServiceName<*>, secret: String): PmaIdSecretAuthInfo {
+    override fun registerClient(serviceName: ServiceName<*>, secret: String): PmaIdSecretAuthInfo {
         return authService.registerClient(originatingClientAuth, serviceName, secret)
     }
 
@@ -149,7 +149,11 @@ class DefaultAuthServiceClient(val originatingClientAuth: PmaAuthInfo, val authS
      * @param secret The password for the service
      * @return The actual userId for the service. This name is made to be unique.
      */
-    fun registerClient(principal: PrincipalCompat, secret: String): PmaIdSecretAuthInfo {
+    override fun registerClient(principal: PrincipalCompat, secret: String): PmaIdSecretAuthInfo {
         return authService.registerClient(originatingClientAuth, principal, secret)
+    }
+
+    override fun userHasPermission(principal: PrincipalCompat, serviceId: ServiceId<*>, permission: UseAuthScope): Boolean {
+        return authService.userHasPermission(originatingClientAuth, principal, serviceId, permission)
     }
 }

@@ -20,8 +20,8 @@ import nl.adaptivity.process.processModel.AuthorizationInfo
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 
-sealed class PmaAuthInfo(val principal: PrincipalCompat): AuthorizationInfo {
-
+sealed class PmaAuthInfo(): AuthorizationInfo {
+    abstract val principal: PrincipalCompat
     abstract override fun toString(): String
 }
 

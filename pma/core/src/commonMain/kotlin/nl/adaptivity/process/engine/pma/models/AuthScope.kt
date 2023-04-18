@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine.pma.models
 
+import net.devrieze.util.security.SecurityProvider.Permission
 import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.pma.AuthorizationException
 
@@ -35,7 +36,7 @@ interface AuthScope : AuthScopeTemplate<ActivityInstanceContext> {
      * Determine whether this scope is larger than the passed one. In other words, whether the parameter scope
      * is allowed if this scope is allowed.
      */
-    fun includes(useScope: UseAuthScope): Boolean  {
+    fun includes(useScope: Permission): Boolean  {
         return this == useScope
     }
 
@@ -73,7 +74,7 @@ class UnionPermissionScope(members: List<AuthScope>): AuthScope {
 
     constructor(vararg members: AuthScope): this(members.toList())
 
-    override fun includes(useScope: UseAuthScope): Boolean {
+    override fun includes(useScope: Permission): Boolean {
         return members.any { it.includes(useScope) }
     }
 
@@ -124,13 +125,13 @@ class UnionPermissionScope(members: List<AuthScope>): AuthScope {
 /**
  * Scope for using permissions
  */
-interface UseAuthScope: AuthScope {
+interface UseAuthScope: AuthScope, Permission {
 
 }
 
 object EMPTYSCOPE: AuthScope {
     override val description: String get() = "-"
-    override fun includes(useScope: UseAuthScope): Boolean = false
+    override fun includes(useScope: Permission): Boolean = false
     override fun intersect(otherScope: AuthScope): EMPTYSCOPE = EMPTYSCOPE
     override fun union(otherScope: AuthScope): AuthScope = otherScope
     override fun instantiateScope(context: ActivityInstanceContext): EMPTYSCOPE = EMPTYSCOPE
@@ -139,7 +140,7 @@ object EMPTYSCOPE: AuthScope {
 object ANYSCOPE: AuthScope {
     override val description get() = "*"
     override fun toString() = "AnyScope"
-    override fun includes(useScope: UseAuthScope): Boolean {
+    override fun includes(useScope: Permission): Boolean {
         throw AuthorizationException("Using the any scope directly is not permitted")
     }
 

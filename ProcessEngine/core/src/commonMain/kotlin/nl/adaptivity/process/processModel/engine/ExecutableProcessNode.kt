@@ -180,10 +180,10 @@ interface ExecutableProcessNode : ProcessNode, Identified {
 
     fun checkPredSuccCounts(predRange: IntRange = 1..1, succRange: IntRange = 1 .. 1) {
         require(predecessors.size in predRange) {
-            "The amount of predecessors is expected to be in the range ${predRange}"
+            "The amount of predecessors for node $identifier is expected to be in the range ${predRange}, was ${predecessors.size}"
         }
         require(successors.size in succRange) {
-            "The amount of successors is expected to be in the range ${succRange}"
+            "The amount of successors for node $identifier is expected to be in the range ${succRange}, was ${successors.size}"
         }
     }
 

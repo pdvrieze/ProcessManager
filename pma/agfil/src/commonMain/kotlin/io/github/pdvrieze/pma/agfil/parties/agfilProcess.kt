@@ -6,6 +6,8 @@ import io.github.pdvrieze.pma.agfil.data.ClaimId
 import io.github.pdvrieze.pma.agfil.data.CompletedClaimForm
 import io.github.pdvrieze.pma.agfil.data.Invoice
 import io.github.pdvrieze.pma.agfil.services.ServiceNames
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.DataNodeHandle
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.NodeHandle
 import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
 import nl.adaptivity.process.processModel.engine.ExecutableCondition
 import nl.adaptivity.process.processModel.engine.ExecutableXPathCondition
@@ -15,7 +17,7 @@ val agfilProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>
 
     val start by startNode
 
-    val checkPolicyValidity by serviceActivity(start, listOf(), ServiceNames.agfilService, claimIdInput) { claimId ->
+    val checkPolicyValidity: DataNodeHandle<Boolean> by serviceActivity(start, listOf(), ServiceNames.agfilService, claimIdInput) { claimId ->
         val claim = service.getAccidentInfo(authToken, claimId)
         val policy = service.getPolicy(authToken, claim.customerId, claim.carRegistration)
         policy != null // TODO have more complex validation (like claim category)
@@ -26,7 +28,7 @@ val agfilProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>
         max = 1
     }
 
-    val notifyInvalidClaim by serviceActivity(
+    val notifyInvalidClaim: NodeHandle<*> by serviceActivity(
         predecessor = invalidSplit,
         authorizationTemplates = listOf(),
         service = ServiceNames.agfilService,
@@ -39,7 +41,7 @@ val agfilProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>
         }
     )
 
-    val terminateClaim by serviceActivity(
+    val terminateClaim: NodeHandle<*> by serviceActivity(
         predecessor = notifyInvalidClaim,
         authorizationTemplates = listOf(),
         service = ServiceNames.agfilService,
@@ -54,7 +56,7 @@ val agfilProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>
         condition = ExecutableXPathCondition("text()=true")
     }
 
-    val sendClaimForm by serviceActivity(
+    val sendClaimForm: NodeHandle<*> by serviceActivity(
         predecessor = handleValidSplit,
         authorizationTemplates = listOf(),
         service = ServiceNames.agfilService,
@@ -63,28 +65,46 @@ val agfilProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>
         service.internal.sendClaimFormToCustomer(authToken, claimId)
     }
 
-    val receiveCompletedClaimForm by eventNode(sendClaimForm, CompletedClaimForm.serializer())
+    val receiveCompletedClaimForm: DataNodeHandle<CompletedClaimForm> by eventNode(sendClaimForm, CompletedClaimForm.serializer())
 
-    val processCompletedClaimForm by serviceActivity(receiveCompletedClaimForm, listOf(), ServiceNames.agfilService) { claimForm ->
+    val processCompletedClaimForm: DataNodeHandle<*> by serviceActivity(
+        predecessor = receiveCompletedClaimForm,
+        authorizationTemplates = listOf(),
+        service = ServiceNames.agfilService
+    ) { claimForm ->
         service.internal.processCompletedClaimForm(authToken, claimForm)
     }
 
-    val notifyLeeCs by serviceActivity(handleValidSplit, listOf(), ServiceNames.leeCsService, claimIdInput) { claimId ->
+    val notifyLeeCs: DataNodeHandle<*> by serviceActivity(
+        predecessor = handleValidSplit,
+        authorizationTemplates = listOf(),
+        service = ServiceNames.leeCsService,
+        input = claimIdInput
+    ) { claimId ->
         service.startClaimProcessing(authToken, claimId)
     }
 
-    val receiveInvoice by eventNode(notifyLeeCs, Invoice.serializer())
+    val receiveInvoice: DataNodeHandle<Invoice> by eventNode(notifyLeeCs, Invoice.serializer())
 
     val validJoin by join(processCompletedClaimForm, receiveInvoice) {
         min = 2
         max = 2
     }
 
-    val makeReconciliation by serviceActivity(validJoin, listOf(), ServiceNames.agfilService) {
+    val makeReconciliation: DataNodeHandle<*> by serviceActivity(
+        predecessor = validJoin,
+        authorizationTemplates = listOf(),
+        service = ServiceNames.agfilService
+    ) {
         // Do nothing at this point
     }
 
-    val payInvoice by serviceActivity(makeReconciliation, listOf(), ServiceNames.agfilService, receiveInvoice) {invoice ->
+    val payInvoice: DataNodeHandle<*> by serviceActivity(
+        predecessor = makeReconciliation,
+        authorizationTemplates = listOf(),
+        service = ServiceNames.agfilService,
+        input = receiveInvoice
+    ) { invoice ->
         service.internal.payGarageInvoice(authToken, invoice)
     }
 

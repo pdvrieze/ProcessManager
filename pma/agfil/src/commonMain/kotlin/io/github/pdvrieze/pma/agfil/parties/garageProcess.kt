@@ -5,6 +5,7 @@ import io.github.pdvrieze.pma.agfil.contexts.AgfilBrowserContext
 import io.github.pdvrieze.pma.agfil.data.*
 import io.github.pdvrieze.pma.agfil.services.GarageService
 import io.github.pdvrieze.pma.agfil.services.ServiceNames
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.DataNodeHandle
 import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
 import nl.adaptivity.process.engine.pma.dynamic.uiServiceLogin
 import nl.adaptivity.process.engine.pma.models.ServiceName
@@ -20,16 +21,15 @@ fun repairProcess(owner: PrincipalCompat, ownerService: ServiceName<GarageServic
 
     val onReceiveCar by eventNode(start, CarRegistration.serializer())
 
-    val handleReceiveCar by taskActivity(onReceiveCar, input = combine(onReceiveCar named "registration", claimId named "claimId")) {
+    val handleReceiveCar: DataNodeHandle<Unit> by taskActivity(onReceiveCar, input = combine(onReceiveCar named "registration", claimId named "claimId")) {
         acceptTask({  randomGarageReceptionist() }) { (carRegistration, claimId) ->
             uiServiceLogin(serviceName = ownerService) {
                 service.internal.registerCarReceipt(authToken, claimId, carRegistration)
             }
-            TODO()
         }
     }
 
-    val estimateRepairCost by taskActivity(handleReceiveCar, input = claimId) {
+    val estimateRepairCost: DataNodeHandle<Money> by taskActivity(handleReceiveCar, input = claimId) {
         acceptTask({ randomMechanic() }) { claimId ->
             val costs = randomRepairCosts()
             uiServiceLogin(ownerService) {
@@ -39,7 +39,7 @@ fun repairProcess(owner: PrincipalCompat, ownerService: ServiceName<GarageServic
         }
     }
 
-    val sendEstimate by serviceActivity(
+    val sendEstimate: DataNodeHandle<Unit> by serviceActivity(
         estimateRepairCost,
         listOf(),
         ServiceNames.leeCsService,
@@ -48,13 +48,17 @@ fun repairProcess(owner: PrincipalCompat, ownerService: ServiceName<GarageServic
         service.sendGarageEstimate(authToken, Estimate(claimId, accidentInfo.carRegistration, estimate))
     }
 
-    val onRepairAgreed by eventNode(sendEstimate, RepairAgreement.serializer())
+    val onRepairAgreed: DataNodeHandle<RepairAgreement> by eventNode(sendEstimate, RepairAgreement.serializer())
 
-    val repairCar by serviceActivity(onRepairAgreed, listOf(), ownerService) { repairAgreement ->
+    val repairCar: DataNodeHandle<Unit> by serviceActivity(onRepairAgreed, listOf(), ownerService) { repairAgreement ->
         service.internal.repairCar(authToken, repairAgreement)
     }
 
-    val onReceivePayment by eventNode(sendEstimate, Payment.serializer())
+    val sendInvoice: DataNodeHandle<InvoiceId> by serviceActivity(repairCar, listOf(), ownerService, input = onRepairAgreed) { agreement->
+        service.sendInvoice(agreement)
+    }
+
+    val onReceivePayment by eventNode(sendInvoice, Payment.serializer())
 
     val confirmPayment by serviceActivity(onReceivePayment, listOf(), ownerService) { payment ->
         service.internal.handlePayment(authToken, payment)

@@ -1,6 +1,7 @@
 package nl.adaptivity.process.engine.pma.test
 
 import net.devrieze.util.security.SimplePrincipal
+import nl.adaptivity.process.engine.pma.AuthorizationException
 import nl.adaptivity.process.engine.pma.models.*
 import nl.adaptivity.process.engine.pma.runtime.AuthServiceClient
 import nl.adaptivity.process.engine.processModel.PNIHandle
@@ -52,6 +53,53 @@ class TestAuthServiceClient() : AuthServiceClient<AuthorizationInfo, Authorizati
 
     override fun exchangeAuthCode(authorizationCode: AuthorizationInfo.Token): AuthorizationInfo.Token {
         return authorizationCode
+    }
+
+    override fun isTokenValid(token: AuthorizationInfo.Token): Boolean {
+        return true
+    }
+
+    override fun requestPmaAuthToken(
+        nodeInstanceHandle: PNIHandle,
+        serviceId: ServiceId<*>,
+        scope: AuthScope
+    ): AuthorizationInfo.Token {
+        return DummyTokenServiceAuthData(serviceId, listOf(scope))
+    }
+
+    override fun exchangeDelegateToken(
+        exchangedToken: AuthorizationInfo.Token,
+        service: ServiceId<*>,
+        requestedScope: AuthScope
+    ): AuthorizationInfo.Token {
+        if (exchangedToken is DummyTokenServiceAuthData) {
+            if(exchangedToken.targetService != service) throw AuthorizationException("Services don't match")
+        }
+        return exchangedToken
+    }
+
+    override fun getAuthTokenDirect(serviceId: ServiceId<Service>, reqScope: AuthScope): AuthorizationInfo.Token {
+        return DummyTokenServiceAuthData(serviceId, listOf(reqScope))
+    }
+
+    override fun registerGlobalPermission(principal: PrincipalCompat, service: Service, scope: AuthScope) {
+        // NO-Op
+    }
+
+    override fun registerClient(serviceName: ServiceName<*>, secret: String): AuthorizationInfo {
+        return DummyTokenServiceAuthData(ServiceId<Service>(serviceName.serviceName), emptyList())
+    }
+
+    override fun registerClient(principal: PrincipalCompat, secret: String): AuthorizationInfo {
+        return DummyTokenServiceAuthData(ServiceId<Service>(principal.name), emptyList())
+    }
+
+    override fun userHasPermission(
+        principal: PrincipalCompat,
+        serviceId: ServiceId<*>,
+        permission: UseAuthScope
+    ): Boolean {
+        return true
     }
 }
 

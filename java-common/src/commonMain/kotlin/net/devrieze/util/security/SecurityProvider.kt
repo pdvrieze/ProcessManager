@@ -61,12 +61,14 @@ interface SecurityProvider {
             ALLOW, PASS -> otherProducer()
         }
 
-        infix fun andBool(otherProducer: () -> Boolean?) = when(this) {
-            ALWAYS_ALLOW, ALWAYS_DENY, DENY -> this
-            ALLOW, PASS -> when (otherProducer()) {
-                true -> ALLOW
-                null -> this // This is a pass
-                else -> DENY
+        infix fun andBool(otherProducer: () -> Boolean?): IntermediatePermissionDecision {
+            return when(this) {
+                ALWAYS_ALLOW, ALWAYS_DENY, DENY -> this
+                ALLOW, PASS -> when (otherProducer()) {
+                    true -> ALLOW
+                    null -> this // This is a pass
+                    else -> DENY
+                }
             }
         }
 
@@ -86,6 +88,13 @@ interface SecurityProvider {
         fun toPermissionResult(): PermissionResult = when(this) {
             ALLOW, ALWAYS_ALLOW -> PermissionResult.GRANTED
             else -> PermissionResult.DENIED
+        }
+
+        companion object {
+            fun from(boolean: Boolean?) = when(boolean) {
+                true -> ALLOW
+                else -> DENY
+            }
         }
     }
 

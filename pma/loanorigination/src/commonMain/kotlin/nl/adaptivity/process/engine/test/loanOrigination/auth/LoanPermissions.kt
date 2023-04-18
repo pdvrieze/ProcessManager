@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine.test.loanOrigination.auth
 
 import net.devrieze.util.Handle
+import net.devrieze.util.security.SecurityProvider.Permission
 import nl.adaptivity.process.engine.pma.ExtScope
 import nl.adaptivity.process.engine.pma.models.*
 import nl.adaptivity.process.engine.processModel.PNIHandle
@@ -55,7 +56,7 @@ sealed class LoanPermissions {
             return MonetaryRestrictionPermissionScope(SIGN_LOAN, customerId, maxAmount)
         }
 
-        override fun includes(useScope: UseAuthScope): Boolean = when (useScope) {
+        override fun includes(useScope: Permission): Boolean = when (useScope) {
             is ExtScope<*> -> useScope.scope == this
             else -> false
         }
@@ -65,7 +66,7 @@ sealed class LoanPermissions {
         fun context(hNodeInstance: PNIHandle) =
             UPDATE_ACTIVITY_STATE.contextImpl(hNodeInstance)
 
-        override fun includes(useScope: UseAuthScope): Boolean {
+        override fun includes(useScope: Permission): Boolean {
             return when (useScope) {
                 is ExtScope<*> -> Handle.invalid<Any>() != useScope.extraData
                 else -> false
@@ -95,7 +96,7 @@ sealed class LoanPermissions {
         operator fun invoke(hNodeInstance: PNIHandle) =
             contextImpl(hNodeInstance)
 
-        override fun includes(useScope: UseAuthScope): Boolean {
+        override fun includes(useScope: Permission): Boolean {
             return useScope is ExtScope<*> && useScope.scope == this
         }
 
@@ -158,7 +159,7 @@ class MonetaryRestrictionPermissionScope(
     val customerId: String? = null,
     val maxAmount: Double = Double.NaN
                                         ) : AuthScope {
-    override fun includes(useScope: UseAuthScope): Boolean {
+    override fun includes(useScope: Permission): Boolean {
         if (useScope !is MonetaryUseScope) return false
         if (customerId != null && useScope.customerId != customerId) return false
         if (maxAmount.isFinite() && useScope.amount > maxAmount) return false
