@@ -79,6 +79,7 @@ fun <S : RunnableUiService, R> TaskBuilderContext.BrowserContext<*, *>.uiService
     return DefaultUIServiceInnerContext(authToken, service).action()
 }
 
+@OptIn(ExperimentalContracts::class)
 fun <AIC : DynamicPmaActivityContext<AIC, BIC>, BIC : TaskBuilderContext.BrowserContext<AIC, BIC>, S : RunnableUiService, R> TaskBuilderContext.BrowserContext<AIC, BIC>.uiServiceLogin(
     serviceName: ServiceName<S>,
     action: TaskBuilderContext.UIServiceInnerContext<S>.() -> R

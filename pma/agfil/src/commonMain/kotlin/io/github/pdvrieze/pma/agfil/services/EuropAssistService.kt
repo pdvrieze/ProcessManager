@@ -15,6 +15,7 @@ import nl.adaptivity.process.engine.pma.PmaIdSecretAuthInfo
 import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableAutomatedService
+import nl.adaptivity.process.engine.pma.dynamic.services.RunnableUiService
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.models.ServiceResolver
 import java.util.logging.Logger
@@ -36,7 +37,7 @@ class EuropAssistService(
     random = random,
     logger = logger,
     europAssistProcess
-), RunnableAutomatedService, AutoService {
+), RunnableAutomatedService, RunnableUiService, AutoService {
     constructor(
         serviceName: ServiceName<EuropAssistService>,
         authService: AuthService,

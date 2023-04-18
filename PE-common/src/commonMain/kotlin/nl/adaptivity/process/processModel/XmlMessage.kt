@@ -16,7 +16,9 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.*
+import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.SerialName
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -24,9 +26,12 @@ import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import kotlinx.serialization.serializer
+import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.messaging.*
 import nl.adaptivity.serialutil.readNullableString
+import nl.adaptivity.util.multiplatform.toUri
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
@@ -107,7 +112,8 @@ class XmlMessage : XMLContainer, IXmlMessage {
             requireNotNull(method) { "A service must have either soap info or rest info. Method missing."  }
             requireNotNull(url) { "A service must have either soap info or rest info. url missing."  }
             requireNotNull(contentType) { "For a Rest service the content type cannot be null" }
-            targetService = RESTMethodDesc(method, url, contentType)
+            val descriptor = EndpointDescriptorImpl(service, endpoint, url.toUri())
+            targetService = RESTMethodDesc(descriptor, method, contentType)
         }
         messageBody?.let {
             namespaces = SimpleNamespaceContext(it.namespaces)
@@ -146,10 +152,12 @@ class XmlMessage : XMLContainer, IXmlMessage {
     override fun serializeAttributes(out: XmlWriter) {
         super.serializeAttributes(out)
         out.writeAttribute("type", targetService.contentType)
-        (targetService as? SOAPMethod).run {
-            out.writeAttribute("serviceNS", this?.serviceName?.namespaceURI)
-            out.writeAttribute("serviceName", this?.serviceName?.getLocalPart())
-            out.writeAttribute("endpoint", this?.endpointName)
+        targetService.endpoint.run {
+            serviceName?.run {
+                out.writeAttribute("serviceNS", namespaceURI)
+                out.writeAttribute("serviceName", getLocalPart())
+            }
+            endpointName?.let { out.writeAttribute("endpoint", it) }
         }
         out.writeAttribute("operation", operation)
         out.writeAttribute("url", targetService.url)
@@ -198,7 +206,7 @@ class XmlMessage : XMLContainer, IXmlMessage {
 
     @OptIn(ExperimentalSerializationApi::class)
     companion object : XmlContainerSerializer<XmlMessage>() {
-        override val descriptor: SerialDescriptor = serializer<XmlMessageData>().descriptor // TODO use concrete serializer instance
+        override val descriptor: SerialDescriptor = SerialDescriptor("XmlMessage", serializer<XmlMessageData>().descriptor) // TODO use concrete serializer instance
 
         private val nullStringSerializer = String.serializer().nullable
         private val typeIdx = descriptor.getElementIndex("type")
@@ -239,13 +247,27 @@ class XmlMessage : XMLContainer, IXmlMessage {
 
         override fun writeAdditionalValues(encoder: CompositeEncoder, desc: SerialDescriptor, data: XmlMessage) {
             super.writeAdditionalValues(encoder, desc, data)
+            val targetService = data.targetService
+
             encoder.encodeSerializableElement(desc, typeIdx, nullStringSerializer, data.contentType)
-            encoder.encodeSerializableElement(desc, serviceNSIdx, nullStringSerializer, data.serviceNS)
-            encoder.encodeSerializableElement(desc, serviceNameIdx, nullStringSerializer, data.serviceName)
-            encoder.encodeSerializableElement(desc, endpointIdx, nullStringSerializer, data.endpoint)
-            encoder.encodeSerializableElement(desc, operationIdx, nullStringSerializer, data.operation)
-            encoder.encodeSerializableElement(desc, urlIdx, nullStringSerializer, data.url)
-            encoder.encodeSerializableElement(desc, methodIdx, nullStringSerializer, data.method)
+            if (targetService !is RESTMethod) {
+                encoder.encodeSerializableElement(desc, serviceNSIdx, nullStringSerializer,
+                    data.targetService.endpoint.serviceName?.getNamespaceURI()
+                )
+                encoder.encodeSerializableElement(desc, serviceNameIdx, nullStringSerializer,
+                    data.targetService.endpoint.serviceName?.getLocalPart()
+                )
+                encoder.encodeSerializableElement(desc, endpointIdx, nullStringSerializer,
+                    data.targetService.endpoint.endpointName
+                )
+            }
+            if (targetService is SOAPMethod) {
+                encoder.encodeSerializableElement(desc, operationIdx, nullStringSerializer, targetService.operation)
+            }
+            encoder.encodeSerializableElement(desc, urlIdx, nullStringSerializer, targetService.endpoint.endpointLocation?.toString())
+            if (targetService is RESTMethod) {
+                encoder.encodeSerializableElement(desc, methodIdx, nullStringSerializer, targetService.method)
+            }
         }
 
         @Serializable

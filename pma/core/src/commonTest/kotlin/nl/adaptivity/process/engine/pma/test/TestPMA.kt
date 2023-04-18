@@ -4,6 +4,8 @@ import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.pma.models.PMAMessageActivity
+import nl.adaptivity.process.engine.pma.models.toServiceId
+import nl.adaptivity.process.engine.pma.runtime.PmaActivityContext
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.test.ProcessEngineFactory
 import nl.adaptivity.process.engine.test.ProcessEngineTestSupport
@@ -54,7 +56,7 @@ class TestPMA : ProcessEngineTestSupport() {
             val startNode = StartNodeBase.Builder().apply { id = "startNode" }
             nodes.add(startNode)
 
-            val activity = PMAMessageActivity.Builder().apply {
+            val activity = PMAMessageActivity.Builder<PmaActivityContext<*>>().apply {
                 predecessor = Identifier("startNode")
                 id = "act"
                 message = XmlMessage(dest, messageBody = CompactFragment("<dummy/>"))
@@ -79,7 +81,7 @@ class TestPMA : ProcessEngineTestSupport() {
             val message = messageService.messages.singleOrNull() ?: fail("Expected a single message, found [${messageService.messages.joinToString()}]")
             val authData = assertIs<DummyTokenServiceAuthData>(message.authData)
             assertEquals(EvalMessageScope, authData.authorizations.single())
-            assertEquals(dest, authData.targetService.method)
+            assertEquals(dest.endpoint.toServiceId<Nothing>(), authData.targetService)
 
             engine.updateTaskState(transaction, message.source, NodeInstanceState.Started, testModelOwnerPrincipal)
             engine.finishTask(transaction, message.source, null, testModelOwnerPrincipal)

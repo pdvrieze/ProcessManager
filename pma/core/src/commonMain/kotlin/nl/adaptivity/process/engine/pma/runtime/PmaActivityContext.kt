@@ -2,13 +2,9 @@ package nl.adaptivity.process.engine.pma.runtime
 
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.ActivityInstanceContext
-import nl.adaptivity.process.engine.pma.models.AuthScope
-import nl.adaptivity.process.engine.pma.models.ResolvedInvokableMethod
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.PNIHandle
-import nl.adaptivity.process.messaging.InvokableMethod
-import nl.adaptivity.process.processModel.AuthorizationInfo
 import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
@@ -30,15 +26,5 @@ interface PmaActivityContext<out AIC : PmaActivityContext<AIC>> : ActivityInstan
 
     override val owner: PrincipalCompat
         get() = (activityInstance as SecureObject<*>).owner
-
-    fun requestAuthData(
-        targetService: InvokableMethod,
-        authorizations: List<AuthScope>
-    ): AuthorizationInfo.Token {
-        val resolvedService: ResolvedInvokableMethod = processContext.resolveService(targetService) ?: return object : AuthorizationInfo.Token {
-            override val token: String get() = "<Unknown Service>"
-        }
-        return processContext.requestAuthData(resolvedService, authorizations, activityInstance.handle)
-    }
 
 }

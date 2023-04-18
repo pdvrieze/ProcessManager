@@ -2,6 +2,7 @@ package nl.adaptivity.process.engine.pma.runtime
 
 import nl.adaptivity.process.engine.ProcessContextFactory
 import nl.adaptivity.process.engine.ProcessInstance
+import nl.adaptivity.process.engine.pma.models.AuthScope
 import nl.adaptivity.process.engine.pma.models.IPMAMessageActivity
 import nl.adaptivity.process.engine.pma.models.ResolvedInvokableMethod
 import nl.adaptivity.process.engine.pma.models.TaskListService
@@ -10,12 +11,13 @@ import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.messaging.InvokableMethod
 import nl.adaptivity.process.processModel.AccessRestriction
+import nl.adaptivity.process.processModel.AuthorizationInfo
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import java.security.Principal
 
 interface PMAProcessContextFactory<out AIC : PmaActivityContext<AIC>>: ProcessContextFactory<AIC> {
-    val engineServiceAuthServiceClient: AuthServiceClient<*, *, *>
+    val adminAuthServiceClient: AuthServiceClient<*, *, *>
 
     fun getOrCreateTaskListForUser(principal: Principal): TaskListService
 
@@ -56,4 +58,12 @@ interface PMAProcessContextFactory<out AIC : PmaActivityContext<AIC>>: ProcessCo
     }
 
     fun resolveService(targetService: InvokableMethod): ResolvedInvokableMethod?
+    fun createAuthTokenForEngineToInvokeService(
+        targetService: InvokableMethod,
+        authorizations: List<AuthScope>,
+        pniHandle: PNIHandle
+    ): AuthorizationInfo.Token {
+        val resolvedService = requireNotNull(resolveService(targetService)) { "Service $targetService could not be resolved" }
+        return adminAuthServiceClient.requestAuthToken(resolvedService, authorizations, pniHandle)
+    }
 }

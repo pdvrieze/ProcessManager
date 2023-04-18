@@ -10,6 +10,7 @@ import nl.adaptivity.process.engine.pma.PmaAuthToken
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableAutomatedService
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableUiService
 import nl.adaptivity.process.engine.pma.models.ServiceName
+import java.util.logging.Logger
 import kotlin.random.Random
 
 class AgfilService(
@@ -17,8 +18,9 @@ class AgfilService(
     authService: AuthService,
     adminAuthInfo: PmaAuthInfo,
     processEngine: ProcessEngine<StubProcessTransaction>,
-    random: Random
-) : RunnableProcessBackedService<AgfilService>(serviceName, authService, adminAuthInfo, processEngine, random, agfilProcess), RunnableAutomatedService, RunnableUiService {
+    random: Random,
+    logger: Logger
+) : RunnableProcessBackedService<AgfilService>(serviceName, authService, adminAuthInfo, processEngine, random, logger, agfilProcess), RunnableAutomatedService, RunnableUiService {
 
     private val claims = mutableListOf<ClaimData>()
 

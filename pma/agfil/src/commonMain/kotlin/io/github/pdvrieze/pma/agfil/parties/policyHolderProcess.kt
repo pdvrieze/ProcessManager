@@ -9,7 +9,7 @@ import io.github.pdvrieze.pma.agfil.services.PolicyHolder
 import io.github.pdvrieze.pma.agfil.services.ServiceNames
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.DataNodeHandle
 import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
-import nl.adaptivity.process.engine.pma.models.ServiceName
+import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 fun policyHolderProcess(owner: PrincipalCompat, ownerService: ServiceId<PolicyHolder>) = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>("get_car_fixed", owner) {
@@ -20,7 +20,7 @@ fun policyHolderProcess(owner: PrincipalCompat, ownerService: ServiceId<PolicyHo
         service.phoneClaim(authToken, agfilProcessContext.carRegistration, "Random Accident info")
     }
 
-    val onGarageAssigned by eventNode(reportClaim, GarageInfo.serializer())
+    val onGarageAssigned: DataNodeHandle<GarageInfo> by eventNode(reportClaim, GarageInfo.serializer())
 
     val sendCar by serviceActivity(
         predecessor = onGarageAssigned,

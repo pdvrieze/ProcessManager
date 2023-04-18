@@ -186,6 +186,26 @@ abstract class PmaModelBuilderContext<
         ).apply(configure)
     }
 
+    inline fun <I : Any, reified O : Any, S : AutomatedService> serviceActivity(
+        predecessor: NodeHandle<*>,
+        authorizationTemplates: List<AuthScopeTemplate<AIC>> = emptyList(),
+        service: ServiceId<S>,
+        input: InputRef<I>,
+        configure: RunnablePmaActivity.Builder<I, O, AIC>.() -> Unit = {},
+        @BuilderInference
+        noinline action: RunnableAction<I, O, ServiceActivityContext<AIC, S>>
+    ): RunnablePmaActivity.Builder<I, O, AIC> {
+        return RunnablePmaActivity.Builder<I, O, AIC>(
+            predecessor = predecessor,
+            refNode = input.nodeRef,
+            refName = input.propertyName,
+            inputSerializer = input.serializer,
+            outputSerializer = serializer<O>(),
+            authorizationTemplates = authorizationTemplates,
+            action = serviceAction(service, action)
+        ).apply(configure)
+    }
+
     @OptIn(ExperimentalContracts::class)
     inline fun compositeActivity(
         predecessor: Identified,

@@ -11,6 +11,7 @@ import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.PmaAuthToken
 import nl.adaptivity.process.engine.pma.PmaIdSecretAuthInfo
 import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
+import nl.adaptivity.process.engine.pma.models.AutomatedService
 import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.models.ServiceResolver
@@ -33,7 +34,7 @@ class PolicyHolder(
     random = random,
     logger = logger,
     policyHolderProcess(serviceAuth.principal, ServiceId<PolicyHolder>(serviceAuth.id))
-), AutoService {
+), AutoService, AutomatedService {
 
     constructor(
         serviceName: ServiceName<PolicyHolder>,

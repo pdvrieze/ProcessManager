@@ -1,17 +1,17 @@
 package nl.adaptivity.process.messaging
 
 import nl.adaptivity.messaging.EndpointDescriptor
-import nl.adaptivity.util.multiplatform.URI
+import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.util.multiplatform.toUri
 import nl.adaptivity.xmlutil.QName
 
 class SOAPMethodDesc(
-    override val serviceName: QName,
-    override val endpointName: String,
+    serviceName: QName,
+    endpointName: String,
     override val operation: String,
     override val url: String? = null
 ) : SOAPMethod {
-    override val endpointLocation: URI? get() = url?.toUri()
+    override val endpoint: EndpointDescriptor = EndpointDescriptorImpl(serviceName, endpointName, url?.toUri())
 
     constructor(endpointDescriptor: EndpointDescriptor, operation: String) :
         this(
@@ -21,18 +21,14 @@ class SOAPMethodDesc(
             url = endpointDescriptor.endpointLocation?.toString()
         )
 
-    override fun isSameService(other: EndpointDescriptor?): Boolean {
-        return other !=null && serviceName == other.serviceName && endpointName == other.endpointName
-    }
-
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || this::class != other::class) return false
 
         other as SOAPMethodDesc
 
-        if (serviceName != other.serviceName) return false
-        if (endpointName != other.endpointName) return false
+        if (endpoint.serviceName != other.endpoint.serviceName) return false
+        if (endpoint.endpointName != other.endpoint.endpointName) return false
         if (operation != other.operation) return false
         if (url != other.url) return false
 
@@ -40,8 +36,8 @@ class SOAPMethodDesc(
     }
 
     override fun hashCode(): Int {
-        var result = serviceName.hashCode()
-        result = 31 * result + endpointName.hashCode()
+        var result = endpoint.serviceName.hashCode()
+        result = 31 * result + endpoint.endpointName.hashCode()
         result = 31 * result + operation.hashCode()
         result = 31 * result + (url?.hashCode() ?: 0)
         return result
@@ -51,11 +47,20 @@ class SOAPMethodDesc(
 }
 
 class RESTMethodDesc(
+    override val endpoint: EndpointDescriptor,
     override val method: String,
-    override val url: String,
     override val contentType: String
-
 ) : RESTMethod {
+    constructor(
+        serviceName: QName,
+        method: String,
+        url: String,
+        contentType: String
+    ) : this(EndpointDescriptorImpl(serviceName, null, url.toUri()), method, contentType)
+
+    override val url: String
+        get() = endpoint.endpointLocation.toString()
+
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (other == null || this::class != other::class) return false

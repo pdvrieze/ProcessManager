@@ -19,22 +19,22 @@ abstract class AbstractLoanContextFactory<AIC: ActivityInstanceContext>(val log:
 
     protected val nodes = mutableMapOf<PNIHandle, String>()
 
-    val authServiceClient = run {
+    val adminAuthServiceClient = run {
         val adminAuth = PmaIdSecretAuthInfo(SimplePrincipal("<AuthServiceAdmin>"))
         val authService = AuthService(ServiceNames.authService, adminAuth, log, nodes, random)
         DefaultAuthServiceClient(adminAuth, authService)
     }
-    val authService: AuthService get()=  authServiceClient.authService
-    val engineService: EngineService = EngineService(ServiceNames.engineService, authService, authServiceClient.originatingClientAuth)
-    val customerFile = CustomerInformationFile(ServiceNames.customerFile, authService, authServiceClient.originatingClientAuth)
-    val outputManagementSystem = OutputManagementSystem(ServiceNames.outputManagementSystem, authService, authServiceClient.originatingClientAuth)
-    val accountManagementSystem = AccountManagementSystem(ServiceNames.accountManagementSystem, authService, authServiceClient.originatingClientAuth)
-    val creditBureau = CreditBureau(ServiceNames.creditBureau, authService, authServiceClient.originatingClientAuth)
-    val creditApplication = CreditApplication(ServiceNames.creditApplication, authService, authServiceClient.originatingClientAuth, customerFile)
-    val pricingEngine = PricingEngine(ServiceNames.pricingEngine, authService, authServiceClient.originatingClientAuth)
+    val authService: AuthService get()=  adminAuthServiceClient.authService
+    val engineService: EngineService = EngineService(ServiceNames.engineService, authService, adminAuthServiceClient.originatingClientAuth)
+    val customerFile = CustomerInformationFile(ServiceNames.customerFile, authService, adminAuthServiceClient.originatingClientAuth)
+    val outputManagementSystem = OutputManagementSystem(ServiceNames.outputManagementSystem, authService, adminAuthServiceClient.originatingClientAuth)
+    val accountManagementSystem = AccountManagementSystem(ServiceNames.accountManagementSystem, authService, adminAuthServiceClient.originatingClientAuth)
+    val creditBureau = CreditBureau(ServiceNames.creditBureau, authService, adminAuthServiceClient.originatingClientAuth)
+    val creditApplication = CreditApplication(ServiceNames.creditApplication, authService, adminAuthServiceClient.originatingClientAuth, customerFile)
+    val pricingEngine = PricingEngine(ServiceNames.pricingEngine, authService, adminAuthServiceClient.originatingClientAuth)
     val generalClientService =
-        GeneralClientService(ServiceNames.generalClientService, authService, authServiceClient.originatingClientAuth)
-    val signingService = SigningService(ServiceNames.signingService, authService, authServiceClient.originatingClientAuth)
+        GeneralClientService(ServiceNames.generalClientService, authService, adminAuthServiceClient.originatingClientAuth)
+    val signingService = SigningService(ServiceNames.signingService, authService, adminAuthServiceClient.originatingClientAuth)
 
 
     val customerData = CustomerData(
@@ -63,9 +63,9 @@ abstract class AbstractLoanContextFactory<AIC: ActivityInstanceContext>(val log:
         override fun get(index: Int): PrincipalCompat = all[index]
     }
 
-    val clerk1: Browser = Browser(authService, authServiceClient.registerClient(principals.clerk1, random.nextString()))
-    val postProcClerk: Browser = Browser(authService, authServiceClient.registerClient(principals.clerk2, random.nextString()))
-    val customer: Browser = Browser(authService, authServiceClient.registerClient(principals.customer, random.nextString()))
+    val clerk1: Browser = Browser(authService, adminAuthServiceClient.registerClient(principals.clerk1, random.nextString()))
+    val postProcClerk: Browser = Browser(authService, adminAuthServiceClient.registerClient(principals.clerk2, random.nextString()))
+    val customer: Browser = Browser(authService, adminAuthServiceClient.registerClient(principals.customer, random.nextString()))
 
 
     override fun getPrincipal(userName: String): PrincipalCompat {

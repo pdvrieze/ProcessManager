@@ -10,6 +10,7 @@ import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.tryCreateTask
+import nl.adaptivity.process.processModel.AuthorizationInfo
 import nl.adaptivity.process.processModel.XmlMessage
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
@@ -59,13 +60,16 @@ class PMAActivityInstance <C : PmaActivityContext<C>> : ProcessNodeInstance<PMAA
                 contextFactory: PMAProcessContextFactory<AIC>,
                 messageService: IMessageService<MSG_T>
             ) : MessageSendingResult {
+
                 @Suppress("UNCHECKED_CAST")
                 val node: IPMAMessageActivity<AIC> = node as IPMAMessageActivity<AIC>
 
                 val message = node.message ?: XmlMessage()
                 val aic = contextFactory.newActivityInstanceContext(engineData, this)
+
                 val authorizations = node.authorizationTemplates.mapNotNull { it.instantiateScope(aic) }
-                val authData = aic.requestAuthData(message.targetService, authorizations)
+
+                val authData: AuthorizationInfo.Token = contextFactory.createAuthTokenForEngineToInvokeService(message.targetService, authorizations, handle)
 
                 val preparedMessage = messageService.createMessage(message)
 

@@ -6,10 +6,11 @@ import nl.adaptivity.process.processModel.IXmlMessage
 import nl.adaptivity.process.processModel.XmlMessage
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
+import javax.xml.namespace.QName
 
 object DummyMessage: IXmlMessage {
     override val targetService: InvokableMethod
-        get() = RESTMethodDesc("POST", "/dummy", "application/x-dummy")
+        get() = RESTMethodDesc(QName("dummy"), "POST", "/dummy", "application/x-dummy")
     override val operation: String?
         get() = null
     override val messageBody: ICompactFragment
@@ -21,7 +22,7 @@ object DummyMessage: IXmlMessage {
         return "DummyMessage"
     }
 
-    val JSON = "\"message\":{\"namespaces\":[],\"content\":\"\",\"type\":\"application/x-dummy\",\"serviceNS\":null,\"serviceName\":null,\"endpoint\":null,\"operation\":null,\"url\":\"/dummy\",\"method\":\"POST\"}"
+    val JSON = "\"message\":{\"namespaces\":[],\"content\":\"\",\"type\":\"application/x-dummy\",\"url\":\"/dummy\",\"method\":\"POST\"}"
     val XML = "<pe:message type=\"application/x-dummy\" url=\"/dummy\" method=\"POST\"/>"
 
 

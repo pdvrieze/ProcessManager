@@ -3,7 +3,6 @@ package nl.adaptivity.process.engine.test.loanOrigination
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.PIHandle
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
-import nl.adaptivity.process.engine.pma.dynamic.runtime.DefaultAuthServiceClient
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaProcessContextFactory
 import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
@@ -30,20 +29,18 @@ class LoanPMAContextFactory(log: Logger, random: Random) :
 
     private val taskList: EnumeratedTaskList by lazy {
         val serviceName = ServiceName<EnumeratedTaskList>("TaskList(GLOBAL)")
-        val clientAuth = authServiceClient.registerClient(serviceName, Random.nextString())
-        authServiceClient.registerGlobalPermission(clientAuth.principal, authService, VALIDATE_AUTH(ServiceId<EnumeratedTaskList>(clientAuth.id)))
+        val clientAuth = adminAuthServiceClient.registerClient(serviceName, Random.nextString())
+        adminAuthServiceClient.registerGlobalPermission(clientAuth.principal, authService, VALIDATE_AUTH(ServiceId<EnumeratedTaskList>(clientAuth.id)))
 
         EnumeratedTaskList(serviceName, authService, engineService, clientAuth, principals).also { t ->
-            authServiceClient.registerGlobalPermission(
+            adminAuthServiceClient.registerGlobalPermission(
                 SimplePrincipal(engineService.serviceInstanceId.serviceId) as PrincipalCompat,
                 t,
                 CommonPMAPermissions.POST_TASK
             )
-            authServiceClient.registerGlobalPermission(SimplePrincipal(t.serviceInstanceId.serviceId), authService, VALIDATE_AUTH(t.serviceInstanceId))
+            adminAuthServiceClient.registerGlobalPermission(SimplePrincipal(t.serviceInstanceId.serviceId), authService, VALIDATE_AUTH(t.serviceInstanceId))
         }
     }
-    override val engineServiceAuthServiceClient: DefaultAuthServiceClient
-        get() = engineService.authServiceClient
 
     private val services: List<Service> = listOf(
         authService,
@@ -125,10 +122,10 @@ class LoanPMAContextFactory(log: Logger, random: Random) :
     override fun getOrCreateTaskListForUser(principal: PrincipalCompat): TaskList<*> {
         log.log(Level.INFO, "Creating tasklist service for ${principal.name}")
 
-        authServiceClient.registerGlobalPermission(principal, taskList, CommonPMAPermissions.ACCEPT_TASK)
+        adminAuthServiceClient.registerGlobalPermission(principal, taskList, CommonPMAPermissions.ACCEPT_TASK)
 
         // TODO, use an activity specific permission/token instead.
-        authServiceClient.registerGlobalPermission(
+        adminAuthServiceClient.registerGlobalPermission(
             SimplePrincipal(engineService.serviceInstanceId.serviceId) as Principal,
             taskList,
             CommonPMAPermissions.POST_TASK

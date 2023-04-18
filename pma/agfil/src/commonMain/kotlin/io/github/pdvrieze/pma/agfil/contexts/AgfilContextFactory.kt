@@ -4,7 +4,9 @@ import io.github.pdvrieze.pma.agfil.services.*
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.SimpleRolePrincipal
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.PIHandle
+import nl.adaptivity.process.engine.ProcessEngine
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
+import nl.adaptivity.process.engine.StubProcessTransaction
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.Browser
 import nl.adaptivity.process.engine.pma.EngineService
@@ -30,6 +32,8 @@ import kotlin.random.Random
 class AgfilContextFactory(private val logger: Logger, private val random: Random = Random) :
     AbstractDynamicPmaContextFactory<AgfilActivityContext>() {
 
+    lateinit var processEngine: ProcessEngine<StubProcessTransaction>
+
     private val processContexts = mutableMapOf<PIHandle, AgfilProcessContext>()
     private val browsers = mutableMapOf<String, Browser>()
 
@@ -54,33 +58,36 @@ class AgfilContextFactory(private val logger: Logger, private val random: Random
 
     val authService: AuthService
 
-    override val engineServiceAuthServiceClient: DefaultAuthServiceClient
+    override val adminAuthServiceClient: DefaultAuthServiceClient
+    val engineService: EngineService
+    val taskListService: DynamicTaskList
+    val agfilService: AgfilService
+    val garageServices: Array<GarageService>
+    val europAssistService: EuropAssistService
+    val leeCsService: LeeCsService
 
     init {
         val adminAuth = PmaIdSecretAuthInfo(SimplePrincipal("<PMA-Admin>"))
         authService = AuthService(ServiceNames.authService, adminAuth, logger, nodes, random)
-        engineServiceAuthServiceClient = DefaultAuthServiceClient(adminAuth, authService)
+        adminAuthServiceClient = DefaultAuthServiceClient(adminAuth, authService)
+        engineService = EngineService(ServiceNames.engineService, authService, adminAuth)
+
+        // TODO have separate task lists for each organization.
+        taskListService = DynamicTaskList(
+            ServiceNames.taskListService.serviceName,
+            authService,
+            engineService,
+            authService.registerClient(adminAuth, ServiceName<DynamicTaskList>("TaskList(GLOBAL)"), Random.nextString()),
+            ""
+        )
+
+        agfilService = AgfilService(ServiceNames.agfilService, authService, adminAuth, processEngine, random, logger)
+
+        garageServices = ServiceNames.garageServices.arrayMap { GarageService(it, authService, adminAuth, processEngine, serviceResolver, random) }
+        europAssistService = EuropAssistService(ServiceNames.europAssistService, authService, adminAuth, processEngine, serviceResolver, random, logger)
+        leeCsService = LeeCsService(ServiceNames.leeCsService, authService, adminAuth, processEngine, serviceResolver, random, logger)
     }
 
-
-    val engineService: EngineService = EngineService(ServiceNames.engineService, authService, engineServiceAuthServiceClient.originatingClientAuth)
-
-    // TODO have separate task lists for each organization.
-    val taskListService: DynamicTaskList = DynamicTaskList(
-        ServiceNames.taskListService.serviceName,
-        authService,
-        engineService,
-        engineServiceAuthServiceClient.registerClient(ServiceName<DynamicTaskList>("TaskList(GLOBAL)"), Random.nextString()),
-        ""
-    )
-
-    val agfilService: AgfilService = AgfilService(ServiceNames.agfilService, authService)
-
-    val garageServices = ServiceNames.garageServices.arrayMap { GarageService(it, authService, TODO("pass engine for garage"), random) }
-
-    val europAssistService = EuropAssistService(ServiceNames.europAssistService, authService, random, agfilService, serviceResolver)
-
-    val leeCsService = LeeCsService(ServiceNames.leeCsService, authService, serviceResolver)
 
     override val services: List<Service> = listOf(
         authService,
@@ -104,7 +111,7 @@ class AgfilContextFactory(private val logger: Logger, private val random: Random
     }
 
     fun resolveBrowser(principal: PrincipalCompat): Browser {
-        return browsers.getOrPut(principal.name) { Browser(authService, engineServiceAuthServiceClient.registerClient(principal, Random.nextString())) }
+        return browsers.getOrPut(principal.name) { Browser(authService, adminAuthServiceClient.registerClient(principal, Random.nextString())) }
     }
 }
 

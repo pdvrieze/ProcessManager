@@ -3,7 +3,6 @@ package io.github.pdvrieze.pma.agfil.parties
 import io.github.pdvrieze.pma.agfil.contexts.AgfilActivityContext
 import io.github.pdvrieze.pma.agfil.contexts.AgfilBrowserContext
 import io.github.pdvrieze.pma.agfil.data.*
-import io.github.pdvrieze.pma.agfil.services.AgfilService
 import io.github.pdvrieze.pma.agfil.services.ServiceNames
 import io.github.pdvrieze.pma.agfil.services.ServiceNames.agfilService
 import io.github.pdvrieze.pma.agfil.services.ServiceNames.europAssistService
@@ -27,7 +26,7 @@ val europAssistProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserCo
         accessRestrictions = RoleRestriction("ea:callhandler")
     ) {
         acceptTask({ randomEaCallHandler() }) {(registration, claimInfo, callInfo) ->
-            val customerId = uiServiceLogin<AgfilService>(agfilService) {
+            val customerId = uiServiceLogin(agfilService) {
                 service.findCustomerId(authToken, callInfo)
             }
             AccidentInfo(customerId, registration, randomAccidentDetails())
@@ -64,7 +63,7 @@ val europAssistProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserCo
     }
 
     val pickGarage: DataNodeHandle<GarageInfo> by taskActivity(
-        recordClaim,
+        predecessor = recordClaim,
         input = registerClaim
     ) {
         acceptTask( { randomEaCallHandler() }) { accidentInfo ->

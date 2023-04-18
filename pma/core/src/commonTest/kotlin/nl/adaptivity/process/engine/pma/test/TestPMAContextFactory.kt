@@ -2,10 +2,7 @@ package nl.adaptivity.process.engine.pma.test
 
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ProcessEngineDataAccess
-import nl.adaptivity.process.engine.pma.models.ResolvedInvokableMethod
-import nl.adaptivity.process.engine.pma.models.Service
-import nl.adaptivity.process.engine.pma.models.ServiceId
-import nl.adaptivity.process.engine.pma.models.TaskListService
+import nl.adaptivity.process.engine.pma.models.*
 import nl.adaptivity.process.engine.pma.runtime.PMAProcessContextFactory
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.messaging.InvokableMethod
@@ -31,7 +28,7 @@ class TestPMAContextFactory(principals: List<PrincipalCompat>) : PMAProcessConte
         return principals.getOrPut(userName) { SimplePrincipal(userName) }
     }
 
-    override val engineServiceAuthServiceClient: TestAuthServiceClient = TestAuthServiceClient()
+    override val adminAuthServiceClient: TestAuthServiceClient = TestAuthServiceClient()
 
     override fun getOrCreateTaskListForRestrictions(accessRestrictions: AccessRestriction?): List<TaskListService> {
         TODO("not implemented")
@@ -40,7 +37,7 @@ class TestPMAContextFactory(principals: List<PrincipalCompat>) : PMAProcessConte
     override fun resolveService(targetService: InvokableMethod): ResolvedInvokableMethod? {
         return object: ResolvedInvokableMethod {
             override val serviceId: ServiceId<*>
-                get() = ServiceId<Service>(targetService.url?:targetService.toString())
+                get() = targetService.endpoint.toServiceId<Service>()
             override val method: InvokableMethod
                 get() = targetService
         }

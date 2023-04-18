@@ -1,5 +1,6 @@
 package nl.adaptivity.process.engine.pma.models
 
+import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 interface Service {
@@ -31,6 +32,19 @@ value class ServiceName<out S: Service>(val serviceName: String)
 
 @JvmInline
 value class ServiceId<out S: Service>(val serviceId: String)
+
+fun <S: Service> EndpointDescriptor.toServiceId(): ServiceId<S> {
+    val serviceNamePart = serviceName?.toString()
+    val endpointPart = endpointName
+    val endpointLocationPart = endpointLocation?.toString()
+    return when {
+        endpointPart!=null -> ServiceId("$serviceNamePart:$endpointPart")
+        serviceNamePart!=null && endpointLocationPart==null -> ServiceId(serviceNamePart)
+        serviceNamePart!=null -> ServiceId("$serviceNamePart:$endpointLocationPart")
+        endpointLocationPart== null -> throw IllegalArgumentException("The endpoint is fully null")
+        else -> ServiceId(endpointLocationPart)
+    }
+}
 
 interface ServiceResolver {
     fun <S: Service> resolveService(serviceName: ServiceName<S>): S

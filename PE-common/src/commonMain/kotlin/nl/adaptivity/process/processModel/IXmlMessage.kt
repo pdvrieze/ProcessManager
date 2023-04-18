@@ -22,43 +22,45 @@ import nl.adaptivity.process.messaging.RESTMethod
 import nl.adaptivity.process.messaging.SOAPMethod
 import nl.adaptivity.serialutil.DelegatingSerializer
 import nl.adaptivity.xmlutil.QName
-import nl.adaptivity.xmlutil.namespaceURI
 import nl.adaptivity.xmlutil.util.ICompactFragment
 
 interface IXmlMessage {
 
     val targetService: InvokableMethod
 
-    @Deprecated("Use targetService")
+    @Deprecated("Use targetService", ReplaceWith("targetService.endpoint.serviceName?.getLocalPart()"))
     val serviceName: String?
-        get() = (targetService as? SOAPMethod)?.serviceName?.getLocalPart()
+        get() = targetService.endpoint.serviceName?.getLocalPart()
 
-    @Deprecated("Use targetService")
+    @Deprecated("Use targetService", ReplaceWith("targetService.endpoint.serviceName?.getNamespaceURI()"))
     val serviceNS: String?
-        get() = (targetService as? SOAPMethod)?.serviceName?.namespaceURI
+        get() = targetService.endpoint.serviceName?.getNamespaceURI()
 
-    @Deprecated("Use targetService")
+    @Deprecated("Use targetService", ReplaceWith("targetService.endpoint.serviceName"))
     val service: QName?
-        get() = (targetService as? SOAPMethod)?.serviceName
+        get() = targetService.endpoint.serviceName
 
-    @Deprecated("Use targetService")
+    @Deprecated("Use targetService", ReplaceWith("targetService.endpoint.endpointName"))
     val endpoint: String?
-        get() = (targetService as? SOAPMethod)?.endpointName
+        get() = targetService.endpoint.endpointName
 
-    @Deprecated("Use targetService")
+    @Deprecated("Use targetService", ReplaceWith("targetService.endpoint"))
     val endpointDescriptor: EndpointDescriptor?
-        get() = (targetService as? SOAPMethod)
+        get() = targetService.endpoint
 
+    @Deprecated("Use targetService", ReplaceWith("targetService.operation"))
     val operation: String?
         get() = (targetService as? SOAPMethod)?.operation
 
     val messageBody: ICompactFragment
 
-    @Deprecated("Use targetServicce")
+    @Deprecated("Use targetServicce", ReplaceWith("targetService.endpoint.endpointLocation?.toString()"))
     val url: String?
-        get() = targetService.url
+        get() = targetService.endpoint.endpointLocation?.toString()
 
-    @Deprecated("Use targetService")
+    @Deprecated("Use targetService",
+        ReplaceWith("(targetService as? RESTMethod)?.method", "nl.adaptivity.process.messaging.RESTMethod")
+    )
     val method: String?
         get() = (targetService as? RESTMethod)?.method
 
