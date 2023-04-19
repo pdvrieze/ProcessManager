@@ -77,6 +77,6 @@ class Browser constructor(private val authService: AuthService, val auth: PmaIdS
         val token =
             tokens.lastOrNull { it.scope.includes(CommonPMAPermissions.IDENTIFY) && it.serviceId == authService.serviceInstanceId }
                 ?: throw AuthorizationException("Not logged in to authorization service")
-        return authService.getAuthorizationCode(token, user.name, serviceId, ANYSCOPE)
+        return authService.getAuthorizationCode(token, auth.id, user.name, serviceId, ANYSCOPE)
     }
 }

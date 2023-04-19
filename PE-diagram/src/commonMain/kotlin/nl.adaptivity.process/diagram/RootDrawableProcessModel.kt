@@ -465,14 +465,14 @@ object DRAWABLE_NODE_FACTORY :
             return DrawableEventNode(eventNode, buildHelper)
         }
 
-        override fun visitActivity(activity: MessageActivity.Builder) =
+        override fun visitMessageActivity(activity: MessageActivity.Builder) =
             DrawableActivity(activity, buildHelper, otherNodes)
 
-        override fun visitActivity(activity: CompositeActivity.ModelBuilder) = TODO(
+        override fun visitCompositeActivity(activity: CompositeActivity.ModelBuilder) = TODO(
             "Child models are not implemented yet for drawables"
         )
 
-        override fun visitActivity(activity: CompositeActivity.ReferenceBuilder) = TODO(
+        override fun visitReferenceActivity(activity: CompositeActivity.ReferenceBuilder) = TODO(
             "Child models are not implemented yet for drawables"
         )
 //        DrawableActivity(activity, childModel!!)

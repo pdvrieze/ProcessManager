@@ -12,6 +12,8 @@ interface EventNode: IEventNode {
     val isThrowing: Boolean
     override val eventType: IEventNode.Type
 
+    override fun builder(): Builder
+
     interface Builder: IEventNode.Builder {
         var isThrowing: Boolean
 

@@ -104,11 +104,11 @@ interface ProcessNode : Positioned, Identifiable {
     interface BuilderVisitor<R> {
         fun visitStartNode(startNode: StartNode.Builder): R
         fun visitEventNode(eventNode: EventNode.Builder): R
-        fun visitActivity(activity: MessageActivity.Builder): R = visitGenericActivity(activity)
+        fun visitMessageActivity(activity: MessageActivity.Builder): R = visitGenericActivity(activity)
 
-        fun visitActivity(activity: CompositeActivity.ModelBuilder): R = visitGenericActivity(activity)
+        fun visitCompositeActivity(activity: CompositeActivity.ModelBuilder): R = visitGenericActivity(activity)
 
-        fun visitActivity(activity: CompositeActivity.ReferenceBuilder): R = visitGenericActivity(activity)
+        fun visitReferenceActivity(activity: CompositeActivity.ReferenceBuilder): R = visitGenericActivity(activity)
 
         fun visitSplit(split: Split.Builder): R
         fun visitJoin(join: Join.Builder): R

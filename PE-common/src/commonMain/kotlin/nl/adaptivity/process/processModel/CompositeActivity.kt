@@ -20,15 +20,19 @@ interface CompositeActivity : Activity {
 
     val childModel: ChildProcessModel<ProcessNode>?
 
-    interface ReferenceBuilder : Activity.Builder {
+    override fun builder(): Builder
+
+    interface Builder: Activity.Builder
+
+    interface ReferenceBuilder : Builder {
         var childId: String?
 
     }
 
-    interface ModelBuilder : Activity.Builder, ChildProcessModel.Builder {
+    interface ModelBuilder : Builder, ChildProcessModel.Builder {
         override val idBase: String get() = "sub"
 
-        override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitActivity(this)
+        override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitCompositeActivity(this)
     }
 
 }

@@ -16,15 +16,13 @@
 
 package nl.adaptivity.process.engine
 
-import net.devrieze.util.Handle
 import net.devrieze.util.MutableTransactionedHandleMap
 import net.devrieze.util.TransactionFactory
-import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.engine.impl.LoggerCompat
 import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
-import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
+import nl.adaptivity.process.processModel.engine.PMHandle
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -37,7 +35,7 @@ abstract class IProcessEngineData<T : ContextProcessTransaction> : TransactionFa
 
     abstract val logger: LoggerCompat
 
-    fun invalidateCachePM(handle: Handle<SecureObject<ExecutableProcessModel>>) {
+    fun invalidateCachePM(handle: PMHandle) {
         processModels.apply {
             if (handle.isValid) invalidateCache(handle) else invalidateCache()
         }

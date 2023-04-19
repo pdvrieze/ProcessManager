@@ -131,8 +131,8 @@ abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
         )
 
         override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>): R = when (childId) {
-            null -> visitor.visitActivity(this as MessageActivity.Builder)
-            else -> visitor.visitActivity(this as CompositeActivity.ReferenceBuilder)
+            null -> visitor.visitMessageActivity(this as MessageActivity.Builder)
+            else -> visitor.visitReferenceActivity(this as CompositeActivity.ReferenceBuilder)
         }
     }
 

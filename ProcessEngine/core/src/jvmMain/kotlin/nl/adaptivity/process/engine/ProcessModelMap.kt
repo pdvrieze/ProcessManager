@@ -23,6 +23,7 @@ import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.db.ProcessEngineDB
 import nl.adaptivity.process.engine.db.ProcessEngineDB.processModels
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
+import nl.adaptivity.process.processModel.engine.PMHandle
 import nl.adaptivity.process.processModel.engine.XmlProcessModel
 import nl.adaptivity.util.multiplatform.UUID
 
@@ -37,7 +38,7 @@ internal class ProcessModelMap(
     override fun getModelWithUuid(
         transaction: ProcessDBTransaction,
         uuid: UUID
-    ): Handle<SecureObject<ExecutableProcessModel>>? {
+    ): PMHandle? {
         return with(transaction) {
             SELECT(processModels.pmhandle)
                 .WHERE { processModels.model LIKE "%$uuid%" }

@@ -1,7 +1,11 @@
 package io.github.pdvrieze.pma.agfil.services
 
+import kotlinx.serialization.SerializationStrategy
+import kotlinx.serialization.serializer
 import net.devrieze.util.Handle
+import nl.adaptivity.process.engine.PIHandle
 import nl.adaptivity.process.engine.ProcessEnginePermissions
+import nl.adaptivity.process.engine.impl.CompactFragment
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.EngineService
 import nl.adaptivity.process.engine.pma.PmaAuthInfo
@@ -12,6 +16,8 @@ import nl.adaptivity.process.engine.pma.models.UnionPermissionScope
 import nl.adaptivity.process.engine.pma.runtime.PermissionScope
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.util.kotlin.arrayMap
+import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.util.CompactFragment
 import java.util.logging.Logger
 import kotlin.random.Random
 
@@ -36,7 +42,7 @@ abstract class RunnableProcessBackedService<S: RunnableProcessBackedService<S>> 
             PermissionScope(ProcessEnginePermissions.ADD_MODEL),
             PermissionScope(ProcessEnginePermissions.START_PROCESS),
         )
-        val authCode = authService.getAuthorizationCode(adminAuthInfo, serviceInstanceId.serviceId, processEngineService.serviceInstanceId,
+        val authCode = authService.getAuthorizationCode(adminAuthInfo, serviceInstanceId.serviceId, serviceInstanceId.serviceId, processEngineService.serviceInstanceId,
             engineScope
         )
         engineToken = authServiceClient.exchangeAuthCode(authCode)
@@ -63,7 +69,7 @@ abstract class RunnableProcessBackedService<S: RunnableProcessBackedService<S>> 
             PermissionScope(ProcessEnginePermissions.START_PROCESS),
             PermissionScope(ProcessEnginePermissions.ASSIGN_OWNERSHIP),
         )
-        val authCode = authService.getAuthorizationCode(adminAuthInfo, serviceInstanceId.serviceId, processEngineService.serviceInstanceId,
+        val authCode = authService.getAuthorizationCode(adminAuthInfo, serviceInstanceId.serviceId, serviceInstanceId.serviceId, processEngineService.serviceInstanceId,
             engineScope
         )
         engineToken = authServiceClient.exchangeAuthCode(authCode)
@@ -72,6 +78,21 @@ abstract class RunnableProcessBackedService<S: RunnableProcessBackedService<S>> 
     }
 
     protected val processHandles: Array<Handle<ExecutableProcessModel>>
+
+    protected inline fun <reified T> startProcess(handle: Handle<ExecutableProcessModel>, payload: T): PIHandle {
+        return startProcess(handle, serializer(), payload)
+    }
+
+    protected fun <T> startProcess(handle: Handle<ExecutableProcessModel>, payloadSerializer: SerializationStrategy<T>, payload: T): PIHandle {
+        val payloadFragment = CompactFragment{ writer -> XML{ defaultPolicy {  }}.encodeToWriter(writer, payloadSerializer, payload) }
+        return startProcess(handle, payloadFragment)
+    }
+
+    protected fun startProcess(handle: Handle<ExecutableProcessModel>, payload: CompactFragment?=null): PIHandle {
+        return processEngineService.startProcess(engineToken, handle, payload)
+    }
+
+
 
     companion object {
 

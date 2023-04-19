@@ -33,22 +33,31 @@ import nl.adaptivity.util.multiplatform.PrincipalCompat
  * @property scope The scope that specifies what this token is authorized to do.
  */
 class PmaAuthToken(
-    principal: PrincipalCompat,
+    clientId: String,
     val nodeInstanceHandle: PNIHandle,
     override val token: String,
     val serviceId: ServiceId<*>,
-    val scope: AuthScope
+    val scope: AuthScope,
+    val associatedUserName: String,
 ): PmaAuthInfo(), AuthorizationInfo.Token {
 
-    override val principal: PrincipalCompat = Principal(serviceId.serviceId)
+    override val principal: PrincipalCompat = Principal(clientId)
+
+    private val associatedUser = principal
 
     override fun toString(): String {
         return "AuthToken($token - $principal[act=${nodeInstanceHandle.handleValue}] -> $serviceId.${scope.description})"
     }
 
     inner class Principal(private val name: String) : PrincipalCompat, TokenPrincipal {
+        val token: PmaAuthToken get() = this@PmaAuthToken
+
         override fun getName(): String = name
-        override val serviceId: ServiceId<*> get() = this@PmaAuthToken.serviceId
-        override val scope: AuthScope get() = this@PmaAuthToken.scope
+        override val serviceId: ServiceId<*> get() = token.serviceId
+        override val scope: AuthScope get() = token.scope
+        override fun toString(): String = when {
+            getName() == associatedUser.name -> getName()
+            else -> "$serviceId(for $associatedUser)"
+        }
     }
 }

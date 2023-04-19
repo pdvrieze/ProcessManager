@@ -18,11 +18,9 @@ class PmaSecurityProvider(
 
     override fun getPermission(permission: Permission, subject: PrincipalCompat?): PermissionResult {
         return when {
-            subject == null -> {
-                baseProvider.ensurePermission(permission, subject)
-            }
+            subject != null &&
             authService.userHasPermission(subject, serviceId, permission) -> PermissionResult.GRANTED
-            else -> PermissionResult.DENIED
+            else -> baseProvider.ensurePermission(permission, subject)
         }
     }
 
@@ -32,11 +30,9 @@ class PmaSecurityProvider(
         secureObject: SecuredObject<*>
     ): PermissionResult {
         return when {
-            subject == null -> {
-                baseProvider.ensurePermission(permission, subject, secureObject)
-            }
+            subject != null &&
             authService.userHasPermission(subject, serviceId, SecureObjectAuthScope(subject, secureObject, permission)) -> PermissionResult.GRANTED
-            else -> PermissionResult.DENIED
+            else -> baseProvider.getPermission(permission, subject, secureObject)
         }
     }
 
@@ -46,11 +42,9 @@ class PmaSecurityProvider(
         objectPrincipal: Principal
     ): PermissionResult {
         return when {
-            subject == null -> {
-                baseProvider.ensurePermission(permission, subject, objectPrincipal)
-            }
+            subject !=null &&
             authService.userHasPermission(subject, serviceId, ObjectPrincipalAuthScope(objectPrincipal, permission)) -> PermissionResult.GRANTED
-            else -> PermissionResult.DENIED
+            else -> baseProvider.getPermission(permission, subject, objectPrincipal)
         }
     }
 

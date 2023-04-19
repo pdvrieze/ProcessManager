@@ -323,19 +323,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
             base.childModels.mapTo(childModels) { childProcessModel -> childModelBuilder(childProcessModel) }
 
             base.modelNodes.mapTo(nodes) {
-                it.visit(object : ProcessNode.Visitor<ProcessNode.Builder> {
-                    override fun visitStartNode(startNode: StartNode) = startNodeBuilder(startNode)
-                    override fun visitActivity(messageActivity: MessageActivity) = activityBuilder(messageActivity)
-                    override fun visitCompositeActivity(compositeActivity: CompositeActivity) =
-                        activityBuilder(compositeActivity)
-
-                    override fun visitEventNode(eventNode: EventNode): ProcessNode.Builder =
-                        eventNodeBuilder(eventNode)
-
-                    override fun visitSplit(split: Split) = splitBuilder(split)
-                    override fun visitJoin(join: Join) = joinBuilder(join)
-                    override fun visitEndNode(endNode: EndNode) = endNodeBuilder(endNode)
-                })
+                it.builder()
             }
         }
 

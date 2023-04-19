@@ -30,7 +30,6 @@ import io.github.pdvrieze.kotlinsql.monadic.actions.InsertAction
 import io.github.pdvrieze.kotlinsql.monadic.actions.InsertActionCommon
 import io.github.pdvrieze.kotlinsql.monadic.actions.ValuelessInsertAction
 import io.github.pdvrieze.kotlinsql.monadic.impl.SelectResultSetRow
-import net.devrieze.util.Handle
 import net.devrieze.util.db.AbstractElementFactory
 import net.devrieze.util.db.DbSet
 import net.devrieze.util.security.SYSTEMPRINCIPAL
@@ -38,6 +37,7 @@ import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.db.ProcessEngineDB
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
+import nl.adaptivity.process.processModel.engine.PMHandle
 import nl.adaptivity.process.processModel.engine.XmlProcessModel
 import nl.adaptivity.xmlutil.XmlStreaming
 import nl.adaptivity.xmlutil.serialization.XML
@@ -86,7 +86,7 @@ internal class ProcessModelFactory() :
 
     override fun getHandleCondition(
         where: _Where,
-        handle: Handle<SecureObject<ExecutableProcessModel>>
+        handle: PMHandle
     ): WhereClause {
         return where.run { pm.pmhandle eq handle }
     }
@@ -107,7 +107,7 @@ internal class ProcessModelFactory() :
         }
     }
 
-    override val keyColumn: CustomColumnType<Handle<SecureObject<ExecutableProcessModel>>, Long, NumericColumnType.BIGINT_T, *, *>.CustomColumn
+    override val keyColumn: CustomColumnType<PMHandle, Long, NumericColumnType.BIGINT_T, *, *>.CustomColumn
         get() = pm.pmhandle
 
     override fun insertStatement(transaction: ProcessDBTransaction): ValuelessInsertAction<ProcessEngineDB, Insert> {

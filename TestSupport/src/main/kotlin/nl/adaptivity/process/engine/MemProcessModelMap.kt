@@ -20,6 +20,7 @@ import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.MemTransactionedHandleMap
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
+import nl.adaptivity.process.processModel.engine.PMHandle
 import nl.adaptivity.util.multiplatform.UUID
 
 
@@ -28,16 +29,18 @@ import nl.adaptivity.util.multiplatform.UUID
  */
 class MemProcessModelMap : MemTransactionedHandleMap<SecureObject<ExecutableProcessModel>, StubProcessTransaction>(), IMutableProcessModelMap<StubProcessTransaction> {
 
-  override fun getModelWithUuid(transaction: StubProcessTransaction,
-                                uuid: UUID): Handle<SecureObject<ExecutableProcessModel>>? {
-    for (c in this) {
-      val candidate = c.withPermission()
-      if (uuid == candidate.uuid) {
-        return candidate.handle
-      }
+    override fun getModelWithUuid(
+        transaction: StubProcessTransaction,
+        uuid: UUID
+    ): PMHandle? {
+        for (c in this) {
+            val candidate = c.withPermission()
+            if (uuid == candidate.uuid) {
+                return candidate.handle
+            }
+        }
+        return null
     }
-    return null
-  }
 
 
   override fun withTransaction(transaction: StubProcessTransaction): IMutableProcessModelMapAccess {

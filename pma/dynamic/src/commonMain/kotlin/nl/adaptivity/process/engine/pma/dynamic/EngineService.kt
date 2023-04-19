@@ -19,6 +19,7 @@ package nl.adaptivity.process.engine.pma
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ContextProcessTransaction
+import nl.adaptivity.process.engine.PIHandle
 import nl.adaptivity.process.engine.ProcessEngine
 import nl.adaptivity.process.engine.ProcessInstanceContext
 import nl.adaptivity.process.engine.pma.dynamic.ServiceActivityContext
@@ -36,9 +37,13 @@ import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
+import nl.adaptivity.process.processModel.engine.PMHandle
 import nl.adaptivity.util.kotlin.arrayMap
+import nl.adaptivity.xmlutil.util.CompactFragment
 import java.security.Principal
+import java.util.*
 import java.util.logging.Logger
+import kotlin.collections.ArrayDeque
 import kotlin.random.Random
 
 class EngineService(
@@ -50,6 +55,8 @@ class EngineService(
 
     lateinit var processEngine: ProcessEngine<*>
         private set
+
+    private var nextProcessNo = 1
 
     constructor(
         serviceName: ServiceName<EngineService>,
@@ -232,6 +239,18 @@ class EngineService(
 
         val serviceContext = ServiceActivityContext(activityContext, service, authToken)
         return serviceContext.action(input)
+    }
+
+    /**
+     * Function that starts a process (with a given payload)
+     */
+    fun startProcess(engineToken: PmaAuthToken, processHandle: PMHandle, payload: CompactFragment?): PIHandle {
+        fun <TR : ContextProcessTransaction> impl(processEngine: ProcessEngine<TR>): PIHandle {
+            return processEngine.inTransaction { tr ->
+                processEngine.startProcess(tr, engineToken.principal, processHandle, "process${nextProcessNo++}", UUID.randomUUID(), payload)
+            }
+        }
+        return impl(processEngine)
     }
 
     /**

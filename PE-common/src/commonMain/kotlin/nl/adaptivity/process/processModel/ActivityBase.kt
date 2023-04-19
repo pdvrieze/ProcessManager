@@ -312,7 +312,7 @@ abstract class ActivityBase(
         }
 
         override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>): R {
-            return visitor.visitActivity(this)
+            return visitor.visitReferenceActivity(this)
         }
     }
 

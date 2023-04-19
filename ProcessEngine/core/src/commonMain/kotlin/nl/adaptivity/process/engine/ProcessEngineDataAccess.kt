@@ -16,16 +16,14 @@
 
 package nl.adaptivity.process.engine
 
-import net.devrieze.util.Handle
 import net.devrieze.util.HandleMap
 import net.devrieze.util.MutableHandleMap
-import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.impl.LoggerCompat
 import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
-import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
+import nl.adaptivity.process.processModel.engine.PMHandle
 
 interface ProcessEngineDataAccess {
     val processContextFactory: ProcessContextFactory<*>
@@ -40,7 +38,7 @@ interface ProcessEngineDataAccess {
 
     val processModels: IProcessModelMapAccess
 
-    fun processModel(handle: Handle<SecureObject<ExecutableProcessModel>>) = processModels[handle].mustExist(handle)
+    fun processModel(handle: PMHandle) = processModels[handle].mustExist(handle)
     fun queueTickle(instanceHandle: PIHandle)
 
     val logger: LoggerCompat
@@ -54,7 +52,7 @@ interface MutableProcessEngineDataAccess : ProcessEngineDataAccess {
 
     override val processModels: IMutableProcessModelMapAccess
 
-    fun invalidateCachePM(handle: Handle<SecureObject<ExecutableProcessModel>>)
+    fun invalidateCachePM(handle: PMHandle)
 
     fun invalidateCachePI(handle: PIHandle)
 

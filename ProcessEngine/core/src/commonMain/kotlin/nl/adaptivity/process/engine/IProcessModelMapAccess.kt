@@ -16,15 +16,15 @@
 
 package nl.adaptivity.process.engine
 
-import net.devrieze.util.Handle
 import net.devrieze.util.HandleMap
 import net.devrieze.util.MutableHandleMap
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
+import nl.adaptivity.process.processModel.engine.PMHandle
 import nl.adaptivity.util.multiplatform.UUID
 
 interface IProcessModelMapAccess : HandleMap<SecureObject<ExecutableProcessModel>> {
-  fun getModelWithUuid(uuid: UUID): Handle<SecureObject<ExecutableProcessModel>>?
+  fun getModelWithUuid(uuid: UUID): PMHandle?
 
   operator fun get(uuid:UUID) = getModelWithUuid(uuid)
 }

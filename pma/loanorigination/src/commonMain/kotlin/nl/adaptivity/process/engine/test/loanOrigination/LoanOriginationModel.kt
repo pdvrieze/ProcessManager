@@ -117,7 +117,7 @@ class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<Ex
             generalClientService.runWithAuthorization(serviceTask()) { tknTID ->
 
                 assertForbidden {
-                    authService.getAuthTokenDirect(tknTID, customerFile.serviceInstanceId, CREATE_CUSTOMER)
+                    authService.getAuthTokenDirect(tknTID, tknTID.principal.name, customerFile.serviceInstanceId, CREATE_CUSTOMER)
                 }
                 assertForbidden {
                     authService.getAuthTokenDirect(tknTID, customerFile.serviceInstanceId, QUERY_CUSTOMER_DATA)

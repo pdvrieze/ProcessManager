@@ -4,10 +4,10 @@ import io.github.pdvrieze.process.processModel.dynamicProcessModel.SimpleRolePri
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.engine.ProcessContextFactory
-import nl.adaptivity.process.engine.ProcessEngine
 import nl.adaptivity.process.engine.pma.*
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DefaultAuthServiceClient
 import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
+import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.test.loanOrigination.datatypes.CustomerData
 import nl.adaptivity.process.engine.test.loanOrigination.systems.*
@@ -68,6 +68,14 @@ abstract class AbstractLoanContextFactory<AIC: ActivityInstanceContext>(val log:
     val postProcClerk: Browser = Browser(authService, adminAuthServiceClient.registerClient(principals.clerk2, random.nextString()))
     val customer: Browser = Browser(authService, adminAuthServiceClient.registerClient(principals.customer, random.nextString()))
 
+    init {
+        for (browser in listOf(clerk1, postProcClerk, customer)) {
+            adminAuthServiceClient.registerGlobalPermission(browser.user, authService, CommonPMAPermissions.VALIDATE_AUTH(authService.serviceInstanceId))
+        }
+
+        adminAuthServiceClient.registerGlobalPermission(postProcClerk.user, authService, CommonPMAPermissions.VALIDATE_AUTH(authService.serviceInstanceId))
+        adminAuthServiceClient.registerGlobalPermission(customer.user, authService, CommonPMAPermissions.VALIDATE_AUTH(authService.serviceInstanceId))
+    }
 
     override fun getPrincipal(userName: String): PrincipalCompat {
         return principals.withName(userName) ?: SimplePrincipal(userName)

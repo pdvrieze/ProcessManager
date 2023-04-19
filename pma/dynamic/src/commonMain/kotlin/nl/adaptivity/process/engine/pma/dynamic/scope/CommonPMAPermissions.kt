@@ -108,7 +108,15 @@ sealed class CommonPMAPermissions : AuthScope {
             service: Service,
             scope: AuthScope
         ): UseAuthScope {
-            return ContextScope(clientId, service.serviceInstanceId, scope)
+            return context(clientId, service.serviceInstanceId, scope)
+        }
+
+        fun context(
+            clientId: String,
+            service: ServiceId<*>,
+            scope: AuthScope
+        ): UseAuthScope {
+            return ContextScope(clientId, service, scope)
         }
 
         fun restrictTo(

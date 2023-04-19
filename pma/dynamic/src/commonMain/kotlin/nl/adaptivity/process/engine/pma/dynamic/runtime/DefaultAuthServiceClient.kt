@@ -88,7 +88,7 @@ class DefaultAuthServiceClient(val originatingClientAuth: PmaAuthInfo, val authS
         serviceId: ServiceId<*>,
         scope: AuthScope
     ): PmaAuthToken {
-        return authService.requestPmaAuthToken(originatingClientAuth, nodeInstanceHandle, serviceId, scope)
+        return authService.requestPmaAuthToken(originatingClientAuth, originatingClientAuth.principal.name, nodeInstanceHandle, serviceId, scope)
     }
 
     override fun invalidateActivityTokens(hNodeInstance: PNIHandle) {
@@ -118,7 +118,8 @@ class DefaultAuthServiceClient(val originatingClientAuth: PmaAuthInfo, val authS
         serviceId: ServiceId<Service>,
         reqScope: AuthScope
     ): PmaAuthToken {
-        return authService.getAuthTokenDirect(originatingClientAuth, serviceId, reqScope)
+        // TODO is this really safe?
+        return authService.getAuthTokenDirect(originatingClientAuth, originatingClientAuth.principal.name, serviceId, reqScope)
     }
 
     /**

@@ -16,10 +16,8 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.*
-import kotlinx.serialization.encoding.*
+import kotlinx.serialization.Serializable
 import net.devrieze.util.collection.ArrayAccess
-import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.process.util.MutableIdentifyableSet
@@ -176,15 +174,7 @@ abstract class ProcessModelBase<NodeT : ProcessNode> : ProcessModel<NodeT> {
         ) {
 
             base.modelNodes.mapTo(nodes) {
-                it.visit(object : ProcessNode.Visitor<ProcessNode.Builder> {
-                    override fun visitStartNode(startNode: StartNode) = startNodeBuilder(startNode)
-                    override fun visitActivity(messageActivity: MessageActivity) = activityBuilder(messageActivity)
-                    override fun visitCompositeActivity(compositeActivity: CompositeActivity) = activityBuilder(compositeActivity)
-
-                    override fun visitSplit(split: Split) = splitBuilder(split)
-                    override fun visitJoin(join: Join) = joinBuilder(join)
-                    override fun visitEndNode(endNode: EndNode) = endNodeBuilder(endNode)
-                })
+                it.builder()
             }
 
         }

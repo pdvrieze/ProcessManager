@@ -181,7 +181,7 @@ class ProcessEngine<TR : ContextProcessTransaction> {
                 return messageService
             }
 
-            override fun invalidateCachePM(handle: Handle<SecureObject<ExecutableProcessModel>>) {
+            override fun invalidateCachePM(handle: PMHandle) {
                 this@DelegateProcessEngineData.invalidateCachePM(handle)
             }
 
@@ -243,7 +243,7 @@ class ProcessEngine<TR : ContextProcessTransaction> {
                 return this@DBProcessEngineData.messageService
             }
 
-            override fun invalidateCachePM(handle: Handle<SecureObject<ExecutableProcessModel>>) {
+            override fun invalidateCachePM(handle: PMHandle) {
                 this@DBProcessEngineData.invalidateCachePM(handle)
             }
 
@@ -320,7 +320,7 @@ class ProcessEngine<TR : ContextProcessTransaction> {
     }
 
 
-    fun invalidateModelCache(handle: Handle<SecureObject<ExecutableProcessModel>>) {
+    fun invalidateModelCache(handle: PMHandle) {
         engineData.invalidateCachePM(handle)
     }
 
@@ -433,7 +433,7 @@ class ProcessEngine<TR : ContextProcessTransaction> {
 
     fun getProcessModel(
         dataAccess: ProcessEngineDataAccess,
-        handle: Handle<SecureObject<ExecutableProcessModel>>,
+        handle: PMHandle,
         user: Principal
     ): ExecutableProcessModel? {
         return dataAccess.processModels[handle]?.withPermission(
@@ -477,7 +477,7 @@ class ProcessEngine<TR : ContextProcessTransaction> {
 
     fun updateProcessModel(
         transaction: TR,
-        handle: Handle<SecureObject<ExecutableProcessModel>>,
+        handle: PMHandle,
         processModel: RootProcessModel<*>,
         user: Principal
     ): IProcessModelRef<ExecutableProcessNode, ExecutableProcessModel> {
@@ -488,7 +488,7 @@ class ProcessEngine<TR : ContextProcessTransaction> {
 
     fun updateProcessModel(
         engineData: MutableProcessEngineDataAccess,
-        handle: Handle<SecureObject<ExecutableProcessModel>>,
+        handle: PMHandle,
         processModel: RootProcessModel<*>,
         user: Principal
     ): ExecutableProcessModelRef {
@@ -705,7 +705,7 @@ class ProcessEngine<TR : ContextProcessTransaction> {
     fun startProcess(
         transaction: TR,
         user: Principal,
-        handle: Handle<SecureObject<ExecutableProcessModel>>,
+        handle: PMHandle,
         name: String,
         uuid: UUID,
         payload: CompactFragment?

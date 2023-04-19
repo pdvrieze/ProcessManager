@@ -1,18 +1,36 @@
 package io.github.pdvrieze.pma.agfil.test
 
+import RunnablePmaActivity
 import io.github.pdvrieze.pma.agfil.contexts.AgfilContextFactory
+import io.github.pdvrieze.pma.agfil.parties.policyHolderProcess
 import io.github.pdvrieze.pma.agfil.services.PolicyHolder
 import net.devrieze.util.security.PermissiveProvider
+import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ProcessEngine
 import nl.adaptivity.process.engine.StubProcessTransaction
+import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.runtime.PmaSecurityProvider
 import nl.adaptivity.process.engine.test.ProcessEngineTestSupport
+import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import java.util.logging.Logger
 import kotlin.random.Random
 import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class TestAgfilProcess : ProcessEngineTestSupport() {
+
+    @Test
+    fun testProcessTypes() {
+        val newOwner = SimplePrincipal("newOwner")
+        val oldModel = policyHolderProcess(testModelOwnerPrincipal, ServiceId("test"))
+        assertEquals(RunnablePmaActivity::class.java as Class<*>, oldModel.getNode("sendCar")?.javaClass as Class<*>?)
+
+        val newModel = ExecutableProcessModel(oldModel.builder().apply { owner = newOwner })
+        val sendCarNode = newModel.getNode("sendCar")
+        assertEquals(RunnablePmaActivity::class.java as Class<*>, sendCarNode?.javaClass as Class<*>?)
+
+    }
 
     @Test
     fun testAgfilProcess() {
@@ -41,7 +59,8 @@ class TestAgfilProcess : ProcessEngineTestSupport() {
             logger = logger
         )
 
-        policyHolder.initiateClaimProcess()
+        val claimProcessHandle = policyHolder.initiateClaimProcess()
+
 
 /*
         engine.startTransaction().use { transaction ->

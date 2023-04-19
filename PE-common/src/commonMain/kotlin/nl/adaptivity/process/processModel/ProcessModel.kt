@@ -62,20 +62,20 @@ interface ProcessModel<out NodeT : ProcessNode> {
 
         fun endNodeBuilder(): EndNode.Builder = EndNodeBase.Builder()
 
-        fun startNodeBuilder(startNode: StartNode): StartNode.Builder = StartNodeBase.Builder(startNode)
+        fun startNodeBuilder(startNode: StartNode): StartNode.Builder = startNode.builder()
 
-        fun eventNodeBuilder(eventNode: EventNode): EventNode.Builder = EventNodeBase.Builder(eventNode)
+        fun eventNodeBuilder(eventNode: EventNode): EventNode.Builder = eventNode.builder()
 
-        fun splitBuilder(split: Split): Split.Builder = SplitBase.Builder(split)
+        fun splitBuilder(split: Split): Split.Builder = split.builder()
 
-        fun joinBuilder(join: Join): Join.Builder = JoinBase.Builder(join)
+        fun joinBuilder(join: Join): Join.Builder = join.builder()
 
-        fun activityBuilder(activity: MessageActivity): MessageActivity.Builder = MessageActivityBase.Builder(activity)
+        fun activityBuilder(activity: MessageActivity): MessageActivity.Builder = activity.builder()
 
-        fun activityBuilder(activity: CompositeActivity): CompositeActivity.ReferenceBuilder =
-            CompositeActivityBase.ReferenceBuilder(activity)
+        fun activityBuilder(activity: CompositeActivity): Activity.Builder =
+            activity.builder()
 
-        fun endNodeBuilder(endNode: EndNode): EndNode.Builder = EndNodeBase.Builder(endNode)
+        fun endNodeBuilder(endNode: EndNode): EndNode.Builder = endNode.builder()
 
         fun startNode(body: StartNode.Builder.() -> Unit): Identifiable {
             return nodeHelper(startNodeBuilder(), body)

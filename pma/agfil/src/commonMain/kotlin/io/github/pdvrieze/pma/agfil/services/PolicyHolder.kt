@@ -4,6 +4,7 @@ import io.github.pdvrieze.pma.agfil.data.CarRegistration
 import io.github.pdvrieze.pma.agfil.data.ClaimId
 import io.github.pdvrieze.pma.agfil.data.GarageInfo
 import io.github.pdvrieze.pma.agfil.parties.policyHolderProcess
+import nl.adaptivity.process.engine.PIHandle
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.EngineService
 import nl.adaptivity.process.engine.pma.PmaAuthInfo
@@ -48,13 +49,8 @@ class PolicyHolder(
     /** From Lai's thesis */
     fun repairCar(): Unit = TODO()
 
-    fun initiateClaimProcess() {
-
-/*
-        processEngine.inTransaction { tr ->
-            startProcess(tr, this@PolicyHolder.authServiceClient.principal, processHandles[0], "claim", UUID.randomUUID(), null)
-        }
-*/
+    fun initiateClaimProcess(): PIHandle {
+        return startProcess(processHandles[0])
     }
 
     inner class Internal {

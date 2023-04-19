@@ -61,6 +61,31 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
     }
 
     constructor(
+        builder: Builder,
+        buildHelper: BuildHelper<*, *, *, *>,
+        otherNodes: Iterable<ProcessNode.Builder>
+    ) : super(builder.base.ensureExportable(), buildHelper.newOwner, otherNodes) {
+        val base = builder.base
+        when (base) {
+            is ReferenceActivityBuilder -> {
+                val id = base.childId
+                childModel = id?.let { buildHelper.childModel(it) }
+                childId = id
+                message = null
+                accessRestrictions = null
+            }
+
+
+            else -> {
+                childModel = null
+                childId = null
+                message = builder.message
+                accessRestrictions = builder.accessRestrictions
+            }
+        }
+    }
+
+    constructor(
         builder: CompositeActivity.ModelBuilder,
         buildHelper: BuildHelper<*, *, *, *>,
         otherNodes: Iterable<ProcessNode.Builder>
@@ -83,14 +108,34 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
         accessRestrictions = null
     }
 
-    override fun builder(): Activity.Builder = when {
-        childId == null -> MessageActivityBase.Builder(this)
-        else            -> ReferenceActivityBuilder(this)
+    override fun builder(): Builder = when {
+        childId == null -> Builder(MessageActivityBase.Builder(this))
+        else -> Builder(ReferenceActivityBuilder(this))
     }
+
 
     override fun <R> visit(visitor: ProcessNode.Visitor<R>): R = when {
         childModel == null -> visitor.visitActivity(messageActivity = this)
-        else               -> visitor.visitCompositeActivity(compositeActivity = this)
+        else -> visitor.visitCompositeActivity(compositeActivity = this)
+    }
+
+    /**
+     * Wrapper builder needed because XmlActivity wraps both composite and message
+     */
+    class Builder private constructor(val base: Activity.Builder) : CompositeActivity.Builder, MessageActivity.Builder,
+        Activity.Builder by base {
+        constructor(base: MessageActivity.Builder) : this(base as Activity.Builder)
+        constructor(base: ReferenceActivityBuilder) : this(base as Activity.Builder)
+
+        override var message: IXmlMessage?
+            get() = (base as? MessageActivity.Builder)?.message
+            set(value) {
+                (base as? MessageActivity.Builder)?.run { message = value }
+            }
+
+        override val accessRestrictions: AccessRestriction?
+            get() = (base as? MessageActivity.Builder)?.accessRestrictions
+
     }
 
 }

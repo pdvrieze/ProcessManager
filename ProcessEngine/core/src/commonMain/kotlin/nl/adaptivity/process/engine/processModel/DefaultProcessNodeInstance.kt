@@ -18,7 +18,6 @@ package nl.adaptivity.process.engine.processModel
 
 import net.devrieze.util.Handle
 import net.devrieze.util.overlay
-import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SecurityProvider.IntermediatePermissionDecision
 import nl.adaptivity.process.IMessageService
@@ -273,7 +272,7 @@ class DefaultProcessNodeInstance :
             node: ExecutableProcessNode,
             predecessors: Set<PNIHandle>,
             processInstanceBuilder: ProcessInstance.Builder,
-            handle: Handle<SecureObject<DefaultProcessNodeInstance>> = Handle.invalid(),
+            handle: PNIHandle = Handle.invalid(),
             state: NodeInstanceState = NodeInstanceState.Pending,
             entryNo: Int,
             assignedUser: PrincipalCompat?,
@@ -292,7 +291,7 @@ class DefaultProcessNodeInstance :
             node: ExecutableProcessNode,
             predecessors: Set<PNIHandle>,
             processInstance: ProcessInstance,
-            handle: Handle<SecureObject<DefaultProcessNodeInstance>> = Handle.invalid(),
+            handle: PNIHandle = Handle.invalid(),
             state: NodeInstanceState = NodeInstanceState.Pending,
             entryNo: Int,
             assignedUser: PrincipalCompat?,

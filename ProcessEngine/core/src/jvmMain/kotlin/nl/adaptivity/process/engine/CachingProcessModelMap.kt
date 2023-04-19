@@ -17,9 +17,9 @@
 package nl.adaptivity.process.engine
 
 import net.devrieze.util.CachingHandleMap
-import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
+import nl.adaptivity.process.processModel.engine.PMHandle
 import java.sql.SQLException
 import java.util.*
 
@@ -36,7 +36,7 @@ class CachingProcessModelMap<T : ContextProcessTransaction>(base: IMutableProces
     get() = super.delegate as IMutableProcessModelMap<T>
 
   @Throws(SQLException::class)
-  override fun getModelWithUuid(transaction: T, uuid: UUID): Handle<SecureObject<ExecutableProcessModel>>? {
+  override fun getModelWithUuid(transaction: T, uuid: UUID): PMHandle? {
     return delegate.inReadonlyTransaction(transaction) { getModelWithUuid(uuid) }
   }
 }

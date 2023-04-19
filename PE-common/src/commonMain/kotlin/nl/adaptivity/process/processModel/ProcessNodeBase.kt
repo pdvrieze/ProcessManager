@@ -328,15 +328,15 @@ abstract class ProcessNodeBase : ProcessNode {
                         return EventNodeBase.SerialDelegate(eventNode)
                     }
 
-                    override fun visitActivity(activity: MessageActivity.Builder): SerialDelegate {
+                    override fun visitMessageActivity(activity: MessageActivity.Builder): SerialDelegate {
                         return ActivityBase.SerialDelegate(activity)
                     }
 
-                    override fun visitActivity(activity: CompositeActivity.ModelBuilder): SerialDelegate {
+                    override fun visitCompositeActivity(activity: CompositeActivity.ModelBuilder): SerialDelegate {
                         return ActivityBase.SerialDelegate(activity)
                     }
 
-                    override fun visitActivity(activity: CompositeActivity.ReferenceBuilder): SerialDelegate {
+                    override fun visitReferenceActivity(activity: CompositeActivity.ReferenceBuilder): SerialDelegate {
                         return ActivityBase.SerialDelegate(activity)
                     }
 

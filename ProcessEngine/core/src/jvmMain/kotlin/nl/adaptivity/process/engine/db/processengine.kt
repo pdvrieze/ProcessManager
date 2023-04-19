@@ -20,12 +20,11 @@ import io.github.pdvrieze.kotlinsql.ddl.Database
 import io.github.pdvrieze.kotlinsql.ddl.MutableTable
 import io.github.pdvrieze.kotlinsql.ddl.columns.CustomColumnType
 import net.devrieze.util.Handle
-import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.PIHandle
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.PNIHandle
-import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
+import nl.adaptivity.process.processModel.engine.PMHandle
 import java.util.*
 
 
@@ -38,7 +37,7 @@ const val EXTRACONF = "ENGINE=InnoDB CHARSET=utf8"
 object ProcessEngineDB : Database(1) {
 
   val X_UUID = CustomColumnType({ VARCHAR(36) { UNIQUE } }, UUID::toString, UUID::fromString)
-  val X_PMHANDLE = CustomColumnType({ BIGINT }, Handle<SecureObject<ExecutableProcessModel>>::handleValue, { Handle<SecureObject<ExecutableProcessModel>>(it) })
+  val X_PMHANDLE = CustomColumnType({ BIGINT }, PMHandle::handleValue, { Handle(it) })
   val X_PIHANDLE = CustomColumnType({ BIGINT }, PIHandle::handleValue, {PIHandle(it)})
   val X_PNIHANDLE = CustomColumnType({ BIGINT }, PNIHandle::handleValue, {PNIHandle(it)})
   val X_INSTANCESTATE = CustomColumnType({ VARCHAR(20) }, ProcessInstance.State::toString, ProcessInstance.State::valueOf)

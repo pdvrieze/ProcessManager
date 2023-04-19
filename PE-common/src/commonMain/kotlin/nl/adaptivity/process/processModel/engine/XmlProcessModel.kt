@@ -176,13 +176,13 @@ object XML_NODE_FACTORY : ProcessModelBase.NodeFactory<XmlProcessNode, XmlProces
             return XmlEventNode(eventNode, buildHelper.newOwner)
         }
 
-        override fun visitActivity(activity: MessageActivity.Builder) =
+        override fun visitMessageActivity(activity: MessageActivity.Builder) =
             XmlActivity(activity, buildHelper.newOwner, otherNodes)
 
-        override fun visitActivity(activity: CompositeActivity.ModelBuilder) =
+        override fun visitCompositeActivity(activity: CompositeActivity.ModelBuilder) =
             XmlActivity(activity, buildHelper, otherNodes)
 
-        override fun visitActivity(activity: CompositeActivity.ReferenceBuilder) =
+        override fun visitReferenceActivity(activity: CompositeActivity.ReferenceBuilder) =
             XmlActivity(activity, buildHelper, otherNodes)
 
         override fun visitSplit(split: Split.Builder) = XmlSplit(split, buildHelper.newOwner, otherNodes)

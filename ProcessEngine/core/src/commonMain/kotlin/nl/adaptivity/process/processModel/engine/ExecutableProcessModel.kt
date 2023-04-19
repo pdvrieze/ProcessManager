@@ -31,6 +31,8 @@ import nl.adaptivity.util.multiplatform.randomUUID
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.serialization.XML
 
+typealias PMHandle=Handle<SecureObject<ExecutableProcessModel>>
+
 /**
  * A class representing a process model.
  *
@@ -196,19 +198,19 @@ object EXEC_NODEFACTORY :
                 ?: ExecutableEventNode(eventNode, buildHelper)
         }
 
-        override fun visitActivity(activity: MessageActivity.Builder): ExecutableProcessNode {
+        override fun visitMessageActivity(activity: MessageActivity.Builder): ExecutableProcessNode {
             return ((activity as? ExecutableProcessNode.Builder)
                 ?.build(buildHelper, otherNodes))
                 ?: ExecutableMessageActivity(activity, buildHelper.newOwner, otherNodes)
         }
 
-        override fun visitActivity(activity: CompositeActivity.ModelBuilder): ExecutableCompositeActivity {
+        override fun visitCompositeActivity(activity: CompositeActivity.ModelBuilder): ExecutableCompositeActivity {
             return (activity as? ExecutableProcessNode.Builder)
                 ?.build(buildHelper, otherNodes) as? ExecutableCompositeActivity
                 ?: ExecutableCompositeActivity(activity, buildHelper, otherNodes)
         }
 
-        override fun visitActivity(activity: CompositeActivity.ReferenceBuilder): ExecutableCompositeActivity {
+        override fun visitReferenceActivity(activity: CompositeActivity.ReferenceBuilder): ExecutableCompositeActivity {
             return (activity as? ExecutableProcessNode.Builder)
                 ?.build(buildHelper, otherNodes) as? ExecutableCompositeActivity
                 ?: ExecutableCompositeActivity(activity, buildHelper, otherNodes)

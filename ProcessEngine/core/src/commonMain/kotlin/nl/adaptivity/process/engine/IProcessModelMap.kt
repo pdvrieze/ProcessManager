@@ -16,9 +16,13 @@
 
 package nl.adaptivity.process.engine
 
-import net.devrieze.util.*
+import net.devrieze.util.HandleMapForwarder
+import net.devrieze.util.MutableHandleMapForwarder
+import net.devrieze.util.MutableTransactionedHandleMap
+import net.devrieze.util.TransactionedHandleMap
 import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
+import nl.adaptivity.process.processModel.engine.PMHandle
 import nl.adaptivity.util.multiplatform.UUID
 
 /**
@@ -26,7 +30,7 @@ import nl.adaptivity.util.multiplatform.UUID
  */
 interface IProcessModelMap<T : ContextProcessTransaction> : TransactionedHandleMap<SecureObject<ExecutableProcessModel>, T> {
 
-  fun getModelWithUuid(transaction: T, uuid: UUID): Handle<SecureObject<ExecutableProcessModel>>?
+  fun getModelWithUuid(transaction: T, uuid: UUID): PMHandle?
 
   override fun withTransaction(transaction: T): IProcessModelMapAccess {
     return ProcessModelMapForwarder(transaction, this as IMutableProcessModelMap<T>)
@@ -50,7 +54,7 @@ inline fun <T : ContextProcessTransaction, R> IProcessModelMap<T>.inReadonlyTran
 private class ProcessModelMapForwarder<T : ContextProcessTransaction>(transaction: T, override val delegate:IProcessModelMap<T>)
   : HandleMapForwarder<SecureObject<ExecutableProcessModel>, T>(transaction, delegate), IProcessModelMapAccess {
 
-  override fun getModelWithUuid(uuid: UUID): Handle<SecureObject<ExecutableProcessModel>>? {
+  override fun getModelWithUuid(uuid: UUID): PMHandle? {
     return delegate.getModelWithUuid(transaction, uuid)
   }
 }
@@ -58,7 +62,7 @@ private class ProcessModelMapForwarder<T : ContextProcessTransaction>(transactio
 private class MutableProcessModelMapForwarder<T : ContextProcessTransaction>(transaction: T, override val delegate:IMutableProcessModelMap<T>)
   : MutableHandleMapForwarder<SecureObject<ExecutableProcessModel>, T>(transaction, delegate), IMutableProcessModelMapAccess {
 
-  override fun getModelWithUuid(uuid: UUID): Handle<SecureObject<ExecutableProcessModel>>? {
+  override fun getModelWithUuid(uuid: UUID): PMHandle? {
     return delegate.getModelWithUuid(transaction, uuid)
   }
 }

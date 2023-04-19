@@ -26,12 +26,14 @@ interface MessageActivity : Activity {
 
     val accessRestrictions: AccessRestriction?
 
+    override fun builder(): Builder
+
     interface Builder : Activity.Builder, ProcessNode.Builder {
         var message: IXmlMessage?
         @Deprecated("Names are not used anymore")
         override var name: String?
 
-        override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitActivity(this)
+        override fun <R> visit(visitor: ProcessNode.BuilderVisitor<R>) = visitor.visitMessageActivity(this)
 
         val accessRestrictions: AccessRestriction?
 
