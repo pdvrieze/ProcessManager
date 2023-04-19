@@ -1,11 +1,9 @@
 package io.github.pdvrieze.pma.agfil.services
 
-import io.github.pdvrieze.pma.agfil.data.AccidentInfo
-import io.github.pdvrieze.pma.agfil.data.CarRegistration
-import io.github.pdvrieze.pma.agfil.data.ClaimId
-import io.github.pdvrieze.pma.agfil.data.GarageInfo
+import io.github.pdvrieze.pma.agfil.data.*
 import io.github.pdvrieze.pma.agfil.parties.europAssistProcess
 import io.github.pdvrieze.pma.agfil.services.ServiceNames.agfilService
+import nl.adaptivity.process.engine.impl.CompactFragment
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.EngineService
 import nl.adaptivity.process.engine.pma.PmaAuthInfo
@@ -15,7 +13,10 @@ import nl.adaptivity.process.engine.pma.dynamic.services.RunnableAutomatedServic
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableUiService
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.models.ServiceResolver
+import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.smartStartTag
 import java.util.logging.Logger
+import javax.xml.namespace.QName
 import kotlin.random.Random
 
 class EuropAssistService(
@@ -40,8 +41,14 @@ class EuropAssistService(
 
 
     /** From Lai's thesis */
-    fun phoneClaim(authToken: PmaAuthInfo, carRegistration: CarRegistration, claimInfo: String): ClaimId {
-        TODO()
+    fun phoneClaim(authToken: PmaAuthInfo, carRegistration: CarRegistration, claimInfo: String, callerInfo: CallerInfo): ClaimId {
+        val claimData = CompactFragment { out ->
+            out.smartStartTag(QName("carRegistration")) { text(carRegistration.value) }
+            out.smartStartTag(QName("claimInfo")) { text(claimInfo) }
+            out.smartStartTag(QName("callerInfo")) { XML.encodeToWriter(out, callerInfo) }
+        }
+        val processHandle = startProcess(processHandles[0], claimData)
+        return ClaimId(processHandle.handleValue) // TODO for now re-use process handle as claim id. (we can then convert back)
     }
 
     /** From Lai's thesis */

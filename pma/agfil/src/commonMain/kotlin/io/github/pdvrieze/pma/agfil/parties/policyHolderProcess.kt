@@ -2,6 +2,7 @@ package io.github.pdvrieze.pma.agfil.parties
 
 import io.github.pdvrieze.pma.agfil.contexts.AgfilActivityContext
 import io.github.pdvrieze.pma.agfil.contexts.AgfilBrowserContext
+import io.github.pdvrieze.pma.agfil.data.CallerInfo
 import io.github.pdvrieze.pma.agfil.data.CompletedClaimForm
 import io.github.pdvrieze.pma.agfil.data.GarageInfo
 import io.github.pdvrieze.pma.agfil.data.IncompleteClaimForm
@@ -17,7 +18,8 @@ fun policyHolderProcess(owner: PrincipalCompat, ownerService: ServiceId<PolicyHo
     val start by startNode
 
     val reportClaim by serviceActivity(start, listOf(), ServiceNames.europAssistService) {
-        service.phoneClaim(authToken, agfilProcessContext.carRegistration, "Random Accident info")
+        val callerInfo = activityContext.callerInfo(owner)
+        service.phoneClaim(authToken, agfilProcessContext.carRegistration, "Random Accident info", callerInfo)
     }
 
     val onGarageAssigned: DataNodeHandle<GarageInfo> by eventNode(reportClaim, GarageInfo.serializer())

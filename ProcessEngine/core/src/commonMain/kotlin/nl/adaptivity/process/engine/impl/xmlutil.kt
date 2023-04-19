@@ -16,10 +16,21 @@
 
 package nl.adaptivity.process.engine.impl
 
+import nl.adaptivity.xmlutil.XmlStreaming
 import nl.adaptivity.xmlutil.XmlWriter
+import nl.adaptivity.xmlutil.smartStartTag
 import nl.adaptivity.xmlutil.util.CompactFragment
+import javax.xml.namespace.QName
 
 inline fun CompactFragment(generator: (XmlWriter) -> Unit): CompactFragment {
     // TODO make this actually collect namespaces "outside"
-    return CompactFragment(emptyList(), generateXmlString(true, generator))
+    val string = buildString {
+        XmlStreaming.newWriter(this).use{ writer ->
+            writer.smartStartTag(QName("dummy")) { generator(writer) }
+        }
+    }
+    val actualStart = string.indexOf('>')+1
+    val actualEnd = string.lastIndexOf('<')
+    val content = string.substring(actualStart, actualEnd)
+    return CompactFragment(emptyList(), content)
 }

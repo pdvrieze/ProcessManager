@@ -50,4 +50,4 @@ expect inline fun <T:Any> T.getClass(): Class<T>
 expect inline fun generateXmlString(
     repairNamespaces: Boolean,
     generator: (XmlWriter) -> Unit
-                                   ): CharArray
+): CharArray

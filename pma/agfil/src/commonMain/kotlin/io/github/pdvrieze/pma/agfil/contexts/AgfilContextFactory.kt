@@ -1,5 +1,6 @@
 package io.github.pdvrieze.pma.agfil.contexts
 
+import io.github.pdvrieze.pma.agfil.data.CallerInfo
 import io.github.pdvrieze.pma.agfil.services.*
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.SimpleRolePrincipal
 import net.devrieze.util.security.SimplePrincipal
@@ -36,6 +37,7 @@ class AgfilContextFactory(private val logger: Logger, private val random: Random
 
     private val processContexts = mutableMapOf<PIHandle, AgfilProcessContext>()
     private val browsers = mutableMapOf<String, Browser>()
+    private val customerInfo: MutableMap<String, CallerInfo> = mutableMapOf()
 
     override fun newActivityInstanceContext(
         engineDataAccess: ProcessEngineDataAccess,
@@ -114,6 +116,11 @@ class AgfilContextFactory(private val logger: Logger, private val random: Random
 
     fun resolveBrowser(principal: PrincipalCompat): Browser {
         return browsers.getOrPut(principal.name) { Browser(authService, adminAuthServiceClient.registerClient(principal, Random.nextString())) }
+    }
+
+    fun callerInfo(customer: PrincipalCompat): CallerInfo {
+        val randomPhoneNumber = "0${(1..9).random(random)}${(1..8).joinToString { (0..9).random(random).toString()}}"
+        return customerInfo.getOrPut(customer.name) { CallerInfo(customer.name, randomPhoneNumber)}
     }
 }
 
