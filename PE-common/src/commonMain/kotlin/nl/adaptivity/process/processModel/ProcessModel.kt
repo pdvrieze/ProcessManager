@@ -208,9 +208,7 @@ interface ProcessModel<out NodeT : ProcessNode> {
                     }
 
                     nodeBuilder.predecessors.firstOrNull { it.id !in nodeMap }?.let { missingPred ->
-                        throw ProcessException(
-                            "The node ${nodeBuilder.id} has a missing predecessor (${missingPred.id})"
-                                              )
+                        throw ProcessException("The node ${nodeBuilder.id} has a missing predecessor (${missingPred.id})")
                     }
 
                     nodeBuilder.successors.firstOrNull { it.id !in nodeMap }?.let { missingSuc ->

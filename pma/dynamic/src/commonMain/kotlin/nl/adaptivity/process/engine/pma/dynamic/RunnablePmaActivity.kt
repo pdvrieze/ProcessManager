@@ -79,7 +79,7 @@ class RunnablePmaActivity<I : Any, O : Any, C : DynamicPmaActivityContext<C, *>>
         var action: PmaAction<I, O, C>
         override var authorizationTemplates: List<AuthScopeTemplate<C>>
 
-        constructor(activity: RunnablePmaActivity<I, O, C>) : super(activity) {
+        constructor(activity: RunnablePmaActivity<I, O, C>) : super(activity = activity) {
             action = activity.action
             authorizationTemplates = activity.authorizationTemplates
         }

@@ -391,8 +391,13 @@ abstract class ProcessNodeBase : ProcessNode {
         override val results: MutableCollection<IXmlResultType>
 
         constructor(node: ProcessNode) : this(
-            node.id, node.label,
-            node.defines, node.results, node.x, node.y, node.isMultiInstance
+            id = node.id,
+            label = node.label,
+            defines = node.defines,
+            results = node.results,
+            x = node.x,
+            y = node.y,
+            isMultiInstance = node.isMultiInstance
         )
 
         override fun toString(): String {

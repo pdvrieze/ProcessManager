@@ -72,7 +72,7 @@ abstract class StartNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?>
         this.eventType = builder.eventType
     }
 
-    override fun builder(): StartNode.Builder = Builder()
+    override fun builder(): StartNode.Builder = Builder(this)
 
     override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
         return visitor.visitStartNode(this)

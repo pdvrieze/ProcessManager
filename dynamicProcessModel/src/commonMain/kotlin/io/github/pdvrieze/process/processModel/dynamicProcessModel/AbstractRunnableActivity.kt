@@ -78,7 +78,6 @@ abstract class AbstractRunnableActivity<I: Any, O: Any, C: ActivityInstanceConte
             accessRestrictions: RunnableAccessRestriction? = null,
             message: IXmlMessage? = null,
             onActivityProvided: RunnableActivity.OnActivityProvided<I, O, C> = RunnableActivity.OnActivityProvided.DEFAULT,
-            action: RunnableAction<I, O, C> = { throw UnsupportedOperationException("Action not provided") }
         ) : super() {
             this.predecessor = predecessor
             this.outputSerializer = outputSerializer
@@ -108,8 +107,7 @@ abstract class AbstractRunnableActivity<I: Any, O: Any, C: ActivityInstanceConte
             outputSerializer: SerializationStrategy<O>? = null,
             accessRestrictions: RunnableAccessRestriction? = null,
             message: IXmlMessage? = null,
-            onActivityProvided: RunnableActivity.OnActivityProvided<I, O, C> = RunnableActivity.OnActivityProvided.DEFAULT,
-            action: RunnableAction<I, O, C> = { throw UnsupportedOperationException("Action not provided") }
+            onActivityProvided: RunnableActivity.OnActivityProvided<I, O, C> = RunnableActivity.OnActivityProvided.DEFAULT
         ) : super() {
             this.predecessor = predecessor
             results.add(XmlResultType("output"))
@@ -120,7 +118,7 @@ abstract class AbstractRunnableActivity<I: Any, O: Any, C: ActivityInstanceConte
             this.onActivityProvided = onActivityProvided
         }
 
-        constructor(activity: RunnableActivity<I, O, C>) : super(activity) {
+        constructor(activity: AbstractRunnableActivity<I, O, C>) : super(node = activity) {
             this.inputCombiner = activity.inputCombiner
             this.outputSerializer = activity.outputSerializer
             this.accessRestrictions = activity.accessRestrictions

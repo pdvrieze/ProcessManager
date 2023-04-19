@@ -80,7 +80,7 @@ abstract class EventNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?>
             this.eventType = builder.eventType ?: IEventNode.Type.MESSAGE
         }
 
-    override fun builder(): EventNode.Builder = Builder()
+    override fun builder(): EventNode.Builder = Builder(this)
 
     override fun <R> visit(visitor: ProcessNode.Visitor<R>): R {
         return visitor.visitEventNode(this)
