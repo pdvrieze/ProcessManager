@@ -18,6 +18,7 @@ package nl.adaptivity.process.engine.pma
 
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SimplePrincipal
+import nl.adaptivity.process.engine.ContextProcessTransaction
 import nl.adaptivity.process.engine.ProcessEngine
 import nl.adaptivity.process.engine.ProcessInstanceContext
 import nl.adaptivity.process.engine.pma.dynamic.ServiceActivityContext
@@ -34,6 +35,8 @@ import nl.adaptivity.process.engine.pma.models.*
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
+import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
+import nl.adaptivity.util.kotlin.arrayMap
 import java.security.Principal
 import java.util.logging.Logger
 import kotlin.random.Random
@@ -229,6 +232,30 @@ class EngineService(
 
         val serviceContext = ServiceActivityContext(activityContext, service, authToken)
         return serviceContext.action(input)
+    }
+
+    /**
+     * Function that invokes the process engine to ensure that all process models are registered, it returns the handles.
+     * to the models.
+     */
+    fun ensureProcessHandles(
+        engineToken: PmaAuthToken,
+        processModels: Array<out ExecutableProcessModel>
+    ): Array<Handle<ExecutableProcessModel>> {
+        fun <TR : ContextProcessTransaction> impl(processEngine: ProcessEngine<TR>) : Array<Handle<ExecutableProcessModel>> {
+            return processEngine.inTransaction {tr ->
+                val existingModelHandles = processEngine.getProcessModels(tr.readableEngineData, engineToken.principal).asSequence()
+                    .map { it.withPermission() }
+                    .filter { it.uuid!=null }
+                    .associate { it.uuid!! to it.handle }
+
+                processModels.arrayMap { model ->
+                    val handle = model.uuid?.let { existingModelHandles[it] } ?: processEngine.addProcessModel(tr, model, engineToken.principal).handle
+                    handle
+                }
+            }
+        }
+        return impl(processEngine)
     }
 }
 

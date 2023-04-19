@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine.pma
 
 import net.devrieze.util.Handle
+import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.impl.Level
 import nl.adaptivity.process.engine.impl.LoggerCompat
@@ -46,7 +47,7 @@ class AuthService(
     private val globalPermissions =
         mutableMapOf<String, MutableMap<String, AuthScope>>()
 
-    private val tokenPermissions = mutableMapOf<String, MutableList<Permission>>()
+    private val tokenPermissions = mutableMapOf<String, MutableList<PermissionScopeHolder>>()
 
     init {
         registeredClients[adminUser.id] = ClientInfo(adminUser.id, adminUser.id, adminUser.secret)
@@ -318,7 +319,7 @@ class AuthService(
         }
     }
 
-    fun userHasPermission(clientAuth: PmaAuthInfo, principal: PrincipalCompat, serviceId: ServiceId<*>, permission: UseAuthScope): Boolean {
+    fun userHasPermission(clientAuth: PmaAuthInfo, principal: PrincipalCompat, serviceId: ServiceId<*>, permission: SecurityProvider.Permission): Boolean {
         internalValidateAuthInfo(clientAuth, VALIDATE_AUTH.invoke(serviceId))
 
         val globalPermission = globalPermissions[principal.name]?.get(serviceId) ?: EMPTYSCOPE
@@ -573,7 +574,7 @@ class AuthService(
         assert(taskIdToken in activeTokens)
         val tokenPermissionList = tokenPermissions.getOrPut(taskIdToken.token) { mutableListOf() }
         doLog(auth, "grantPermission(token = ${taskIdToken.token}, serviceId = $serviceId, scope = $scope)")
-        tokenPermissionList.add(Permission(scope))
+        tokenPermissionList.add(PermissionScopeHolder(scope))
     }
 
     fun invalidateActivityTokens(
@@ -650,7 +651,7 @@ class AuthService(
     }
 
 
-    private data class Permission(val scope: AuthScope) {
+    private data class PermissionScopeHolder(val scope: AuthScope) {
         override fun toString(): String {
             return "Permission(${scope.description})"
         }

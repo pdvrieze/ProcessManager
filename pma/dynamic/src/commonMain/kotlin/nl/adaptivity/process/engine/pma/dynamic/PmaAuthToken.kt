@@ -40,7 +40,7 @@ class PmaAuthToken(
     val scope: AuthScope
 ): PmaAuthInfo(), AuthorizationInfo.Token {
 
-    override val principal: PrincipalCompat = Principal(principal.name)
+    override val principal: PrincipalCompat = Principal(serviceId.serviceId)
 
     override fun toString(): String {
         return "AuthToken($token - $principal[act=${nodeInstanceHandle.handleValue}] -> $serviceId.${scope.description})"

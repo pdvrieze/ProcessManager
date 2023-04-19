@@ -1,5 +1,6 @@
 package nl.adaptivity.process.engine.pma.runtime
 
+import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.engine.pma.models.*
 import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.processModel.AuthorizationInfo
@@ -117,6 +118,6 @@ interface AuthServiceClient<InfoT: AuthorizationInfo, TokenT: AuthorizationInfo.
      */
     fun registerClient(principal: PrincipalCompat, secret: String): InfoT
 
-    fun userHasPermission(principal: PrincipalCompat, serviceId: ServiceId<*>, permission: UseAuthScope): Boolean
+    fun userHasPermission(principal: PrincipalCompat, serviceId: ServiceId<*>, permission: SecurityProvider.Permission): Boolean
 }
 

@@ -64,6 +64,8 @@ interface ProcessModel<out NodeT : ProcessNode> {
 
         fun startNodeBuilder(startNode: StartNode): StartNode.Builder = StartNodeBase.Builder(startNode)
 
+        fun eventNodeBuilder(eventNode: EventNode): EventNode.Builder = EventNodeBase.Builder(eventNode)
+
         fun splitBuilder(split: Split): Split.Builder = SplitBase.Builder(split)
 
         fun joinBuilder(join: Join): Join.Builder = JoinBase.Builder(join)

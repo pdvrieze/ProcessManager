@@ -1,14 +1,11 @@
 package io.github.pdvrieze.pma.agfil.services
 
 import net.devrieze.util.Handle
-import nl.adaptivity.process.engine.ContextProcessTransaction
-import nl.adaptivity.process.engine.ProcessEngine
 import nl.adaptivity.process.engine.ProcessEnginePermissions
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.EngineService
 import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.PmaAuthToken
-import nl.adaptivity.process.engine.pma.dynamic.runtime.DefaultAuthServiceClient
 import nl.adaptivity.process.engine.pma.dynamic.services.ServiceBase
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.models.UnionPermissionScope
@@ -45,7 +42,7 @@ abstract class RunnableProcessBackedService<S: RunnableProcessBackedService<S>> 
         engineToken = authServiceClient.exchangeAuthCode(authCode)
 
         this.random = random
-        this.processHandles= ensureProcessHandles(processEngineService, authServiceClient, processes)
+        this.processHandles= ensureProcessHandles(processEngineService, engineToken, processes)
     }
 
     constructor(
@@ -58,19 +55,20 @@ abstract class RunnableProcessBackedService<S: RunnableProcessBackedService<S>> 
         vararg processFactories: RunnableProcessBackedService<S>.() -> ExecutableProcessModel
     ) : super(authService, adminAuthInfo, serviceName, logger) {
         this.processEngineService = processEngineService
+        this.random = random
+
         val engineScope = UnionPermissionScope(
             PermissionScope(ProcessEnginePermissions.LIST_MODELS),
             PermissionScope(ProcessEnginePermissions.ADD_MODEL),
             PermissionScope(ProcessEnginePermissions.START_PROCESS),
+            PermissionScope(ProcessEnginePermissions.ASSIGN_OWNERSHIP),
         )
         val authCode = authService.getAuthorizationCode(adminAuthInfo, serviceInstanceId.serviceId, processEngineService.serviceInstanceId,
             engineScope
         )
         engineToken = authServiceClient.exchangeAuthCode(authCode)
 
-        this.random = random
-        val processes = processFactories.arrayMap { it() }
-        this.processHandles= ensureProcessHandles(processEngineService, authServiceClient, processes)
+        this.processHandles= ensureProcessHandles(processEngineService, engineToken, processFactories.arrayMap { it() })
     }
 
     protected val processHandles: Array<Handle<ExecutableProcessModel>>
@@ -79,22 +77,14 @@ abstract class RunnableProcessBackedService<S: RunnableProcessBackedService<S>> 
 
         private fun ensureProcessHandles(
             processEngineService: EngineService,
-            authServiceClient: DefaultAuthServiceClient,
+            engineToken: PmaAuthToken,
             processes: Array<out ExecutableProcessModel>
         ) : Array<Handle<ExecutableProcessModel>> { // TODO use processEngineService
-            fun <TR: ContextProcessTransaction> impl(processEngine: ProcessEngine<TR>): Array<Handle<ExecutableProcessModel>> {
-                return processEngine.inTransaction { tr ->
-                    val existingModels = getProcessModels(tr.readableEngineData, authServiceClient.principal)
-                        .map { it.withPermission() }
-                        .filter { it.uuid != null }
-                        .associate { (it.uuid!!) to it.handle }
-
-                    processes.arrayMap { model ->
-                        existingModels[model.uuid] ?: addProcessModel(tr, model, authServiceClient.principal).handle
-                    }
-                }
-            }
-            return impl(processEngineService.processEngine)
+            val reOwnedProcesses = processes.arrayMap { when(it.owner.name) {
+                engineToken.principal.name -> it
+                else -> ExecutableProcessModel(it.builder().apply { owner = engineToken.principal })
+            } }
+            return processEngineService.ensureProcessHandles(engineToken, reOwnedProcesses)
         }
 
     }

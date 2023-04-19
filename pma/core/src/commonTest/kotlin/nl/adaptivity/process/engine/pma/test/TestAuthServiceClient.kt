@@ -1,5 +1,6 @@
 package nl.adaptivity.process.engine.pma.test
 
+import net.devrieze.util.security.SecurityProvider
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.pma.AuthorizationException
 import nl.adaptivity.process.engine.pma.models.*
@@ -97,7 +98,7 @@ class TestAuthServiceClient() : AuthServiceClient<AuthorizationInfo, Authorizati
     override fun userHasPermission(
         principal: PrincipalCompat,
         serviceId: ServiceId<*>,
-        permission: UseAuthScope
+        permission: SecurityProvider.Permission
     ): Boolean {
         return true
     }

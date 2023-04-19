@@ -18,7 +18,7 @@ class PmaSecurityProvider(
 
     override fun getPermission(permission: Permission, subject: PrincipalCompat?): PermissionResult {
         return when {
-            permission !is UseAuthScope || subject == null -> {
+            subject == null -> {
                 baseProvider.ensurePermission(permission, subject)
             }
             authService.userHasPermission(subject, serviceId, permission) -> PermissionResult.GRANTED
@@ -32,7 +32,7 @@ class PmaSecurityProvider(
         secureObject: SecuredObject<*>
     ): PermissionResult {
         return when {
-            permission !is UseAuthScope || subject == null -> {
+            subject == null -> {
                 baseProvider.ensurePermission(permission, subject, secureObject)
             }
             authService.userHasPermission(subject, serviceId, SecureObjectAuthScope(subject, secureObject, permission)) -> PermissionResult.GRANTED
@@ -46,7 +46,7 @@ class PmaSecurityProvider(
         objectPrincipal: Principal
     ): PermissionResult {
         return when {
-            permission !is UseAuthScope || subject == null -> {
+            subject == null -> {
                 baseProvider.ensurePermission(permission, subject, objectPrincipal)
             }
             authService.userHasPermission(subject, serviceId, ObjectPrincipalAuthScope(objectPrincipal, permission)) -> PermissionResult.GRANTED
@@ -59,6 +59,14 @@ class PmaSecurityProvider(
 class ObjectPrincipalAuthScope(val objectPrincipal: Principal, val permission: Permission): UseAuthScope {
     override val description: String
         get() = "objectPrincipal($objectPrincipal, $permission)"
+
+    override fun includes(useScope: Permission): Boolean {
+        return when (useScope) {
+            is ObjectPrincipalAuthScope -> permission == useScope.permission && objectPrincipal.name == useScope.objectPrincipal.name
+            is UseAuthScope -> useScope.intersect(this).includes(this)
+            else -> useScope==permission || super.includes(useScope)
+        }
+    }
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -80,6 +88,14 @@ class ObjectPrincipalAuthScope(val objectPrincipal: Principal, val permission: P
 
 class PermissionScope(val permission: Permission): AuthScope {
     override val description: String get() = permission.toString()
+    override fun includes(useScope: Permission): Boolean {
+        return permission == useScope ||
+        (permission is AuthScope && permission.includes(useScope)) ||
+        (useScope is UseAuthScope && useScope.includes(permission)) ||
+            super.includes(useScope)
+    }
+
+    override fun toString(): String = "permission($permission)"
 }
 
 class SecureObjectAuthScope(val principal: PrincipalCompat, val secureObject: SecuredObject<*>, val permission: Permission): UseAuthScope {
@@ -91,7 +107,8 @@ class SecureObjectAuthScope(val principal: PrincipalCompat, val secureObject: Se
     }
 
     override fun includes(useScope: Permission): Boolean {
-        return secureObject.hasPermission(principal, permission).toPermissionResult() == PermissionResult.GRANTED
+        return secureObject.hasPermission(principal, permission).toPermissionResult() == PermissionResult.GRANTED ||
+            super.includes(useScope)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -110,5 +127,6 @@ class SecureObjectAuthScope(val principal: PrincipalCompat, val secureObject: Se
         return result
     }
 
+    override fun toString(): String = "objectPermission($secureObject:$permission)"
 
 }

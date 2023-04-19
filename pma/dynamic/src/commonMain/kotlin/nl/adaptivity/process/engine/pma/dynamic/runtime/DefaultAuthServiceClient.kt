@@ -1,5 +1,6 @@
 package nl.adaptivity.process.engine.pma.dynamic.runtime
 
+import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.engine.pma.*
 import nl.adaptivity.process.engine.pma.models.*
 import nl.adaptivity.process.engine.pma.runtime.AuthServiceClient
@@ -153,7 +154,7 @@ class DefaultAuthServiceClient(val originatingClientAuth: PmaAuthInfo, val authS
         return authService.registerClient(originatingClientAuth, principal, secret)
     }
 
-    override fun userHasPermission(principal: PrincipalCompat, serviceId: ServiceId<*>, permission: UseAuthScope): Boolean {
+    override fun userHasPermission(principal: PrincipalCompat, serviceId: ServiceId<*>, permission: SecurityProvider.Permission): Boolean {
         return authService.userHasPermission(originatingClientAuth, principal, serviceId, permission)
     }
 }
