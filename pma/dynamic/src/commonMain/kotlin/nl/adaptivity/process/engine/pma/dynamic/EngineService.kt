@@ -229,7 +229,7 @@ class EngineService(
         @Suppress("UNCHECKED_CAST")
         val scope: AuthScope = (activityContext.node as IPMAMessageActivity<AIC>).authorizationTemplates
             .mapNotNull { it.instantiateScope(activityContext) }
-            .reduce { left, right -> left.union(right) }
+            .fold(EMPTYSCOPE) { left: AuthScope, right -> left.union(right) }
 
         val authToken = authServiceClient.requestPmaAuthToken(
             activityContext.nodeInstanceHandle,
