@@ -253,64 +253,64 @@ class AuthService(
         validateAuthServiceAccess(requestorAuth, IDENTIFY) // TODO is this correct
 //        validateAuthServiceAccess(requestorAuth, GRANT_GLOBAL_PERMISSION.context(clientId, serviceId, reqScope))
 
-/*
-        val requestingUserPermissions: AuthScope = effectiveUserScope(requestingUserAuth, serviceInstanceId)
-            globalPermissions[requestingUserAuth.principal.name]?.get(this.serviceInstanceId.serviceId)
-                ?.takeIf { it == ADMIN } ?: globalPermissions.get(requestingUserAuth.principal.name)?.get(serviceId)
-*/
+        val requestingUserPermissions: AuthScope = effectiveUserScope(requestorAuth, serviceInstanceId)
+            globalPermissions[requestorAuth.principal.name]?.get(serviceInstanceId.serviceId)
+                ?.takeIf { it.includes(ADMIN) } ?: globalPermissions.get(requestorAuth.principal.name)?.get(serviceId)
+
+        val nodeInstanceHandle: PNIHandle = (requestorAuth as? PmaAuthToken)?.nodeInstanceHandle ?: Handle.invalid()
+
+        if (requestingUserPermissions.includes(ADMIN)) { // Shortcircuit the case where the requestor has admin permissions
+            return unsecuredCreateOrReuseToken(clientId, nodeInstanceHandle, serviceId, reqScope, identifiedUser)
+        }
 
         val clientGlobalPermissions = globalPermissions[clientId]?.get(serviceId)
 
         val effectiveScope: AuthScope
-        val tokenAssociatedPermissions: Sequence<AuthScope> = if (requestorAuth is PmaAuthToken) {
 
-            val tokenFullScope = (tokenPermissions[requestorAuth.token]
-                ?.asSequence()
-                ?: emptySequence())
-                .map { it.scope }
-                .fold(requestorAuth.scope) { left, right ->
-                    left.union(right)
-                }
-            val scopes = when (tokenFullScope) {
-                is UnionPermissionScope -> tokenFullScope.members.asSequence()
-                else -> sequenceOf(tokenFullScope)
+        val requestorAssociatedPermissions = when (requestorAuth) {
+            !is PmaAuthToken -> emptyList()
+
+            else -> when (val s = effectiveUserScope(requestorAuth, requestorAuth.serviceId)) {
+                is UnionPermissionScope -> s.members
+                else -> listOf(s)
             }
+        }
 
-            if (requestorAuth.nodeInstanceHandle.isValid) {
-                scopes.mapNotNull {
+        val delegatingPermissions = when {
+            ! nodeInstanceHandle.isValid -> {
+                requestorAssociatedPermissions.filterIsInstance<GRANT_GLOBAL_PERMISSION.ContextScope>()
+                    .filter { it.serviceId == serviceId }
+                    .map { it.childScope ?: ANYSCOPE }
+            }
+            else -> {
+                requestorAssociatedPermissions.mapNotNull { permission ->
                     when {
-                        it is DELEGATED_PERMISSION.DelegateContextScope &&
-                            it.serviceId == serviceId -> it.childScope ?: ANYSCOPE
+                        permission is DELEGATED_PERMISSION.DelegateContextScope &&
+                            permission.serviceId == serviceId -> permission.childScope ?: ANYSCOPE
                         // Any child scopes for activity limited grants
-                        it is GRANT_ACTIVITY_PERMISSION.ContextScope &&
-                            it.taskInstanceHandle == requestorAuth.nodeInstanceHandle -> it.childScope ?: ANYSCOPE
+                        permission is GRANT_ACTIVITY_PERMISSION.ContextScope &&
+                            permission.taskInstanceHandle == nodeInstanceHandle -> permission.childScope ?: ANYSCOPE
 
                         // As well as global grants
-                        it is GRANT_GLOBAL_PERMISSION.ContextScope ->
-                            it.childScope ?: ANYSCOPE
+                        permission is GRANT_GLOBAL_PERMISSION.ContextScope ->
+                            permission.childScope ?: ANYSCOPE
 
                         else -> null
                     }
                 }
-            } else { // not restricted to a task, so activity permissions are not valid
-                scopes.filterIsInstance<GRANT_GLOBAL_PERMISSION.ContextScope>()
-                    .filter { it.serviceId == serviceId }
-                    .map { it.childScope ?: ANYSCOPE }
-            }
-        } else {
-            emptySequence()
-        }
-        val registeredPermissions = tokenAssociatedPermissions
-            .plus(listOfNotNull(clientGlobalPermissions).asSequence())
-            .ifEmpty {
-                if (reqScope != ANYSCOPE && reqScope != IDENTIFY) {
-                    throw AuthorizationException("The token $requestorAuth has no permission to create delegate tokens for ${serviceId}.${reqScope.description}")
-                }
 
-                sequenceOf(IDENTIFY)
             }
-            .reduce<AuthScope?, AuthScope> { l, r -> l?.union(r) }
-            ?: throw AuthorizationException("The permissions for $clientId and (${requestorAuth}) cancel to nothing")
+        }
+        var delegatingScope = delegatingPermissions.fold(EMPTYSCOPE) { l: AuthScope, r -> l.union(r) }.union(clientGlobalPermissions ?: EMPTYSCOPE)
+
+        if (delegatingScope == EMPTYSCOPE) {
+            if (reqScope != ANYSCOPE && reqScope != IDENTIFY) {
+                throw AuthorizationException("The token $requestorAuth has no permission to create delegate tokens for ${serviceId}.${reqScope.description}")
+            }
+            delegatingScope = IDENTIFY
+        }
+
+        val registeredPermissions = delegatingScope
 
         if (reqScope == ANYSCOPE) {
             effectiveScope = registeredPermissions
@@ -321,8 +321,6 @@ class AuthService(
         }
 
         // TODO look up permissions for taskIdentityToken
-
-        val nodeInstanceHandle = (requestorAuth as? PmaAuthToken)?.nodeInstanceHandle ?: Handle.invalid()
 
         val existingToken = activeTokens.firstOrNull {
             it.principal.name == clientId &&
