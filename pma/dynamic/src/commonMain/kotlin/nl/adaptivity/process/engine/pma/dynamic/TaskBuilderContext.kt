@@ -7,6 +7,7 @@ import nl.adaptivity.process.engine.pma.PmaAuthToken
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaProcessInstanceContext
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableUiService
+import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.models.UiService
 import nl.adaptivity.util.multiplatform.PrincipalCompat
@@ -82,6 +83,20 @@ fun <S : RunnableUiService, R> TaskBuilderContext.BrowserContext<*, *>.uiService
 @OptIn(ExperimentalContracts::class)
 fun <AIC : DynamicPmaActivityContext<AIC, BIC>, BIC : TaskBuilderContext.BrowserContext<AIC, BIC>, S : RunnableUiService, R> TaskBuilderContext.BrowserContext<AIC, BIC>.uiServiceLogin(
     serviceName: ServiceName<S>,
+    action: TaskBuilderContext.UIServiceInnerContext<S>.() -> R
+): R {
+    contract {
+        callsInPlace(action, InvocationKind.EXACTLY_ONCE)
+    }
+    val serviceInst: S = processContext.contextFactory.serviceResolver.resolveService(serviceName)
+    val authToken: PmaAuthToken = browser.loginToService(serviceInst)
+
+    return DefaultUIServiceInnerContext(authToken, serviceInst).action()
+}
+
+@OptIn(ExperimentalContracts::class)
+fun <AIC : DynamicPmaActivityContext<AIC, BIC>, BIC : TaskBuilderContext.BrowserContext<AIC, BIC>, S : RunnableUiService, R> TaskBuilderContext.BrowserContext<AIC, BIC>.uiServiceLogin(
+    serviceName: ServiceId<S>,
     action: TaskBuilderContext.UIServiceInnerContext<S>.() -> R
 ): R {
     contract {

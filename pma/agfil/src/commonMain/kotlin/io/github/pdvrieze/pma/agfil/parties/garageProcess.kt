@@ -8,10 +8,10 @@ import io.github.pdvrieze.pma.agfil.services.ServiceNames
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.DataNodeHandle
 import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
 import nl.adaptivity.process.engine.pma.dynamic.uiServiceLogin
-import nl.adaptivity.process.engine.pma.models.ServiceName
+import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-fun repairProcess(owner: PrincipalCompat, ownerService: ServiceName<GarageService>) =
+fun repairProcess(owner: PrincipalCompat, ownerService: ServiceId<GarageService>) =
     runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>("insuranceCarRepair (${owner.name})", owner) {
 
     val claimId = input<ClaimId>("claim")
@@ -23,7 +23,7 @@ fun repairProcess(owner: PrincipalCompat, ownerService: ServiceName<GarageServic
 
     val handleReceiveCar: DataNodeHandle<Unit> by taskActivity(onReceiveCar, input = combine(onReceiveCar named "registration", claimId named "claimId")) {
         acceptTask({  randomGarageReceptionist() }) { (carRegistration, claimId) ->
-            uiServiceLogin(serviceName = ownerService) {
+            uiServiceLogin(ownerService) {
                 service.internal.registerCarReceipt(authToken, claimId, carRegistration)
             }
         }

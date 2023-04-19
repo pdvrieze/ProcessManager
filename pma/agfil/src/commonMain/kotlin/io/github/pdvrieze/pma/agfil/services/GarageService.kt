@@ -1,6 +1,7 @@
 package io.github.pdvrieze.pma.agfil.services
 
 import io.github.pdvrieze.pma.agfil.data.*
+import io.github.pdvrieze.pma.agfil.parties.repairProcess
 import net.devrieze.util.Handle
 import nl.adaptivity.process.engine.impl.CompactFragment
 import nl.adaptivity.process.engine.pma.AuthService
@@ -15,36 +16,23 @@ import nl.adaptivity.xmlutil.serialization.XML
 import java.util.logging.Logger
 import kotlin.random.Random
 
-class GarageService : RunnableProcessBackedService<GarageService>/*(
-    serviceAuth,
+class GarageService(
+    serviceName: ServiceName<GarageService>,
+    authService: AuthService,
+    adminAuthInfo: PmaAuthInfo,
+    engineService: EngineService,
+    override val serviceResolver: ServiceResolver,
+    random: Random,
+    logger: Logger = authService.logger
+) : RunnableProcessBackedService<GarageService>(
     serviceName,
     authService,
+    adminAuthInfo,
     engineService,
     random,
     logger,
-    repairProcess(serviceAuth.principal, serviceName),
-)*/, RunnableAutomatedService, RunnableUiService, AutoService {
-
-    override val serviceResolver: ServiceResolver
-
-    constructor(
-        serviceName: ServiceName<GarageService>,
-        authService: AuthService,
-        adminAuthInfo: PmaAuthInfo,
-        engineService: EngineService,
-        serviceResolver: ServiceResolver,
-        random: Random,
-        logger: Logger = authService.logger
-    ) : super(
-        serviceName = serviceName,
-        authService = authService,
-        processEngineService = engineService,
-        adminAuthInfo = adminAuthInfo,
-        random = random,
-        logger = logger
-    ) {
-        this.serviceResolver = serviceResolver
-    }
+    { repairProcess(adminAuthInfo.principal, serviceInstanceId) },
+), RunnableAutomatedService, RunnableUiService, AutoService {
 
     val garageInfo = GarageInfo(serviceName.serviceName, serviceInstanceId.serviceId)
 

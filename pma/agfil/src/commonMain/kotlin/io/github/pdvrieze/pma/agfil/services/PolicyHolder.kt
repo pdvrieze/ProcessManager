@@ -4,50 +4,34 @@ import io.github.pdvrieze.pma.agfil.data.CarRegistration
 import io.github.pdvrieze.pma.agfil.data.ClaimId
 import io.github.pdvrieze.pma.agfil.data.GarageInfo
 import io.github.pdvrieze.pma.agfil.parties.policyHolderProcess
-import nl.adaptivity.process.engine.pma.*
-import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
+import nl.adaptivity.process.engine.pma.AuthService
+import nl.adaptivity.process.engine.pma.EngineService
+import nl.adaptivity.process.engine.pma.PmaAuthInfo
+import nl.adaptivity.process.engine.pma.PmaAuthToken
 import nl.adaptivity.process.engine.pma.models.AutomatedService
-import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.models.ServiceResolver
 import java.util.logging.Logger
 import kotlin.random.Random
 
 class PolicyHolder(
-    serviceAuth: PmaIdSecretAuthInfo,
     serviceName: ServiceName<PolicyHolder>,
     authService: AuthService,
+    adminAuthInfo: PmaAuthInfo,
     engineService: EngineService,
     override val serviceResolver: ServiceResolver,
     random: Random,
     logger: Logger,
 ) : RunnableProcessBackedService<PolicyHolder>(
-    serviceAuth = serviceAuth,
     serviceName = serviceName,
     authService = authService,
+    adminAuthInfo = adminAuthInfo,
     processEngineService = engineService,
     random = random,
     logger = logger,
-    policyHolderProcess(serviceAuth.principal, ServiceId<PolicyHolder>(serviceAuth.id))
+    { policyHolderProcess(authServiceClient.principal, serviceInstanceId) }
 ), AutoService, AutomatedService {
 
-    constructor(
-        serviceName: ServiceName<PolicyHolder>,
-        authService: AuthService,
-        adminAuthInfo: PmaAuthInfo,
-        engineService: EngineService,
-        serviceResolver: ServiceResolver,
-        random: Random,
-        logger: Logger = authService.logger
-    ) : this(
-        authService.registerClient(adminAuthInfo, serviceName, random.nextString()),
-        serviceName,
-        authService,
-        engineService,
-        serviceResolver,
-        random,
-        logger
-    )
 
 
     val internal: Internal = Internal()

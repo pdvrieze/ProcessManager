@@ -4,7 +4,10 @@ import net.devrieze.util.Handle
 import nl.adaptivity.process.engine.ContextProcessTransaction
 import nl.adaptivity.process.engine.ProcessEngine
 import nl.adaptivity.process.engine.ProcessEnginePermissions
-import nl.adaptivity.process.engine.pma.*
+import nl.adaptivity.process.engine.pma.AuthService
+import nl.adaptivity.process.engine.pma.EngineService
+import nl.adaptivity.process.engine.pma.PmaAuthInfo
+import nl.adaptivity.process.engine.pma.PmaAuthToken
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DefaultAuthServiceClient
 import nl.adaptivity.process.engine.pma.dynamic.services.ServiceBase
 import nl.adaptivity.process.engine.pma.models.ServiceName
@@ -27,16 +30,7 @@ abstract class RunnableProcessBackedService<S: RunnableProcessBackedService<S>> 
         adminAuthInfo: PmaAuthInfo,
         processEngineService: EngineService,
         random: Random,
-        vararg processes: ExecutableProcessModel
-    ) : this(serviceName, authService, adminAuthInfo, processEngineService, random, authService.logger, *processes)
-
-    constructor(
-        serviceName: ServiceName<S>,
-        authService: AuthService,
-        adminAuthInfo: PmaAuthInfo,
-        processEngineService: EngineService,
-        random: Random,
-        logger: Logger,
+        logger: Logger = authService.logger,
         vararg processes: ExecutableProcessModel
     ) : super(authService, adminAuthInfo, serviceName, logger) {
         this.processEngineService = processEngineService
@@ -55,37 +49,28 @@ abstract class RunnableProcessBackedService<S: RunnableProcessBackedService<S>> 
     }
 
     constructor(
-        serviceAuth: PmaIdSecretAuthInfo,
         serviceName: ServiceName<S>,
         authService: AuthService,
+        adminAuthInfo: PmaAuthInfo,
         processEngineService: EngineService,
         random: Random,
-        vararg processes: ExecutableProcessModel,
-    ) : this (serviceAuth, serviceName, authService, processEngineService, random, authService.logger, *processes)
-
-    constructor(
-        serviceAuth: PmaIdSecretAuthInfo,
-        serviceName: ServiceName<S>,
-        authService: AuthService,
-        processEngineService: EngineService,
-        random: Random,
-        logger: Logger,
-        vararg processes: ExecutableProcessModel,
-    ) : super(authService, serviceAuth, serviceName, logger) {
+        logger: Logger = authService.logger,
+        vararg processFactories: RunnableProcessBackedService<S>.() -> ExecutableProcessModel
+    ) : super(authService, adminAuthInfo, serviceName, logger) {
         this.processEngineService = processEngineService
-        this.random = random
-        this.processHandles= ensureProcessHandles(processEngineService, authServiceClient, processes)
-
         val engineScope = UnionPermissionScope(
             PermissionScope(ProcessEnginePermissions.LIST_MODELS),
             PermissionScope(ProcessEnginePermissions.ADD_MODEL),
             PermissionScope(ProcessEnginePermissions.START_PROCESS),
         )
-        val authCode = authService.getAuthorizationCode(authServiceClient.originatingClientAuth, serviceAuth.id, processEngineService.serviceInstanceId,
+        val authCode = authService.getAuthorizationCode(adminAuthInfo, serviceInstanceId.serviceId, processEngineService.serviceInstanceId,
             engineScope
         )
         engineToken = authServiceClient.exchangeAuthCode(authCode)
 
+        this.random = random
+        val processes = processFactories.arrayMap { it() }
+        this.processHandles= ensureProcessHandles(processEngineService, authServiceClient, processes)
     }
 
     protected val processHandles: Array<Handle<ExecutableProcessModel>>

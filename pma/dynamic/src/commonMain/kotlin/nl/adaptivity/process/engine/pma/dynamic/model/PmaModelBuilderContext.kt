@@ -167,6 +167,24 @@ abstract class PmaModelBuilderContext<
     }
 
     inline fun <I : Any, reified O : Any, S : AutomatedService> serviceActivity(
+        predecessor: NodeHandle<I>,
+        authorizationTemplates: List<AuthScopeTemplate<AIC>> = emptyList(),
+        service: ServiceId<S>,
+        configure: RunnablePmaActivity.Builder<I, O, AIC>.() -> Unit = {},
+        @BuilderInference
+        noinline action: RunnableAction<I, O, ServiceActivityContext<AIC, S>>
+    ): RunnablePmaActivity.Builder<I, O, AIC> {
+        return serviceActivity(
+            predecessor = predecessor,
+            authorizationTemplates = authorizationTemplates,
+            service = service,
+            input = InputRefImpl(predecessor.identifier, "", predecessor.serializer),
+            configure = configure,
+            action = action
+        )
+    }
+
+    inline fun <I : Any, reified O : Any, S : AutomatedService> serviceActivity(
         predecessor: NodeHandle<*>,
         authorizationTemplates: List<AuthScopeTemplate<AIC>> = emptyList(),
         service: ServiceName<S>,

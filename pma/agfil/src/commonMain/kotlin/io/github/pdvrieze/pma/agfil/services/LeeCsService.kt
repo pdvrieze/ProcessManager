@@ -2,8 +2,10 @@ package io.github.pdvrieze.pma.agfil.services
 
 import io.github.pdvrieze.pma.agfil.data.*
 import io.github.pdvrieze.pma.agfil.parties.leeCsProcess
-import nl.adaptivity.process.engine.pma.*
-import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
+import nl.adaptivity.process.engine.pma.AuthService
+import nl.adaptivity.process.engine.pma.EngineService
+import nl.adaptivity.process.engine.pma.PmaAuthInfo
+import nl.adaptivity.process.engine.pma.PmaAuthToken
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableAutomatedService
 import nl.adaptivity.process.engine.pma.models.Service
 import nl.adaptivity.process.engine.pma.models.ServiceName
@@ -12,40 +14,22 @@ import java.util.logging.Logger
 import kotlin.random.Random
 
 class LeeCsService(
-    serviceAuth: PmaIdSecretAuthInfo,
     serviceName: ServiceName<LeeCsService>,
     authService: AuthService,
+    adminAuthInfo: PmaAuthInfo,
     engineService: EngineService,
     override val serviceResolver: ServiceResolver,
     random: Random,
     logger: Logger,
 ) : RunnableProcessBackedService<LeeCsService>(
-    serviceAuth = serviceAuth,
     serviceName = serviceName,
     authService = authService,
+    adminAuthInfo = adminAuthInfo,
     processEngineService = engineService,
     random = random,
     logger = logger,
     leeCsProcess
 ), RunnableAutomatedService, AutoService {
-
-    constructor(
-        serviceName: ServiceName<LeeCsService>,
-        authService: AuthService,
-        adminAuthInfo: PmaAuthInfo,
-        engineService: EngineService,
-        serviceResolver: ServiceResolver,
-        random: Random,
-        logger: Logger = authService.logger
-    ) : this(
-        authService.registerClient(adminAuthInfo, serviceName, random.nextString()),
-        serviceName,
-        authService,
-        engineService,
-        serviceResolver,
-        random,
-        logger
-    )
 
     /** From Lai's thesis: sendRepairCosts */
     fun sendGarageEstimate(authToken: PmaAuthInfo, estimate: Estimate) {
