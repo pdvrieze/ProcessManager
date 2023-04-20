@@ -1,6 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="jar" name="ProcessEngine-core-js-1.0.0">
-    <output-path>$PROJECT_DIR$/ProcessEngine/core/build/libs</output-path>
-    <root id="archive" name="ProcessEngine-core-js-1.0.0.jar" />
-  </artifact>
-</component>

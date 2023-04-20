@@ -1,8 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="jar" name="PE-dynamic-model-jvm-1.0.0">
-    <output-path>$PROJECT_DIR$/dynamicProcessModel/build/libs</output-path>
-    <root id="archive" name="PE-dynamic-model-jvm-1.0.0.jar">
-      <element id="module-output" name="IdeaProjects.ProcessManager.dynamicProcessModel.jvmMain" />
-    </root>
-  </artifact>
-</component>

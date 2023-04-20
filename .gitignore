@@ -8,6 +8,7 @@ build
 .idea/dataSources.ids
 .idea/dataSources.local.xml
 .idea/dataSources
+.idea/artifacts/
 */*.iml
 *.iml
 .idea/gradle.xml
@@ -18,6 +19,7 @@ wiki
 /.idea/caches/
 /.idea/shelf/
 /.idea/modules/
+/.idea/modules.xml
 /.idea/workspace.xml
 xmlutil
 kotlinsql

@@ -1,8 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="jar" name="jscommon-legacy-1.1.0">
-    <output-path>$PROJECT_DIR$/jscommon/build/libs</output-path>
-    <root id="archive" name="jscommon-legacy-1.1.0.jar">
-      <element id="module-output" name="ProcessManager.jscommon.main" />
-    </root>
-  </artifact>
-</component>

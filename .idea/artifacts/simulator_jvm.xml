@@ -1,8 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="jar" name="simulator-jvm">
-    <output-path>$PROJECT_DIR$/ProcessEngine/simulator/build/libs</output-path>
-    <root id="archive" name="simulator-jvm.jar">
-      <element id="module-output" name="ProcessManager.ProcessEngine.simulator.jvmMain" />
-    </root>
-  </artifact>
-</component>

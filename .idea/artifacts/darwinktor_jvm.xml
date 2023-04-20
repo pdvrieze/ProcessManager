@@ -1,8 +1,0 @@
-<component name="ArtifactManager">
-  <artifact type="jar" name="darwinktor-jvm">
-    <output-path>$PROJECT_DIR$/darwin/ktor/build/libs</output-path>
-    <root id="archive" name="darwinktor-jvm.jar">
-      <element id="module-output" name="ProcessManager.darwin.ktor.jvmMain" />
-    </root>
-  </artifact>
-</component>
