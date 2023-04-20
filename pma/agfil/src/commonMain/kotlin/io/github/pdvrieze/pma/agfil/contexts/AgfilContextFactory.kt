@@ -15,6 +15,7 @@ import nl.adaptivity.process.engine.pma.PmaIdSecretAuthInfo
 import nl.adaptivity.process.engine.pma.dynamic.runtime.AbstractDynamicPmaContextFactory
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DefaultAuthServiceClient
 import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
+import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.dynamic.services.DynamicTaskList
 import nl.adaptivity.process.engine.pma.dynamic.services.TaskList
 import nl.adaptivity.process.engine.pma.models.ResolvedInvokableMethod
@@ -84,6 +85,7 @@ class AgfilContextFactory(private val logger: Logger, private val random: Random
             authService.registerClient(adminAuth, ServiceName<DynamicTaskList>("TaskList(GLOBAL)"), Random.nextString()),
             ""
         )
+        authService.registerGlobalPermission(adminAuth, engineService.authServiceClient.principal, taskListService, CommonPMAPermissions.POST_TASK)
 
         agfilService = AgfilService(ServiceNames.agfilService, authService, adminAuth, engineService, random, logger)
 
@@ -107,6 +109,7 @@ class AgfilContextFactory(private val logger: Logger, private val random: Random
     }
 
     override fun getOrCreateTaskListForUser(principal: Principal): TaskList<*> {
+        adminAuthServiceClient.registerGlobalPermission(principal, taskListService, CommonPMAPermissions.ACCEPT_TASK)
         return taskListService
     }
 

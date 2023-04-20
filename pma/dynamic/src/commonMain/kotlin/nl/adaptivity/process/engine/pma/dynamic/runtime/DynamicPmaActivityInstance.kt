@@ -46,13 +46,15 @@ class DynamicPmaActivityInstance<InputT : Any, OutputT : Any, C : DynamicPmaActi
             val contextFactory = engineData.processContextFactory as DynamicPmaProcessContextFactory<C>
             val aic = contextFactory.newActivityInstanceContext(engineData, this)
             val processContext = aic.processContext
-            return when (node.action) {
-                is BrowserAction<*, *, *, *> -> {
+            return when (val a = node.action) {
+                is BrowserAction<InputT, OutputT, C, *> -> {
                     val taskLists = contextFactory.getOrCreateTaskListForRestrictions(node.accessRestrictions)
                     for (taskList in taskLists) {
                         processContext.engineService.doPostTaskToTasklist(taskList, handle)
                     }
-                    true
+                    val principalProvider: C.() -> PrincipalCompat = a.action.principalProvider
+                    takeTask(engineData, aic.principalProvider())
+                    false
                 }
 
                 else -> {
@@ -60,6 +62,10 @@ class DynamicPmaActivityInstance<InputT : Any, OutputT : Any, C : DynamicPmaActi
                     true
                 }
             }
+        }
+
+        override fun canTakeTaskAutomatically(): Boolean {
+            return node.accessRestrictions == null && super.canTakeTaskAutomatically()
         }
 
         override fun doTakeTask(engineData: MutableProcessEngineDataAccess, assignedUser: PrincipalCompat?): Boolean {

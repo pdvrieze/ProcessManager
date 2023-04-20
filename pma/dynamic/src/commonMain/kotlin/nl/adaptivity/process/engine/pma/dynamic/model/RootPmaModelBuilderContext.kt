@@ -39,7 +39,7 @@ class RootPmaModelBuilderContext<AIC : DynamicPmaActivityContext<AIC, BIC>, BIC:
         deserializer: DeserializationStrategy<T>,
         path: String? = null,
     ): InputRef<T> {
-        modelBuilder.imports.add(XmlResultType(name, path ?: "/*"))
+        modelBuilder.imports.add(XmlResultType(name, path))
         return InputRefImpl(name, deserializer)
     }
 

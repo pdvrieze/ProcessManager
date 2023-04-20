@@ -3,16 +3,21 @@ package io.github.pdvrieze.pma.agfil.services
 import io.github.pdvrieze.pma.agfil.data.*
 import io.github.pdvrieze.pma.agfil.parties.europAssistProcess
 import io.github.pdvrieze.pma.agfil.services.ServiceNames.agfilService
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.SimpleRolePrincipal
+import net.devrieze.util.Handle
+import net.devrieze.util.security.RolePrincipal
+import net.devrieze.util.security.SimplePrincipal
+import nl.adaptivity.process.engine.PIHandle
+import nl.adaptivity.process.engine.SecureProcessInstance
 import nl.adaptivity.process.engine.impl.CompactFragment
-import nl.adaptivity.process.engine.pma.AuthService
-import nl.adaptivity.process.engine.pma.EngineService
-import nl.adaptivity.process.engine.pma.PmaAuthInfo
-import nl.adaptivity.process.engine.pma.PmaAuthToken
+import nl.adaptivity.process.engine.pma.*
+import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableAutomatedService
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableUiService
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.models.ServiceResolver
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.smartStartTag
 import java.util.logging.Logger
@@ -36,19 +41,29 @@ class EuropAssistService(
     logger = logger,
     europAssistProcess
 ), RunnableAutomatedService, RunnableUiService, AutoService {
+    private val instanceHandles = mutableMapOf<ClaimId, PIHandle>()
 
     val internal: Internal = Internal()
+    private val callHandlers: List<PrincipalCompat>
+    init {
+        callHandlers = (1..5).map { i ->
+            SimpleRolePrincipal("EA Call handler $i", "ea:callhandler") // registration etc. happens in the context factory upon browser init.
+        }
 
+
+    }
 
     /** From Lai's thesis */
     fun phoneClaim(authToken: PmaAuthInfo, carRegistration: CarRegistration, claimInfo: String, callerInfo: CallerInfo): ClaimId {
         val claimData = CompactFragment { out ->
-            out.smartStartTag(QName("carRegistration")) { text(carRegistration.value) }
-            out.smartStartTag(QName("claimInfo")) { text(claimInfo) }
+            out.smartStartTag(QName("carRegistration")) { XML.encodeToWriter(out, carRegistration) }
+            out.smartStartTag(QName("claimInfo")) { XML.encodeToWriter(out, claimInfo) }
             out.smartStartTag(QName("callerInfo")) { XML.encodeToWriter(out, callerInfo) }
         }
         val processHandle = startProcess(processHandles[0], claimData)
-        return ClaimId(processHandle.handleValue) // TODO for now re-use process handle as claim id. (we can then convert back)
+        return ClaimId(processHandle.handleValue).also {// TODO the handles can be independent
+            instanceHandles[it] = processHandle
+        }
     }
 
     /** From Lai's thesis */
@@ -56,7 +71,12 @@ class EuropAssistService(
         TODO()
     }
 
+    fun randomCallHandler(): PrincipalCompat {
+        return callHandlers.random(random)
+    }
+
     inner class Internal {
+
         fun pickGarage(authToken: PmaAuthToken, accidentInfo: AccidentInfo): GarageInfo {
             validateAuthInfo(authToken, AgfilPermissions.PICK_GARAGE)
             val garageServices = withService(serviceName = agfilService, authToken, AgfilPermissions.LIST_GARAGES) {
@@ -96,6 +116,10 @@ class EuropAssistService(
 */
 
             return garage // Smarter way to do something here
+        }
+
+        fun processHandleFor(claimId: ClaimId): PIHandle {
+            return instanceHandles.getOrElse(claimId) { Handle.invalid() }
         }
 
     }

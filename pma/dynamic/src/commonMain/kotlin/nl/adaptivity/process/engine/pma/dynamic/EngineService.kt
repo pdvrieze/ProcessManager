@@ -247,7 +247,8 @@ class EngineService(
     fun startProcess(engineToken: PmaAuthToken, processHandle: PMHandle, payload: CompactFragment?): PIHandle {
         fun <TR : ContextProcessTransaction> impl(processEngine: ProcessEngine<TR>): PIHandle {
             return processEngine.inTransaction { tr ->
-                processEngine.startProcess(tr, engineToken.principal, processHandle, "process${nextProcessNo++}", UUID.randomUUID(), payload)
+                val name = tr.readableEngineData.processModel(processHandle).withPermission().name
+                processEngine.startProcess(tr, engineToken.principal, processHandle, "$name ${nextProcessNo++}", UUID.randomUUID(), payload)
             }
         }
         return impl(processEngine)

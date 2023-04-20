@@ -46,9 +46,9 @@ actual fun IPlatformXmlResultType.applyData(payload: ICompactFragment?): Process
                 xPath!!.evaluate(
                     payload.toDocumentFragment(),
                     XPathConstants.NODESET
-                                ) as NodeList
-                                      )
-                   )
+                ) as NodeList
+            )
+        )
 
         // TODO check whether this can use work by CompactFragment implementing InputSource instead
     }

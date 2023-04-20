@@ -2,10 +2,7 @@ package io.github.pdvrieze.pma.agfil.parties
 
 import io.github.pdvrieze.pma.agfil.contexts.AgfilActivityContext
 import io.github.pdvrieze.pma.agfil.contexts.AgfilBrowserContext
-import io.github.pdvrieze.pma.agfil.data.CallerInfo
-import io.github.pdvrieze.pma.agfil.data.CompletedClaimForm
-import io.github.pdvrieze.pma.agfil.data.GarageInfo
-import io.github.pdvrieze.pma.agfil.data.IncompleteClaimForm
+import io.github.pdvrieze.pma.agfil.data.*
 import io.github.pdvrieze.pma.agfil.services.PolicyHolder
 import io.github.pdvrieze.pma.agfil.services.ServiceNames
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.DataNodeHandle
@@ -13,11 +10,11 @@ import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
 import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-fun policyHolderProcess(owner: PrincipalCompat, ownerService: ServiceId<PolicyHolder>) = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>("get_car_fixed", owner) {
+fun policyHolderProcess(owner: PrincipalCompat, ownerService: ServiceId<PolicyHolder>) = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>("policyHolder_get_car_fixed", owner) {
 
     val start by startNode
 
-    val reportClaim by serviceActivity(start, listOf(), ServiceNames.europAssistService) {
+    val reportClaim: DataNodeHandle<ClaimId> by serviceActivity(start, listOf(), ServiceNames.europAssistService) {
         val callerInfo = activityContext.callerInfo(owner)
         service.phoneClaim(authToken, agfilProcessContext.carRegistration, "Random Accident info", callerInfo)
     }

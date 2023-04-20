@@ -17,7 +17,7 @@ class AgfilActivityContextImpl(
 ) : AbstractDynamicPmaActivityContext<AgfilActivityContext, AgfilBrowserContext>(processNode), AgfilActivityContext {
 
     override fun randomEaCallHandler(): PrincipalCompat {
-        TODO("not implemented")
+        return processContext.contextFactory.europAssistService.randomCallHandler()
     }
 
     override fun randomGarageReceptionist(): PrincipalCompat {
