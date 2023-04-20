@@ -14,8 +14,6 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import multiplatform.jvmAndroid
-
 plugins {
     kotlin("multiplatform")
     idea
@@ -41,8 +39,10 @@ kotlin {
                 }
             }
         }
+/*
         jvmAndroid {
         }
+*/
         js(BOTH) {
             browser()
             binaries
@@ -73,14 +73,16 @@ kotlin {
                 implementation(kotlin("test"))
             }
         }
+/*
         val javaMain by creating {
             dependsOn(commonMain)
             dependencies {
                 implementation(kotlin("stdlib"))
             }
         }
+*/
         val jvmMain by getting {
-            dependsOn(javaMain)
+//            dependsOn(javaMain)
             dependencies {
                 implementation(kotlin("stdlib-jdk8"))
             }
@@ -92,6 +94,7 @@ kotlin {
                 runtimeOnly(libs.junit5.engine)
             }
         }
+/*
         val androidTest by getting {
             dependencies {
                 implementation(kotlin("test-junit5"))
@@ -101,6 +104,7 @@ kotlin {
         val androidMain by getting {
             dependsOn(javaMain)
         }
+*/
 /*
         val jsMain by getting {
             dependsOn(commonMain)

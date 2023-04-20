@@ -79,6 +79,9 @@ kotlin {
 
                     implementation(project(":multiplatform"))
                     implementation(kotlin("stdlib"))
+                    implementation(libs.xmlutil.core)
+                    implementation(libs.xmlutil.serialization)
+                    implementation(libs.xmlutil.serialutil)
                     compileOnly(project(":JavaCommonApi"))
                     compileOnly(project(":DarwinJavaApi"))
                 }
@@ -101,8 +104,8 @@ kotlin {
             }
             val commonTest by getting {
                 dependencies {
-                    implementation(libs.xmlutil.core)
-                    implementation(libs.xmlutil.serialization)
+//                    implementation(libs.xmlutil.core)
+//                    implementation(libs.xmlutil.serialization)
                     implementation(project(":ProcessEngine:testLib"))
                 }
             }
@@ -122,7 +125,7 @@ kotlin {
 
                     implementation(project(":DarwinJavaApi"))
                     implementation(project(":TestSupport"))
-                    implementation(libs.xmlutil.serialization)
+//                    implementation(libs.xmlutil.serialization)
 
                     runtimeOnly(kotlin("reflect"))
                     runtimeOnly(libs.junit5.engine)

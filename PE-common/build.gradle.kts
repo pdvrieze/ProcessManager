@@ -14,8 +14,6 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import multiplatform.jvmAndroid
-
 plugins {
     kotlin("multiplatform")
     id("net.devrieze.gradlecodegen")
@@ -41,6 +39,7 @@ kotlin {
                 }
             }
         }
+/*
         jvmAndroid {
             compilations.all {
                 kotlinOptions {
@@ -48,6 +47,7 @@ kotlin {
                 }
             }
         }
+*/
         js(BOTH) {
             browser()
             nodejs()
@@ -95,14 +95,8 @@ kotlin {
                 implementation(kotlin("test-annotations-common"))
             }
         }
-        val javaMain by creating {
-            dependsOn(commonMain)
-            dependencies {
-                implementation(libs.xmlutil.xmlserializable)
-            }
-        }
         val jvmMain by getting {
-            dependsOn(javaMain)
+            kotlin.srcDir(file("src/javaMain/kotlin"))
             dependencies {
                 implementation(kotlin("stdlib-jdk8"))
                 api(libs.kotlinsql.core)
@@ -110,6 +104,7 @@ kotlin {
                 compileOnly(project(":JavaCommonApi"))
                 compileOnly(libs.servletApi)
                 compileOnly(project(":java-common:jvmonly"))
+                implementation(libs.xmlutil.xmlserializable)
                 implementation(libs.jwsApi)
                 implementation(libs.activationApi)
                 implementation(libs.jaxb.api)
@@ -134,19 +129,13 @@ kotlin {
 
             }
         }
-        val androidMain by getting {
-            dependsOn(javaMain)
-            dependencies {
-                compileOnly(project(":DarwinJavaApi"))
-                compileOnly(project(":JavaCommonApi"))
-                implementation(kotlin("stdlib-jdk7"))
-            }
-        }
+/*
         val androidTest by getting {
             dependencies {
                 runtimeOnly(libs.kxml2)
             }
         }
+*/
         val jsMain by getting {
 //            dependsOn(commonMain)
         }

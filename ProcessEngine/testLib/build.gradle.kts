@@ -14,8 +14,6 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import multiplatform.jvmAndroid
-
 plugins {
     kotlin("multiplatform")
     id("net.devrieze.gradlecodegen")
@@ -32,13 +30,6 @@ kotlin {
                 }
                 tasks.withType<Test> {
                     useJUnitPlatform()
-                }
-            }
-        }
-        jvmAndroid {
-            compilations.all {
-                kotlinOptions {
-                    jvmTarget = libs.versions.kotlin.androidClassTarget.get()
                 }
             }
         }
@@ -69,13 +60,6 @@ kotlin {
             }
         }
         val jvmMain by getting {
-            dependencies {
-                implementation(kotlin("test-junit5"))
-                implementation(libs.xmlutil.core)
-                implementation(libs.xmlutil.serialization)
-            }
-        }
-        val androidMain by getting {
             dependencies {
                 implementation(kotlin("test-junit5"))
                 implementation(libs.xmlutil.core)
