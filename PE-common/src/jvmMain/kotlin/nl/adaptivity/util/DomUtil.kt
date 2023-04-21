@@ -294,13 +294,13 @@ object DomUtil {
                 for(child in node.childNodes) {
                     wrapperChild.appendChild(child)
                 }
-                val reader = XmlStreaming.newReader(DOMSource(wrapperChild))
-                reader.nextTag()
+                val reader = DomReader(wrapperChild)
+                reader.skipPreamble()
                 reader.require(EventType.START_ELEMENT, QName("wrapper-from-domutil"))
                 reader.nextTag()
                 reader.siblingsToFragment()
             }
-            else    -> XmlStreaming.newReader(DOMSource(node)).siblingsToFragment()
+            else    -> DomReader(node).siblingsToFragment()
         }
     }
 
