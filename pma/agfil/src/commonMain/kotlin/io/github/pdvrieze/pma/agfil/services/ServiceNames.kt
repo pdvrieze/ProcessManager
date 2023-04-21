@@ -12,8 +12,8 @@ object ServiceNames {
     val europAssistService = ServiceName<EuropAssistService>("europAssistService")
     val garageServices = arrayOf(
         ServiceName<GarageService>("Fix'R'Us"),
-        ServiceName<GarageService>("Dentagone"),
-        ServiceName<GarageService>("Scrapemall"),
+        ServiceName<GarageService>("Dent-a-gone"),
+        ServiceName<GarageService>("Scrap-em-all"),
     )
     val agfilService = ServiceName<AgfilService>("agfilService")
     val leeCsService = ServiceName<LeeCsService>("leeCsService")

@@ -73,7 +73,7 @@ class AgfilService(
 
     fun getContractedGarages(authToken: PmaAuthInfo): List<GarageInfo> {
         validateAuthInfo(authToken, AgfilPermissions.LIST_GARAGES)
-        TODO()
+        return ServiceNames.garageServices.map { GarageInfo(it.serviceName, it.serviceName) }
     }
 
     val internal: Internal = Internal()
