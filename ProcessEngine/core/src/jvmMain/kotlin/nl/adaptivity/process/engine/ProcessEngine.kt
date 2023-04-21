@@ -92,7 +92,9 @@ private fun <T : ContextProcessTransaction> wrapNodeCache(
             securePNI
         } else {
             val piBuilder = tr.readableEngineData.instance(pni.hProcessInstance).withPermission().builder()
-            pni.builder(piBuilder).also { it.handle = handle }.build()
+            val pniBuilder = pni.builder(piBuilder)
+            pniBuilder.handle = handle
+            pniBuilder.build()
         }
     }
 
