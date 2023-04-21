@@ -2,6 +2,7 @@ package io.github.pdvrieze.pma.agfil.services
 
 import io.github.pdvrieze.pma.agfil.data.*
 import io.github.pdvrieze.pma.agfil.parties.europAssistProcess
+import io.github.pdvrieze.pma.agfil.services.AgfilPermissions.*
 import io.github.pdvrieze.pma.agfil.services.ServiceNames.agfilService
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.SimpleRolePrincipal
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.impl.payload
@@ -74,8 +75,8 @@ class EuropAssistService(
     inner class Internal {
 
         fun pickGarage(authToken: PmaAuthToken, accidentInfo: AccidentInfo): GarageInfo {
-            validateAuthInfo(authToken, AgfilPermissions.PICK_GARAGE)
-            val garageServices = withService(serviceName = agfilService, authToken, AgfilPermissions.LIST_GARAGES) {
+            validateAuthInfo(authToken, PICK_GARAGE)
+            val garageServices = withService(serviceName = agfilService, authToken, LIST_GARAGES) {
                 service.getContractedGarages(serviceAccessToken)
             }
 
@@ -91,7 +92,7 @@ class EuropAssistService(
             withService(
                 garage.service,
                 authToken,
-                AgfilPermissions.INFORM_GARAGE
+                INFORM_GARAGE
             ) {
                 service.informGarageOfIncomingCar(serviceAccessToken, claimId, accidentInfo)
             }

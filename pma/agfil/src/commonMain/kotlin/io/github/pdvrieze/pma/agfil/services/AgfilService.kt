@@ -22,6 +22,7 @@ class AgfilService(
 ) : RunnableProcessBackedService<AgfilService>(serviceName, authService, adminAuthInfo, engineService, random, logger, agfilProcess), RunnableAutomatedService, RunnableUiService {
 
     private val claims = mutableListOf<ClaimData>()
+    private val customers = mutableMapOf<CustomerId, CustomerData>()
 
     /** From Lai's thesis */
     fun notifyClaim(authToken: PmaAuthInfo, claimId: ClaimId, accidentInfo: AccidentInfo, garage: GarageInfo): Unit =
@@ -56,7 +57,18 @@ class AgfilService(
     }
 
     fun findCustomerId(authToken: PmaAuthInfo, callerInfo: CallerInfo): CustomerId {
-        TODO("not implemented")
+        val existingRecord = customers.values.firstOrNull { it.name==callerInfo.name }
+        if (existingRecord == null) {
+            val newId = CustomerId(random.nextLong())
+            customers[newId] = CustomerData(newId, callerInfo.name, callerInfo.phoneNumber)
+            return newId
+        }
+
+        if (existingRecord.phoneNumber != callerInfo.phoneNumber) {
+            customers[existingRecord.id] = existingRecord.copy(phoneNumber = callerInfo.phoneNumber)
+        }
+
+        return existingRecord.id
     }
 
     fun getContractedGarages(authToken: PmaAuthInfo): List<GarageInfo> {
@@ -88,7 +100,13 @@ class AgfilService(
         }
     }
 
-    private class ClaimData(
+    private data class CustomerData(
+        val id: CustomerId,
+        val name: String,
+        val phoneNumber: String
+    )
+
+    private data class ClaimData(
         override val id: ClaimId,
         override val accidentInfo: AccidentInfo,
         override var outcome: Claim.Outcome,

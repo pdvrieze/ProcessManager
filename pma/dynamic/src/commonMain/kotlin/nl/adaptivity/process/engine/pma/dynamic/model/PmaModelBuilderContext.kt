@@ -68,7 +68,7 @@ abstract class PmaModelBuilderContext<
 
     inline fun <I : Any, reified O : Any> taskActivity(
         predecessor: NodeHandle<*>,
-        authorizationTemplates: List<AuthScopeTemplate<AIC>> = emptyList(),
+        permissions: List<AuthScopeTemplate<AIC>> = emptyList(),
         accessRestrictions: RunnableAccessRestriction? = null,
         input: DefineInputCombiner<I>,
         @BuilderInference
@@ -80,7 +80,7 @@ abstract class PmaModelBuilderContext<
             outputSerializer = serializer<O>(),
             action = taskListAction<AIC, BIC, I, O>(action),
             accessRestrictions = accessRestrictions,
-            authorizationTemplates = authorizationTemplates
+            authorizationTemplates = permissions
         ).apply {
             defines.replaceBy(input.defines)
         }
@@ -88,7 +88,7 @@ abstract class PmaModelBuilderContext<
 
     inline fun <I : Any, reified O : Any> taskActivity(
         predecessor: NodeHandle<*>,
-        authorizationTemplates: List<AuthScopeTemplate<AIC>> = emptyList(),
+        permissions: List<AuthScopeTemplate<AIC>> = emptyList(),
         accessRestrictions: RunnableAccessRestriction? = null,
         input: InputRef<I>,
         @BuilderInference
@@ -101,7 +101,7 @@ abstract class PmaModelBuilderContext<
             inputSerializer = input.serializer,
             outputSerializer = serializer<O>(),
             accessRestrictions = accessRestrictions,
-            authorizationTemplates = authorizationTemplates,
+            authorizationTemplates = permissions,
             action = taskListAction(action),
         )
     }

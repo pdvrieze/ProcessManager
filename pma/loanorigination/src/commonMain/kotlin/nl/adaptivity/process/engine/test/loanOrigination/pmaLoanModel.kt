@@ -2,13 +2,9 @@ package nl.adaptivity.process.engine.test.loanOrigination
 
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.*
 import net.devrieze.util.security.SimplePrincipal
-import nl.adaptivity.process.engine.pma.AuthService
-import nl.adaptivity.process.engine.pma.EngineService
-import nl.adaptivity.process.engine.pma.GeneralClientService
 import nl.adaptivity.process.engine.pma.dynamic.TaskBuilderContext
 import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
 import nl.adaptivity.process.engine.pma.dynamic.scope.templates.ContextScopeTemplate
-import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.test.loanOrigination.ServiceNames.accountManagementSystem
 import nl.adaptivity.process.engine.test.loanOrigination.ServiceNames.creditApplication
 import nl.adaptivity.process.engine.test.loanOrigination.ServiceNames.customerFile
@@ -74,7 +70,7 @@ val pmaLoanModel =
 
             val getCustomerApproval: DataNodeHandle<SignedDocument<Approval>> by taskActivity(
                 predecessor = startCreditEvaluate,
-                authorizationTemplates = listOf(delegatePermissions(signingService, SIGN)),
+                permissions = listOf(delegatePermissions(signingService, SIGN)),
                 accessRestrictions = RoleRestriction("customer"), // TODO support dynamic restrictions
                 input = customerIdInput as InputRef<LoanCustomer>,
             ) {
@@ -87,7 +83,7 @@ val pmaLoanModel =
 
             val verifyCustomerApproval: DataNodeHandle<SignedDocument<SignedDocument<Approval>>> by taskActivity(
                 predecessor = getCustomerApproval,
-                authorizationTemplates = listOf(
+                permissions = listOf(
                     delegatePermissions(
                         customerFile,
                         ContextScopeTemplate(QUERY_CUSTOMER_DATA) { s ->
@@ -191,7 +187,7 @@ val pmaLoanModel =
                 input = combine(loanEvalInput named "loanEval", chosenProductInput named "prod") { e, p ->
                     PricingInput(e, p)
                 },
-                authorizationTemplates = listOf(
+                permissions = listOf(
                     delegatePermissions(
                         pricingEngine,
                         PRICE_LOAN.restrictTo(Double.NaN)
@@ -221,7 +217,7 @@ val pmaLoanModel =
         val printOffer: DataNodeHandle<Offer> by taskActivity(
             predecessor = offerPriceLoan,
             input = approvedOfferOut,
-            authorizationTemplates = listOf(delegatePermissions(outputManagementSystem, PRINT_OFFER))
+            permissions = listOf(delegatePermissions(outputManagementSystem, PRINT_OFFER))
         ) {
             acceptTask(postProcClerk) { approvedOffer ->
                 uiServiceLogin(outputManagementSystem) {
@@ -241,7 +237,7 @@ val pmaLoanModel =
         val bankSignsContract: DataNodeHandle<Contract> by taskActivity(
             predecessor = customerSignsContract,
             input = customerSignsContract,
-            authorizationTemplates = listOf(
+            permissions = listOf(
                 delegatePermissions(
                     outputManagementSystem,
                     ContextScopeTemplate(SIGN_LOAN) {

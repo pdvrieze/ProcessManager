@@ -20,6 +20,7 @@ import net.devrieze.util.Handle
 import nl.adaptivity.process.engine.pma.*
 import nl.adaptivity.process.engine.pma.dynamic.runtime.AbstractDynamicPmaActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
+import nl.adaptivity.process.engine.pma.models.AuthScope
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.models.TaskListService
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
@@ -67,6 +68,7 @@ abstract class TaskList<S: TaskList<S>> constructor(
 
     fun contextImpl(browser: Browser): Context = ContextImpl(browser)
 
+    @JvmName("acceptActivityPending")
     fun acceptActivity(
         authToken: PmaAuthToken,
         user: PrincipalCompat,
@@ -79,6 +81,22 @@ abstract class TaskList<S: TaskList<S>> constructor(
         val activityAccessToken = engineTokens[processNodeInstance.handleValue] ?: throw AuthorizationException("Task list has no access to activity $processNodeInstance")
         val userAuthorization =
             engineService.acceptActivity(activityAccessToken,  processNodeInstance, user, pendingPermissions)
+
+        return userAuthorization
+    }
+
+    fun acceptActivity(
+        authToken: PmaAuthToken,
+        user: PrincipalCompat,
+        permissions: Collection<AuthScope>,
+        processNodeInstance: Handle<SecureProcessNodeInstance>
+    ): AuthorizationCode {
+        logMe(processNodeInstance, user)
+
+        validateAuthInfo(authToken, CommonPMAPermissions.ACCEPT_TASK)
+        val activityAccessToken = engineTokens[processNodeInstance.handleValue] ?: throw AuthorizationException("Task list has no access to activity $processNodeInstance")
+        val userAuthorization =
+            engineService.acceptActivity(activityAccessToken,  processNodeInstance, user, permissions)
 
         return userAuthorization
 

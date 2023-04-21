@@ -267,7 +267,7 @@ class AuthService(
 
         val effectiveScope: AuthScope
 
-        val requestorAssociatedPermissions = when (requestorAuth) {
+        val requestorAssociatedPermissions = when (requestorAuth) { // TODO this is duplicate
             !is PmaAuthToken -> emptyList()
 
             else -> when (val s = effectiveUserScope(requestorAuth, requestorAuth.serviceId)) {
@@ -552,7 +552,7 @@ class AuthService(
 
         if (token !in activeTokens) {
             activeTokens.add(token)
-            doLog(requestorAuth, "getAuthorizationCode($requestorAuth) - reuse = $authorizationCode -> $token")
+            doLog(requestorAuth, "getAuthorizationCode($requestorAuth) = $authorizationCode -> $token")
         }
         doLog(requestorAuth, "getAuthorizationCode($requestorAuth) = $authorizationCode -> $token")
         return authorizationCode

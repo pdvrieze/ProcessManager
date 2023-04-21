@@ -36,6 +36,7 @@ import nl.adaptivity.process.engine.pma.models.*
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
+import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.PMHandle
 import nl.adaptivity.util.kotlin.arrayMap
@@ -82,6 +83,7 @@ class EngineService(
      * Accept the activity and return an authorization code for the user to identify itself with in relation to
      * the activity.
      */
+    @JvmName("acceptActivityPending")
     fun acceptActivity(
         authToken: PmaAuthToken,
         nodeInstanceHandle: Handle<SecureProcessNodeInstance>,
@@ -99,17 +101,47 @@ class EngineService(
 
         val permissions = CommonPMAPermissions.IDENTIFY.union(pendingPermissions.toPermission())
 
+        return acceptActivityUnsecured(user, authToken.nodeInstanceHandle, permissions)
+    }
+
+    /**
+     * Accept the activity and return an authorization code for the user to identify itself with in relation to
+     * the activity.
+     */
+    fun acceptActivity(
+        authToken: PmaAuthToken,
+        nodeInstanceHandle: Handle<SecureProcessNodeInstance>,
+        user: Principal,
+        permissions: Collection<AuthScope>,
+    ): AuthorizationCode {
+        logMe(authToken, nodeInstanceHandle, user)
+        validateAuthInfo(
+            authToken,
+            CommonPMAPermissions.ACCEPT_TASK(nodeInstanceHandle)
+        ) // TODO mark correct expected permission
+        require(nodeInstanceHandle == authToken.nodeInstanceHandle) { "Mismatch with node instances" }
+
+        // Should register owner.
+
+        val perm = permissions.fold(CommonPMAPermissions.IDENTIFY) { l: AuthScope, r -> l.union(r) }
+
+        return acceptActivityUnsecured(user, authToken.nodeInstanceHandle, perm)
+    }
+
+    private fun acceptActivityUnsecured(
+        user: Principal,
+        nodeInstanceHandle: PNIHandle,
+        permissions: AuthScope
+    ): AuthorizationCode {
         val authCode = authServiceClient.requestPmaAuthCode(
             user,
-            authToken.nodeInstanceHandle,
+            nodeInstanceHandle,
             ServiceId(user.name),
             authServiceClient.authService.serviceInstanceId,
             permissions
         ) // TODO Do this better
         return authCode
-//        return registerPendingPermissions(authCode, authToken.nodeInstanceHandle, ArrayDeque(pendingPermissions))
     }
-
 
     fun doPostTaskToTasklist(
         taskList: TaskList<*>,

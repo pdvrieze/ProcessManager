@@ -3,12 +3,15 @@ package io.github.pdvrieze.pma.agfil.parties
 import io.github.pdvrieze.pma.agfil.contexts.AgfilActivityContext
 import io.github.pdvrieze.pma.agfil.contexts.AgfilBrowserContext
 import io.github.pdvrieze.pma.agfil.data.*
+import io.github.pdvrieze.pma.agfil.services.AgfilPermissions
+import io.github.pdvrieze.pma.agfil.services.AgfilPermissions.*
 import io.github.pdvrieze.pma.agfil.services.ServiceNames
 import io.github.pdvrieze.pma.agfil.services.ServiceNames.agfilService
 import io.github.pdvrieze.pma.agfil.services.ServiceNames.europAssistService
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.DataNodeHandle
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.RoleRestriction
 import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
+import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.dynamic.uiServiceLogin
 import java.util.*
 
@@ -64,6 +67,10 @@ val europAssistProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserCo
 
     val pickGarage: DataNodeHandle<GarageInfo> by taskActivity(
         predecessor = recordClaim,
+        permissions = listOf(
+            delegatePermissions(europAssistService,
+                PICK_GARAGE,
+                delegatePermissions(agfilService, LIST_GARAGES))),
         input = registerClaim
     ) {
         acceptTask( { randomEaCallHandler() }) { accidentInfo ->
