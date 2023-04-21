@@ -57,12 +57,13 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
         @OptIn(ProcessInstanceStorage::class)
         override fun doStartTask(engineData: MutableProcessEngineDataAccess): Boolean {
             val shouldProgress = tryCreateTask { node.canStartTaskAutoProgress(this) }
+            val instanceContext = engineData.processContextFactory.newActivityInstanceContext(engineData, this)
+            val payload = with (build()) { instanceContext.getPayload(processInstanceBuilder) }
 
             assert(hChildInstance.isValid) { "The task can only be started if the child instance already exists" }
             tryCreateTask {
-                val instanceContext = engineData.processContextFactory.newActivityInstanceContext(engineData, this)
                 engineData.updateInstance(hChildInstance) {
-                    start(engineData, with(build()) { instanceContext.getPayload(processInstanceBuilder) })
+                    start(engineData, payload)
                 }
             }
             engineData.queueTickle(hChildInstance)
