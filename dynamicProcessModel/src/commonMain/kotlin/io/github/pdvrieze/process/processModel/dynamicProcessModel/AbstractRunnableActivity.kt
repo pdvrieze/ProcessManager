@@ -1,6 +1,7 @@
 package io.github.pdvrieze.process.processModel.dynamicProcessModel
 
 import kotlinx.serialization.DeserializationStrategy
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.builtins.serializer
 import net.devrieze.util.TypecheckingCollection
@@ -16,6 +17,7 @@ import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.serialutil.nonNullSerializer
 import nl.adaptivity.util.multiplatform.PrincipalCompat
+import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.serialization.XML
 
 abstract class AbstractRunnableActivity<I: Any, O: Any, C: ActivityInstanceContext>(
@@ -173,10 +175,17 @@ abstract class AbstractRunnableActivity<I: Any, O: Any, C: ActivityInstanceConte
     fun getInputData(data: List<ProcessData>): I {
         val mappedData = defines.associate { define ->
             val ser: DeserializationStrategy<Any> = define.deserializer.nonNullSerializer()
-            val valueReader = data.singleOrNull() { it.name == define.name }?.contentStream
+            val elementData = data.singleOrNull() { it.name == define.name }
+            val valueReader = elementData?.contentStream
                 ?: throw NoSuchElementException("Could not find single define with name ${define.refName}")
 
-            define.name to XML.decodeFromReader(ser, valueReader)
+            try {
+                define.name to XML.decodeFromReader(ser, valueReader)
+            } catch (e: XmlException) {
+                throw ProcessException("Failure to read data for define ${id}.${define.name}. The data was: \"${elementData.content.contentString}\"", e)
+            } catch (e: SerializationException) {
+                throw ProcessException("Failure to read data for define ${id}.${define.name}. The data was: \"${elementData.content.contentString}\"", e)
+            }
         }
 
         return inputCombiner(mappedData)
