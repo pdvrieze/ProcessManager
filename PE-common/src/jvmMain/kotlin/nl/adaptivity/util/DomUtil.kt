@@ -18,6 +18,7 @@ package nl.adaptivity.util
 
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.core.impl.multiplatform.IOException
+import nl.adaptivity.xmlutil.dom.iterator
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 import org.w3c.dom.*
@@ -288,14 +289,15 @@ object DomUtil {
             is Text -> CompactFragment(node.data)
             is DocumentFragment -> {
                 val outerFrag = node.ownerDocument.createDocumentFragment()
-                val wrapperChild = node.ownerDocument.createElement("wrapper")
+                val wrapperChild = node.ownerDocument.createElement("wrapper-from-domutil")
                 outerFrag.appendChild(wrapperChild)
-                for (idx in 0 until node.childNodes.length) {
-                    wrapperChild.appendChild(node.childNodes.item(idx))
+                for(child in node.childNodes) {
+                    wrapperChild.appendChild(child)
                 }
                 val reader = XmlStreaming.newReader(DOMSource(wrapperChild))
-                reader.next()
-                reader.next()
+                reader.nextTag()
+                reader.require(EventType.START_ELEMENT, QName("wrapper-from-domutil"))
+                reader.nextTag()
                 reader.siblingsToFragment()
             }
             else    -> XmlStreaming.newReader(DOMSource(node)).siblingsToFragment()
