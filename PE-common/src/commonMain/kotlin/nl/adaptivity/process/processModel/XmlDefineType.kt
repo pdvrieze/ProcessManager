@@ -91,10 +91,10 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         path: String? = null,
         content: CharArray? = null,
         originalNSContext: Iterable<Namespace> = emptyList()
-               ) : super(
+    ) : super(
         name, path, content,
         originalNSContext
-                        ) {
+    ) {
         this._refNode = refNode
         this._refName = refName
     }
@@ -107,7 +107,7 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         path: String? = null,
         content: CharArray? = null,
         originalNSContext: Iterable<Namespace> = emptyList()
-               ) : this(name, refNode.id, refName, path, content, originalNSContext)
+    ) : this(name, refNode.id, refName, path, content, originalNSContext)
 
     override fun copy(
         name: String,
@@ -116,7 +116,7 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         path: String?,
         content: CharArray?,
         nsContext: Iterable<Namespace>
-                     ): XmlDefineType {
+    ): XmlDefineType {
         return XmlDefineType(name, refNode, refName, path, content, nsContext)
     }
 
@@ -216,7 +216,7 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         @Deprecated(
             "Use normal factory method",
             ReplaceWith("XmlDefineType(export)", "nl.adaptivity.process.processModel.XmlDefineType")
-                   )
+        )
         @kotlin.jvm.JvmStatic
         operator fun get(export: IXmlDefineType) = XmlDefineType(export)
 
@@ -252,7 +252,7 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
                 when (name) {
                     "refnode" -> refNode = decoder.readNullableString(desc, index)
                     "refname" -> refName = decoder.readNullableString(desc, index)
-                    else      -> super.readAdditionalChild(desc, decoder, index)
+                    else -> super.readAdditionalChild(desc, decoder, index)
                 }
             }
 
@@ -260,7 +260,7 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
                 when (attributeLocalName) {
                     "refnode" -> refNode = attributeValue
                     "refname" -> refName = attributeValue
-                    else      -> super.handleAttribute(attributeLocalName, attributeValue)
+                    else -> super.handleAttribute(attributeLocalName, attributeValue)
                 }
             }
         }
@@ -275,5 +275,5 @@ fun XmlDefineType(export: IXmlDefineType): XmlDefineType {
     return XmlDefineType(
         export.getName(), export.getRefNode(), export.getRefName(), export.getPath(), export.content,
         export.originalNSContext ?: emptyList<Namespace>()
-                        )
+    )
 }

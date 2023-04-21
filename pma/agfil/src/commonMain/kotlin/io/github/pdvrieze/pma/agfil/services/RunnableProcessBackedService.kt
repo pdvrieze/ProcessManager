@@ -84,7 +84,9 @@ abstract class RunnableProcessBackedService<S: RunnableProcessBackedService<S>> 
     }
 
     protected fun <T> startProcess(handle: Handle<ExecutableProcessModel>, payloadSerializer: SerializationStrategy<T>, payload: T): PIHandle {
-        val payloadFragment = CompactFragment{ writer -> XML{ defaultPolicy {  }}.encodeToWriter(writer, payloadSerializer, payload) }
+        val payloadFragment = CompactFragment{ writer ->
+            XML{ defaultPolicy {  }}.encodeToWriter(writer, payloadSerializer, payload)
+        }
         return startProcess(handle, payloadFragment)
     }
 

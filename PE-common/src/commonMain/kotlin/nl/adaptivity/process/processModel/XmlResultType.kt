@@ -110,19 +110,19 @@ class XmlResultType : XPathHolder, IPlatformXmlResultType {
 
         @kotlin.jvm.JvmStatic
         fun deserialize(reader: XmlReader): XmlResultType {
-            return XML {autoPolymorphic=true }.decodeFromReader(this, reader)
+            return XML { autoPolymorphic = true }.decodeFromReader(this, reader)
         }
 
         const val ELEMENTLOCALNAME = "result"
         private val ELEMENTNAME = QName(
             Engine.NAMESPACE,
             ELEMENTLOCALNAME, Engine.NSPREFIX
-                                       )
+        )
 
         @Deprecated(
             "Use normal factory method",
             ReplaceWith("XmlResultType(import)", "nl.adaptivity.process.processModel.XmlResultType")
-                   )
+        )
         operator fun get(import: IXmlResultType) = XmlResultType(import)
 
         override fun deserialize(decoder: Decoder): XmlResultType {
@@ -146,5 +146,5 @@ fun XmlResultType(import: IXmlResultType): XmlResultType {
     return XmlResultType(
         import.getName(), import.getPath(), content = null,
         originalNSContext = originalNSContext
-                        )
+    )
 }
