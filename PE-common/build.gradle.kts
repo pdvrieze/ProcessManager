@@ -76,8 +76,8 @@ kotlin {
                 implementation(project(":multiplatform"))
                 implementation(kotlin("stdlib"))
 
-                implementation(libs.kotlinx.serialization.core)
-                implementation(libs.xmlutil.core)
+                api(libs.kotlinx.serialization.core)
+                api(libs.xmlutil.core)
                 api(libs.xmlutil.serialutil)
                 api(libs.xmlutil.serialization)
 

@@ -33,11 +33,9 @@ description = "The overall project that manages all artefacts of the processmana
 val collectDir = "$buildDir/artifacts"
 
 ext {
-    set("androidCompatVersion", libs.versions.androidCompat.get())
-    set("dbcpSpec", "com.zaxxer:HikariCP:${libs.versions.hikaricp.get()}")
+//    set("androidCompatVersion", libs.versions.androidCompat.get())
+//    set("dbcpSpec", "com.zaxxer:HikariCP:${libs.versions.hikaricp.get()}")
     set("collectDir", "${buildDir}/artifacts")
-
-    set("myJavaVersion", JavaVersion.VERSION_1_8)
 }
 
 val androidEnabled get() = (project.ext["androidEnabledProp"] as String).toBoolean()

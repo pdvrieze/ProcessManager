@@ -14,9 +14,6 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import multiplatform.registerAndroidAttributeForDeps
-import versions.myJavaVersion
-
 plugins {
     kotlin("jvm")
     war
@@ -31,11 +28,6 @@ val argJvmDefault: String by project
 val wsDestDir = file("${buildDir}/docs/wsDoc")
 val genImageDir = "$projectDir/gen/generated-images"
 val genResourceDir = "$projectDir/gen/genResources"
-
-java {
-    sourceCompatibility = myJavaVersion
-    targetCompatibility = myJavaVersion
-}
 
 sourceSets {
     val api by creating {
@@ -114,8 +106,6 @@ tomcat {
     contextPath='/PEUserMessageHandler'
 }
 */
-
-registerAndroidAttributeForDeps()
 
 dependencies {
     //    apiCompileOnly libs.servletApi

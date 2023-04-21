@@ -1,5 +1,3 @@
-import versions.myJavaVersion
-
 /*
  * Copyright (c) 2018. 
  *
@@ -27,11 +25,6 @@ base {
     version = "1.1.0"
     description = "java-common with jvm only depenendencies. support"
 
-}
-
-java {
-    sourceCompatibility = myJavaVersion
-    targetCompatibility = myJavaVersion
 }
 
 kotlin {

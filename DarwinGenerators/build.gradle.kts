@@ -14,9 +14,6 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import multiplatform.registerAndroidAttributeForDeps
-import versions.myJavaVersion
-
 plugins{
     kotlin("jvm")
     idea
@@ -25,13 +22,6 @@ plugins{
 base {
     version="1.0.0"
     description = "A generator for client code for services"
-}
-
-registerAndroidAttributeForDeps()
-
-java {
-    sourceCompatibility = myJavaVersion
-    targetCompatibility = myJavaVersion
 }
 
 val mainClassName = "nl.adaptivity.messaging.MessagingSoapClientGenerator"

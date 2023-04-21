@@ -15,18 +15,12 @@
  */
 
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
-import versions.myJavaVersion
 
 plugins {
     kotlin("jvm")
     `java-library`
     idea
     mpconsumer
-}
-
-java {
-    sourceCompatibility = myJavaVersion
-    targetCompatibility = myJavaVersion
 }
 
 version = "1.0.0"

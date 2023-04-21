@@ -14,23 +14,13 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-apply plugin: 'java'
-apply plugin: 'idea'
-
-sourceCompatibility = myJavaVersion
-targetCompatibility = myJavaVersion
+plugins {
+    id("java")
+    id("idea")
+}
 
 version = '0.4'
 description = 'Service for data storage/access'
 
 //group = [ 'server', 'service' ]
 
-
-sourceSets {
-    main {
-        java {
-            srcDir 'src'
-        }
-    }
-
-}

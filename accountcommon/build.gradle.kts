@@ -14,8 +14,6 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import versions.myJavaVersion
-
 plugins {
     kotlin("jvm")
     `java-library`
@@ -34,11 +32,6 @@ dependencies {
 
     testRuntimeOnly(libs.junit5.engine)
     testRuntimeOnly(libs.mariadbConnector)
-}
-
-java {
-    sourceCompatibility = myJavaVersion
-    targetCompatibility = myJavaVersion
 }
 
 kotlin {

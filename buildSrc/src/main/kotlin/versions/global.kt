@@ -26,28 +26,18 @@ private fun Project.catalogVersion(name: String): String {
     return libs.findVersion(name).get().requiredVersion
 }
 
-val Project.jaxbVersion: String get() = catalogVersion("jaxb")
 val Project.kotlin_version: String get() = catalogVersion("kotlin.compiler")
 val Project.serializationVersion: String get() = catalogVersion("kotlinx.serialization")
-val Project.jwsApiVersion: String get() = catalogVersion("jwsApi")
-val Project.activationVersion: String get() = catalogVersion("activation")
 val Project.xmlutilVersion: String get() = catalogVersion("xmlutil")
 val Project.kotlinsqlVersion: String get() = catalogVersion("kotlinsql")
 val Project.androidPluginVersion: String get() = catalogVersion("androidPlugin")
 val Project.databindingVersion: String get() = catalogVersion("databinding")
 val Project.kotlinx_html_version: String get() = catalogVersion("kotlinx.html")
-val Project.junit5_version: String get() = catalogVersion("junit5")
 val Project.jupiterVersion: String get() = catalogVersion("jupiter")
 val Project.testngVersion: String get() = catalogVersion("testng")
-val Project.tomcatPluginVersion: String get() = catalogVersion("tomcatPlugin")
 val Project.tomcatVersion: String get() = catalogVersion("tomcat")
 val Project.mysqlConnectorVersion: String get() = catalogVersion("mysqlConnector")
-val Project.mariaDbConnectorVersion: String get() = catalogVersion("mariaDbConnector")
 val Project.androidTarget: String get() = catalogVersion("androidTarget")
 val Project.androidCompatVersion: String get() = catalogVersion("androidCompat")
-val Project.androidCoroutinesVersion: String get() = catalogVersion("androidCoroutines")
-val Project.requirejs_version: String get() = catalogVersion("requirejs")
-val Project.easywsdlver: String get() = catalogVersion("easywsdl")
 
-val Project.myJavaVersion: JavaVersion get() = project.property("myJavaVersion") as JavaVersion
 val Project.argJvmDefault: String get() = project.property("argJvmDefault") as String

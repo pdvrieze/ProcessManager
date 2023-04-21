@@ -37,12 +37,9 @@ repositories {
     mavenCentral()
 }
 
-val kotlin_version: String by project
 val structurizrVer: String by project
-val myJavaVersion: JavaVersion by project
 
 dependencies {
-    implementation("org.jetbrains.kotlin:kotlin-stdlib-jdk8:$kotlin_version")
     implementation("org.jetbrains:annotations:13.0")
     implementation("com.structurizr:structurizr-core:${structurizrVer}")
     implementation("com.structurizr:structurizr-client:${structurizrVer}")

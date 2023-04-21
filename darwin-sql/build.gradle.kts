@@ -14,11 +14,6 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import versions.jupiterVersion
-import versions.kotlinsqlVersion
-import versions.myJavaVersion
-import versions.mysqlConnectorVersion
-
 plugins {
     kotlin("jvm")
     `java-library`
@@ -27,10 +22,6 @@ plugins {
 
 base {
     description = "The DDL files for the darwin databases"
-}
-
-java {
-    targetCompatibility = myJavaVersion
 }
 
 dependencies {

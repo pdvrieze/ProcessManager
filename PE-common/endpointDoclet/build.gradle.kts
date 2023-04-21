@@ -15,9 +15,6 @@
  */
 
 import org.gradle.internal.jvm.Jvm
-import versions.*
-import versions.testngVersion
-import versions.myJavaVersion
 
 plugins {
     kotlin("jvm")
@@ -25,14 +22,7 @@ plugins {
 
 description = "Doclet implementation that extracts information on web GenericEndpoints"
 
-java {
-    sourceCompatibility = myJavaVersion
-    targetCompatibility = myJavaVersion
-}
-
 dependencies {
-    implementation(kotlin("stdlib-jdk8"))
-//    implementation("org.jetbrains:annotations:13.0")
     implementation(libs.jwsApi)
     if(! Jvm.current().javaVersion!!.isJava9Compatible) {
         // Add the tools jar only if we are on jdk8 or lower. tools.jar was removed in jdk 9. 

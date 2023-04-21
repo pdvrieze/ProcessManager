@@ -14,8 +14,6 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import versions.myJavaVersion
-
 
 plugins {
     kotlin("jvm")
@@ -24,11 +22,6 @@ plugins {
 base {
     description = "Main darwin web interface ported from PHP/GWT"
     archivesName.set("darwinservletsupport")
-}
-
-java {
-    sourceCompatibility = myJavaVersion
-    targetCompatibility = myJavaVersion
 }
 
 kotlin {

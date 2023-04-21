@@ -14,20 +14,12 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import multiplatform.registerAndroidAttributeForDeps
-import versions.myJavaVersion
-
 plugins {
     java
     kotlin("jvm")
     war
     idea
     mpconsumer
-}
-
-java {
-    sourceCompatibility = myJavaVersion
-    targetCompatibility = myJavaVersion
 }
 
 version = "1.0.0"

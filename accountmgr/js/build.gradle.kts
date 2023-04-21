@@ -63,16 +63,3 @@ tasks.create<Jar>("jar") {
     archiveBaseName.set("accountmgrjs")
 }
 
-
-/*
-idea {
-    module {
-//        name="accountmgrjs"
-    }
-}
-
-java {
-    sourceCompatibility = myJavaVersion
-    targetCompatibility = myJavaVersion
-}
-*/

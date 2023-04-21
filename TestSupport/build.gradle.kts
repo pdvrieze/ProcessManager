@@ -14,8 +14,6 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import versions.myJavaVersion
-
 plugins {
     kotlin("jvm")
     idea
@@ -23,11 +21,6 @@ plugins {
 
 version = "1.0.0"
 description = "A library with process engine support classes"
-
-java {
-    sourceCompatibility = myJavaVersion
-    targetCompatibility = myJavaVersion
-}
 
 kotlin {
     target.compilations.all {

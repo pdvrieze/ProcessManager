@@ -14,9 +14,7 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import multiplatform.registerAndroidAttributeForDeps
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
-import versions.myJavaVersion
 
 plugins{
     kotlin("jvm")
@@ -24,19 +22,12 @@ plugins{
     mpconsumer
 }
 
-val dbcpSpec: String by project
-
-java {
-    sourceCompatibility = myJavaVersion
-    targetCompatibility = myJavaVersion
-}
-
 version = "1.1.0"
 description = "A tomcat realm to work with the darwin authentication system"
 
 dependencies {
     compileOnly(libs.tomcat)
-    runtimeOnly(dbcpSpec)
+    runtimeOnly("com.zaxxer:HikariCP:${libs.versions.hikaricp.get()}")
 
     implementation(project(":DarwinJavaApi"))
     implementation(project(":JavaCommonApi"))

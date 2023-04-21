@@ -16,11 +16,7 @@
 import com.bmuschko.gradle.tomcat.embedded.TomcatUser
 import com.bmuschko.gradle.tomcat.tasks.TomcatRun
 import com.bmuschko.gradle.tomcat.tasks.TomcatRunWar
-import multiplatform.androidAttribute
-import multiplatform.registerAndroidAttributeForDeps
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
-import versions.mysqlConnectorVersion
-import versions.tomcatVersion
 
 
 plugins {
@@ -41,7 +37,6 @@ configurations {
     create("extraBootCp") {
         description="This configuration allows for assembling all the jars for the boot classpath of catalina"
         attributes {
-            attribute(androidAttribute, false)
             attribute(KotlinPlatformType.attribute, KotlinPlatformType.jvm)
         }
     }
@@ -50,19 +45,16 @@ configurations {
     }
     "tomcat" {
         attributes {
-            attribute(androidAttribute, false)
             attribute(KotlinPlatformType.attribute, KotlinPlatformType.jvm)
         }
     }
     "runtimeClasspath" {
         attributes {
-            attribute(androidAttribute, false)
             attribute(KotlinPlatformType.attribute, KotlinPlatformType.jvm)
         }
     }
     "testRuntimeClasspath" {
         attributes {
-            attribute(androidAttribute, false)
             attribute(KotlinPlatformType.attribute, KotlinPlatformType.jvm)
         }
     }
@@ -71,15 +63,12 @@ configurations {
     }
 }
 
-registerAndroidAttributeForDeps()
-
 dependencies {
-    tomcat("org.apache.tomcat.embed:tomcat-embed-core:${tomcatVersion}")
-    tomcat("org.apache.tomcat.embed:tomcat-embed-logging-juli:${tomcatVersion}")
-    tomcat("org.apache.tomcat.embed:tomcat-embed-jasper:${tomcatVersion}")
+    tomcat("org.apache.tomcat.embed:tomcat-embed-core:${libs.versions.tomcat.get()}")
+    tomcat("org.apache.tomcat.embed:tomcat-embed-logging-juli:${libs.versions.tomcat.get()}")
+    tomcat("org.apache.tomcat.embed:tomcat-embed-jasper:${libs.versions.tomcat.get()}")
 //    tomcat dbcpSpec
 
-    "extraBootCp"("mysql:mysql-connector-java:$mysqlConnectorVersion")
     "extraBootCp"(libs.mariadbConnector)
     "extraBootCp"(project(":DarwinJavaApi"))
     "extraBootCp"(project(":JavaCommonApi"))
@@ -88,7 +77,7 @@ dependencies {
     "extraBootCp"("org.slf4j:slf4j-simple:1.7.16")
 //    extraBootCp dbcpSpec
 
-    tomcat("mysql:mysql-connector-java:$mysqlConnectorVersion")
+    tomcat(libs.mariadbConnector)
     tomcat(project(":DarwinJavaApi"))
     tomcat(project(":JavaCommonApi"))
     tomcat(project(":DarwinRealm"))

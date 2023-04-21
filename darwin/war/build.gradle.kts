@@ -16,7 +16,6 @@
 
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsCompilerAttribute
-import versions.myJavaVersion
 
 plugins {
     kotlin("multiplatform")
@@ -29,20 +28,10 @@ base {
     archivesName.set("darwinjvm")
 }
 
-java {
-    sourceCompatibility = myJavaVersion
-    targetCompatibility = myJavaVersion
-}
-
 kotlin {
     targets {
         jvm {
             withJava()
-            compilations.all {
-                kotlinOptions {
-                    jvmTarget = libs.versions.kotlin.classTarget.get()
-                }
-            }
         }
         js(IR) {
             moduleName = "darwinwar"
@@ -69,7 +58,6 @@ kotlin {
     sourceSets {
         val jvmMain by getting {
             dependencies {
-                implementation(kotlin("stdlib-jdk8"))
                 implementation(libs.kotlinx.html)
                 implementation(libs.servletApi)
                 implementation(project(":darwin:servletSupport"))

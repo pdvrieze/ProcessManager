@@ -14,17 +14,10 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import versions.myJavaVersion
-
 plugins {
     `java-library`
     kotlin("jvm")
     mpconsumer
-}
-
-java {
-    sourceCompatibility = myJavaVersion
-    targetCompatibility = myJavaVersion
 }
 
 kotlin.target.compilations.all {
