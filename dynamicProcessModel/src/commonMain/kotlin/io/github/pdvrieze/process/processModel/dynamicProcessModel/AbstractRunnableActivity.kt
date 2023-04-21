@@ -1,5 +1,6 @@
 package io.github.pdvrieze.process.processModel.dynamicProcessModel
 
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.impl.ValueHolder
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationException
 import kotlinx.serialization.SerializationStrategy
@@ -16,9 +17,15 @@ import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.serialutil.nonNullSerializer
+import nl.adaptivity.util.CombiningReader
 import nl.adaptivity.util.multiplatform.PrincipalCompat
+import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.XmlException
+import nl.adaptivity.xmlutil.core.KtXmlReader
+import nl.adaptivity.xmlutil.isXmlWhitespace
 import nl.adaptivity.xmlutil.serialization.XML
+import java.io.CharArrayReader
+import java.io.StringReader
 
 abstract class AbstractRunnableActivity<I: Any, O: Any, C: ActivityInstanceContext>(
     builder: Builder<I, O, C>,
@@ -176,11 +183,22 @@ abstract class AbstractRunnableActivity<I: Any, O: Any, C: ActivityInstanceConte
         val mappedData = defines.associate { define ->
             val ser: DeserializationStrategy<Any> = define.deserializer.nonNullSerializer()
             val elementData = data.singleOrNull() { it.name == define.name }
-            val valueReader = elementData?.contentStream
                 ?: throw NoSuchElementException("Could not find single define with name ${define.refName}")
+            val elementChars = elementData.content.content
+            val firstNonWsPos = elementChars.indexOfFirst { !isXmlWhitespace(it) }
+            val startsWithtag = if(firstNonWsPos<0) false else elementChars[firstNonWsPos]=='<'
+
 
             try {
-                define.name to XML.decodeFromReader(ser, valueReader)
+                if (startsWithtag) {
+                    val valueReader = elementData.contentStream
+                    define.name to XML.decodeFromReader(ser, valueReader)
+                } else {
+
+                    val valueReader = KtXmlReader(CombiningReader(StringReader("<w>"),CharArrayReader(elementData.content.content), StringReader("</w>")))
+                    val value = XML.decodeFromReader(ValueHolder.Serializer(ser), valueReader, QName("w")).value
+                    define.name to value
+                }
             } catch (e: XmlException) {
                 throw ProcessException("Failure to read data for define ${id}.${define.name}. The data was: \"${elementData.content.contentString}\"", e)
             } catch (e: SerializationException) {

@@ -26,7 +26,7 @@ fun <AIC : DynamicPmaActivityContext<AIC, BIC>, BIC : BrowserContext<AIC, BIC>> 
         .filter { it.path==null }
     if(noPathImports.size>1) {
         for(import in noPathImports) {
-            import.setPath(import.originalNSContext.toList(), "//${import.name}/*")
+            import.setPath(import.originalNSContext.toList(), "/${import.name}/node()")
         }
     }
     return ExecutableProcessModel(context.modelBuilder, true)

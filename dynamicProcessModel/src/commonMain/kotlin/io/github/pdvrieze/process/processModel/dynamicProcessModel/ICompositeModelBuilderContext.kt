@@ -40,7 +40,7 @@ interface ICompositeModelBuilderContext<AIC: ActivityInstanceContext>: IModelBui
         serializer: KSerializer<T>
     ): OutputRef<T> {
 
-        modelBuilder.results.add(XmlResultType(name, "/$name/*"))
+        modelBuilder.results.add(XmlResultType(name, "/$name/node()"))
         modelBuilder.exports.add(XmlDefineType(name, refNode, refName, path, content, nsContext))
         with (modelBuilder.rootBuilder) {
             modelBuilder.ensureChildId() // Ensure there is an id for the composite model

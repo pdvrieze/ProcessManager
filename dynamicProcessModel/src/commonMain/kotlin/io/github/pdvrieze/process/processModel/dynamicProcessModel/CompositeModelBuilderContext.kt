@@ -27,7 +27,7 @@ abstract class CompositeModelBuilderContext<AIC : ActivityInstanceContext> : Mod
         deserializer: DeserializationStrategy<T>,
     ): InputRef<T> {
         modelBuilder.defines.add(XmlDefineType(name, refNode, refName, path, content, nsContext))
-        modelBuilder.imports.add(XmlResultType(name, "/$name/*"))
+        modelBuilder.imports.add(XmlResultType(name, "/$name/node()"))
         return InputRefImpl(name, deserializer)
     }
 

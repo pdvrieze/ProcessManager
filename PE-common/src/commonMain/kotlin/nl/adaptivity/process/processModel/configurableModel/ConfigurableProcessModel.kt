@@ -229,7 +229,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
             nsContext: Iterable<Namespace> = emptyList()
         ) {
             configurationBuilder.defines.add(XmlDefineType(name, refNode, refName, path, content, nsContext))
-            configurationBuilder.imports.add(XmlResultType(name, "/$name/*"))
+            configurationBuilder.imports.add(XmlResultType(name, "/$name/node()"))
         }
 
 
@@ -241,7 +241,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
             content: CharArray? = null,
             nsContext: Iterable<Namespace> = emptyList()
         ) {
-            configurationBuilder.results.add(XmlResultType(name, "/$name/*"))
+            configurationBuilder.results.add(XmlResultType(name, "/$name/node()"))
             configurationBuilder.exports.add(XmlDefineType(name, refNode, refName, path, content, nsContext))
         }
 

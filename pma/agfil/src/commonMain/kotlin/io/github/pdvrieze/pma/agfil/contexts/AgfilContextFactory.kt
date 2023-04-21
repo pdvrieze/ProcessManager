@@ -122,7 +122,7 @@ class AgfilContextFactory(private val logger: Logger, private val random: Random
     }
 
     fun callerInfo(customer: PrincipalCompat): CallerInfo {
-        val randomPhoneNumber = "0${(1..9).random(random)}${(1..8).joinToString { (0..9).random(random).toString()}}"
+        val randomPhoneNumber = "0${(1..9).random(random)}${(1..8).joinToString("") { (0..9).random(random).toString()}}"
         return customerInfo.getOrPut(customer.name) { CallerInfo(customer.name, randomPhoneNumber)}
     }
 }

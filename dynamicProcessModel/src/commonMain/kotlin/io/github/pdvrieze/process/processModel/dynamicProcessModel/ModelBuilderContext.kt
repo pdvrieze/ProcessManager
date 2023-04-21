@@ -230,7 +230,7 @@ inline fun <C : ActivityInstanceContext> ModelBuilderContext<C>.compositeActivit
     val unMappedImports = context.activityBuilder.imports.filter { it.getPath()==null }
     if (unMappedImports.size>1) {
         for (define in unMappedImports) {
-            define.setPath(define.originalNSContext, "/${define.name}/*")
+            define.setPath(define.originalNSContext, "/${define.name}/node()")
         }
     }
     return context.activityBuilder
