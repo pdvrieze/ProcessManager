@@ -9,6 +9,7 @@ import kotlinx.serialization.serializer
 import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.processModel.ActivityBase
 import nl.adaptivity.process.processModel.configurableModel.ConfigurationDsl
+import nl.adaptivity.process.processModel.name
 import nl.adaptivity.process.util.Identified
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -226,6 +227,12 @@ inline fun <C : ActivityInstanceContext> ModelBuilderContext<C>.compositeActivit
         callsInPlace(configure, InvocationKind.EXACTLY_ONCE)
     }
     val context = compositeActivityContext(predecessor).apply(configure)
+    val unMappedImports = context.activityBuilder.imports.filter { it.getPath()==null }
+    if (unMappedImports.size>1) {
+        for (define in unMappedImports) {
+            define.setPath(define.originalNSContext, "/${define.name}/*")
+        }
+    }
     return context.activityBuilder
 }
 
