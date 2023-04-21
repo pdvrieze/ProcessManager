@@ -1,11 +1,11 @@
 package nl.adaptivity.process.engine.pma.dynamic.runtime.impl.test
 
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.impl.ValueHolder
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.decodeFromString
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
-import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.ValueHolder
 import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.serialization.XML
 import kotlin.test.Test

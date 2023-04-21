@@ -97,7 +97,7 @@ class EuropAssistService(
                 service.informGarageOfIncomingCar(serviceAccessToken, claimId, accidentInfo)
             }
 
-            withService(agfilService, authToken, CommonPMAPermissions.IDENTIFY) {
+            withService(agfilService, authToken, RECORD_ASSIGNED_GARAGE(claimId)) {
                 service.recordAssignedGarage(serviceAccessToken, claimId, garage)
             }
 /*

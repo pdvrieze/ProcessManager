@@ -3,7 +3,6 @@ package io.github.pdvrieze.pma.agfil.parties
 import io.github.pdvrieze.pma.agfil.contexts.AgfilActivityContext
 import io.github.pdvrieze.pma.agfil.contexts.AgfilBrowserContext
 import io.github.pdvrieze.pma.agfil.data.*
-import io.github.pdvrieze.pma.agfil.services.AgfilPermissions
 import io.github.pdvrieze.pma.agfil.services.AgfilPermissions.*
 import io.github.pdvrieze.pma.agfil.services.ServiceNames
 import io.github.pdvrieze.pma.agfil.services.ServiceNames.agfilService
@@ -11,7 +10,7 @@ import io.github.pdvrieze.pma.agfil.services.ServiceNames.europAssistService
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.DataNodeHandle
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.RoleRestriction
 import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
-import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
+import nl.adaptivity.process.engine.pma.dynamic.scope.templates.ContextScopeTemplate
 import nl.adaptivity.process.engine.pma.dynamic.uiServiceLogin
 import java.util.*
 
@@ -83,6 +82,14 @@ val europAssistProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserCo
 
     val assignGarage: DataNodeHandle<GarageInfo> by serviceActivity(
         predecessor = pickGarage,
+        authorizationTemplates = listOf(
+            ContextScopeTemplate {
+                nodeData(pickGarage)?.service?.let { garageService ->
+                    delegatePermissions(garageService, INFORM_GARAGE).instantiateScope(this)
+                }
+            },
+            delegatePermissions(agfilService, ContextScopeTemplate { RECORD_ASSIGNED_GARAGE(nodeData(recordClaim)!!) })
+        ),
         service = europAssistService,
         input = combine(pickGarage named "garage", recordClaim named "claimId", registerClaim named "accidentInfo")) { (garage, claimId, accidentInfo) ->
         service.internal.informGarage(authToken, garage, claimId, accidentInfo)

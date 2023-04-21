@@ -111,7 +111,7 @@ abstract class AbstractDynamicPmaActivityContext<AIC : DynamicPmaActivityContext
         val scope: AuthScope
     )
 
-    fun <T: Any> nodeData(reference: InputRef<T>): T? {
+    override fun <T: Any> nodeData(reference: InputRef<T>): T? {
         val result: ProcessData? = when (val nodeRef = reference.nodeRef) {
             null -> processContext.processInstance.inputs.firstOrNull { it.name == reference.propertyName }
 

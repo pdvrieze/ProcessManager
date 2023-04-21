@@ -32,4 +32,11 @@ sealed class AgfilPermissions {
         }
     }
 
+    object RECORD_ASSIGNED_GARAGE : AgfilPermissions(), AuthScope {
+        operator fun invoke(claimId: ClaimId): UseAuthScope {
+            return ClaimUseScope(this, claimId)
+        }
+
+    }
+
 }

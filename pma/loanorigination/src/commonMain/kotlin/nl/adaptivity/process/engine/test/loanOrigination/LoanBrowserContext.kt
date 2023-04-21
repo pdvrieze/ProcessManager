@@ -1,5 +1,6 @@
 package nl.adaptivity.process.engine.test.loanOrigination
 
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.InputRef
 import nl.adaptivity.process.engine.pma.Browser
 import nl.adaptivity.process.engine.pma.dynamic.TaskBuilderContext
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
@@ -20,6 +21,10 @@ class LoanBrowserContext(private val delegateContext: LoanPMAActivityContext, ov
 
     override fun resolveBrowser(principal: PrincipalCompat): Browser {
         return delegateContext.resolveBrowser(principal)
+    }
+
+    override fun <T : Any> nodeData(reference: InputRef<T>): T? {
+        return delegateContext.nodeData(reference)
     }
 
     override fun browserContext(browser: Browser): LoanBrowserContext = when (browser) {

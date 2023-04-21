@@ -236,7 +236,7 @@ abstract class PmaModelBuilderContext<
         return context.modelBuilder
     }
 
-    fun <AIC : DynamicPmaActivityContext<AIC, *>> delegatePermissions(
+    fun /*<AIC : DynamicPmaActivityContext<AIC, *>>*/ delegatePermissions(
         targetService: ServiceName<*>,
         vararg permissions: AuthScopeTemplate<AIC>
     ): AuthScopeTemplate<AIC> {
