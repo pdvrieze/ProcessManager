@@ -145,6 +145,39 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
             return allChildNodeInstances { predecessor in it.predecessors }
         }
 
+        fun initialize() {
+            if (state != State.NEW) {
+                throw IllegalStateException("The instance already appears to be initialised")
+            }
+
+            processModel.startNodes.forEach { node ->
+                storeChild(
+                    node.createOrReuseInstance(
+                        this,
+                        1
+                    ).build()
+                ) // Start with sequence 1
+            }
+            state = State.INITIALIZED
+        }
+
+        @ProcessInstanceStorage
+        fun start(engineData: MutableProcessEngineDataAccess, payload: CompactFragment? = null) {
+            if (state == State.NEW) initialize()
+
+            state = State.STARTED
+            inputs.addAll(processModel.toInputs(payload))
+
+            store(engineData) // make sure we have a valid handle
+
+            for (task in active()) {
+                updateChild(task) {
+                    provideTask(engineData)
+                }
+            }
+
+        }
+
         fun updateSplits(engineData: MutableProcessEngineDataAccess) {
             for (splitInstance in allChildNodeInstances { !it.state.isFinal && it.node is Split }) {
                 if (splitInstance.state != NodeInstanceState.Pending) {
@@ -633,16 +666,21 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
 
         override fun getChildBuilder(handle: PNIHandle): ProcessNodeInstance.ExtBuilder<*, *> {
             if (!handle.isValid) throw IllegalArgumentException("Cannot look up with invalid handles")
-            _pendingChildren.asSequence()
-                .map { it.origBuilder as? ProcessNodeInstance.ExtBuilder }
-                .firstOrNull { it?.handle == handle }
-                ?.let { return it }
-            return base.childNodes.asSequence()
-                .map { it.withPermission() }
-                .first { it.handle == handle }
-                .let {
-                    it.builder(this).also { _pendingChildren.add(InstanceFuture(it)) }
+            for (child in _pendingChildren) {
+                val origBuilder = child.origBuilder
+                if(origBuilder is ProcessNodeInstance.ExtBuilder<*,*>) {
+                    if (origBuilder.handle == handle) return origBuilder
                 }
+            }
+            for (childHolder in base.childNodes) {
+                val child = childHolder.withPermission()
+                if (child.handle == handle) {
+                    val builder = child.builder(this)
+                    _pendingChildren.add(InstanceFuture(builder))
+                    return builder
+                }
+            }
+            throw NoSuchElementException("no child with the handle $handle could be found")
         }
 
         @Suppress("UNCHECKED_CAST")
@@ -672,23 +710,26 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
             entryNo: Int,
             body: ProcessNodeInstance.Builder<out ExecutableProcessNode, *>.() -> Unit
         ) {
-            @Suppress("UNCHECKED_CAST")
-            val existingBuilder = _pendingChildren.asSequence()
-                .map { it.origBuilder as ProcessNodeInstance.Builder<N, *> }
-                .firstOrNull { it.node == node && it.entryNo == entryNo }
-            if (existingBuilder != null) {
-                existingBuilder.apply(body); return
+            for(existingBuilderFuture in _pendingChildren) {
+                val existingBuilder = existingBuilderFuture.origBuilder
+                if (existingBuilder.node == node && existingBuilder.entryNo == entryNo) {
+                    existingBuilder.body()
+                    return
+                }
             }
 
-            base.childNodes.asSequence()
-                .map { it.withPermission() }
-                .firstOrNull { it.node == node && it.entryNo == entryNo }
-                ?.also {
-                    it.builder(this).apply(body)
-                    if (it.builder(this).changed) {
-                        _pendingChildren.add(InstanceFuture(it.builder(this)))
+            for(secureChildNode in base.childNodes) {
+                val childNode = secureChildNode.withPermission()
+                if (childNode.node == node && childNode.entryNo == entryNo) {
+                    val builder = childNode.builder(this)
+                    builder.body()
+                    if (builder.changed) {
+                        _pendingChildren.add(InstanceFuture(builder))
                     }
-                } ?: throw ProcessException("Attempting to update a nonexisting child")
+                    return
+                }
+            }
+            throw ProcessException("Attempting to update a nonexisting child")
         }
 
         override fun store(data: MutableProcessEngineDataAccess) {
@@ -732,39 +773,12 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
         }
 
 
-        fun initialize() {
-            if (state != State.NEW || base.active.isNotEmpty() || _pendingChildren.any { !it.origBuilder.state.isFinal }) {
+        override fun initialize() {
+            if (base.active.isNotEmpty() || _pendingChildren.any { !it.origBuilder.state.isFinal }) {
                 throw IllegalStateException("The instance already appears to be initialised")
             }
-
-            processModel.startNodes.forEach { node ->
-                storeChild(
-                    node.createOrReuseInstance(
-                        this,
-                        1
-                    ).build()
-                ) // Start with sequence 1
-            }
-            state = State.INITIALIZED
+            super.initialize()
         }
-
-        @ProcessInstanceStorage
-        fun start(engineData: MutableProcessEngineDataAccess, payload: CompactFragment? = null) {
-            if (state == State.NEW) initialize()
-
-            state = State.STARTED
-            inputs.addAll(processModel.toInputs(payload))
-
-            store(engineData) // make sure we have a valid handle
-
-            for (task in active()) {
-                updateChild(task) {
-                    provideTask(engineData)
-                }
-            }
-
-        }
-
 
     }
 
