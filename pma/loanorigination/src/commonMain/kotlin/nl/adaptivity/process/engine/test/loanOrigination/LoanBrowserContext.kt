@@ -23,8 +23,8 @@ class LoanBrowserContext(private val delegateContext: LoanPMAActivityContext, ov
         return delegateContext.resolveBrowser(principal)
     }
 
-    override fun <T : Any> nodeData(reference: InputRef<T>): T? {
-        return delegateContext.nodeData(reference)
+    override fun <T : Any> nodeDataOrNull(reference: InputRef<T>): T? {
+        return delegateContext.nodeDataOrNull(reference)
     }
 
     override fun browserContext(browser: Browser): LoanBrowserContext = when (browser) {

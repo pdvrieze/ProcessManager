@@ -7,7 +7,6 @@ import nl.adaptivity.process.engine.pma.EngineService
 import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.PmaAuthToken
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableAutomatedService
-import nl.adaptivity.process.engine.pma.models.Service
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.models.ServiceResolver
 import java.util.logging.Logger
@@ -56,9 +55,11 @@ class LeeCsService(
 
     inner class Internal internal constructor(){
 
+        /** Starts the garage service */
         fun contactGarage(authToken: PmaAuthToken, claim: Claim) {
+            validateAuthInfo(authToken, AgfilPermissions.LEECS.INTERNAL.CONTACT_GARAGE(claim.id))
             withGarage(authToken, claim.assignedGarageInfo) {
-                this.service.informGarageOfIncomingCar(serviceAccessToken, claim.id, claim.accidentInfo)
+                service.informGarageOfIncomingCar(serviceAccessToken, claim.id, claim.accidentInfo)
             }
         }
 
@@ -79,4 +80,3 @@ class LeeCsService(
     }
 }
 
-class ServiceInvocationContext<S: Service>(val service: S, val serviceAccessToken: PmaAuthToken)

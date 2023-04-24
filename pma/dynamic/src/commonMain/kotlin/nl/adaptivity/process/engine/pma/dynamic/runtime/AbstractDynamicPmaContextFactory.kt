@@ -18,7 +18,9 @@ abstract class AbstractDynamicPmaContextFactory<C: DynamicPmaActivityContext<C, 
 
         override fun <S : Service> resolveService(serviceId: ServiceId<S>): S {
             @Suppress("UNCHECKED_CAST")
-            return requireNotNull(services.firstOrNull { it.serviceInstanceId == serviceId } as S?) { "No service found for id $serviceId" }
+            return requireNotNull(services.firstOrNull { it.serviceInstanceId == serviceId } as S?) {
+                "No service found for id $serviceId"
+            }
         }
     }
 

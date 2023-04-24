@@ -3,21 +3,31 @@ package io.github.pdvrieze.pma.agfil.parties
 import io.github.pdvrieze.pma.agfil.contexts.AgfilActivityContext
 import io.github.pdvrieze.pma.agfil.contexts.AgfilBrowserContext
 import io.github.pdvrieze.pma.agfil.data.*
-import io.github.pdvrieze.pma.agfil.services.PolicyHolder
+import io.github.pdvrieze.pma.agfil.services.AgfilPermissions.*
+import io.github.pdvrieze.pma.agfil.services.PolicyHolderService
 import io.github.pdvrieze.pma.agfil.services.ServiceNames
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.DataNodeHandle
 import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
+import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
+import nl.adaptivity.process.engine.pma.dynamic.scope.templates.ContextScopeTemplate
 import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
-fun policyHolderProcess(owner: PrincipalCompat, ownerService: ServiceId<PolicyHolder>) = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>("policyHolder_get_car_fixed", owner) {
+fun policyHolderProcess(owner: PrincipalCompat, ownerService: ServiceId<PolicyHolderService>) = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>("policyHolder_get_car_fixed", owner) {
 
     val start by startNode
 
-    val reportClaim: DataNodeHandle<ClaimId> by serviceActivity(start, listOf(), ServiceNames.europAssistService) {
-        val callerInfo = activityContext.callerInfo(owner)
-        service.phoneClaim(authToken, agfilProcessContext.carRegistration, "Random Accident info", callerInfo)
+    val reportClaim: DataNodeHandle<ClaimId> by serviceActivity(
+        start,
+        listOf(
+            POLICYHOLDER.INTERNAL.REPORT_CLAIM,
+            delegatePermissions(ServiceNames.europAssistService, CommonPMAPermissions.IDENTIFY),
+        ),
+        ownerService
+    ) {
+        service.internal.reportClaim(authToken, processContext.processInstanceHandle, activityContext.callerInfo(owner), agfilProcessContext.carRegistration)
     }
+
 
     val onGarageAssigned: DataNodeHandle<GarageInfo> by eventNode(reportClaim, GarageInfo.serializer())
 
@@ -30,7 +40,7 @@ fun policyHolderProcess(owner: PrincipalCompat, ownerService: ServiceId<PolicyHo
         service.internal.sendCar(authToken, agfilProcessContext.carRegistration, claimId, garage)
     }
 
-    val receiveClaimForm by eventNode(sendCar, IncompleteClaimForm.serializer())
+    val receiveClaimForm by eventNode(predecessor = sendCar, messageSerializer = IncompleteClaimForm.serializer())
 
     val completedClaimForm: DataNodeHandle<CompletedClaimForm> by taskActivity(receiveClaimForm) {
         acceptTask({ owner }) {
@@ -39,7 +49,7 @@ fun policyHolderProcess(owner: PrincipalCompat, ownerService: ServiceId<PolicyHo
     }
 
     val returnClaimForm by serviceActivity(completedClaimForm, listOf(), ServiceNames.agfilService) { claimForm ->
-        service.returnClaimForm(claimForm)
+        service.evReturnClaimForm(authToken, claimForm)
     }
 
     // TODO be notified of car being fixed

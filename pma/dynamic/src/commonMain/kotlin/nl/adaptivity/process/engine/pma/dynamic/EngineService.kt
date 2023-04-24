@@ -18,10 +18,7 @@ package nl.adaptivity.process.engine.pma
 
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SimplePrincipal
-import nl.adaptivity.process.engine.ContextProcessTransaction
-import nl.adaptivity.process.engine.PIHandle
-import nl.adaptivity.process.engine.ProcessEngine
-import nl.adaptivity.process.engine.ProcessInstanceContext
+import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.pma.dynamic.ServiceActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.runtime.AbstractDynamicPmaActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DefaultAuthServiceClient
@@ -39,6 +36,7 @@ import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.PMHandle
+import nl.adaptivity.process.util.Identified
 import nl.adaptivity.util.kotlin.arrayMap
 import nl.adaptivity.xmlutil.util.CompactFragment
 import java.security.Principal
@@ -284,6 +282,33 @@ class EngineService(
             }
         }
         return impl(processEngine)
+    }
+
+    fun deliverEvent(handle: PNIHandle, payload: CompactFragment?) {
+        fun <TR: ContextProcessTransaction> impl(processEngine: ProcessEngine<TR>) {
+            processEngine.inTransaction { tr ->
+                tr.writableEngineData.updateNodeInstance(handle) {
+                    finishTask(tr.writableEngineData, payload)
+                }
+            }
+        }
+
+        impl(processEngine)
+    }
+
+    fun deliverEvent(piHandle: PIHandle, nodeId: Identified, payload: CompactFragment?) {
+        fun <TR: ContextProcessTransaction> impl(processEngine: ProcessEngine<TR>) {
+            processEngine.inTransaction { tr ->
+                tr.writableEngineData.updateInstance(piHandle) {
+                    val child = allChildNodeInstances { it.node==nodeId && it.state.isActive }.sortedBy { it.entryNo }.first()
+                    updateChild(child) {
+                        finishTask(tr.writableEngineData, payload)
+                    }
+                }
+            }
+        }
+
+        impl(processEngine)
     }
 
     /**

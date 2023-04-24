@@ -24,6 +24,7 @@ val europAssistProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserCo
 
     val registerClaim: DataNodeHandle<AccidentInfo> by taskActivity(
         predecessor = start,
+        permissions = listOf(delegatePermissions(agfilService, FIND_CUSTOMER_ID)),
         input = combine(registration named "registration", claimInfo named "claimInfo", callInfo named "callInfo"),
         accessRestrictions = RoleRestriction("ea:callhandler")
     ) {
@@ -55,7 +56,7 @@ val europAssistProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserCo
 
     val recordClaim: DataNodeHandle<ClaimId> by serviceActivity(
         predecessor = validateInfo,
-        authorizationTemplates = listOf(),
+        authorizationTemplates = listOf(AGFIL.CLAIM.CREATE),
         input = combine(validateInfo named "validated", registerClaim named "claim"),
         service = ServiceNames.agfilService
     ) {(validated, claim) ->
@@ -68,7 +69,7 @@ val europAssistProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserCo
         predecessor = recordClaim,
         permissions = listOf(
             delegatePermissions(europAssistService,
-                PICK_GARAGE,
+                EUROP_ASSIST.PICK_GARAGE,
                 delegatePermissions(agfilService, LIST_GARAGES))),
         input = registerClaim
     ) {
@@ -84,24 +85,28 @@ val europAssistProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserCo
         predecessor = pickGarage,
         authorizationTemplates = listOf(
             ContextScopeTemplate {
-                nodeData(pickGarage)?.service?.let { garageService ->
-                    delegatePermissions(garageService, INFORM_GARAGE).instantiateScope(this)
-                }
+                EUROP_ASSIST.INTERNAL.ASSIGN_GARAGE(nodeData(recordClaim))
             },
-            delegatePermissions(agfilService, ContextScopeTemplate { RECORD_ASSIGNED_GARAGE(nodeData(recordClaim)!!) })
+            delegatePermissions(agfilService,
+                ContextScopeTemplate { CLAIM.RECORD_ASSIGNED_GARAGE(nodeData(recordClaim)) },
+                ContextScopeTemplate { AGFIL.GET_CUSTOMER_INFO(nodeData(registerClaim).customerId)}
+            )
         ),
         service = europAssistService,
-        input = combine(pickGarage named "garage", recordClaim named "claimId", registerClaim named "accidentInfo")) { (garage, claimId, accidentInfo) ->
-        service.internal.informGarage(authToken, garage, claimId, accidentInfo)
-    }
+        input = combine(pickGarage named "garage", recordClaim named "claimId", registerClaim named "accidentInfo"),
+        action = { (garage, claimId, accidentInfo) ->
+            service.internal.assignGarage(authToken, garage, claimId, accidentInfo)
+        }
+    )
 
-    val notifyAgfil: DataNodeHandle<Unit> by serviceActivity(
+    val notifyAgfilClaimAssigned: DataNodeHandle<Unit> by serviceActivity(
         assignGarage,
+        authorizationTemplates = listOf(ContextScopeTemplate{ CLAIM.NOTIFY_ASSIGNED(nodeData(recordClaim)) }),
         service = agfilService,
         input = combine(assignGarage named "assignedGarage", recordClaim named "claimId", registerClaim named "accidentInfo")
     ) { (garage, claimId, accidentInfo) ->
-        service.notifyClaim(authToken, claimId, accidentInfo, garage)
+        service.notifyClaimAssigned(authToken, claimId, accidentInfo, garage)
     }
 
-    val end by endNode(notifyAgfil)
+    val end by endNode(notifyAgfilClaimAssigned)
 }

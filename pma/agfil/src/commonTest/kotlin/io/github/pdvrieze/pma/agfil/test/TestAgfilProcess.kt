@@ -4,7 +4,7 @@ import RunnablePmaActivity
 import io.github.pdvrieze.pma.agfil.contexts.AgfilContextFactory
 import io.github.pdvrieze.pma.agfil.data.ClaimId
 import io.github.pdvrieze.pma.agfil.parties.policyHolderProcess
-import io.github.pdvrieze.pma.agfil.services.PolicyHolder
+import io.github.pdvrieze.pma.agfil.services.PolicyHolderService
 import io.github.pdvrieze.pma.agfil.util.get
 import net.devrieze.util.security.PermissiveProvider
 import net.devrieze.util.security.SimplePrincipal
@@ -17,13 +17,11 @@ import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.test.ProcessEngineTestSupport
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.util.Identifier
-import nl.adaptivity.xmlutil.serialization.XML
 import java.util.logging.Logger
 import kotlin.random.Random
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertNotNull
-import kotlin.test.assertNull
 
 class TestAgfilProcess : ProcessEngineTestSupport() {
 
@@ -55,8 +53,9 @@ class TestAgfilProcess : ProcessEngineTestSupport() {
         engine.setSecurityProvider(PmaSecurityProvider(contextFactory.engineService.serviceInstanceId, contextFactory.adminAuthServiceClient))
         val engineService = contextFactory.engineService
 
+        contextFactory.createPolicyHolder("policyHolder")
 
-        val policyHolder = PolicyHolder(
+        val policyHolder = PolicyHolderService(
             serviceName = ServiceName("policyHolder"),
             authService = contextFactory.authService,
             adminAuthInfo = contextFactory.adminAuthServiceClient.originatingClientAuth,

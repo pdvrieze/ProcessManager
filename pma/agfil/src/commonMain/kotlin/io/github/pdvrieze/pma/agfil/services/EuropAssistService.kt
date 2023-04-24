@@ -43,20 +43,12 @@ class EuropAssistService(
         callHandlers = (1..5).map { i ->
             SimpleRolePrincipal("EA Call handler $i", "ea:callhandler") // registration etc. happens in the context factory upon browser init.
         }
-
-
     }
 
     /** From Lai's thesis */
     fun phoneClaim(authToken: PmaAuthInfo, carRegistration: CarRegistration, claimInfo: String, callerInfo: CallerInfo): ClaimId {
+        validateAuthInfo(authToken, CommonPMAPermissions.IDENTIFY)
         val claimData = payload<CarRegistration, String, CallerInfo>("carRegistration", carRegistration, "claimInfo", claimInfo, "callerInfo", callerInfo)
-/*
-        val claimData = CompactFragment { out ->
-            out.smartStartTag(QName("carRegistration")) { XML.encodeToWriter(out, carRegistration) }
-            out.smartStartTag(QName("claimInfo")) { XML.encodeToWriter(out, claimInfo) }
-            out.smartStartTag(QName("callerInfo")) { XML.encodeToWriter(out, callerInfo) }
-        }
-*/
         val processHandle = startProcess(processHandles[0], claimData)
         return ClaimId(processHandle.handleValue).also {// TODO the handles can be independent
             instanceHandles[it] = processHandle
@@ -75,7 +67,7 @@ class EuropAssistService(
     inner class Internal {
 
         fun pickGarage(authToken: PmaAuthToken, accidentInfo: AccidentInfo): GarageInfo {
-            validateAuthInfo(authToken, PICK_GARAGE)
+            validateAuthInfo(authToken, EUROP_ASSIST.PICK_GARAGE)
             val garageServices = withService(serviceName = agfilService, authToken, LIST_GARAGES) {
                 service.getContractedGarages(serviceAccessToken)
             }
@@ -83,34 +75,27 @@ class EuropAssistService(
             return garageServices.random(random)
         }
 
-        fun informGarage(
+        fun assignGarage(
             authToken: PmaAuthToken,
             garage: GarageInfo,
             claimId: ClaimId,
             accidentInfo: AccidentInfo
         ): GarageInfo {
-            withService(
-                garage.service,
-                authToken,
-                INFORM_GARAGE
-            ) {
-                service.informGarageOfIncomingCar(serviceAccessToken, claimId, accidentInfo)
+            validateAuthInfo(authToken, EUROP_ASSIST.INTERNAL.ASSIGN_GARAGE(claimId))
+            val customerServiceId = withService(agfilService, authToken, AGFIL.GET_CUSTOMER_INFO(accidentInfo.customerId)) {
+                service.getCustomerInfo(serviceAccessToken, accidentInfo.customerId).service
             }
+            // TODO actually not valid as no token exchange happens
+            serviceResolver.resolveService(customerServiceId).evAssignGarage(authToken, claimId, garage)
+/*
+            withService(customerServiceId, authToken, CommonPMAPermissions.IDENTIFY) {
+                service.evAssignGarage(serviceAccessToken, claimId, garage)
+            }
+*/
 
-            withService(agfilService, authToken, RECORD_ASSIGNED_GARAGE(claimId)) {
+            withService(agfilService, authToken, CLAIM.RECORD_ASSIGNED_GARAGE(claimId)) {
                 service.recordAssignedGarage(serviceAccessToken, claimId, garage)
             }
-/*
-
-            val agfilService = serviceResolver.resolveService(agfilService)
-
-            val agfilToken = authServiceClient.exchangeDelegateToken(
-                authToken,
-                agfilService.serviceInstanceId,
-                CommonPMAPermissions.IDENTIFY
-            )
-            agfilService.recordAssignedGarage(agfilToken, claimId, garage)
-*/
 
             return garage // Smarter way to do something here
         }

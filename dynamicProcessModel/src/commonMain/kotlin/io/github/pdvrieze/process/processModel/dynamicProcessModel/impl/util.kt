@@ -1,7 +1,6 @@
 package io.github.pdvrieze.process.processModel.dynamicProcessModel.impl
 
 import kotlinx.serialization.*
-import kotlinx.serialization.builtins.NothingSerializer
 import kotlinx.serialization.descriptors.PrimitiveKind
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.SerialKind
@@ -16,9 +15,13 @@ import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.smartStartTag
 import nl.adaptivity.xmlutil.util.CompactFragment
 
-
+@Deprecated("Single value playload doesn't have a name", ReplaceWith("payload(value)"))
 inline fun <reified T: Any> payload(name: String, value: T): CompactFragment {
-    return payload(Tripple(QName(name), value, serializer<T>()))
+    return payload(value, serializer<T>())
+}
+
+inline fun <reified T: Any> payload(value: T): CompactFragment {
+    return payload(value, serializer<T>())
 }
 
 inline fun <reified T1: Any, reified T2: Any> payload(name1: String, value1: T1, name2: String, value2: T2): CompactFragment {
@@ -54,15 +57,23 @@ inline fun <reified T1: Any, reified T2: Any, reified T3: Any, reified T4: Any> 
     )
 }
 
-fun payload(vararg values: Tripple<QName, Any, out KSerializer<*>>): CompactFragment {
+fun payload(vararg values: Tripple<QName, Any, out SerializationStrategy<*>>): CompactFragment {
     return CompactFragment { out ->
         XML { autoPolymorphic=true }.run {
             for((name, value, ser) in values) {
                 val valueHolder = ValueHolder(name, value)
                 @Suppress("UNCHECKED_CAST")
-                val typedSer: KSerializer<Any> = ser as KSerializer<Any>
+                val typedSer: SerializationStrategy<Any> = ser as SerializationStrategy<Any>
                 encodeToWriter(out, ValueHolder.Serializer(typedSer), valueHolder)
             }
+        }
+    }
+}
+
+fun <T> payload(value: T, ser: SerializationStrategy<T>): CompactFragment {
+    return CompactFragment { out ->
+        XML { autoPolymorphic=true }.run {
+            encodeToWriter(out, ser, value)
         }
     }
 }

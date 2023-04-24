@@ -2,8 +2,10 @@ package io.github.pdvrieze.pma.agfil.services
 
 import io.github.pdvrieze.pma.agfil.data.*
 import io.github.pdvrieze.pma.agfil.parties.repairProcess
+import io.github.pdvrieze.pma.agfil.services.AgfilPermissions.*
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.impl.payload
 import net.devrieze.util.Handle
-import nl.adaptivity.process.engine.impl.CompactFragment
+import nl.adaptivity.process.engine.PIHandle
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.EngineService
 import nl.adaptivity.process.engine.pma.PmaAuthInfo
@@ -46,18 +48,16 @@ class GarageService(
      * ContactGarage from Lai's thesis
      */
     fun informGarageOfIncomingCar(authToken: PmaAuthInfo, claimId: ClaimId, accidentInfo: AccidentInfo) {
-        val payload = CompactFragment { xml.encodeToWriter(it, AccidentInfo.serializer(), accidentInfo) }
-/*
-        processEngineService.startProcess(hRepairProcess, "estimate repair", payload)
-        processEngine.inTransaction { tr ->
-            startProcess(tr, authServiceClient.principal, hRepairProcess, "estimate repair", UUID.randomUUID(), payload)
-        }
-*/
-        repairs[claimId]= RepairInfo(claimId, accidentInfo)
+        validateAuthInfo(authToken, GARAGE.INFORM_INCOMING_CAR)
+        val payload = payload("claim", claimId, "accidentInfo", accidentInfo)
+        val instanceHandle = startProcess(processHandles[0], payload)
+        repairs[claimId]= RepairInfo(instanceHandle, claimId, accidentInfo)
     }
 
-    /** From Lai's thesis. Receive car. */
-    fun sendCar(authToken: PmaAuthInfo, carRegistration: CarRegistration, claimId: ClaimId): Unit = TODO()
+    /** From Lai's thesis. Receive car. from policyHolder */
+    fun evReceiveCar(authToken: PmaAuthInfo, carRegistration: CarRegistration, claimId: ClaimId) {
+        validateAuthInfo(authToken, GARAGE.SEND_CAR(carRegistration))
+    }
 
     /** From Lai's thesis */
     fun agreeRepair(authToken: PmaAuthInfo, id: ClaimId, carRegistration: CarRegistration): Unit = TODO()
@@ -71,6 +71,12 @@ class GarageService(
         val invoice = Invoice(nextInvoiceId(), agreement.claimId, garageInfo, agreement.agreedCosts)
         serviceResolver.resolveService(ServiceNames.leeCsService).sendInvoice(invoice)
         return invoice.invoiceId
+    }
+
+    fun evNotifyInvoicePaid(authToken: PmaAuthInfo, invoiceId: InvoiceId, amount: Money) {
+        validateAuthInfo(authToken, GARAGE.NOTIFY_INVOICE_PAID(invoiceId))
+
+        TODO("not implemented")
     }
 
     inner class Internal {
@@ -111,12 +117,13 @@ class GarageService(
     }
 
     private data class RepairInfo(
+        val processHandle: PIHandle,
         val claimId: ClaimId,
         val accidentInfo: AccidentInfo,
         var repairState: RepairState = RepairState.WAITING,
         var estimate: Estimate? = null,
         var agreedCosts: AgreedCostInfo? = null,
-        val invoiceId: InvoiceId? = null
+        val invoiceId: InvoiceId? = null,
     )
 
     private data class AgreedCostInfo(val assessor: Int, val costs: Money)

@@ -87,7 +87,7 @@ class AgfilContextFactory(private val logger: Logger, private val random: Random
         )
         authService.registerGlobalPermission(adminAuth, engineService.authServiceClient.principal, taskListService, CommonPMAPermissions.POST_TASK)
 
-        agfilService = AgfilService(ServiceNames.agfilService, authService, adminAuth, engineService, random, logger)
+        agfilService = AgfilService(ServiceNames.agfilService, authService, adminAuth, engineService, serviceResolver, random, logger)
 
         garageServices = ServiceNames.garageServices.arrayMap { GarageService(it, authService, adminAuth, engineService, serviceResolver, random) }
         europAssistService = EuropAssistService(ServiceNames.europAssistService, authService, adminAuth, engineService, serviceResolver, random, logger)
@@ -95,14 +95,17 @@ class AgfilContextFactory(private val logger: Logger, private val random: Random
     }
 
 
-    override val services: List<Service> = listOf(
+    private val _services: MutableList<Service> = mutableListOf(
         authService,
         engineService,
         taskListService,
         europAssistService,
         agfilService,
         leeCsService,
-    ) + garageServices.toList()
+    ).apply { addAll(garageServices) }
+
+    override val services: List<Service>
+        get() = _services
 
     override fun resolveService(targetService: InvokableMethod): ResolvedInvokableMethod? {
         return null // TODO support proper messaging
@@ -123,7 +126,23 @@ class AgfilContextFactory(private val logger: Logger, private val random: Random
 
     fun callerInfo(customer: PrincipalCompat): CallerInfo {
         val randomPhoneNumber = "0${(1..9).random(random)}${(1..8).joinToString("") { (0..9).random(random).toString()}}"
-        return customerInfo.getOrPut(customer.name) { CallerInfo(customer.name, randomPhoneNumber)}
+        // TODO this is a raw hack that hardcodes the policyHolder
+        val policyHolderService = serviceResolver.resolveService(ServiceName<PolicyHolderService>("policyHolder")).serviceInstanceId
+        return customerInfo.getOrPut(customer.name) { CallerInfo(customer.name, randomPhoneNumber, policyHolderService)}
+    }
+
+    fun createPolicyHolder(name: String) : PolicyHolderService {
+        val policyHolder = PolicyHolderService(
+            serviceName = ServiceName(name),
+            authService = authService,
+            adminAuthInfo = adminAuthServiceClient.originatingClientAuth,
+            engineService = engineService,
+            serviceResolver = serviceResolver,
+            random = random,
+            logger = logger
+        )
+        _services.add(policyHolder)
+        return policyHolder
     }
 }
 

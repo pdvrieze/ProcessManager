@@ -2,13 +2,17 @@ package io.github.pdvrieze.pma.agfil.parties
 
 import io.github.pdvrieze.pma.agfil.contexts.AgfilActivityContext
 import io.github.pdvrieze.pma.agfil.contexts.AgfilBrowserContext
+import io.github.pdvrieze.pma.agfil.data.Claim
 import io.github.pdvrieze.pma.agfil.data.ClaimId
 import io.github.pdvrieze.pma.agfil.data.CompletedClaimForm
 import io.github.pdvrieze.pma.agfil.data.Invoice
+import io.github.pdvrieze.pma.agfil.services.AgfilPermissions
+import io.github.pdvrieze.pma.agfil.services.AgfilPermissions.*
 import io.github.pdvrieze.pma.agfil.services.ServiceNames
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.DataNodeHandle
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.NodeHandle
 import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
+import nl.adaptivity.process.engine.pma.dynamic.scope.templates.ContextScopeTemplate
 import nl.adaptivity.process.processModel.engine.ExecutableCondition
 import nl.adaptivity.process.processModel.engine.ExecutableXPathCondition
 
@@ -17,9 +21,21 @@ val agfilProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>
 
     val start by startNode
 
-    val checkPolicyValidity: DataNodeHandle<Boolean> by serviceActivity(start, listOf(), ServiceNames.agfilService, claimIdInput) { claimId ->
-        val claim = service.getAccidentInfo(authToken, claimId)
-        val policy = service.getPolicy(authToken, claim.customerId, claim.carRegistration)
+    val retrieveClaim: DataNodeHandle<Claim> by serviceActivity(
+        start,
+        listOf(ContextScopeTemplate { CLAIM.READ(nodeData(claimIdInput)) }),
+        ServiceNames.agfilService,
+        claimIdInput,
+    ) { claimId ->
+        service.getFullClaim(authToken, claimId)
+    }
+
+    val checkPolicyValidity: DataNodeHandle<Boolean> by serviceActivity(
+        retrieveClaim,
+        listOf(ContextScopeTemplate { GET_POLICY(nodeData(retrieveClaim).accidentInfo.customerId) }),
+        ServiceNames.agfilService,
+    ) { claim ->
+        val policy = service.getPolicy(authToken, claim.accidentInfo.customerId, claim.accidentInfo.carRegistration)
         policy != null // TODO have more complex validation (like claim category)
     }
 
@@ -30,7 +46,9 @@ val agfilProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>
 
     val notifyInvalidClaim: NodeHandle<*> by serviceActivity(
         predecessor = invalidSplit,
-        authorizationTemplates = listOf(),
+        authorizationTemplates = listOf(
+            ContextScopeTemplate { AGFIL.INTERNAL.NOTIFIY_INVALID_CLAIM(nodeData(claimIdInput)) }
+        ),
         service = ServiceNames.agfilService,
         input = claimIdInput,
         configure = {
@@ -43,7 +61,9 @@ val agfilProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>
 
     val terminateClaim: NodeHandle<*> by serviceActivity(
         predecessor = notifyInvalidClaim,
-        authorizationTemplates = listOf(),
+        authorizationTemplates = listOf(
+            ContextScopeTemplate { AGFIL.INTERNAL.TERMINATE_CLAIM(nodeData(claimIdInput)) }
+        ),
         service = ServiceNames.agfilService,
         input = claimIdInput
     ) { claimId ->
@@ -58,7 +78,7 @@ val agfilProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>
 
     val sendClaimForm: NodeHandle<*> by serviceActivity(
         predecessor = handleValidSplit,
-        authorizationTemplates = listOf(),
+        authorizationTemplates = listOf(ContextScopeTemplate { AGFIL.INTERNAL.SEND_CLAIM_FORM(nodeData(claimIdInput)) }),
         service = ServiceNames.agfilService,
         input = claimIdInput
     ) { claimId ->
@@ -69,7 +89,9 @@ val agfilProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>
 
     val processCompletedClaimForm: DataNodeHandle<*> by serviceActivity(
         predecessor = receiveCompletedClaimForm,
-        authorizationTemplates = listOf(),
+        authorizationTemplates = listOf(
+            ContextScopeTemplate { AGFIL.INTERNAL.PROCESS_CLAIM_FORM(nodeData(claimIdInput)) }
+        ),
         service = ServiceNames.agfilService
     ) { claimForm ->
         service.internal.processCompletedClaimForm(authToken, claimForm)
@@ -101,7 +123,9 @@ val agfilProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>
 
     val payInvoice: DataNodeHandle<*> by serviceActivity(
         predecessor = makeReconciliation,
-        authorizationTemplates = listOf(),
+        authorizationTemplates = listOf(
+            ContextScopeTemplate { AGFIL.INTERNAL.PAY_GARAGE_INVOICE(nodeData(claimIdInput)) }
+        ),
         service = ServiceNames.agfilService,
         input = receiveInvoice
     ) { invoice ->

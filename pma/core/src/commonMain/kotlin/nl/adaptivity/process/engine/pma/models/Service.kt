@@ -1,5 +1,6 @@
 package nl.adaptivity.process.engine.pma.models
 
+import kotlinx.serialization.Serializable
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
@@ -28,9 +29,11 @@ interface UiService: Service {
 }
 
 @JvmInline
+@Serializable
 value class ServiceName<out S: Service>(val serviceName: String)
 
 @JvmInline
+@Serializable
 value class ServiceId<out S: Service>(val serviceId: String)
 
 fun <S: Service> EndpointDescriptor.toServiceId(): ServiceId<S> {

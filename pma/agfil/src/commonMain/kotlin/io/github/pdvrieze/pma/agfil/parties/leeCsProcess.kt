@@ -6,8 +6,10 @@ import io.github.pdvrieze.pma.agfil.data.AgreedCosts
 import io.github.pdvrieze.pma.agfil.data.ClaimId
 import io.github.pdvrieze.pma.agfil.data.Estimate
 import io.github.pdvrieze.pma.agfil.data.Invoice
+import io.github.pdvrieze.pma.agfil.services.AgfilPermissions
 import io.github.pdvrieze.pma.agfil.services.ServiceNames
 import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
+import nl.adaptivity.process.engine.pma.dynamic.scope.templates.ContextScopeTemplate
 import nl.adaptivity.process.processModel.engine.ExecutableCondition
 import nl.adaptivity.process.processModel.engine.ExecutableXPathCondition
 
@@ -21,7 +23,18 @@ val leeCsProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>
         service.getFullClaim(authToken, claimId)
     }
 
-    val contactGarage by serviceActivity(retrieveAccidentInfo, listOf(), ServiceNames.leeCsService) { claim ->
+    val contactGarage by serviceActivity(
+        retrieveAccidentInfo,
+        listOf(
+            ContextScopeTemplate {
+                nodeData(retrieveAccidentInfo).assignedGarageInfo!!.service.let { garageService ->
+                    delegatePermissions(garageService, AgfilPermissions.INFORM_GARAGE).instantiateScope(this)
+                }
+            },
+
+            ),
+        ServiceNames.leeCsService
+    ) { claim ->
         // has to use delegate service because there are multiple garages.
         service.internal.contactGarage(authToken, claim)
     }

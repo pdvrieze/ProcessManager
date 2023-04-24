@@ -4,6 +4,7 @@ import io.github.pdvrieze.pma.agfil.data.AgreedCosts
 import io.github.pdvrieze.pma.agfil.data.Claim
 import io.github.pdvrieze.pma.agfil.data.DamageAssessment
 import io.github.pdvrieze.pma.agfil.parties.assessorProcess
+import io.github.pdvrieze.pma.agfil.services.AgfilPermissions.*
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.EngineService
 import nl.adaptivity.process.engine.pma.PmaAuthInfo
@@ -40,14 +41,19 @@ class AssessorService(
     inner class Internal {
 
         fun assessDamage(authToken: PmaAuthToken, claim: Claim): DamageAssessment {
-            withGarage(authToken, claim.assignedGarageInfo) {
+            validateAuthInfo(authToken, ASSESSOR.ASSESS_DAMAGE(claim.id))
+            withGarage(authToken, claim.assignedGarageInfo, GARAGE.REVIEW_CAR(claim.accidentInfo.carRegistration)) {
 
                 TODO("not implemented")
             }
         }
 
         fun negotiateRepairCosts(authToken: PmaAuthToken, claim: Claim, assessment: DamageAssessment): AgreedCosts {
-            TODO("not implemented")
+            validateAuthInfo(authToken, ASSESSOR.NEGOTIATE_REPAIR_COSTS(claim.id))
+            withGarage(authToken, claim.assignedGarageInfo, GARAGE.NEGOTIATE_REPAIR_COSTS(claim.id)) {
+
+                TODO("not implemented")
+            }
         }
 
     }
