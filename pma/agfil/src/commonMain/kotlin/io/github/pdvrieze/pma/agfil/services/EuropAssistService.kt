@@ -77,7 +77,7 @@ class EuropAssistService(
 
         fun pickGarage(authToken: PmaAuthToken, accidentInfo: AccidentInfo): GarageInfo {
             validateAuthInfo(authToken, EUROP_ASSIST.PICK_GARAGE)
-            val garageServices = withService(serviceName = agfilService, authToken, LIST_GARAGES) {
+            val garageServices = withService(serviceName = agfilService, authToken, AGFIL.LIST_GARAGES) {
                 service.getContractedGarages(serviceAccessToken)
             }
 

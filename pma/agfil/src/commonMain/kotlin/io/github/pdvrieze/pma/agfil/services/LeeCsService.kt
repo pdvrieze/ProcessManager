@@ -4,7 +4,10 @@ import io.github.pdvrieze.pma.agfil.data.*
 import io.github.pdvrieze.pma.agfil.parties.leeCsProcess
 import io.github.pdvrieze.pma.agfil.services.AgfilPermissions.*
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.impl.payload
+import net.devrieze.util.Handle
+import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.PIHandle
+import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.EngineService
 import nl.adaptivity.process.engine.pma.PmaAuthInfo
@@ -82,6 +85,10 @@ class LeeCsService(
 
         fun verifyInvoice(authToken: PmaAuthInfo, invoice: Invoice) {
             TODO("not implemented")
+        }
+
+        fun processHandleFor(claimId: ClaimId): PIHandle? {
+            return processes[claimId]
         }
 
     }

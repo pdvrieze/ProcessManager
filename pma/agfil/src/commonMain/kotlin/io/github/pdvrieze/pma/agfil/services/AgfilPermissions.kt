@@ -16,8 +16,6 @@ sealed class AgfilPermissions {
         }
     }
 
-    object LIST_GARAGES: AgfilPermissions(), UseAuthScope
-
     object FIND_CUSTOMER_ID: AgfilPermissions(), UseAuthScope
 
     object SEND_CAR: AgfilPermissions(), AuthScope {
@@ -83,6 +81,7 @@ sealed class AgfilPermissions {
         object CLAIM {
             object CREATE: AgfilPermissions(), UseAuthScope
         }
+        object LIST_GARAGES: AgfilPermissions(), UseAuthScope
 
         object GET_CUSTOMER_INFO: AgfilPermissions(), UseAuthScope {
             operator fun invoke(customerId: CustomerId): UseAuthScope = CustomerUseScope(this, customerId)

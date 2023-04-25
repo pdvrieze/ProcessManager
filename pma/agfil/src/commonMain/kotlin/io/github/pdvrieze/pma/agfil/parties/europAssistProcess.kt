@@ -71,7 +71,7 @@ val europAssistProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserCo
         permissions = listOf(
             delegatePermissions(europAssistService,
                 EUROP_ASSIST.PICK_GARAGE,
-                delegatePermissions(agfilService, LIST_GARAGES))),
+                delegatePermissions(agfilService, AGFIL.LIST_GARAGES))),
         input = registerClaim
     ) {
         acceptTask( { randomEaCallHandler() }) { accidentInfo ->

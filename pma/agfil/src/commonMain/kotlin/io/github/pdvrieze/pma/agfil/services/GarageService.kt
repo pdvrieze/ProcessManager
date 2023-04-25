@@ -5,7 +5,10 @@ import io.github.pdvrieze.pma.agfil.parties.repairProcess
 import io.github.pdvrieze.pma.agfil.services.AgfilPermissions.*
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.impl.payload
 import net.devrieze.util.Handle
+import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.PIHandle
+import nl.adaptivity.process.engine.ProcessInstance
+import nl.adaptivity.process.engine.db.ProcessEngineDB
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.EngineService
 import nl.adaptivity.process.engine.pma.PmaAuthInfo
@@ -14,6 +17,7 @@ import nl.adaptivity.process.engine.pma.dynamic.services.RunnableUiService
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.models.PmaServiceResolver
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
+import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.xmlutil.serialization.XML
 import java.util.logging.Logger
 import kotlin.random.Random
@@ -57,6 +61,12 @@ class GarageService(
     /** From Lai's thesis. Receive car. from policyHolder */
     fun evReceiveCar(authToken: PmaAuthInfo, carRegistration: CarRegistration, claimId: ClaimId) {
         validateAuthInfo(authToken, GARAGE.SEND_CAR(carRegistration))
+        val repair = requireNotNull(repairs[claimId])
+        require(repair.accidentInfo.carRegistration == carRegistration)
+        require(repair.repairState == RepairState.WAITING)
+        val instanceHandle = repair.processHandle
+        processEngineService.deliverEvent(instanceHandle, Identifier("onReceiveCar"), payload(carRegistration))
+        repair.repairState = RepairState.RECEIVED_CAR
     }
 
     /** From Lai's thesis */
@@ -113,6 +123,10 @@ class GarageService(
         fun closeRecord(authToken: PmaAuthInfo, claimId: ClaimId) {
             val repairInfo = requireNotNull(repairs[claimId])
             require(repairInfo.repairState == RepairState.PAID)
+        }
+
+        fun processHandleFor(claimId: ClaimId): PIHandle {
+            return requireNotNull(repairs[claimId]).processHandle
         }
     }
 
