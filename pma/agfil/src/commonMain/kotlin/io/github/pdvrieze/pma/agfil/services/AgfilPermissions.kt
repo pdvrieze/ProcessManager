@@ -16,9 +16,6 @@ sealed class AgfilPermissions {
         }
     }
 
-    /** Permission to start a handling process in the garage */
-    object INFORM_GARAGE: AgfilPermissions(), UseAuthScope
-
     object LIST_GARAGES: AgfilPermissions(), UseAuthScope
 
     object FIND_CUSTOMER_ID: AgfilPermissions(), UseAuthScope
@@ -65,7 +62,9 @@ sealed class AgfilPermissions {
     }
 
     object GARAGE {
+        /** Permission to start a handling process in the garage */
         object INFORM_INCOMING_CAR: AgfilPermissions(), UseAuthScope
+
         object SEND_CAR: AgfilPermissions(), AuthScope {
             operator fun invoke(carRegistration: CarRegistration): UseAuthScope = CarUseScope(this, carRegistration)
         }

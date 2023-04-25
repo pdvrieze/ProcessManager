@@ -58,7 +58,11 @@ fun policyHolderProcess(owner: PrincipalCompat, ownerService: ServiceId<PolicyHo
         }
     }
 
-    val returnClaimForm by serviceActivity(completedClaimForm, listOf(), ServiceNames.agfilService) { claimForm ->
+    val returnClaimForm by serviceActivity(
+        completedClaimForm,
+        listOf(ContextScopeTemplate { CLAIM.RETURN_FORM(nodeData(receiveClaimForm).claimId) }),
+        ServiceNames.agfilService
+    ) { claimForm ->
         service.evReturnClaimForm(authToken, claimForm)
     }
 

@@ -7,9 +7,12 @@ import io.github.pdvrieze.pma.agfil.data.ClaimId
 import io.github.pdvrieze.pma.agfil.data.Estimate
 import io.github.pdvrieze.pma.agfil.data.Invoice
 import io.github.pdvrieze.pma.agfil.services.AgfilPermissions
+import io.github.pdvrieze.pma.agfil.services.AgfilPermissions.*
 import io.github.pdvrieze.pma.agfil.services.ServiceNames
+import nl.adaptivity.process.engine.db.ProcessEngineDB
 import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
 import nl.adaptivity.process.engine.pma.dynamic.scope.templates.ContextScopeTemplate
+import nl.adaptivity.process.engine.pma.models.UnionPermissionScope
 import nl.adaptivity.process.processModel.engine.ExecutableCondition
 import nl.adaptivity.process.processModel.engine.ExecutableXPathCondition
 
@@ -18,7 +21,12 @@ val leeCsProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>
 
     val start by startNode
 
-    val retrieveAccidentInfo by serviceActivity(start, listOf(), ServiceNames.agfilService, claimIdInput) { claimId ->
+    val retrieveAccidentInfo by serviceActivity(
+        start,
+        listOf(ContextScopeTemplate { CLAIM.READ(nodeData(claimIdInput)) }),
+        ServiceNames.agfilService,
+        claimIdInput
+    ) { claimId ->
         // TODO When getting the service token, try to use the token used to start the process.
         service.getFullClaim(authToken, claimId)
     }
@@ -27,9 +35,13 @@ val leeCsProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>
         retrieveAccidentInfo,
         listOf(
             ContextScopeTemplate {
-                nodeData(retrieveAccidentInfo).assignedGarageInfo!!.serviceId.let { garageService ->
-                    delegatePermissions(garageService, AgfilPermissions.INFORM_GARAGE).instantiateScope(this)
-                }
+                val accidentInfo = nodeData(retrieveAccidentInfo)
+                UnionPermissionScope(
+                    accidentInfo.assignedGarageInfo!!.serviceId.let { garageService ->
+                        delegatePermissions(garageService, GARAGE.INFORM_INCOMING_CAR).instantiateScope(this)!!
+                    },
+                    LEECS.INTERNAL.CONTACT_GARAGE(accidentInfo.id)
+                )
             },
 
             ),
