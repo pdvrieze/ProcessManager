@@ -2,13 +2,16 @@ package io.github.pdvrieze.pma.agfil.services
 
 import io.github.pdvrieze.pma.agfil.data.*
 import io.github.pdvrieze.pma.agfil.parties.leeCsProcess
+import io.github.pdvrieze.pma.agfil.services.AgfilPermissions.*
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.impl.payload
+import nl.adaptivity.process.engine.PIHandle
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.EngineService
 import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.PmaAuthToken
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableAutomatedService
 import nl.adaptivity.process.engine.pma.models.ServiceName
-import nl.adaptivity.process.engine.pma.models.ServiceResolver
+import nl.adaptivity.process.engine.pma.models.PmaServiceResolver
 import java.util.logging.Logger
 import kotlin.random.Random
 
@@ -17,7 +20,7 @@ class LeeCsService(
     authService: AuthService,
     adminAuthInfo: PmaAuthInfo,
     engineService: EngineService,
-    override val serviceResolver: ServiceResolver,
+    override val serviceResolver: PmaServiceResolver,
     random: Random,
     logger: Logger,
 ) : RunnableProcessBackedService<LeeCsService>(
@@ -29,6 +32,8 @@ class LeeCsService(
     logger = logger,
     leeCsProcess
 ), RunnableAutomatedService, AutoService {
+
+    private val processes: MutableMap<ClaimId, PIHandle> = mutableMapOf()
 
     /** From Lai's thesis: sendRepairCosts */
     fun sendGarageEstimate(authToken: PmaAuthInfo, estimate: Estimate) {
@@ -48,7 +53,9 @@ class LeeCsService(
      * forwardClaim from Lai's thesis
      */
     fun startClaimProcessing(authToken: PmaAuthInfo, claimId: ClaimId) {
-        TODO("not implemented")
+        validateAuthInfo(authToken, LEECS.START_PROCESSING(claimId))
+        val piHandle = startProcess(processHandles[0], payload(claimId))
+        processes[claimId] = piHandle
     }
 
     val internal: Internal = Internal()
@@ -57,7 +64,7 @@ class LeeCsService(
 
         /** Starts the garage service */
         fun contactGarage(authToken: PmaAuthToken, claim: Claim) {
-            validateAuthInfo(authToken, AgfilPermissions.LEECS.INTERNAL.CONTACT_GARAGE(claim.id))
+            validateAuthInfo(authToken, LEECS.INTERNAL.CONTACT_GARAGE(claim.id))
             withGarage(authToken, claim.assignedGarageInfo) {
                 service.informGarageOfIncomingCar(serviceAccessToken, claim.id, claim.accidentInfo)
             }

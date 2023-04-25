@@ -12,7 +12,9 @@ import io.github.pdvrieze.pma.agfil.services.ServiceNames
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.DataNodeHandle
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.NodeHandle
 import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
+import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.dynamic.scope.templates.ContextScopeTemplate
+import nl.adaptivity.process.engine.pma.models.UnionPermissionScope
 import nl.adaptivity.process.processModel.engine.ExecutableCondition
 import nl.adaptivity.process.processModel.engine.ExecutableXPathCondition
 
@@ -78,7 +80,14 @@ val agfilProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>
 
     val sendClaimForm: NodeHandle<*> by serviceActivity(
         predecessor = handleValidSplit,
-        authorizationTemplates = listOf(ContextScopeTemplate { AGFIL.INTERNAL.SEND_CLAIM_FORM(nodeData(claimIdInput)) }),
+        authorizationTemplates = listOf(ContextScopeTemplate {
+            val claim = nodeData(retrieveClaim)
+            val customerService = claim.accidentInfo.customerServiceId
+            UnionPermissionScope(
+                AGFIL.INTERNAL.SEND_CLAIM_FORM(claim.id),
+                CommonPMAPermissions.DELEGATED_PERMISSION.context(customerService, POLICYHOLDER.SEND_CLAIM_FORM(claim.id))
+            )
+        }),
         service = ServiceNames.agfilService,
         input = claimIdInput
     ) { claimId ->
@@ -99,7 +108,9 @@ val agfilProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>
 
     val notifyLeeCs: DataNodeHandle<*> by serviceActivity(
         predecessor = handleValidSplit,
-        authorizationTemplates = listOf(),
+        authorizationTemplates = listOf(
+            ContextScopeTemplate { LEECS.START_PROCESSING(nodeData(claimIdInput)) }
+        ),
         service = ServiceNames.leeCsService,
         input = claimIdInput
     ) { claimId ->

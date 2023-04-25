@@ -13,7 +13,8 @@ import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableAutomatedService
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableUiService
 import nl.adaptivity.process.engine.pma.models.ServiceName
-import nl.adaptivity.process.engine.pma.models.ServiceResolver
+import nl.adaptivity.process.engine.pma.models.PmaServiceResolver
+import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import java.util.logging.Logger
 import kotlin.random.Random
@@ -23,7 +24,7 @@ class EuropAssistService(
     authService: AuthService,
     adminAuthInfo: PmaAuthInfo,
     engineService: EngineService,
-    override val serviceResolver: ServiceResolver,
+    override val serviceResolver: PmaServiceResolver,
     random: Random,
     logger: Logger,
 ) : RunnableProcessBackedService<EuropAssistService>(
@@ -37,6 +38,8 @@ class EuropAssistService(
 ), RunnableAutomatedService, RunnableUiService, AutoService {
     private val instanceHandles = mutableMapOf<ClaimId, PIHandle>()
 
+    private var nextClaimId: Long = 0L
+
     val internal: Internal = Internal()
     private val callHandlers: List<PrincipalCompat>
     init {
@@ -48,9 +51,15 @@ class EuropAssistService(
     /** From Lai's thesis */
     fun phoneClaim(authToken: PmaAuthInfo, carRegistration: CarRegistration, claimInfo: String, callerInfo: CallerInfo): ClaimId {
         validateAuthInfo(authToken, CommonPMAPermissions.IDENTIFY)
-        val claimData = payload<CarRegistration, String, CallerInfo>("carRegistration", carRegistration, "claimInfo", claimInfo, "callerInfo", callerInfo)
+        val claimId = ClaimId(nextClaimId++)
+        val claimData = payload(
+            "carRegistration", carRegistration,
+            "claimInfo", claimInfo,
+            "callerInfo", callerInfo,
+            "claimId", claimId,
+        )
         val processHandle = startProcess(processHandles[0], claimData)
-        return ClaimId(processHandle.handleValue).also {// TODO the handles can be independent
+        return claimId.also {// TODO the handles can be independent
             instanceHandles[it] = processHandle
         }
     }
@@ -82,6 +91,7 @@ class EuropAssistService(
             accidentInfo: AccidentInfo
         ): GarageInfo {
             validateAuthInfo(authToken, EUROP_ASSIST.INTERNAL.ASSIGN_GARAGE(claimId))
+            require(claimId in instanceHandles)
             val customerServiceId = withService(agfilService, authToken, AGFIL.GET_CUSTOMER_INFO(accidentInfo.customerId)) {
                 service.getCustomerInfo(serviceAccessToken, accidentInfo.customerId).service
             }

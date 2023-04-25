@@ -11,7 +11,7 @@ import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.PmaAuthToken
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableAutomatedService
 import nl.adaptivity.process.engine.pma.models.ServiceName
-import nl.adaptivity.process.engine.pma.models.ServiceResolver
+import nl.adaptivity.process.engine.pma.models.PmaServiceResolver
 import java.util.logging.Logger
 import kotlin.random.Random
 
@@ -20,7 +20,7 @@ class AssessorService(
     authService: AuthService,
     adminAuthInfo: PmaAuthInfo,
     engineService: EngineService,
-    override val serviceResolver: ServiceResolver,
+    override val serviceResolver: PmaServiceResolver,
     random: Random,
     logger: Logger,
 ) : RunnableProcessBackedService<AssessorService>(

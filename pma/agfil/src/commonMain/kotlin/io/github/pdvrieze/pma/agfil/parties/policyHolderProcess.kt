@@ -4,13 +4,16 @@ import io.github.pdvrieze.pma.agfil.contexts.AgfilActivityContext
 import io.github.pdvrieze.pma.agfil.contexts.AgfilBrowserContext
 import io.github.pdvrieze.pma.agfil.data.*
 import io.github.pdvrieze.pma.agfil.services.AgfilPermissions.*
+import io.github.pdvrieze.pma.agfil.services.GarageService
 import io.github.pdvrieze.pma.agfil.services.PolicyHolderService
 import io.github.pdvrieze.pma.agfil.services.ServiceNames
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.DataNodeHandle
 import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.dynamic.scope.templates.ContextScopeTemplate
+import nl.adaptivity.process.engine.pma.models.Service
 import nl.adaptivity.process.engine.pma.models.ServiceId
+import nl.adaptivity.process.engine.pma.models.UnionPermissionScope
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 
 fun policyHolderProcess(owner: PrincipalCompat, ownerService: ServiceId<PolicyHolderService>) = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>("policyHolder_get_car_fixed", owner) {
@@ -25,7 +28,7 @@ fun policyHolderProcess(owner: PrincipalCompat, ownerService: ServiceId<PolicyHo
         ),
         ownerService
     ) {
-        service.internal.reportClaim(authToken, processContext.processInstanceHandle, activityContext.callerInfo(owner), agfilProcessContext.carRegistration)
+        service.internal.reportClaim(authToken, processContext.processInstanceHandle, activityContext.callerInfo(owner, ownerService), agfilProcessContext.carRegistration)
     }
 
 
@@ -33,7 +36,14 @@ fun policyHolderProcess(owner: PrincipalCompat, ownerService: ServiceId<PolicyHo
 
     val sendCar by serviceActivity(
         predecessor = onGarageAssigned,
-        authorizationTemplates = listOf(),
+        authorizationTemplates = listOf(
+            ContextScopeTemplate {
+                UnionPermissionScope(
+                    POLICYHOLDER.INTERNAL.SEND_CAR(processContext.carRegistration),
+                    CommonPMAPermissions.DELEGATED_PERMISSION.context(nodeData(onGarageAssigned).serviceId, GARAGE.SEND_CAR(processContext.carRegistration))
+                )
+            },
+        ),
         service = ownerService,
         input = combine(reportClaim named "claimId", onGarageAssigned named "garage")
     ) { (claimId, garage) ->

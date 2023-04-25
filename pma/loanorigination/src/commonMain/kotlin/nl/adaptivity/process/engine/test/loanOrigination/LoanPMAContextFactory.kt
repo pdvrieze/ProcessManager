@@ -21,9 +21,9 @@ import kotlin.random.Random
 
 class LoanPMAContextFactory(log: Logger, random: Random) :
     AbstractLoanContextFactory<LoanPMAActivityContext>(log, random),
-    DynamicPmaProcessContextFactory<LoanPMAActivityContext>, ServiceResolver {
+    DynamicPmaProcessContextFactory<LoanPMAActivityContext>, PmaServiceResolver {
 
-    override val serviceResolver: ServiceResolver get() = this
+    override val serviceResolver: PmaServiceResolver get() = this
 
     private val processContexts = mutableMapOf<PIHandle, LoanPmaProcessContext>()
 

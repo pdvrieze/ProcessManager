@@ -5,7 +5,7 @@ import nl.adaptivity.process.processModel.IXmlMessage
 import nl.adaptivity.xmlutil.util.ICompactFragment
 
 class PMAMessage(
-    override val targetService: InvokableMethod,
+    override val targetMethod: InvokableMethod,
     override val operation: String?,
     override val messageBody: ICompactFragment,
 ) : IXmlMessage {

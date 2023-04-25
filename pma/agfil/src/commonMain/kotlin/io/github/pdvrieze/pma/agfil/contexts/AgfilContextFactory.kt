@@ -20,6 +20,7 @@ import nl.adaptivity.process.engine.pma.dynamic.services.DynamicTaskList
 import nl.adaptivity.process.engine.pma.dynamic.services.TaskList
 import nl.adaptivity.process.engine.pma.models.ResolvedInvokableMethod
 import nl.adaptivity.process.engine.pma.models.Service
+import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.PNIHandle
@@ -121,14 +122,15 @@ class AgfilContextFactory(private val logger: Logger, private val random: Random
     }
 
     fun resolveBrowser(principal: PrincipalCompat): Browser {
-        return browsers.getOrPut(principal.name) { Browser(authService, adminAuthServiceClient.registerClient(principal, Random.nextString())) }
+        return browsers.getOrPut(principal.name) {
+            Browser(authService, adminAuthServiceClient.registerClient(principal, Random.nextString()))
+        }
     }
 
-    fun callerInfo(customer: PrincipalCompat): CallerInfo {
+    fun callerInfo(customer: PrincipalCompat, serviceId: ServiceId<PolicyHolderService>): CallerInfo {
         val randomPhoneNumber = "0${(1..9).random(random)}${(1..8).joinToString("") { (0..9).random(random).toString()}}"
         // TODO this is a raw hack that hardcodes the policyHolder
-        val policyHolderService = serviceResolver.resolveService(ServiceName<PolicyHolderService>("policyHolder")).serviceInstanceId
-        return customerInfo.getOrPut(customer.name) { CallerInfo(customer.name, randomPhoneNumber, policyHolderService)}
+        return customerInfo.getOrPut(customer.name) { CallerInfo(customer.name, randomPhoneNumber, serviceId)}
     }
 
     fun createPolicyHolder(name: String) : PolicyHolderService {
@@ -142,6 +144,10 @@ class AgfilContextFactory(private val logger: Logger, private val random: Random
             logger = logger
         )
         _services.add(policyHolder)
+        val policyHolderPrincipal = policyHolder.authServiceClient.principal
+        val policyHolderAuth = policyHolder.authServiceClient.originatingClientAuth as PmaIdSecretAuthInfo
+
+        browsers[policyHolderPrincipal.name] = Browser(authService, policyHolderAuth)
         return policyHolder
     }
 }

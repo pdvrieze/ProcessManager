@@ -33,6 +33,8 @@ import nl.adaptivity.process.engine.pma.models.*
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
+import nl.adaptivity.process.messaging.InvokableMethod
+import nl.adaptivity.process.messaging.SOAPMethodDesc
 import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.PMHandle
@@ -42,6 +44,7 @@ import nl.adaptivity.xmlutil.util.CompactFragment
 import java.security.Principal
 import java.util.*
 import java.util.logging.Logger
+import javax.xml.namespace.QName
 import kotlin.collections.ArrayDeque
 import kotlin.random.Random
 
@@ -300,7 +303,7 @@ class EngineService(
         fun <TR: ContextProcessTransaction> impl(processEngine: ProcessEngine<TR>) {
             processEngine.inTransaction { tr ->
                 tr.writableEngineData.updateInstance(piHandle) {
-                    val child = allChildNodeInstances { it.node==nodeId && it.state.isActive }.sortedBy { it.entryNo }.first()
+                    val child = allChildNodeInstances { it.node.identifier==nodeId && it.state.isActive }.sortedBy { it.entryNo }.first()
                     updateChild(child) {
                         finishTask(tr.writableEngineData, payload)
                     }
@@ -334,6 +337,8 @@ class EngineService(
         }
         return impl(processEngine)
     }
+
+    val runMessageMethod: InvokableMethod = SOAPMethodDesc(QName("engineService"), "internal", "run")
 }
 
 private fun newEngineClientAuth(authServiceClient: DefaultAuthServiceClient, serviceName: ServiceName<EngineService>): PmaIdSecretAuthInfo {

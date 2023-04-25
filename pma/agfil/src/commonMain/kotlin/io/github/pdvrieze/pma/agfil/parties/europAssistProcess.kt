@@ -17,6 +17,7 @@ import java.util.*
 val europAssistProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>("EuropAssistHandleCall", uuid = UUID.randomUUID()) {
     val registration = input<CarRegistration>("carRegistration")
     val claimInfo = input<String>("claimInfo")
+    val claimIdInput = input<ClaimId>("claimId")
 
     val callInfo = input<CallerInfo>("callerInfo")
     val start by startNode // TODO add inputs
@@ -32,7 +33,7 @@ val europAssistProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserCo
             val customerId = uiServiceLogin(agfilService) {
                 service.findCustomerId(authToken, callInfo)
             }
-            AccidentInfo(customerId, registration, randomAccidentDetails())
+            AccidentInfo(customerId, callInfo.serviceId, registration, randomAccidentDetails())
         }
     }
 
@@ -57,12 +58,12 @@ val europAssistProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserCo
     val recordClaim: DataNodeHandle<ClaimId> by serviceActivity(
         predecessor = validateInfo,
         authorizationTemplates = listOf(AGFIL.CLAIM.CREATE),
-        input = combine(validateInfo named "validated", registerClaim named "claim"),
+        input = combine(validateInfo named "validated", registerClaim named "claim", claimIdInput named "claimId"),
         service = ServiceNames.agfilService
-    ) {(validated, claim) ->
+    ) {(validated, claim, claimId) ->
         if (!validated) throw IllegalArgumentException("Storing an invalid claim is invalid")
 
-        service.recordClaimInDatabase(authToken, claim)
+        service.recordClaimInDatabase(authToken, claim, claimId)
     }
 
     val pickGarage: DataNodeHandle<GarageInfo> by taskActivity(

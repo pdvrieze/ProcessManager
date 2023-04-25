@@ -27,7 +27,7 @@ val leeCsProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>
         retrieveAccidentInfo,
         listOf(
             ContextScopeTemplate {
-                nodeData(retrieveAccidentInfo).assignedGarageInfo!!.service.let { garageService ->
+                nodeData(retrieveAccidentInfo).assignedGarageInfo!!.serviceId.let { garageService ->
                     delegatePermissions(garageService, AgfilPermissions.INFORM_GARAGE).instantiateScope(this)
                 }
             },

@@ -9,7 +9,8 @@ import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.engine.pma.dynamic.ServiceActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.TaskBuilderContext
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaActivityContext
-import nl.adaptivity.process.engine.pma.dynamic.scope.templates.DelegateScopeTemplate
+import nl.adaptivity.process.engine.pma.dynamic.scope.templates.IdDelegateScopeTemplate
+import nl.adaptivity.process.engine.pma.dynamic.scope.templates.NameDelegateScopeTemplate
 import nl.adaptivity.process.engine.pma.models.AuthScopeTemplate
 import nl.adaptivity.process.engine.pma.models.AutomatedService
 import nl.adaptivity.process.engine.pma.models.ServiceId
@@ -240,7 +241,14 @@ abstract class PmaModelBuilderContext<
         targetService: ServiceName<*>,
         vararg permissions: AuthScopeTemplate<AIC>
     ): AuthScopeTemplate<AIC> {
-        return DelegateScopeTemplate(targetService, permissions)
+        return NameDelegateScopeTemplate(targetService, permissions)
+    }
+
+    fun /*<AIC : DynamicPmaActivityContext<AIC, *>>*/ delegatePermissions(
+        targetService: ServiceId<*>,
+        vararg permissions: AuthScopeTemplate<AIC>
+    ): AuthScopeTemplate<AIC> {
+        return IdDelegateScopeTemplate(targetService, permissions)
     }
 
     companion object {

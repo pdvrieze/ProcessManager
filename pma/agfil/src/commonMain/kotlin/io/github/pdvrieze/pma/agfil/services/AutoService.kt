@@ -9,7 +9,7 @@ interface AutoService {
     /** The authentication service */
     val authServiceClient: DefaultAuthServiceClient
     /** A function that can resolve services from their name */
-    val serviceResolver: ServiceResolver
+    val serviceResolver: PmaServiceResolver
 }
 
 inline fun <S : Service, R> AutoService.withService(
@@ -73,7 +73,7 @@ inline fun <R> AutoService.withGarage(
     requestedScope: AuthScope = ANYSCOPE,
     action: ServiceInvocationContext<GarageService>.() -> R
 ): R {
-    val garageName = requireNotNull(garageInfo) { "No garage assigned to claim" }.service
+    val garageName = requireNotNull(garageInfo) { "No garage assigned to claim" }.serviceId
     return withService(garageName, authToken, requestedScope, action)
 }
 

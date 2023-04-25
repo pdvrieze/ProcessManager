@@ -69,7 +69,7 @@ class PMAActivityInstance <C : PmaActivityContext<C>> : ProcessNodeInstance<PMAA
 
                 val authorizations = node.authorizationTemplates.mapNotNull { it.instantiateScope(aic) }
 
-                val authData: AuthorizationInfo.Token = contextFactory.createAuthTokenForEngineToInvokeService(message.targetService, authorizations, handle)
+                val authData: AuthorizationInfo.Token = contextFactory.createAuthTokenForEngineToInvokeService(message.targetMethod, authorizations, handle)
 
                 val preparedMessage = messageService.createMessage(message)
 

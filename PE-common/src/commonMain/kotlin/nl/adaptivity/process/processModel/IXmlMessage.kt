@@ -26,47 +26,47 @@ import nl.adaptivity.xmlutil.util.ICompactFragment
 
 interface IXmlMessage {
 
-    val targetService: InvokableMethod
+    val targetMethod: InvokableMethod
 
     @Deprecated("Use targetService", ReplaceWith("targetService.endpoint.serviceName?.getLocalPart()"))
     val serviceName: String?
-        get() = targetService.endpoint.serviceName?.getLocalPart()
+        get() = targetMethod.endpoint.serviceName?.getLocalPart()
 
     @Deprecated("Use targetService", ReplaceWith("targetService.endpoint.serviceName?.getNamespaceURI()"))
     val serviceNS: String?
-        get() = targetService.endpoint.serviceName?.getNamespaceURI()
+        get() = targetMethod.endpoint.serviceName?.getNamespaceURI()
 
     @Deprecated("Use targetService", ReplaceWith("targetService.endpoint.serviceName"))
     val service: QName?
-        get() = targetService.endpoint.serviceName
+        get() = targetMethod.endpoint.serviceName
 
     @Deprecated("Use targetService", ReplaceWith("targetService.endpoint.endpointName"))
     val endpoint: String?
-        get() = targetService.endpoint.endpointName
+        get() = targetMethod.endpoint.endpointName
 
     @Deprecated("Use targetService", ReplaceWith("targetService.endpoint"))
     val endpointDescriptor: EndpointDescriptor?
-        get() = targetService.endpoint
+        get() = targetMethod.endpoint
 
     @Deprecated("Use targetService", ReplaceWith("targetService.operation"))
     val operation: String?
-        get() = (targetService as? SOAPMethod)?.operation
+        get() = (targetMethod as? SOAPMethod)?.operation
 
     val messageBody: ICompactFragment
 
     @Deprecated("Use targetServicce", ReplaceWith("targetService.endpoint.endpointLocation?.toString()"))
     val url: String?
-        get() = targetService.endpoint.endpointLocation?.toString()
+        get() = targetMethod.endpoint.endpointLocation?.toString()
 
     @Deprecated("Use targetService",
         ReplaceWith("(targetService as? RESTMethod)?.method", "nl.adaptivity.process.messaging.RESTMethod")
     )
     val method: String?
-        get() = (targetService as? RESTMethod)?.method
+        get() = (targetMethod as? RESTMethod)?.method
 
 
     val contentType: String?
-        get() = targetService.contentType
+        get() = targetMethod.contentType
 
     override fun toString(): String
 

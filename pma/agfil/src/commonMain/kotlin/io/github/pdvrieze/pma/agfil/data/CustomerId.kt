@@ -4,4 +4,4 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @JvmInline
-value class CustomerId(val id: Long) {}
+value class CustomerId(val id: ULong) {}

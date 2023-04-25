@@ -12,7 +12,7 @@ import nl.adaptivity.process.engine.pma.PmaAuthInfo
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableAutomatedService
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableUiService
 import nl.adaptivity.process.engine.pma.models.ServiceName
-import nl.adaptivity.process.engine.pma.models.ServiceResolver
+import nl.adaptivity.process.engine.pma.models.PmaServiceResolver
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.xmlutil.serialization.XML
 import java.util.logging.Logger
@@ -23,7 +23,7 @@ class GarageService(
     authService: AuthService,
     adminAuthInfo: PmaAuthInfo,
     engineService: EngineService,
-    override val serviceResolver: ServiceResolver,
+    override val serviceResolver: PmaServiceResolver,
     random: Random,
     logger: Logger = authService.logger
 ) : RunnableProcessBackedService<GarageService>(

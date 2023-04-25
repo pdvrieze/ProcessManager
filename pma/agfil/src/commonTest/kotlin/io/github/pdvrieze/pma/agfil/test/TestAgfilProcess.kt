@@ -6,6 +6,7 @@ import io.github.pdvrieze.pma.agfil.data.ClaimId
 import io.github.pdvrieze.pma.agfil.parties.policyHolderProcess
 import io.github.pdvrieze.pma.agfil.services.PolicyHolderService
 import io.github.pdvrieze.pma.agfil.util.get
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.impl.RunningMessageService
 import net.devrieze.util.security.PermissiveProvider
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ProcessEngine
@@ -44,7 +45,9 @@ class TestAgfilProcess : ProcessEngineTestSupport() {
 
         val transactionFactory = stubTransactionFactory
         lateinit var engine: ProcessEngine<StubProcessTransaction>
+        lateinit var messageService: RunningMessageService
         val contextFactory = AgfilContextFactory(logger, random) { acf ->
+            messageService = RunningMessageService(acf.serviceResolver as RunningMessageService.ServiceResolver)
             defaultEngineFactory(messageService, transactionFactory, acf).also {
                 it.setSecurityProvider(PermissiveProvider()) // temporarily during setup
                 engine = it
@@ -53,19 +56,10 @@ class TestAgfilProcess : ProcessEngineTestSupport() {
         engine.setSecurityProvider(PmaSecurityProvider(contextFactory.engineService.serviceInstanceId, contextFactory.adminAuthServiceClient))
         val engineService = contextFactory.engineService
 
-        contextFactory.createPolicyHolder("policyHolder")
-
-        val policyHolder = PolicyHolderService(
-            serviceName = ServiceName("policyHolder"),
-            authService = contextFactory.authService,
-            adminAuthInfo = contextFactory.adminAuthServiceClient.originatingClientAuth,
-            engineService = engineService,
-            serviceResolver = contextFactory.serviceResolver,
-            random = random,
-            logger = logger
-        )
+        val policyHolder = contextFactory.createPolicyHolder("policyHolder")
 
         val claimProcessHandle = policyHolder.initiateClaimProcess()
+        messageService.processMessages()
 
         engine.inTransaction { tr ->
             val d = tr.readableEngineData

@@ -37,6 +37,7 @@ sealed class AgfilPermissions {
     }
 
     object LEECS {
+        object START_PROCESSING: AbstractClaimPermission()
         object INTERNAL {
             object CONTACT_GARAGE: AbstractClaimPermission()
         }
@@ -125,6 +126,7 @@ sealed class AgfilPermissions {
             else -> id==useScope.id
         }
 
+        override fun toString() = description
     }
 
 }

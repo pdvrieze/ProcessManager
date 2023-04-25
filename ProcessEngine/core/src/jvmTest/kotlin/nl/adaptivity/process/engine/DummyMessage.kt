@@ -9,7 +9,7 @@ import nl.adaptivity.xmlutil.util.ICompactFragment
 import javax.xml.namespace.QName
 
 object DummyMessage: IXmlMessage {
-    override val targetService: InvokableMethod
+    override val targetMethod: InvokableMethod
         get() = RESTMethodDesc(QName("dummy"), "POST", "/dummy", "application/x-dummy")
     override val operation: String?
         get() = null

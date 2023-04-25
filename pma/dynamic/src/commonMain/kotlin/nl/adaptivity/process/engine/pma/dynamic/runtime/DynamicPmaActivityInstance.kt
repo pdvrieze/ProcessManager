@@ -2,12 +2,14 @@ package nl.adaptivity.process.engine.pma.dynamic.runtime
 
 import RunnablePmaActivity
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.AbstractRunnableActivityInstance
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.GenericRunnableMessage
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.RunnableMessage
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.impl.payload
 import net.devrieze.util.Handle
+import net.devrieze.util.security.SYSTEMPRINCIPAL
 import nl.adaptivity.process.IMessageService
-import nl.adaptivity.process.engine.MutableProcessEngineDataAccess
-import nl.adaptivity.process.engine.ProcessContextFactory
-import nl.adaptivity.process.engine.ProcessInstance
-import nl.adaptivity.process.engine.impl.CompactFragment
+import nl.adaptivity.process.engine.*
+import nl.adaptivity.process.engine.pma.EngineService
 import nl.adaptivity.process.engine.pma.dynamic.model.PmaAction
 import nl.adaptivity.process.engine.pma.dynamic.model.PmaAction.BrowserAction
 import nl.adaptivity.process.engine.pma.dynamic.model.PmaAction.ServiceAction
@@ -18,9 +20,10 @@ import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.processModel.tryCreateTask
 import nl.adaptivity.process.engine.processModel.tryRunTask
+import nl.adaptivity.process.messaging.InvokableMethod
 import nl.adaptivity.util.multiplatform.PrincipalCompat
-import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.util.ICompactFragment
 
 class DynamicPmaActivityInstance<InputT : Any, OutputT : Any, C : DynamicPmaActivityContext<C, *>>(
     builder: Builder<InputT, OutputT, C>
@@ -31,7 +34,7 @@ class DynamicPmaActivityInstance<InputT : Any, OutputT : Any, C : DynamicPmaActi
     val isBrowserTask: Boolean get() = node.action is BrowserAction<*, *, *, *>
 
     override fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder<InputT, OutputT, C> {
-        return DynamicPmaActivityInstance.ExtBuilder(this, processInstanceBuilder)
+        return ExtBuilder(this, processInstanceBuilder)
     }
 
     interface Builder<InputT : Any, OutputT : Any, C : DynamicPmaActivityContext<C, *>> :
@@ -52,14 +55,14 @@ class DynamicPmaActivityInstance<InputT : Any, OutputT : Any, C : DynamicPmaActi
                     for (taskList in taskLists) {
                         processContext.engineService.doPostTaskToTasklist(taskList, handle)
                     }
-                    val principalProvider: C.() -> PrincipalCompat = a.action.principalProvider
-                    takeTask(engineData, aic.principalProvider())
+                    val principal = a.action.principalProvider(aic).name
+                    sendTakeTaskMessage<EngineService>(engineData, messageService, aic, principal)
                     false
                 }
 
                 else -> {
-
-                    true
+                    sendTakeTaskMessage<EngineService>(engineData, messageService, aic)
+                    false
                 }
             }
         }
@@ -137,9 +140,7 @@ class DynamicPmaActivityInstance<InputT : Any, OutputT : Any, C : DynamicPmaActi
                     //aic.action(input)
 
                 return node.outputSerializer?.let { os ->
-                    CompactFragment { writer ->
-                        XML.defaultInstance.encodeToWriter(writer, os, result)
-                    }
+                    payload(result, os)
                 }
 
             }
@@ -147,14 +148,15 @@ class DynamicPmaActivityInstance<InputT : Any, OutputT : Any, C : DynamicPmaActi
             val shouldProgress = tryCreateTask { node.canStartTaskAutoProgress(this) }
 
             if (shouldProgress) {
+                val contextFactory = engineData.processContextFactory as ProcessContextFactory<C>
 
                 val resultFragment = tryRunTask {
                     val builtNodeInstance: DynamicPmaActivityInstance<InputT, OutputT, C> = build()
-                    val contextFactory = engineData.processContextFactory as ProcessContextFactory<C>
                     doRun(contextFactory, builtNodeInstance)
                 }
-
-                finishTask(engineData, resultFragment)
+                val aic = contextFactory.newActivityInstanceContext(engineData, this)
+                sendFinishTaskMessage(engineData, engineData.messageService(), aic, resultFragment ?: CompactFragment(""))
+//                finishTask(engineData, resultFragment)
             }
             return false // we call finish ourselves, so don't call it afterwards.
         }
@@ -192,4 +194,87 @@ class DynamicPmaActivityInstance<InputT : Any, OutputT : Any, C : DynamicPmaActi
             return if (changed) DynamicPmaActivityInstance(this).also { invalidateBuilder(it) } else base
         }
     }
+}
+
+private fun <S> createAndSendRunnableMessage(
+    engineData: ProcessEngineDataAccess,
+    messageService: IMessageService<*>,
+    activityInstanceContext: DynamicPmaActivityContext<*, *>,
+    destination: InvokableMethod = activityInstanceContext.processContext.engineService.runMessageMethod,
+    body: S.() -> Unit
+) {
+    fun <MSG_T> impl(messageService: IMessageService<MSG_T>) {
+        val protoMessage = messageService.createMessage(GenericRunnableMessage(destination, body))
+        messageService.sendMessage(engineData, protoMessage, activityInstanceContext)
+    }
+    impl(messageService)
+}
+
+private fun <S> sendTakeTaskMessage(
+    engineData: ProcessEngineDataAccess,
+    messageService: IMessageService<*>,
+    activityInstanceContext: DynamicPmaActivityContext<*, *>,
+    assignedUser: String? = null,
+    pniHandle: PNIHandle = activityInstanceContext.nodeInstanceHandle,
+    destination: InvokableMethod = activityInstanceContext.processContext.engineService.runMessageMethod,
+) {
+    fun <MSG_T> impl(messageService: IMessageService<MSG_T>) {
+        val protoMessage = messageService.createMessage(TakeTaskMessage(destination, pniHandle, assignedUser))
+        messageService.sendMessage(engineData, protoMessage, activityInstanceContext)
+    }
+    impl(messageService)
+}
+
+private fun sendFinishTaskMessage(
+    engineData: ProcessEngineDataAccess,
+    messageService: IMessageService<*>,
+    activityInstanceContext: DynamicPmaActivityContext<*, *>,
+    payload: ICompactFragment = CompactFragment(""),
+    pniHandle: PNIHandle = activityInstanceContext.nodeInstanceHandle,
+    destination: InvokableMethod = activityInstanceContext.processContext.engineService.runMessageMethod,
+) {
+    fun <MSG_T> impl(messageService: IMessageService<MSG_T>) {
+        val protoMessage = messageService.createMessage(FinishProcessMessage(destination, pniHandle, payload))
+        messageService.sendMessage(engineData, protoMessage, activityInstanceContext)
+    }
+    impl(messageService)
+}
+
+private class TakeTaskMessage(
+    override val targetMethod: InvokableMethod,
+    val pniHandle: PNIHandle,
+    val assignedUser: String?
+) : RunnableMessage<EngineService> {
+    override val messageBody: ICompactFragment
+        get() = CompactFragment(toString())
+
+    private fun <TR : ContextProcessTransaction> runImpl(processEngine: ProcessEngine<TR>) {
+        processEngine.inTransaction { tr ->
+            if (assignedUser!=null) {
+                processEngine.takeTask(tr, pniHandle, assignedUser, SYSTEMPRINCIPAL)
+            } else {
+                processEngine.updateTaskState(tr, pniHandle, NodeInstanceState.Taken, SYSTEMPRINCIPAL)
+            }
+        }
+    }
+
+    override fun run(target: EngineService) = runImpl(target.processEngine)
+
+    override fun toString(): String {
+        return "takeTask($pniHandle, $assignedUser)"
+    }
+}
+
+private class FinishProcessMessage(override val targetMethod: InvokableMethod, val pniHandle: PNIHandle, val payload: ICompactFragment) : RunnableMessage<EngineService> {
+    override fun run(target: EngineService) = runImpl(target.processEngine)
+
+    private fun <TR : ContextProcessTransaction> runImpl(engine: ProcessEngine<TR>) {
+        engine.inTransaction {
+            engine.finishTask(it, pniHandle, payload, SYSTEMPRINCIPAL)
+        }
+    }
+
+    override fun toString(): String = "finish($pniHandle, $payload)"
+
+    override val messageBody: ICompactFragment get() = CompactFragment(toString())
 }

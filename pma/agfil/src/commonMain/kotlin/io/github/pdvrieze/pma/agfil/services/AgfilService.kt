@@ -6,6 +6,8 @@ import io.github.pdvrieze.pma.agfil.data.InsurancePolicy.Coverage
 import io.github.pdvrieze.pma.agfil.parties.agfilProcess
 import io.github.pdvrieze.pma.agfil.services.AgfilPermissions.*
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.impl.payload
+import net.devrieze.util.Handle
+import nl.adaptivity.process.engine.PIHandle
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.EngineService
 import nl.adaptivity.process.engine.pma.PmaAuthInfo
@@ -14,16 +16,17 @@ import nl.adaptivity.process.engine.pma.dynamic.services.RunnableAutomatedServic
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableUiService
 import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
-import nl.adaptivity.process.engine.pma.models.ServiceResolver
+import nl.adaptivity.process.engine.pma.models.PmaServiceResolver
 import java.util.logging.Logger
 import kotlin.random.Random
+import kotlin.random.nextULong
 
 class AgfilService(
     serviceName: ServiceName<AgfilService>,
     authService: AuthService,
     adminAuthInfo: PmaAuthInfo,
     engineService: EngineService,
-    override val serviceResolver: ServiceResolver,
+    override val serviceResolver: PmaServiceResolver,
     random: Random,
     logger: Logger
 ) : RunnableProcessBackedService<AgfilService>(serviceName, authService, adminAuthInfo, engineService, random, logger, agfilProcess), RunnableAutomatedService, RunnableUiService, AutoService {
@@ -39,8 +42,9 @@ class AgfilService(
     /** From Lai's thesis */
     fun notifyClaimAssigned(authToken: PmaAuthInfo, claimId: ClaimId, accidentInfo: AccidentInfo, garage: GarageInfo) {
         validateAuthInfo(authToken, CLAIM.NOTIFY_ASSIGNED(claimId))
-        val payload = payload("claimId", claimId/*, "accidentInfo", accidentInfo, "garage", garage*/)
-        startProcess(processHandles[0], payload)
+        val payload = payload<ClaimId>(claimId/*, "accidentInfo", accidentInfo, "garage", garage*/)
+        val instanceHandle = startProcess(processHandles[0], payload)
+        claims.add(ClaimData(claimId, accidentInfo, Outcome.Undecided, instanceHandle = instanceHandle))
     }
 
     /** From Lai's thesis */
@@ -58,9 +62,8 @@ class AgfilService(
         claim.invoice = invoice
     }
 
-    fun recordClaimInDatabase(authToken: PmaAuthInfo, accidentInfo: AccidentInfo): ClaimId {
+    fun recordClaimInDatabase(authToken: PmaAuthInfo, accidentInfo: AccidentInfo, claimId: ClaimId): ClaimId {
         validateAuthInfo(authToken, AGFIL.CLAIM.CREATE)
-        val claimId = ClaimId(claims.size.toLong())
         claims.add(ClaimData(claimId, accidentInfo, Outcome.Undecided))
         return claimId
     }
@@ -99,7 +102,7 @@ class AgfilService(
         validateAuthInfo(authToken, FIND_CUSTOMER_ID)
         val existingRecord = customers.values.firstOrNull { it.name==callerInfo.name }
         if (existingRecord == null) {
-            val newId = CustomerId(random.nextLong())
+            val newId = CustomerId(random.nextULong())
             val nextPolicyNumber = (customers.values.maxOfOrNull { it.policy.policyNumber } ?: 0) + 1
             val policy = InsurancePolicy(nextPolicyNumber, newId, emptyList())
             customers[newId] = CustomerData(newId, callerInfo.serviceId, callerInfo.name, callerInfo.phoneNumber, policy)
@@ -115,7 +118,9 @@ class AgfilService(
 
     fun getContractedGarages(authToken: PmaAuthInfo): List<GarageInfo> {
         validateAuthInfo(authToken, LIST_GARAGES)
-        return ServiceNames.garageServices.map { GarageInfo(it.serviceName, it.serviceName) }
+        return ServiceNames.garageServices.map {
+            GarageInfo(it.serviceName, serviceResolver.resolveService(it).serviceInstanceId)
+        }
     }
 
     fun getCustomerInfo(authToken: PmaAuthInfo, customerId: CustomerId): CustomerData {
@@ -135,7 +140,6 @@ class AgfilService(
             withService(customerService, authToken, POLICYHOLDER.SEND_CLAIM_FORM(claimId)) {
                 service.evReceiveClaimForm(serviceAccessToken, form)
             }
-            TODO("Get the customer's service, send form to that service")
         }
 
         fun terminateClaim(authToken: PmaAuthToken, claimId: ClaimId) {
@@ -161,7 +165,7 @@ class AgfilService(
             require(claim.invoice != invoice) { "Attempt to pay unregistered invoice" }
 
             // TODO actually pay?
-            withService(invoice.garage.service, authToken, GARAGE.NOTIFY_INVOICE_PAID(invoice.invoiceId)) {
+            withService(invoice.garage.serviceId, authToken, GARAGE.NOTIFY_INVOICE_PAID(invoice.invoiceId)) {
                 service.evNotifyInvoicePaid(serviceAccessToken, invoice.invoiceId, invoice.amount)
             }
         }
@@ -181,7 +185,8 @@ class AgfilService(
         var outcome: Outcome,
         var assignedGarageInfo: GarageInfo? = null,
         var invoice: Invoice? = null,
-        var claimForm: CompletedClaimForm? = null
+        var claimForm: CompletedClaimForm? = null,
+        var instanceHandle: PIHandle = Handle.invalid(),
     ) {
         fun toClaim() = Claim(id, accidentInfo, outcome, assignedGarageInfo)
     }

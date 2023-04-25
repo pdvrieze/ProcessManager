@@ -85,7 +85,7 @@ class XmlMessage : XMLContainer, IXmlMessage {
             super.content = value
         }
 
-    override val targetService: InvokableMethod
+    override val targetMethod: InvokableMethod
 
     @OptIn(XmlUtilInternal::class)
     override val messageBody: ICompactFragment
@@ -107,13 +107,13 @@ class XmlMessage : XMLContainer, IXmlMessage {
         messageBody: ICompactFragment? = null
     ) {
         if (service!=null && endpoint != null && operation != null) {
-            targetService = SOAPMethodDesc(service, endpoint, operation, url)
+            targetMethod = SOAPMethodDesc(service, endpoint, operation, url)
         } else {
             requireNotNull(method) { "A service must have either soap info or rest info. Method missing."  }
             requireNotNull(url) { "A service must have either soap info or rest info. url missing."  }
             requireNotNull(contentType) { "For a Rest service the content type cannot be null" }
             val descriptor = EndpointDescriptorImpl(service, endpoint, url.toUri())
-            targetService = RESTMethodDesc(descriptor, method, contentType)
+            targetMethod = RESTMethodDesc(descriptor, method, contentType)
         }
         messageBody?.let {
             namespaces = SimpleNamespaceContext(it.namespaces)
@@ -125,7 +125,7 @@ class XmlMessage : XMLContainer, IXmlMessage {
         service: SOAPMethod,
         messageBody: ICompactFragment? = null
     ) {
-        this.targetService = service
+        this.targetMethod = service
         messageBody ?: CompactFragment("").let {
             this.content = it.content
             this.namespaces = it.namespaces
@@ -136,7 +136,7 @@ class XmlMessage : XMLContainer, IXmlMessage {
         service: RESTMethod,
         messageBody: ICompactFragment? = null
     ) {
-        this.targetService = service
+        this.targetMethod = service
         messageBody ?: CompactFragment("").let {
             this.content = it.content
             this.namespaces = it.namespaces
@@ -144,15 +144,15 @@ class XmlMessage : XMLContainer, IXmlMessage {
     }
 
     constructor(baseMessage: IXmlMessage, newMessageBody: ICompactFragment) {
-        targetService = baseMessage.targetService
+        targetMethod = baseMessage.targetMethod
         content = newMessageBody.content
         namespaces = newMessageBody.namespaces
     }
 
     override fun serializeAttributes(out: XmlWriter) {
         super.serializeAttributes(out)
-        out.writeAttribute("type", targetService.contentType)
-        targetService.endpoint.run {
+        out.writeAttribute("type", targetMethod.contentType)
+        targetMethod.endpoint.run {
             serviceName?.run {
                 out.writeAttribute("serviceNS", namespaceURI)
                 out.writeAttribute("serviceName", getLocalPart())
@@ -160,8 +160,8 @@ class XmlMessage : XMLContainer, IXmlMessage {
             endpointName?.let { out.writeAttribute("endpoint", it) }
         }
         out.writeAttribute("operation", operation)
-        out.writeAttribute("url", targetService.url)
-        out.writeAttribute("method", (targetService as? RESTMethod)?.method)
+        out.writeAttribute("url", targetMethod.url)
+        out.writeAttribute("method", (targetMethod as? RESTMethod)?.method)
     }
 
     override fun serializeStartElement(out: XmlWriter) {
@@ -190,7 +190,7 @@ class XmlMessage : XMLContainer, IXmlMessage {
         if (operation != other.operation) return false
         if (namespaces != other.namespaces) return false
         if (!content.contentEquals(other.content)) return false
-        if (targetService != other.targetService) return false
+        if (targetMethod != other.targetMethod) return false
 
         return true
     }
@@ -200,7 +200,7 @@ class XmlMessage : XMLContainer, IXmlMessage {
         result = 31 * result + (operation?.hashCode() ?: 0)
         result = 31 * result + namespaces.hashCode()
         result = 31 * result + content.contentHashCode()
-        result = 31 * result + targetService.hashCode()
+        result = 31 * result + targetMethod.hashCode()
         return result
     }
 
@@ -247,18 +247,18 @@ class XmlMessage : XMLContainer, IXmlMessage {
 
         override fun writeAdditionalValues(encoder: CompositeEncoder, desc: SerialDescriptor, data: XmlMessage) {
             super.writeAdditionalValues(encoder, desc, data)
-            val targetService = data.targetService
+            val targetService = data.targetMethod
 
             encoder.encodeSerializableElement(desc, typeIdx, nullStringSerializer, data.contentType)
             if (targetService !is RESTMethod) {
                 encoder.encodeSerializableElement(desc, serviceNSIdx, nullStringSerializer,
-                    data.targetService.endpoint.serviceName?.getNamespaceURI()
+                    data.targetMethod.endpoint.serviceName?.getNamespaceURI()
                 )
                 encoder.encodeSerializableElement(desc, serviceNameIdx, nullStringSerializer,
-                    data.targetService.endpoint.serviceName?.getLocalPart()
+                    data.targetMethod.endpoint.serviceName?.getLocalPart()
                 )
                 encoder.encodeSerializableElement(desc, endpointIdx, nullStringSerializer,
-                    data.targetService.endpoint.endpointName
+                    data.targetMethod.endpoint.endpointName
                 )
             }
             if (targetService is SOAPMethod) {

@@ -4,7 +4,7 @@ import kotlinx.serialization.Serializable
 
 @Serializable
 @JvmInline
-value class ClaimId(val id: Long) {}
+value class ClaimId(val id: Long)
 
 @Serializable
 data class InsurancePolicy(val policyNumber: Long, val customer: CustomerId, val carCoverage: List<CoverageInfo>) {

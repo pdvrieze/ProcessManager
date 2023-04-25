@@ -1,14 +1,10 @@
 package io.github.pdvrieze.pma.agfil.services
 
 import io.github.pdvrieze.pma.agfil.data.*
-import io.github.pdvrieze.pma.agfil.parties.agfilProcessContext
-import io.github.pdvrieze.pma.agfil.parties.europAssistProcess
 import io.github.pdvrieze.pma.agfil.parties.policyHolderProcess
 import io.github.pdvrieze.pma.agfil.services.AgfilPermissions.*
-import net.devrieze.util.Handle
 import nl.adaptivity.process.engine.PIHandle
 import nl.adaptivity.process.engine.ProcessException
-import nl.adaptivity.process.engine.SecureProcessInstance
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.EngineService
 import nl.adaptivity.process.engine.pma.PmaAuthInfo
@@ -16,7 +12,7 @@ import nl.adaptivity.process.engine.pma.PmaAuthToken
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.models.AutomatedService
 import nl.adaptivity.process.engine.pma.models.ServiceName
-import nl.adaptivity.process.engine.pma.models.ServiceResolver
+import nl.adaptivity.process.engine.pma.models.PmaServiceResolver
 import nl.adaptivity.process.util.Identifier
 import java.util.logging.Logger
 import kotlin.random.Random
@@ -26,7 +22,7 @@ class PolicyHolderService(
     authService: AuthService,
     adminAuthInfo: PmaAuthInfo,
     engineService: EngineService,
-    override val serviceResolver: ServiceResolver,
+    override val serviceResolver: PmaServiceResolver,
     random: Random,
     logger: Logger,
 ) : RunnableProcessBackedService<PolicyHolderService>(
@@ -79,13 +75,20 @@ class PolicyHolderService(
         fun sendCar(authToken: PmaAuthToken, carRegistration: CarRegistration, claimId: ClaimId, garage: GarageInfo) {
             validateAuthInfo(authToken, POLICYHOLDER.INTERNAL.SEND_CAR(carRegistration))
             withGarage(authToken, garage) {
-                service.evReceiveCar(authToken, carRegistration, claimId)
+                service.evReceiveCar(serviceAccessToken, carRegistration, claimId)
             }
         }
 
         fun reportClaim(authToken: PmaAuthToken, piHandle: PIHandle, callerInfo: CallerInfo, carRegistration: CarRegistration): ClaimId {
+            validateAuthInfo(authToken, POLICYHOLDER.INTERNAL.REPORT_CLAIM)
+            val s = this@PolicyHolderService.serviceInstanceId
             return withService(ServiceNames.europAssistService, authToken, CommonPMAPermissions.IDENTIFY) {
-                service.phoneClaim(authToken, carRegistration, "Random Accident info", callerInfo).also {
+                service.phoneClaim(
+                    serviceAccessToken,
+                    carRegistration,
+                    "Random Accident info",
+                    callerInfo
+                ).also {
                     claimProcesses[it] = piHandle
                 }
             }
