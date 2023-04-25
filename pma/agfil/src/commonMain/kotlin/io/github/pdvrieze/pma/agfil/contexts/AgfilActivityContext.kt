@@ -2,6 +2,7 @@ package io.github.pdvrieze.pma.agfil.contexts
 
 import io.github.pdvrieze.pma.agfil.data.CallerInfo
 import io.github.pdvrieze.pma.agfil.data.Money
+import io.github.pdvrieze.pma.agfil.services.GarageService
 import io.github.pdvrieze.pma.agfil.services.PolicyHolderService
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaActivityContext
 import nl.adaptivity.process.engine.pma.models.ServiceId
@@ -11,7 +12,7 @@ interface AgfilActivityContext: DynamicPmaActivityContext<AgfilActivityContext, 
     override val processContext: AgfilProcessContext
 
     fun randomEaCallHandler(): PrincipalCompat
-    fun randomGarageReceptionist(): PrincipalCompat
+    fun randomGarageReceptionist(garageService: ServiceId<GarageService>): PrincipalCompat
     fun randomMechanic(): PrincipalCompat
     fun randomAccidentDetails(): String
     fun randomRepairCosts(): Money

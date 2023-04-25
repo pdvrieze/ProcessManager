@@ -80,7 +80,7 @@ class AgfilService(
     }
 
     fun recordAssignedGarage(authToken: PmaAuthInfo, claimId: ClaimId, garage: GarageInfo) {
-        validateAuthInfo(authToken, CLAIM.RECORD_ASSIGNED_GARAGE(claimId))
+        validateAuthInfo(authToken, AGFIL.CLAIM.RECORD_ASSIGNED_GARAGE(claimId))
         val claim = claims[claimId]
         claim?.let { it.assignedGarageInfo =garage }
     }

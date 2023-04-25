@@ -18,6 +18,7 @@ import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.models.PmaServiceResolver
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.util.Identifier
+import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.xmlutil.serialization.XML
 import java.util.logging.Logger
 import kotlin.random.Random
@@ -40,6 +41,7 @@ class GarageService(
     { repairProcess(adminAuthInfo.principal, serviceInstanceId) },
 ), RunnableAutomatedService, RunnableUiService, AutoService {
 
+    private val unassignedCars = mutableMapOf<ClaimId, CarRegistration>()
     val garageInfo = GarageInfo(serviceName.serviceName, serviceInstanceId.serviceId)
 
     val internal: Internal = Internal()
@@ -55,18 +57,31 @@ class GarageService(
         validateAuthInfo(authToken, GARAGE.INFORM_INCOMING_CAR)
         val payload = payload("claim", claimId, "accidentInfo", accidentInfo)
         val instanceHandle = startProcess(processHandles[0], payload)
-        repairs[claimId]= RepairInfo(instanceHandle, claimId, accidentInfo)
+        val repair = RepairInfo(instanceHandle, claimId, accidentInfo)
+        repairs[claimId]= repair
+        val unassignedCar = unassignedCars[claimId]
+
+        if (unassignedCar!=null) { // XXX there is an order problem that allows cars to arrive before the garage is informed
+            require(accidentInfo.carRegistration == unassignedCar)
+            processEngineService.deliverEvent(instanceHandle, Identifier("onReceiveCar"), payload(unassignedCar))
+            repair.repairState = RepairState.RECEIVED_CAR
+        }
     }
 
     /** From Lai's thesis. Receive car. from policyHolder */
     fun evReceiveCar(authToken: PmaAuthInfo, carRegistration: CarRegistration, claimId: ClaimId) {
         validateAuthInfo(authToken, GARAGE.SEND_CAR(carRegistration))
-        val repair = requireNotNull(repairs[claimId])
-        require(repair.accidentInfo.carRegistration == carRegistration)
-        require(repair.repairState == RepairState.WAITING)
-        val instanceHandle = repair.processHandle
-        processEngineService.deliverEvent(instanceHandle, Identifier("onReceiveCar"), payload(carRegistration))
-        repair.repairState = RepairState.RECEIVED_CAR
+        val repair = repairs[claimId]
+        if (repair == null) {
+            unassignedCars[claimId] = carRegistration
+        } else {
+
+            require(repair.accidentInfo.carRegistration == carRegistration)
+            require(repair.repairState == RepairState.WAITING)
+            val instanceHandle = repair.processHandle
+            processEngineService.deliverEvent(instanceHandle, Identifier("onReceiveCar"), payload(carRegistration))
+            repair.repairState = RepairState.RECEIVED_CAR
+        }
     }
 
     /** From Lai's thesis */
@@ -86,6 +101,10 @@ class GarageService(
     fun evNotifyInvoicePaid(authToken: PmaAuthInfo, invoiceId: InvoiceId, amount: Money) {
         validateAuthInfo(authToken, GARAGE.NOTIFY_INVOICE_PAID(invoiceId))
 
+        TODO("not implemented")
+    }
+
+    fun randomGarageReceptionist(): PrincipalCompat {
         TODO("not implemented")
     }
 

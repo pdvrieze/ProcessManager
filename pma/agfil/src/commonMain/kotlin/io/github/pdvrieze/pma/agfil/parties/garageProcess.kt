@@ -22,7 +22,7 @@ fun repairProcess(owner: PrincipalCompat, ownerService: ServiceId<GarageService>
     val onReceiveCar by eventNode(start, CarRegistration.serializer())
 
     val handleReceiveCar: DataNodeHandle<Unit> by taskActivity(onReceiveCar, input = combine(onReceiveCar named "registration", claimId named "claimId")) {
-        acceptTask({  randomGarageReceptionist() }) { (carRegistration, claimId) ->
+        acceptTask({  randomGarageReceptionist(ownerService) }) { (carRegistration, claimId) ->
             uiServiceLogin(ownerService) {
                 service.internal.registerCarReceipt(authToken, claimId, carRegistration)
             }

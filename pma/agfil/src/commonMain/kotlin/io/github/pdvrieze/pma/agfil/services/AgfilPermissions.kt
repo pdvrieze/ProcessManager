@@ -80,6 +80,7 @@ sealed class AgfilPermissions {
     object AGFIL {
         object CLAIM {
             object CREATE: AgfilPermissions(), UseAuthScope
+            object RECORD_ASSIGNED_GARAGE : AbstractClaimPermission()
         }
         object LIST_GARAGES: AgfilPermissions(), UseAuthScope
 
@@ -102,7 +103,6 @@ sealed class AgfilPermissions {
         object READ_ACCIDENTINFO: AbstractClaimPermission()
         object RETURN_FORM: AbstractClaimPermission()
         object REGISTER_INVOICE: AbstractClaimPermission()
-        object RECORD_ASSIGNED_GARAGE : AbstractClaimPermission()
     }
 
     private class ClaimUseScope(base: AuthScope, claimId: ClaimId): IdUseScope<ClaimId>(base, claimId)

@@ -95,16 +95,13 @@ class EuropAssistService(
             val customerServiceId = withService(agfilService, authToken, AGFIL.GET_CUSTOMER_INFO(accidentInfo.customerId)) {
                 service.getCustomerInfo(serviceAccessToken, accidentInfo.customerId).service
             }
-            // TODO actually not valid as no token exchange happens
-            serviceResolver.resolveService(customerServiceId).evAssignGarage(authToken, claimId, garage)
-/*
-            withService(customerServiceId, authToken, CommonPMAPermissions.IDENTIFY) {
-                service.evAssignGarage(serviceAccessToken, claimId, garage)
-            }
-*/
-
-            withService(agfilService, authToken, CLAIM.RECORD_ASSIGNED_GARAGE(claimId)) {
+            // First record the garage, before informing the customer. This is actually order dependent.
+            withService(agfilService, authToken, AGFIL.CLAIM.RECORD_ASSIGNED_GARAGE(claimId)) {
                 service.recordAssignedGarage(serviceAccessToken, claimId, garage)
+            }
+
+            withService(customerServiceId, authToken, POLICYHOLDER.ASSIGN_GARAGE(claimId)) {
+                service.evAssignGarage(serviceAccessToken, claimId, garage)
             }
 
             return garage // Smarter way to do something here

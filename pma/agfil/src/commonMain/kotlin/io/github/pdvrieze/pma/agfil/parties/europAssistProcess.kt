@@ -10,8 +10,11 @@ import io.github.pdvrieze.pma.agfil.services.ServiceNames.europAssistService
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.DataNodeHandle
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.RoleRestriction
 import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
+import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
+import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions.DELEGATED_PERMISSION
 import nl.adaptivity.process.engine.pma.dynamic.scope.templates.ContextScopeTemplate
 import nl.adaptivity.process.engine.pma.dynamic.uiServiceLogin
+import nl.adaptivity.process.engine.pma.models.UnionPermissionScope
 import java.util.*
 
 val europAssistProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>("EuropAssistHandleCall", uuid = UUID.randomUUID()) {
@@ -86,12 +89,18 @@ val europAssistProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserCo
         predecessor = pickGarage,
         authorizationTemplates = listOf(
             ContextScopeTemplate {
-                EUROP_ASSIST.INTERNAL.ASSIGN_GARAGE(nodeData(recordClaim))
+                val accidentInfo = nodeData(registerClaim)
+                val claimId = nodeData(recordClaim)
+                val agfilServiceId = processContext.contextFactory.serviceResolver.resolveService(agfilService)
+                val customerServiceId = accidentInfo.customerServiceId
+
+                UnionPermissionScope(
+                    EUROP_ASSIST.INTERNAL.ASSIGN_GARAGE(claimId),
+                    DELEGATED_PERMISSION.context(agfilServiceId, AGFIL.GET_CUSTOMER_INFO(accidentInfo.customerId)),
+                    DELEGATED_PERMISSION.context(agfilServiceId, AGFIL.CLAIM.RECORD_ASSIGNED_GARAGE(claimId)),
+                    DELEGATED_PERMISSION.context(customerServiceId, POLICYHOLDER.ASSIGN_GARAGE(claimId))
+                )
             },
-            delegatePermissions(agfilService,
-                ContextScopeTemplate { CLAIM.RECORD_ASSIGNED_GARAGE(nodeData(recordClaim)) },
-                ContextScopeTemplate { AGFIL.GET_CUSTOMER_INFO(nodeData(registerClaim).customerId)}
-            )
         ),
         service = europAssistService,
         input = combine(pickGarage named "garage", recordClaim named "claimId", registerClaim named "accidentInfo"),

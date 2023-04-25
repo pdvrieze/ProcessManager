@@ -1,10 +1,12 @@
 package io.github.pdvrieze.pma.agfil.contexts
 
 import io.github.pdvrieze.pma.agfil.data.Money
+import io.github.pdvrieze.pma.agfil.services.GarageService
 import io.github.pdvrieze.process.simulator.utils.nextGaussians
 import nl.adaptivity.process.engine.pma.Browser
 import nl.adaptivity.process.engine.pma.dynamic.runtime.AbstractDynamicPmaActivityContext
 import nl.adaptivity.process.engine.pma.dynamic.runtime.impl.nextString
+import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import kotlin.math.roundToLong
@@ -20,8 +22,10 @@ class AgfilActivityContextImpl(
         return processContext.contextFactory.europAssistService.randomCallHandler()
     }
 
-    override fun randomGarageReceptionist(): PrincipalCompat {
-        TODO("not implemented")
+    override fun randomGarageReceptionist(garageService: ServiceId<GarageService>): PrincipalCompat {
+        return processContext.contextFactory.garageServices
+            .single { it.serviceInstanceId == garageService }
+            .randomGarageReceptionist()
     }
 
     override fun randomMechanic(): PrincipalCompat {
