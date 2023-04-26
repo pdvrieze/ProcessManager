@@ -258,8 +258,12 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
                 }
             }
 
-            for (join in joinsToEvaluate) {
-                join.startTask(engineData)
+            for (oldJoin in joinsToEvaluate) {
+                updateChild(oldJoin.handle) {
+                    if (state != NodeInstanceState.Started && !state.isFinal) {
+                        startTask(engineData)
+                    }
+                }
             }
 
         }

@@ -9,12 +9,14 @@ import io.github.pdvrieze.pma.agfil.data.Invoice
 import io.github.pdvrieze.pma.agfil.services.AgfilPermissions
 import io.github.pdvrieze.pma.agfil.services.AgfilPermissions.*
 import io.github.pdvrieze.pma.agfil.services.ServiceNames
+import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.engine.db.ProcessEngineDB
 import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
 import nl.adaptivity.process.engine.pma.dynamic.scope.templates.ContextScopeTemplate
 import nl.adaptivity.process.engine.pma.models.UnionPermissionScope
 import nl.adaptivity.process.processModel.engine.ExecutableCondition
 import nl.adaptivity.process.processModel.engine.ExecutableXPathCondition
+import nl.adaptivity.xmlutil.XmlEvent
 
 val leeCsProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>("LeeCsManageClaim") {
     val claimIdInput = input<ClaimId>("claimId")
@@ -71,7 +73,8 @@ val leeCsProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>
     val receiveAssessorAgreedCosts by eventNode(assignAssessor, AgreedCosts.serializer())
 
     val joinClaim by join(splitClaim, receiveAssessorAgreedCosts) {
-        conditions[splitClaim.identifier] = ExecutableXPathCondition("node(\"receiveEstimate\")/estimatedCosts/text() < 500")
+        val condNs = listOf(XmlEvent.NamespaceImpl(ProcessConsts.Engine.NSPREFIX, ProcessConsts.Engine.NAMESPACE))
+        conditions[splitClaim.identifier] = ExecutableXPathCondition(condNs,"${ProcessConsts.Engine.NSPREFIX}:node('receiveEstimate')/estimatedCosts/text() < 500")
     }
 
     val agreeClaim by serviceActivity(joinClaim, listOf(), ServiceNames.leeCsService, retrieveAccidentInfo) { claim ->

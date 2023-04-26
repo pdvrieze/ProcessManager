@@ -20,6 +20,8 @@ import net.devrieze.util.Handle
 import net.devrieze.util.overlay
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.engine.*
+import nl.adaptivity.process.engine.processModel.JoinInstance.Companion.updateTaskState
+import nl.adaptivity.process.processModel.Join
 import nl.adaptivity.process.processModel.Split
 import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.processModel.engine.ConditionResult

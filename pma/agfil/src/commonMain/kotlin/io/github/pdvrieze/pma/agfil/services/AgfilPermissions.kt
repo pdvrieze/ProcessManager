@@ -33,6 +33,7 @@ sealed class AgfilPermissions {
 
     object LEECS {
         object START_PROCESSING: AbstractClaimPermission()
+        object SEND_GARAGE_ESTIMATE: AbstractClaimPermission()
         object INTERNAL {
             object CONTACT_GARAGE: AbstractClaimPermission()
         }

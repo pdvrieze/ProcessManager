@@ -4,10 +4,7 @@ import io.github.pdvrieze.pma.agfil.data.*
 import io.github.pdvrieze.pma.agfil.parties.leeCsProcess
 import io.github.pdvrieze.pma.agfil.services.AgfilPermissions.*
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.impl.payload
-import net.devrieze.util.Handle
-import net.devrieze.util.security.SecureObject
 import nl.adaptivity.process.engine.PIHandle
-import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.EngineService
 import nl.adaptivity.process.engine.pma.PmaAuthInfo
@@ -15,6 +12,7 @@ import nl.adaptivity.process.engine.pma.PmaAuthToken
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableAutomatedService
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.models.PmaServiceResolver
+import nl.adaptivity.process.util.Identifier
 import java.util.logging.Logger
 import kotlin.random.Random
 
@@ -36,11 +34,16 @@ class LeeCsService(
     leeCsProcess
 ), RunnableAutomatedService, AutoService {
 
-    private val processes: MutableMap<ClaimId, PIHandle> = mutableMapOf()
+    private val processes: MutableMap<ClaimId, ClaimData> = mutableMapOf()
 
     /** From Lai's thesis: sendRepairCosts */
     fun sendGarageEstimate(authToken: PmaAuthInfo, estimate: Estimate) {
-        TODO()
+        validateAuthInfo(authToken, LEECS.SEND_GARAGE_ESTIMATE(estimate.claimId))
+        val data = requireNotNull(processes[estimate.claimId])
+        processEngineService.deliverEvent(data.piHandle, Identifier("receiveEstimate"), payload(estimate))
+
+        // TODO validate auth
+        data.estimate = estimate
     }
 
     /** From Lai's thesis */
@@ -58,7 +61,7 @@ class LeeCsService(
     fun startClaimProcessing(authToken: PmaAuthInfo, claimId: ClaimId) {
         validateAuthInfo(authToken, LEECS.START_PROCESSING(claimId))
         val piHandle = startProcess(processHandles[0], payload(claimId))
-        processes[claimId] = piHandle
+        processes[claimId] = ClaimData(piHandle, claimId)
     }
 
     val internal: Internal = Internal()
@@ -88,9 +91,15 @@ class LeeCsService(
         }
 
         fun processHandleFor(claimId: ClaimId): PIHandle? {
-            return processes[claimId]
+            return processes[claimId]?.piHandle
         }
 
     }
+
+    class ClaimData(
+        val piHandle: PIHandle,
+        val claimId: ClaimId,
+        var estimate: Estimate? = null
+    )
 }
 

@@ -6,6 +6,7 @@ import io.github.pdvrieze.pma.agfil.services.AgfilPermissions.*
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.impl.payload
 import net.devrieze.util.Handle
 import net.devrieze.util.security.SecureObject
+import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.PIHandle
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.db.ProcessEngineDB
@@ -30,7 +31,7 @@ class GarageService(
     engineService: EngineService,
     override val serviceResolver: PmaServiceResolver,
     random: Random,
-    logger: Logger = authService.logger
+    logger: Logger = authService.logger,
 ) : RunnableProcessBackedService<GarageService>(
     serviceName,
     authService,
@@ -49,6 +50,8 @@ class GarageService(
     val hRepairProcess: Handle<ExecutableProcessModel> get() = processHandles[0]
 
     private val repairs = mutableMapOf<ClaimId, RepairInfo>()
+    private val receptionists: List<PrincipalCompat> = (1..3).map { SimplePrincipal("${serviceName.serviceName} receptionist ${it}") }
+    private val mechanics: List<PrincipalCompat> = (1..3).map { SimplePrincipal("${serviceName.serviceName} mechanic $it") }
 
     /**
      * ContactGarage from Lai's thesis
@@ -64,7 +67,6 @@ class GarageService(
         if (unassignedCar!=null) { // XXX there is an order problem that allows cars to arrive before the garage is informed
             require(accidentInfo.carRegistration == unassignedCar)
             processEngineService.deliverEvent(instanceHandle, Identifier("onReceiveCar"), payload(unassignedCar))
-            repair.repairState = RepairState.RECEIVED_CAR
         }
     }
 
@@ -100,24 +102,22 @@ class GarageService(
 
     fun evNotifyInvoicePaid(authToken: PmaAuthInfo, invoiceId: InvoiceId, amount: Money) {
         validateAuthInfo(authToken, GARAGE.NOTIFY_INVOICE_PAID(invoiceId))
-
-        TODO("not implemented")
-    }
-
-    fun randomGarageReceptionist(): PrincipalCompat {
-        TODO("not implemented")
+        val piHandle = repairs.values.first { it.invoiceId == invoiceId }.processHandle
+        processEngineService.deliverEvent(piHandle, Identifier("onReceivePayment"), payload(Payment(invoiceId, amount)))
     }
 
     inner class Internal {
         fun registerCarReceipt(authToken: PmaAuthInfo, claimId: ClaimId, carRegistration: CarRegistration) {
+            // TODO validate auth
             val repairInfo = requireNotNull(repairs[claimId]) { "missing repair" }
             with(repairInfo) {
-                require(repairState == RepairState.WAITING) {}
+                require(repairState == RepairState.WAITING) { "When car is received it should be in waiting state. Was: $repairState" }
                 repairState = RepairState.RECEIVED_CAR
             }
         }
 
         fun repairCar(authToken: PmaAuthInfo, repairAgreement: RepairAgreement) {
+            // TODO validate auth
             val repairInfo = requireNotNull(repairs[repairAgreement.claimId])
             repairInfo.repairState = RepairState.CAR_REPAIRED
         }
@@ -147,6 +147,15 @@ class GarageService(
         fun processHandleFor(claimId: ClaimId): PIHandle {
             return requireNotNull(repairs[claimId]).processHandle
         }
+
+        fun randomGarageReceptionist(): PrincipalCompat {
+            return receptionists.random(random)
+        }
+
+        fun randomMechanic(): PrincipalCompat {
+            return mechanics.random(random)
+        }
+
     }
 
     private data class RepairInfo(

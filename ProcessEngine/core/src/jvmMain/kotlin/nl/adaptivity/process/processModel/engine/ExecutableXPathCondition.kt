@@ -37,9 +37,11 @@ import javax.xml.xpath.*
  * TODO: Add namespace inheritance support
  */
 @Serializable(ExecutableXPathConditionSerializer::class)
-actual class ExecutableXPathCondition actual constructor(condition: String, override val label: String?) : ExecutableCondition() {
+actual class ExecutableXPathCondition actual constructor(namespaces: List<Namespace>, condition: String,
+                                                         override val label: String?) : ExecutableCondition() {
 
     actual constructor(condition: Condition): this(condition.condition, condition.label)
+    actual constructor(condition: String, label: String?): this(listOf(XmlEvent.NamespaceImpl(Engine.NSPREFIX, Engine.NAMESPACE)), condition, label)
 
     override val isOtherwise: Boolean = condition.trim().toLowercase(Locales.ENGLISH) == "otherwise"
     actual override val condition: String = if (isOtherwise) "" else condition

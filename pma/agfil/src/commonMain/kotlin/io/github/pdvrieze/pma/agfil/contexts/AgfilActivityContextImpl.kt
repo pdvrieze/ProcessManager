@@ -25,11 +25,13 @@ class AgfilActivityContextImpl(
     override fun randomGarageReceptionist(garageService: ServiceId<GarageService>): PrincipalCompat {
         return processContext.contextFactory.garageServices
             .single { it.serviceInstanceId == garageService }
-            .randomGarageReceptionist()
+            .internal.randomGarageReceptionist()
     }
 
-    override fun randomMechanic(): PrincipalCompat {
-        TODO("not implemented")
+    override fun randomMechanic(garageService: ServiceId<GarageService>): PrincipalCompat {
+        return processContext.contextFactory.garageServices
+            .single { it.serviceInstanceId == garageService }
+            .internal.randomMechanic()
     }
 
     override fun randomRepairCosts(): Money {

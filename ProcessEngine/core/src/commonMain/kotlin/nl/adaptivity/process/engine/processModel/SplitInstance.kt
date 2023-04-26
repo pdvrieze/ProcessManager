@@ -188,6 +188,8 @@ internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineD
 
     var otherwiseNode: ProcessNodeInstance.Builder<*, *>? = null
 
+    val directJoinHandles = mutableListOf<PNIHandle>()
+
     for (successorNode in successorNodes) {
         if (committedCount >= node.max) break // stop the loop when we are at the maximum successor count
 
@@ -212,10 +214,16 @@ internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineD
             }
             when (successorBuilder.condition(processInstanceBuilder, this)) {
                 // only if it can be executed, otherwise just drop it.
-                ConditionResult.TRUE -> if (
-                    successorBuilder.state.canRestart ||
-                    successorBuilder is Join.Builder
-                ) successorBuilder.provideTask(engineData)
+                ConditionResult.TRUE -> {
+                    if (successorBuilder is JoinInstance.Builder) {
+                        if(!successorBuilder.handle.isValid) {
+                            processInstanceBuilder.storeChild(successorBuilder)
+                        }
+                        directJoinHandles.add(successorBuilder.handle)
+                    } else if (successorBuilder.state.canRestart) {
+                        successorBuilder.provideTask(engineData)
+                    }
+                }
 
                 ConditionResult.NEVER -> successorBuilder.skipTask(engineData, NodeInstanceState.Skipped)
 
@@ -245,13 +253,16 @@ internal fun SplitInstance.Builder.updateState(engineData: MutableProcessEngineD
         state = NodeInstanceState.Failed
         return true // complete, but invalid
     }
+
     // If we determined the maximum
-    if (committedCount >= node.max) {
+    if (committedCount + directJoinHandles.size >= node.max) {
         processInstanceBuilder
             .allChildNodeInstances { !SplitInstance.isActiveOrCompleted(it) && handle in it.predecessors }
             .forEach {
-                processInstanceBuilder.updateChild(it) {
-                    cancelAndSkip(engineData)
+                if (it.handle.isValid && it.handle !in directJoinHandles) {
+                    processInstanceBuilder.updateChild(it) {
+                        cancelAndSkip(engineData)
+                    }
                 }
             }
         return true // We reached the max

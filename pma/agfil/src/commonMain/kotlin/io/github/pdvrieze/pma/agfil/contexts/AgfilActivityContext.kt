@@ -13,7 +13,7 @@ interface AgfilActivityContext: DynamicPmaActivityContext<AgfilActivityContext, 
 
     fun randomEaCallHandler(): PrincipalCompat
     fun randomGarageReceptionist(garageService: ServiceId<GarageService>): PrincipalCompat
-    fun randomMechanic(): PrincipalCompat
+    fun randomMechanic(garageService: ServiceId<GarageService>): PrincipalCompat
     fun randomAccidentDetails(): String
     fun randomRepairCosts(): Money
     fun callerInfo(customer: PrincipalCompat, serviceId: ServiceId<PolicyHolderService>): CallerInfo {

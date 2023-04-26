@@ -24,15 +24,17 @@ import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.process.engine.IProcessInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.processModel.Condition
+import nl.adaptivity.xmlutil.Namespace
 
 /**
  * Class encapsulating a condition.
  *
  * @author Paul de Vrieze
  */
-expect class ExecutableXPathCondition(condition: String, label: String? = null) : ExecutableCondition {
+expect class ExecutableXPathCondition(namespaces: List<Namespace>, condition: String, label: String? = null) : ExecutableCondition {
 
     constructor(condition: Condition)
+    constructor(condition: String, label: String? = null)
 
     override val condition: String
 

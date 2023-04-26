@@ -3,10 +3,13 @@ package io.github.pdvrieze.pma.agfil.parties
 import io.github.pdvrieze.pma.agfil.contexts.AgfilActivityContext
 import io.github.pdvrieze.pma.agfil.contexts.AgfilBrowserContext
 import io.github.pdvrieze.pma.agfil.data.*
+import io.github.pdvrieze.pma.agfil.services.AgfilPermissions
+import io.github.pdvrieze.pma.agfil.services.AgfilPermissions.*
 import io.github.pdvrieze.pma.agfil.services.GarageService
 import io.github.pdvrieze.pma.agfil.services.ServiceNames
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.DataNodeHandle
 import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
+import nl.adaptivity.process.engine.pma.dynamic.scope.templates.ContextScopeTemplate
 import nl.adaptivity.process.engine.pma.dynamic.uiServiceLogin
 import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.util.multiplatform.PrincipalCompat
@@ -30,7 +33,7 @@ fun repairProcess(owner: PrincipalCompat, ownerService: ServiceId<GarageService>
     }
 
     val estimateRepairCost: DataNodeHandle<Money> by taskActivity(handleReceiveCar, input = claimId) {
-        acceptTask({ randomMechanic() }) { claimId ->
+        acceptTask({ randomMechanic(ownerService) }) { claimId ->
             val costs = randomRepairCosts()
             uiServiceLogin(ownerService) {
                 service.internal.recordEstimatedRepairCost(authToken, claimId, costs)
@@ -41,7 +44,9 @@ fun repairProcess(owner: PrincipalCompat, ownerService: ServiceId<GarageService>
 
     val sendEstimate: DataNodeHandle<Unit> by serviceActivity(
         estimateRepairCost,
-        listOf(),
+        listOf(
+            ContextScopeTemplate { LEECS.SEND_GARAGE_ESTIMATE(nodeData(claimId))}
+        ),
         ServiceNames.leeCsService,
         input = combine(estimateRepairCost named "estimate", claimId named "claimId", accidentInfo named "accidentInfo")
     ) { (estimate, claimId, accidentInfo) ->
