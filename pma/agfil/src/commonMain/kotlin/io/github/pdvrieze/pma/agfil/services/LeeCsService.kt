@@ -50,10 +50,14 @@ class LeeCsService(
     fun inspectCar(): Unit = TODO()
 
     /** From Lai's thesis: sendNewRepairCosts */
-    fun sendAssessedCosts(authToken: PmaAuthToken, agreedCosts: AgreedCosts): Unit = TODO()
+    fun sendAssessedCosts(authToken: PmaAuthInfo, agreedCosts: AgreedCosts): Unit = TODO()
 
     /** From Lai's thesis */
-    fun sendInvoice(invoice: Invoice): Unit = TODO()
+    fun evSendInvoice(authToken: PmaAuthInfo, invoice: Invoice) {
+        validateAuthInfo(authToken, LEECS.SEND_INVOICE(invoice.claimId))
+        val claimData = requireNotNull(processes[invoice.claimId])
+        deliverEvent(claimData.piHandle, Identifier("receiveInvoice"), payload(invoice))
+    }
 
     /**
      * forwardClaim from Lai's thesis
@@ -81,13 +85,14 @@ class LeeCsService(
         }
 
         fun agreeClaim(authToken: PmaAuthToken, claim: Claim) {
+            val estimate = requireNotNull(processes[claim.id]?.estimate)
             withGarage(authToken, claim.assignedGarageInfo) {
-                service.agreeRepair(authToken, claim.id, claim.accidentInfo.carRegistration)
+                service.evRepairAgreed(serviceAccessToken, claim.id, claim.accidentInfo.carRegistration, estimate.estimatedCosts)
             }
         }
 
         fun verifyInvoice(authToken: PmaAuthInfo, invoice: Invoice) {
-            TODO("not implemented")
+            validateAuthInfo(authToken, LEECS.INTERNAL.VERIFY_INVOICE(invoice.claimId))
         }
 
         fun processHandleFor(claimId: ClaimId): PIHandle? {

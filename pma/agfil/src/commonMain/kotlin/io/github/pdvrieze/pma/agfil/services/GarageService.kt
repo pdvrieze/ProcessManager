@@ -5,14 +5,12 @@ import io.github.pdvrieze.pma.agfil.parties.repairProcess
 import io.github.pdvrieze.pma.agfil.services.AgfilPermissions.*
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.impl.payload
 import net.devrieze.util.Handle
-import net.devrieze.util.security.SecureObject
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.PIHandle
-import nl.adaptivity.process.engine.ProcessInstance
-import nl.adaptivity.process.engine.db.ProcessEngineDB
 import nl.adaptivity.process.engine.pma.AuthService
 import nl.adaptivity.process.engine.pma.EngineService
 import nl.adaptivity.process.engine.pma.PmaAuthInfo
+import nl.adaptivity.process.engine.pma.PmaAuthToken
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableAutomatedService
 import nl.adaptivity.process.engine.pma.dynamic.services.RunnableUiService
 import nl.adaptivity.process.engine.pma.models.ServiceName
@@ -87,16 +85,22 @@ class GarageService(
     }
 
     /** From Lai's thesis */
-    fun agreeRepair(authToken: PmaAuthInfo, id: ClaimId, carRegistration: CarRegistration): Unit = TODO()
+    fun evRepairAgreed(authToken: PmaAuthInfo, id: ClaimId, carRegistration: CarRegistration, agreedCosts: Money) {
+        validateAuthInfo(authToken, GARAGE.AGREE_REPAIR(id))
+        val processHandle = requireNotNull(repairs[id]).processHandle
+        deliverEvent(processHandle, Identifier("onRepairAgreed"), payload(RepairAgreement(id, carRegistration, agreedCosts)))
+    }
 
     private var _nextInvoiceId=1
     fun nextInvoiceId(): InvoiceId = InvoiceId(_nextInvoiceId++)
 
     /** From Lai's thesis */
     fun payRepairCost(authToken: PmaAuthInfo): Unit = TODO()
-    fun sendInvoice(agreement: RepairAgreement): InvoiceId {
+    fun sendInvoice(authToken: PmaAuthToken, agreement: RepairAgreement): InvoiceId {
         val invoice = Invoice(nextInvoiceId(), agreement.claimId, garageInfo, agreement.agreedCosts)
-        serviceResolver.resolveService(ServiceNames.leeCsService).sendInvoice(invoice)
+        withService(ServiceNames.leeCsService, authToken, LEECS.SEND_INVOICE(agreement.claimId)) {
+            service.evSendInvoice(serviceAccessToken, invoice)
+        }
         return invoice.invoiceId
     }
 

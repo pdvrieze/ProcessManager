@@ -34,8 +34,11 @@ sealed class AgfilPermissions {
     object LEECS {
         object START_PROCESSING: AbstractClaimPermission()
         object SEND_GARAGE_ESTIMATE: AbstractClaimPermission()
+        object SEND_INVOICE: AbstractClaimPermission()
         object INTERNAL {
             object CONTACT_GARAGE: AbstractClaimPermission()
+            object VERIFY_INVOICE: AbstractClaimPermission()
+
         }
 
     }
@@ -63,6 +66,7 @@ sealed class AgfilPermissions {
     object GARAGE {
         /** Permission to start a handling process in the garage */
         object INFORM_INCOMING_CAR: AgfilPermissions(), UseAuthScope
+        object AGREE_REPAIR: AbstractClaimPermission()
 
         object SEND_CAR: AgfilPermissions(), AuthScope {
             operator fun invoke(carRegistration: CarRegistration): UseAuthScope = CarUseScope(this, carRegistration)

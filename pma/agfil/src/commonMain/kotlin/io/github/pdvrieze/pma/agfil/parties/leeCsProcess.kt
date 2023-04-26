@@ -6,12 +6,12 @@ import io.github.pdvrieze.pma.agfil.data.AgreedCosts
 import io.github.pdvrieze.pma.agfil.data.ClaimId
 import io.github.pdvrieze.pma.agfil.data.Estimate
 import io.github.pdvrieze.pma.agfil.data.Invoice
-import io.github.pdvrieze.pma.agfil.services.AgfilPermissions
 import io.github.pdvrieze.pma.agfil.services.AgfilPermissions.*
 import io.github.pdvrieze.pma.agfil.services.ServiceNames
 import nl.adaptivity.process.ProcessConsts
-import nl.adaptivity.process.engine.db.ProcessEngineDB
 import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
+import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
+import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions.DELEGATED_PERMISSION
 import nl.adaptivity.process.engine.pma.dynamic.scope.templates.ContextScopeTemplate
 import nl.adaptivity.process.engine.pma.models.UnionPermissionScope
 import nl.adaptivity.process.processModel.engine.ExecutableCondition
@@ -77,7 +77,16 @@ val leeCsProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>
         conditions[splitClaim.identifier] = ExecutableXPathCondition(condNs,"${ProcessConsts.Engine.NSPREFIX}:node('receiveEstimate')/estimatedCosts/text() < 500")
     }
 
-    val agreeClaim by serviceActivity(joinClaim, listOf(), ServiceNames.leeCsService, retrieveAccidentInfo) { claim ->
+    val agreeClaim by serviceActivity(
+        joinClaim,
+        listOf(ContextScopeTemplate {
+            val claim = nodeData(retrieveAccidentInfo)
+            val garageService = requireNotNull(claim.assignedGarageInfo).serviceId
+            DELEGATED_PERMISSION.context(garageService, GARAGE.AGREE_REPAIR(claim.id))
+        }),
+        ServiceNames.leeCsService,
+        retrieveAccidentInfo
+    ) { claim ->
         service.internal.agreeClaim(authToken, claim)
     }
 
@@ -85,7 +94,9 @@ val leeCsProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>
 
     val verifyInvoice by serviceActivity(
         predecessor = receiveInvoice,
-        authorizationTemplates = listOf(),
+        authorizationTemplates = listOf(
+            ContextScopeTemplate { LEECS.INTERNAL.VERIFY_INVOICE(nodeData(claimIdInput)) }
+        ),
         service = ServiceNames.leeCsService,
     ) { invoice ->
         service.internal.verifyInvoice(authToken, invoice)
@@ -93,7 +104,9 @@ val leeCsProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>
 
     val forwardInvoice by serviceActivity(
         verifyInvoice,
-        listOf(),
+        listOf(
+            ContextScopeTemplate{ CLAIM.REGISTER_INVOICE(nodeData(claimIdInput)) }
+        ),
         ServiceNames.agfilService,
         receiveInvoice
     ) { invoice ->

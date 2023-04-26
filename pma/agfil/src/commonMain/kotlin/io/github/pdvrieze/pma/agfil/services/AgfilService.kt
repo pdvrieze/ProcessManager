@@ -17,6 +17,7 @@ import nl.adaptivity.process.engine.pma.dynamic.services.RunnableUiService
 import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.engine.pma.models.PmaServiceResolver
+import nl.adaptivity.process.util.Identifier
 import java.util.logging.Logger
 import kotlin.random.Random
 import kotlin.random.nextULong
@@ -52,7 +53,9 @@ class AgfilService(
     fun evReturnClaimForm(authToken: PmaAuthInfo, completedClaimForm: CompletedClaimForm) {
         val claimId = completedClaimForm.claimId
         validateAuthInfo(authToken, CLAIM.RETURN_FORM(claimId))
-        claims[claimId]?.run { claimForm = completedClaimForm }
+        val claimData = requireNotNull(claims[claimId])
+        claimData.claimForm = completedClaimForm
+        deliverEvent(claimData.instanceHandle, Identifier("receiveCompletedClaimForm"), payload(completedClaimForm))
     }
 
     /** From Lai's thesis */
