@@ -6,13 +6,12 @@ import io.github.pdvrieze.pma.agfil.data.Claim
 import io.github.pdvrieze.pma.agfil.data.ClaimId
 import io.github.pdvrieze.pma.agfil.data.CompletedClaimForm
 import io.github.pdvrieze.pma.agfil.data.Invoice
-import io.github.pdvrieze.pma.agfil.services.AgfilPermissions
 import io.github.pdvrieze.pma.agfil.services.AgfilPermissions.*
 import io.github.pdvrieze.pma.agfil.services.ServiceNames
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.DataNodeHandle
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.NodeHandle
 import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
-import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
+import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions.*
 import nl.adaptivity.process.engine.pma.dynamic.scope.templates.ContextScopeTemplate
 import nl.adaptivity.process.engine.pma.models.UnionPermissionScope
 import nl.adaptivity.process.processModel.engine.ExecutableCondition
@@ -85,7 +84,7 @@ val agfilProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>
             val customerService = claim.accidentInfo.customerServiceId
             UnionPermissionScope(
                 AGFIL.INTERNAL.SEND_CLAIM_FORM(claim.id),
-                CommonPMAPermissions.DELEGATED_PERMISSION.context(customerService, POLICYHOLDER.SEND_CLAIM_FORM(claim.id))
+                DELEGATED_PERMISSION.context(customerService, POLICYHOLDER.SEND_CLAIM_FORM(claim.id))
             )
         }),
         service = ServiceNames.agfilService,
@@ -135,7 +134,15 @@ val agfilProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>
     val payInvoice: DataNodeHandle<*> by serviceActivity(
         predecessor = makeReconciliation,
         authorizationTemplates = listOf(
-            ContextScopeTemplate { AGFIL.INTERNAL.PAY_GARAGE_INVOICE(nodeData(claimIdInput)) }
+            ContextScopeTemplate {
+                val invoice = nodeData(receiveInvoice)
+                val garageService = invoice.garage.serviceId
+                UnionPermissionScope(
+                    AGFIL.INTERNAL.PAY_GARAGE_INVOICE(invoice.claimId),
+                    DELEGATED_PERMISSION.context(garageService, GARAGE.NOTIFY_INVOICE_PAID(invoice.invoiceId))
+                )
+            },
+//            delegatePermissions(ServiceNames.agfilService, ContextScopeTemplate { AGFIL.INTERNAL.PAY_GARAGE_INVOICE(nodeData(claimIdInput)) })
         ),
         service = ServiceNames.agfilService,
         input = receiveInvoice

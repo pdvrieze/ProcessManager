@@ -10,7 +10,6 @@ import io.github.pdvrieze.pma.agfil.services.AgfilPermissions.*
 import io.github.pdvrieze.pma.agfil.services.ServiceNames
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.engine.pma.dynamic.model.runnablePmaProcess
-import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions
 import nl.adaptivity.process.engine.pma.dynamic.scope.CommonPMAPermissions.DELEGATED_PERMISSION
 import nl.adaptivity.process.engine.pma.dynamic.scope.templates.ContextScopeTemplate
 import nl.adaptivity.process.engine.pma.models.UnionPermissionScope
@@ -110,7 +109,7 @@ val leeCsProcess = runnablePmaProcess<AgfilActivityContext, AgfilBrowserContext>
         ServiceNames.agfilService,
         receiveInvoice
     ) { invoice ->
-        service.forwardInvoice(authToken, invoice)
+        service.evForwardInvoice(authToken, invoice)
     }
 
     val end by endNode(forwardInvoice)

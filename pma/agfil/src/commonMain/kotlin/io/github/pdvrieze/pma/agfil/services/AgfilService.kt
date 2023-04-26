@@ -59,11 +59,12 @@ class AgfilService(
     }
 
     /** From Lai's thesis */
-    fun forwardInvoice(authToken: PmaAuthToken, invoice: Invoice) {
+    fun evForwardInvoice(authToken: PmaAuthToken, invoice: Invoice) {
         val claimId = invoice.claimId
         validateAuthInfo(authToken, CLAIM.REGISTER_INVOICE(claimId))
-        val claim = claims[claimId]
-        claim?.let { it.invoice = invoice }
+        val claim = requireNotNull(claims[claimId])
+        claim.invoice = invoice
+        deliverEvent(claim.instanceHandle, Identifier("receiveInvoice"), payload(invoice))
     }
 
     fun recordClaimInDatabase(authToken: PmaAuthInfo, accidentInfo: AccidentInfo, claimId: ClaimId): ClaimId {

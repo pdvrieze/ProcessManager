@@ -96,17 +96,10 @@ class GarageService(
 
     /** From Lai's thesis */
     fun payRepairCost(authToken: PmaAuthInfo): Unit = TODO()
-    fun sendInvoice(authToken: PmaAuthToken, agreement: RepairAgreement): InvoiceId {
-        val invoice = Invoice(nextInvoiceId(), agreement.claimId, garageInfo, agreement.agreedCosts)
-        withService(ServiceNames.leeCsService, authToken, LEECS.SEND_INVOICE(agreement.claimId)) {
-            service.evSendInvoice(serviceAccessToken, invoice)
-        }
-        return invoice.invoiceId
-    }
 
     fun evNotifyInvoicePaid(authToken: PmaAuthInfo, invoiceId: InvoiceId, amount: Money) {
         validateAuthInfo(authToken, GARAGE.NOTIFY_INVOICE_PAID(invoiceId))
-        val piHandle = repairs.values.first { it.invoiceId == invoiceId }.processHandle
+        val piHandle = repairs.values.first { it.invoice?.invoiceId == invoiceId }.processHandle
         processEngineService.deliverEvent(piHandle, Identifier("onReceivePayment"), payload(Payment(invoiceId, amount)))
     }
 
@@ -124,6 +117,7 @@ class GarageService(
             // TODO validate auth
             val repairInfo = requireNotNull(repairs[repairAgreement.claimId])
             repairInfo.repairState = RepairState.CAR_REPAIRED
+            repairInfo.agreedCosts = AgreedCostInfo(-1, repairAgreement.agreedCosts)
         }
 
         fun recordEstimatedRepairCost(authToken: PmaAuthInfo, claimId: ClaimId, costs: Money) {
@@ -136,10 +130,10 @@ class GarageService(
         }
 
         fun handlePayment(authToken: PmaAuthInfo, payment: Payment) {
-            val repairInfo = repairs.values.first { it.invoiceId == payment.invoiceId }
-            require(repairInfo.repairState == RepairState.INVOICED)
+            val repairInfo = repairs.values.first { it.invoice?.invoiceId == payment.invoiceId }
+            require(repairInfo.repairState == RepairState.INVOICED) { "Repair state should be invoiced, was: ${repairInfo.repairState}" }
             val agreedCosts = requireNotNull(repairInfo.agreedCosts?.costs)
-            require(agreedCosts < payment.money)
+            require(agreedCosts <= payment.money)
             repairInfo.repairState = RepairState.PAID
         }
 
@@ -147,6 +141,20 @@ class GarageService(
             val repairInfo = requireNotNull(repairs[claimId])
             require(repairInfo.repairState == RepairState.PAID)
         }
+
+        fun sendInvoice(authToken: PmaAuthToken, agreement: RepairAgreement): InvoiceId {
+            val invoice = Invoice(nextInvoiceId(), agreement.claimId, garageInfo, agreement.agreedCosts)
+            withService(ServiceNames.leeCsService, authToken, LEECS.SEND_INVOICE(agreement.claimId)) {
+                service.evSendInvoice(serviceAccessToken, invoice)
+            }
+            requireNotNull(repairs[agreement.claimId]).run {
+                require(this.repairState == RepairState.CAR_REPAIRED)
+                this.repairState = RepairState.INVOICED
+                this.invoice = invoice
+            }
+            return invoice.invoiceId
+        }
+
 
         fun processHandleFor(claimId: ClaimId): PIHandle {
             return requireNotNull(repairs[claimId]).processHandle
@@ -169,7 +177,7 @@ class GarageService(
         var repairState: RepairState = RepairState.WAITING,
         var estimate: Estimate? = null,
         var agreedCosts: AgreedCostInfo? = null,
-        val invoiceId: InvoiceId? = null,
+        var invoice: Invoice? = null,
     )
 
     private data class AgreedCostInfo(val assessor: Int, val costs: Money)

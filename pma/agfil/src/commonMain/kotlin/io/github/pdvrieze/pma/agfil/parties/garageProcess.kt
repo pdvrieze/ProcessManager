@@ -65,7 +65,7 @@ fun repairProcess(owner: PrincipalCompat, ownerService: ServiceId<GarageService>
             delegatePermissions(ServiceNames.leeCsService, ContextScopeTemplate{ LEECS.SEND_INVOICE(nodeData(claimId)) })
         ),
         service = ownerService, input = onRepairAgreed) { agreement->
-        service.sendInvoice(authToken, agreement)
+        service.internal.sendInvoice(authToken, agreement)
     }
 
     val onReceivePayment by eventNode(sendInvoice, Payment.serializer())
