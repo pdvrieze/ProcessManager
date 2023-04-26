@@ -260,7 +260,7 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
 
             for (oldJoin in joinsToEvaluate) {
                 updateChild(oldJoin.handle) {
-                    if (state != NodeInstanceState.Started && !state.isFinal) {
+                    if (!state.isFinal) {
                         startTask(engineData)
                     }
                 }
