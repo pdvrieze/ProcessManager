@@ -18,7 +18,6 @@ package nl.adaptivity.util
 
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.core.impl.multiplatform.IOException
-import nl.adaptivity.xmlutil.dom.iterator
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 import org.w3c.dom.*
@@ -287,19 +286,7 @@ object DomUtil {
         return when (node) {
             null    -> CompactFragment("")
             is Text -> CompactFragment(node.data)
-            is DocumentFragment -> {
-                val outerFrag = node.ownerDocument.createDocumentFragment()
-                val wrapperChild = node.ownerDocument.createElement("wrapper-from-domutil")
-                outerFrag.appendChild(wrapperChild)
-                for(child in node.childNodes) {
-                    wrapperChild.appendChild(child)
-                }
-                val reader = DomReader(wrapperChild)
-                reader.skipPreamble()
-                reader.require(EventType.START_ELEMENT, QName("wrapper-from-domutil"))
-                reader.nextTag()
-                reader.siblingsToFragment()
-            }
+            is DocumentFragment -> DomReader(node).siblingsToFragment()
             else    -> DomReader(node).siblingsToFragment()
         }
     }
