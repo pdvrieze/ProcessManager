@@ -16,9 +16,7 @@
 
 package nl.adaptivity.process
 
-import net.devrieze.util.Transaction
 import net.devrieze.util.TransactionFactory
-import kotlin.coroutines.startCoroutine
 
 
 /**
@@ -28,13 +26,8 @@ class StubTransactionFactory : TransactionFactory<StubTransaction> {
 
     private val transaction = StubTransaction()
 
-    override fun startTransaction() = transaction
-
     override fun <R> inTransaction(action: suspend StubTransaction.() -> R): R {
         return StubTransaction.inTransaction({ transaction }, action)
     }
 
-    override fun isValidTransaction(transaction: Transaction): Boolean {
-        return this.transaction === transaction
-    }
 }

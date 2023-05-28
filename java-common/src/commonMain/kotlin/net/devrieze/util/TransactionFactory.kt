@@ -23,7 +23,4 @@ interface TransactionFactory<out T : Transaction> {
 
     fun <R> inTransaction(action: suspend T.() -> R): R
 
-    fun startTransaction(): T
-
-    fun isValidTransaction(transaction: Transaction): Boolean
 }

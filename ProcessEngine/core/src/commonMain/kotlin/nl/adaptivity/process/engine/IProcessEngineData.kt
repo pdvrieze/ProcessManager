@@ -68,28 +68,18 @@ abstract class IProcessEngineData<T : ContextProcessTransaction> : TransactionFa
     inline fun <R> inReadonlyTransaction(
         principal: PrincipalCompat,
         permissionResult: SecurityProvider.PermissionResult,
-        body: ProcessEngineDataAccess.() -> R
+        crossinline body: ProcessEngineDataAccess.() -> R
     ): R {
-        val tr = startTransaction()
-        try {
-            return body(createReadDelegate(tr))
-        } finally {
-            tr.close()
-        }
+        return inTransaction { body(createReadDelegate(this)) }
     }
 
     @Suppress("UNUSED_PARAMETER")
     inline fun <R> inWriteTransaction(
         principal: PrincipalCompat,
         permissionResult: SecurityProvider.PermissionResult,
-        body: MutableProcessEngineDataAccess.() -> R
+        crossinline body: MutableProcessEngineDataAccess.() -> R
     ): R {
-        val tr = startTransaction()
-        try {
-            return body(createWriteDelegate(tr)).apply { tr.commit() }
-        } finally {
-            tr.close()
-        }
+        return inTransaction { body(createWriteDelegate(this)) }
     }
 
 }

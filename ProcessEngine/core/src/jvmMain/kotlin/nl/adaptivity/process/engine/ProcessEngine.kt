@@ -210,14 +210,8 @@ class ProcessEngine<TR : ContextProcessTransaction> {
             transaction
         )
 
-        override fun startTransaction(): T = transactionFactory.startTransaction(this)
-
         override fun <R> inTransaction(action: suspend T.() -> R): R {
             return transactionFactory.inTransaction(this, action)
-        }
-
-        override fun isValidTransaction(transaction: Transaction): Boolean {
-            return transaction is ContextProcessTransaction && transaction.readableEngineData == this
         }
 
         override fun queueTickle(instanceHandle: PIHandle) {
@@ -298,7 +292,7 @@ class ProcessEngine<TR : ContextProcessTransaction> {
             return DBEngineDataAccess(transaction)
         }
 
-        override fun startTransaction(): ProcessDBTransaction {
+        private fun startTransaction(): ProcessDBTransaction {
             val conn = MonadicDBConnection(dbResource.connection, ProcessEngineDB)
 
             return ProcessDBTransaction(TransactionBuilder(conn), this)
@@ -322,10 +316,6 @@ class ProcessEngine<TR : ContextProcessTransaction> {
 
                 is DBTransactionContext -> ProcessDBTransaction(dbReceiver, this@DBProcessEngineData)
             }
-        }
-
-        override fun isValidTransaction(transaction: Transaction): Boolean {
-            return transaction is ProcessDBTransaction
         }
 
         override fun queueTickle(instanceHandle: PIHandle) {
@@ -1013,27 +1003,11 @@ class ProcessEngine<TR : ContextProcessTransaction> {
         }
     }
 
-    fun startTransaction(): TR {
-        return engineData.startTransaction()
-    }
-
-    inline fun <R> inTransaction(action: ProcessEngine<TR>.(TR) -> R): R {
+    fun <R> inTransaction(action: ProcessEngine<TR>.(TR) -> R): R {
         contract {
             callsInPlace(action, InvocationKind.EXACTLY_ONCE)
         }
-        val tr = startTransaction()
-        var success = true
-        try {
-            return action(tr)
-        } catch (e: Throwable) {
-            success = false
-            throw e
-        } finally {
-            when {
-                success -> tr.commit()
-                else -> tr.rollback()
-            }
-        }
+        return engineData.inTransaction { action(this) }
     }
 
     val localEndpoint: EndpointDescriptor

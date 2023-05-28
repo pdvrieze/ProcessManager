@@ -188,19 +188,29 @@ class TestContext(private val config: TraceTest.ConfigBase) {
 //    val inValidTraces get() = modelData.invalid
 
     val engineData = config.modelData.engineData()
-    val transaction = engineData.engine.startTransaction()
     val model get() = config.modelData.model
     val principal get() = model.owner
+    lateinit var transaction: StubProcessTransaction
+        private set
 
-    val hmodel: Handle<ExecutableProcessModel> = when {
-        model.handle.isValid &&
-            model.handle in transaction.readableEngineData.processModels &&
-            transaction.readableEngineData.processModels[model.handle]?.withPermission()?.uuid == model.uuid
-        -> model.handle
+    var hmodel: Handle<ExecutableProcessModel> = Handle.invalid()
+        private set
 
-        else -> {
-            model.setHandleValue(-1)
-            engineData.engine.addProcessModel(transaction, model.builder(), model.owner).handle
+    init {
+        engineData.engine.inTransaction { transaction ->
+            this@TestContext.transaction = transaction
+            hmodel = when {
+                model.handle.isValid &&
+                    model.handle in transaction.readableEngineData.processModels &&
+                    transaction.readableEngineData.processModels[model.handle]?.withPermission()?.uuid == model.uuid
+                -> model.handle
+
+                else -> {
+                    model.setHandleValue(-1)
+                    engineData.engine.addProcessModel(transaction, model.builder(), model.owner).handle
+                }
+            }
+
         }
     }
 

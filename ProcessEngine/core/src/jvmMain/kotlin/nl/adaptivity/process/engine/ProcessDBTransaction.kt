@@ -46,6 +46,8 @@ class ProcessDBTransaction(
         override fun resumeWith(result: Result<Any?>) {
             if (result.isFailure) {
                 rollback()
+            } else {
+                commit()
             }
             close()
             this@ProcessDBTransaction._result = result

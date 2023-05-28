@@ -18,7 +18,6 @@ import kotlin.collections.ArrayList
 import nl.adaptivity.xmlutil.QName
 import kotlin.test.BeforeTest
 import nl.adaptivity.xmlutil.util.CompactFragment
-import kotlin.coroutines.startCoroutine
 
 typealias ProcessEngineFactory = (IMessageService<*>, ProcessTransactionFactory<StubProcessTransaction>)-> ProcessEngine<StubProcessTransaction>
 
@@ -32,9 +31,6 @@ open class ProcessEngineTestSupport(
 ) {
     protected val stubTransactionFactory = object :
         ProcessTransactionFactory<StubProcessTransaction> {
-        override fun startTransaction(engineData: IProcessEngineData<StubProcessTransaction>): StubProcessTransaction {
-            return StubProcessTransaction(engineData)
-        }
 
         override fun <R> inTransaction(
             engineData: IProcessEngineData<StubProcessTransaction>,
@@ -60,16 +56,16 @@ open class ProcessEngineTestSupport(
         model: ExecutableProcessModel,
         payload: CompactFragment? = null,
         noinline createProcessContextFactory: () -> ProcessContextFactory<*>,
-        body: (ProcessEngine<StubProcessTransaction>, StubProcessTransaction, ExecutableProcessModel, PIHandle) -> R
+        crossinline body: (ProcessEngine<StubProcessTransaction>, StubProcessTransaction, ExecutableProcessModel, PIHandle) -> R
     ): R {
         val processEngine = doCreateRawEngine(createProcessContextFactory)
-        processEngine.startTransaction().use { transaction ->
+        return processEngine.inTransaction { transaction ->
 
             val modelHandle = processEngine.addProcessModel(transaction, model, testModelOwnerPrincipal).handle
             val instanceHandle = processEngine.startProcess(transaction, testModelOwnerPrincipal, modelHandle, "testInstance",
                 UUID.randomUUID(), payload)
 
-            return body(processEngine, transaction, transaction.readableEngineData.processModel(modelHandle).mustExist(modelHandle).withPermission(), instanceHandle)
+            body(processEngine, transaction, transaction.readableEngineData.processModel(modelHandle).mustExist(modelHandle).withPermission(), instanceHandle)
         }
     }
 
@@ -77,16 +73,16 @@ open class ProcessEngineTestSupport(
         processEngineFactory: ProcessEngineFactory,
         model: ExecutableProcessModel,
         payload: CompactFragment? = null,
-        body: (ProcessEngine<StubProcessTransaction>, StubProcessTransaction, ExecutableProcessModel, PIHandle) -> R
+        crossinline body: (ProcessEngine<StubProcessTransaction>, StubProcessTransaction, ExecutableProcessModel, PIHandle) -> R
     ): R {
         val processEngine = processEngineFactory(messageService, stubTransactionFactory)
-        processEngine.startTransaction().use { transaction ->
+        return processEngine.inTransaction { transaction ->
 
             val modelHandle = processEngine.addProcessModel(transaction, model, testModelOwnerPrincipal).handle
             val instanceHandle = processEngine.startProcess(transaction, testModelOwnerPrincipal, modelHandle, "testInstance",
                 UUID.randomUUID(), payload)
 
-            return body(processEngine, transaction, transaction.readableEngineData.processModel(modelHandle).mustExist(modelHandle).withPermission(), instanceHandle)
+            body(processEngine, transaction, transaction.readableEngineData.processModel(modelHandle).mustExist(modelHandle).withPermission(), instanceHandle)
         }
     }
 
@@ -281,7 +277,15 @@ inline fun <R> ProcessEngineTestSupport.testRawEngine(
     return testRawEngine({ ProcessContextFactory.DEFAULT }, action)
 }
 
-inline fun <R> ProcessEngineTestSupport.testProcess(
+inline fun <R> ProcessEngineTestSupport.testRawEngineTr(
+    crossinline action: StubProcessTransaction.(ProcessEngine<StubProcessTransaction>) -> R,
+): R {
+    return testRawEngine({ ProcessContextFactory.DEFAULT }) { pe ->
+        pe.inTransaction { it -> it.action(pe) }
+    }
+}
+
+fun <R> ProcessEngineTestSupport.testProcess(
     model: ExecutableProcessModel,
     payload: CompactFragment? = null,
     body: (ProcessEngine<StubProcessTransaction>, StubProcessTransaction, ExecutableProcessModel, PIHandle) -> R

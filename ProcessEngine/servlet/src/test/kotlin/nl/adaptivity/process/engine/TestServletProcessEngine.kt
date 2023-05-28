@@ -37,9 +37,6 @@ class TestServletProcessEngine(
 
     init {
         transactionFactory = object : ProcessTransactionFactory<StubProcessTransaction> {
-            override fun startTransaction(engineData: IProcessEngineData<StubProcessTransaction>): StubProcessTransaction {
-                return StubProcessTransaction(engineData)
-            }
 
             override fun <R> inTransaction(
                 engineData: IProcessEngineData<StubProcessTransaction>,

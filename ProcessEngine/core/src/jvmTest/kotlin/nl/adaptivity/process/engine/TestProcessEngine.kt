@@ -25,7 +25,7 @@ import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.getDefines
 import nl.adaptivity.process.engine.test.ProcessEngineTestSupport
 import nl.adaptivity.process.engine.test.testProcess
-import nl.adaptivity.process.engine.test.testRawEngine
+import nl.adaptivity.process.engine.test.testRawEngineTr
 import nl.adaptivity.process.processModel.MessageActivity
 import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.condition
@@ -109,13 +109,12 @@ class TestProcessEngine : ProcessEngineTestSupport() {
     @Throws(Exception::class)
     fun testExecuteSingleActivity() {
         val model = getProcessModel("testModel1.xml")
-        testRawEngine { processEngine ->
-            val transaction = processEngine.startTransaction()
-            val engineData = transaction.writableEngineData
-            val modelHandle = processEngine.addProcessModel(transaction, model, testModelOwnerPrincipal).handle
+        testRawEngineTr { processEngine ->
+            val engineData = writableEngineData
+            val modelHandle = processEngine.addProcessModel(this, model, testModelOwnerPrincipal).handle
 
             val instanceHandle = processEngine.startProcess(
-                transaction,
+                this,
                 model.owner,
                 modelHandle,
                 "testInstance1",
@@ -133,18 +132,18 @@ class TestProcessEngine : ProcessEngineTestSupport() {
             assertXmlEquals(expected, receivedChars)
 
             if (true) {
-                val processInstance = transaction.getInstance(instanceHandle).assertIsStarted()
+                val processInstance = this.getInstance(instanceHandle).assertIsStarted()
 
                 assertEquals(1, processInstance.active.size)
 
-                processInstance.child(transaction, "start").assertComplete().let { start ->
+                processInstance.child(this, "start").assertComplete().let { start ->
                     processInstance.assertFinished(start)
                     assertTrue(start.node is ExecutableStartNode)
                 }
 
                 processInstance.assertCompleted() // no completions
 
-                val taskNode = messageService.messageNode(transaction, 0)
+                val taskNode = messageService.messageNode(this, 0)
                 taskNode.assertAcknowledged()
                 processInstance.assertActive(taskNode)
                 engineData.updateInstance(processInstance.handle) {
@@ -154,14 +153,14 @@ class TestProcessEngine : ProcessEngineTestSupport() {
                     }
                 }
                 // process the queue as the we are going around the engine.
-                processEngine.processTickleQueue(transaction)
+                processEngine.processTickleQueue(this)
             }
 
             if (true) {
-                val processInstance = transaction.getInstance(instanceHandle).assertIsFinished()
-                val start = processInstance.child(transaction, "start")
-                val ac = processInstance.child(transaction, "ac2")
-                val end = processInstance.child(transaction, "end")
+                val processInstance = this.getInstance(instanceHandle).assertIsFinished()
+                val start = processInstance.child(this, "start")
+                val ac = processInstance.child(this, "ac2")
+                val end = processInstance.child(this, "end")
                 processInstance.assertActive()
                 processInstance.assertFinished(start, ac)
                 processInstance.assertCompleted(end)
@@ -319,13 +318,12 @@ class TestProcessEngine : ProcessEngineTestSupport() {
     @Throws(Exception::class)
     fun testGetDataFromTask() {
         val model = getProcessModel("testModel2.xml")
-        testRawEngine { processEngine ->
-            val transaction = processEngine.startTransaction()
-            val engineData = transaction.writableEngineData
-            val modelHandle = processEngine.addProcessModel(transaction, model, testModelOwnerPrincipal).handle
+        testRawEngineTr { processEngine ->
+            val engineData = this.writableEngineData
+            val modelHandle = processEngine.addProcessModel(this, model, testModelOwnerPrincipal).handle
 
             val instanceHandle = processEngine.startProcess(
-                transaction,
+                this,
                 model.owner,
                 modelHandle,
                 "testInstance1",
@@ -341,7 +339,7 @@ class TestProcessEngine : ProcessEngineTestSupport() {
             )
 
             var ac1: IProcessNodeInstance =
-                processEngine.getNodeInstance(transaction, messageService.getMessageNode(0), model.owner)
+                processEngine.getNodeInstance(this, messageService.getMessageNode(0), model.owner)
                     ?: throw AssertionError("Message node not found")// This should be 0 as it's the first activity
 
             ac1.node.results.let { r ->
@@ -352,7 +350,7 @@ class TestProcessEngine : ProcessEngineTestSupport() {
                 assertEquals(null, r[1].getPath())
 
                 assertEquals(listOf(XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")),
-                             r[0].originalNSContext.sortedBy { it.prefix })
+                    r[0].originalNSContext.sortedBy { it.prefix })
                 if (r[1].originalNSContext.count() == 1) {
                     assertEquals(
                         listOf(XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")),
@@ -382,12 +380,12 @@ class TestProcessEngine : ProcessEngineTestSupport() {
             messageService.clear() // (Process the message)
             assertEquals(0, ac1.results.size)
             ac1 = processEngine.finishTask(
-                transaction,
+                this,
                 ac1.handle, getDocument("testModel2_response1.xml").toFragment(), model.owner
             )
             assertEquals(NodeInstanceState.Complete, ac1.state)
             ac1 = processEngine.getNodeInstance(
-                transaction,
+                this,
                 ac1.handle, model.owner
             ) ?: throw AssertionError("Node ${ac1.handle} not found")
             assertEquals(2, ac1.results.size)
@@ -407,14 +405,13 @@ class TestProcessEngine : ProcessEngineTestSupport() {
                 messageService.getMessageNode(0).handleValue
             ) //We should have a new message with the new task (with the data)
             val ac2 =
-                processEngine.getNodeInstance(transaction, messageService.getMessageNode(0), model.owner)
-
+                processEngine.getNodeInstance(this, messageService.getMessageNode(0), model.owner)
 
 
             val aic = engineData.processContextFactory.newActivityInstanceContext(engineData, ac2!!)
             val ac2Defines = aic.getDefines(
                 processEngine.getProcessInstance(
-                    transaction,
+                    this,
                     ac2.hProcessInstance,
                     model.owner
                 )
