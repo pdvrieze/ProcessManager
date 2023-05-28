@@ -20,6 +20,9 @@ import io.github.pdvrieze.kotlinsql.monadic.DBTransactionContext
 import net.devrieze.util.db.MonadicDBTransaction
 import nl.adaptivity.process.engine.db.ProcessEngineDB
 import nl.adaptivity.util.multiplatform.Runnable
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 /**
  * A process transaction that uses the database to store the data.
@@ -30,6 +33,24 @@ class ProcessDBTransaction(
 ) : MonadicDBTransaction<ProcessEngineDB>(dbTransactionContext), ContextProcessTransaction {
     private val pendingProcessInstances =
         mutableMapOf<PIHandle, ProcessInstance.ExtBuilder>()
+
+    private var _result: Result<Any?>? = null
+    internal val result: Any?
+        get() {
+            return requireNotNull(_result, { "result not set" }).getOrThrow()
+        }
+
+    internal val finishHandler: Continuation<Any?> = object : Continuation<Any?> {
+        override val context: CoroutineContext get() = EmptyCoroutineContext
+
+        override fun resumeWith(result: Result<Any?>) {
+            if (result.isFailure) {
+                rollback()
+            }
+            this@ProcessDBTransaction._result = result
+        }
+
+    }
 
     fun pendingProcessInstance(pihandle: PIHandle): ProcessInstance.ExtBuilder? {
         return pendingProcessInstances[pihandle]
@@ -44,3 +65,5 @@ class ProcessDBTransaction(
     override val writableEngineData: MutableProcessEngineDataAccess
         get() = engineData.createWriteDelegate(this)
 }
+
+private val UNSET = Any()

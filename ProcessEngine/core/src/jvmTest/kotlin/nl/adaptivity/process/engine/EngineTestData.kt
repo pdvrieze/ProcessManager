@@ -28,6 +28,7 @@ import nl.adaptivity.process.engine.test.ProcessEngineTestSupport.Companion.cach
 import java.net.URI
 import java.util.logging.Logger
 import javax.xml.namespace.QName
+import kotlin.coroutines.startCoroutine
 
 open class EngineTestData(
     val messageService: StubMessageService,
@@ -43,11 +44,21 @@ open class EngineTestData(
         fun defaultEngine(): EngineTestData = EngineTestData(StubMessageService(localEndpoint))
 
 
-        private operator fun invoke(messageService: StubMessageService)= EngineTestData(
+        private operator fun invoke(messageService: StubMessageService) = EngineTestData(
             messageService,
             object : ProcessTransactionFactory<StubProcessTransaction> {
                 override fun startTransaction(engineData: IProcessEngineData<StubProcessTransaction>): StubProcessTransaction {
                     return StubProcessTransaction(engineData)
+                }
+
+                override fun <R> inTransaction(
+                    engineData: IProcessEngineData<StubProcessTransaction>,
+                    action: suspend StubProcessTransaction.() -> R
+                ): R {
+                    val transaction = startTransaction(engineData)
+                    action.startCoroutine(transaction, completion = transaction.finishHandler)
+                    @Suppress("UNCHECKED_CAST")
+                    return transaction.result as R
                 }
             },
             cacheModels(MemProcessModelMap(), 3),

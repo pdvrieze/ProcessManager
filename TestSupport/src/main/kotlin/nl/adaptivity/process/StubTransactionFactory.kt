@@ -18,6 +18,7 @@ package nl.adaptivity.process
 
 import net.devrieze.util.Transaction
 import net.devrieze.util.TransactionFactory
+import kotlin.coroutines.startCoroutine
 
 
 /**
@@ -25,12 +26,17 @@ import net.devrieze.util.TransactionFactory
  */
 class StubTransactionFactory : TransactionFactory<StubTransaction> {
 
-  private val transaction = StubTransaction()
+    private val transaction = StubTransaction()
 
-  override fun startTransaction() = transaction
+    override fun startTransaction() = transaction
 
+    override fun <R> inTransaction(action: suspend StubTransaction.() -> R): R {
+        action.startCoroutine(transaction, completion = transaction.finishHandler)
+        @Suppress("UNCHECKED_CAST")
+        return transaction.result as R
+    }
 
-  override fun isValidTransaction(transaction: Transaction): Boolean {
-    return this.transaction === transaction
-  }
+    override fun isValidTransaction(transaction: Transaction): Boolean {
+        return this.transaction === transaction
+    }
 }

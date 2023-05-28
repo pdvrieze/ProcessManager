@@ -51,6 +51,7 @@ import javax.xml.parsers.ParserConfigurationException
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
 import kotlin.contracts.contract
+import kotlin.coroutines.startCoroutine
 
 
 private const val MODEL_CACHE_SIZE = 5
@@ -211,6 +212,10 @@ class ProcessEngine<TR : ContextProcessTransaction> {
 
         override fun startTransaction(): T = transactionFactory.startTransaction(this)
 
+        override fun <R> inTransaction(action: suspend T.() -> R): R {
+            return transactionFactory.inTransaction(this, action)
+        }
+
         override fun isValidTransaction(transaction: Transaction): Boolean {
             return transaction is ContextProcessTransaction && transaction.readableEngineData == this
         }
@@ -297,6 +302,13 @@ class ProcessEngine<TR : ContextProcessTransaction> {
             val conn = MonadicDBConnection(dbResource.connection, ProcessEngineDB)
 
             return ProcessDBTransaction(TransactionBuilder(conn), this)
+        }
+
+        override fun <R> inTransaction(action: suspend ProcessDBTransaction.() -> R): R {
+            val transaction = startTransaction()
+            action.startCoroutine(transaction, completion = transaction.finishHandler)
+            @Suppress("UNCHECKED_CAST")
+            return transaction.result as R
         }
 
         @OptIn(UnmanagedSql::class)

@@ -19,6 +19,9 @@ package nl.adaptivity.process
 import net.devrieze.util.Transaction
 
 import java.sql.SQLException
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
 
 
 /**
@@ -26,19 +29,36 @@ import java.sql.SQLException
  */
 open class StubTransaction : Transaction {
 
-  override fun close() = Unit
+    private var _result: Result<Any?>? = null
 
-  @Throws(SQLException::class)
-  override fun commit() = Unit
+    val result: Any?
+        get() {
+            return requireNotNull(_result) { "Result not set" }.getOrThrow()
+        }
 
-  @Throws(SQLException::class)
-  override fun rollback() {
-    System.err.println("Rollback needed (but not supported on the stub")
-  }
+    val finishHandler: Continuation<Any?> = object : Continuation<Any?> {
 
-  @Throws(SQLException::class)
-  override fun <T> commit(value: T) = value
+        override val context: CoroutineContext get() = EmptyCoroutineContext
 
-  override fun addRollbackHandler(runnable: Runnable) = // Do nothing
+        override fun resumeWith(result: Result<Any?>) {
+            require(_result == null) { "The result of a transaction can only be set once" }
+            _result = result
+        }
+    }
+
+    override fun close() = Unit
+
+    @Throws(SQLException::class)
+    override fun commit() = Unit
+
+    @Throws(SQLException::class)
+    override fun rollback() {
+        System.err.println("Rollback needed (but not supported on the stub")
+    }
+
+    @Throws(SQLException::class)
+    override fun <T> commit(value: T) = value
+
+    override fun addRollbackHandler(runnable: Runnable) = // Do nothing
         Unit
 }

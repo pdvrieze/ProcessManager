@@ -6,6 +6,7 @@ import net.devrieze.util.security.*
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.IMessageService
 import nl.adaptivity.process.MemTransactionedHandleMap
+import nl.adaptivity.process.StubTransaction
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.processModel.*
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
@@ -17,6 +18,7 @@ import kotlin.collections.ArrayList
 import nl.adaptivity.xmlutil.QName
 import kotlin.test.BeforeTest
 import nl.adaptivity.xmlutil.util.CompactFragment
+import kotlin.coroutines.startCoroutine
 
 typealias ProcessEngineFactory = (IMessageService<*>, ProcessTransactionFactory<StubProcessTransaction>)-> ProcessEngine<StubProcessTransaction>
 
@@ -32,6 +34,16 @@ open class ProcessEngineTestSupport(
         ProcessTransactionFactory<StubProcessTransaction> {
         override fun startTransaction(engineData: IProcessEngineData<StubProcessTransaction>): StubProcessTransaction {
             return StubProcessTransaction(engineData)
+        }
+
+        override fun <R> inTransaction(
+            engineData: IProcessEngineData<StubProcessTransaction>,
+            action: suspend StubProcessTransaction.() -> R
+        ): R {
+            val transaction = startTransaction(engineData)
+            action.startCoroutine(transaction, completion = transaction.finishHandler)
+            @Suppress("UNCHECKED_CAST")
+            return transaction.result as R
         }
     }
     val testModelOwnerPrincipal = object : RolePrincipal {

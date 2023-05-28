@@ -23,10 +23,12 @@ import net.devrieze.util.Transaction
  * as parameter
  */
 interface ContextProcessTransaction : Transaction {
-  val readableEngineData: ProcessEngineDataAccess
+    val readableEngineData: ProcessEngineDataAccess
     val writableEngineData: MutableProcessEngineDataAccess
 }
 
-interface ProcessTransactionFactory<T: ContextProcessTransaction> {
-  fun startTransaction(engineData: IProcessEngineData<T>): T
+interface ProcessTransactionFactory<T : ContextProcessTransaction> {
+    fun startTransaction(engineData: IProcessEngineData<T>): T
+
+    fun <R> inTransaction(engineData: IProcessEngineData<T>, action: suspend T.() -> R): R
 }
