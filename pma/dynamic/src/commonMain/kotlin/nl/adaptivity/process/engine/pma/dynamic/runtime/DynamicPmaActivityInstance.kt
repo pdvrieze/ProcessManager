@@ -21,7 +21,9 @@ import nl.adaptivity.process.engine.processModel.PNIHandle
 import nl.adaptivity.process.engine.processModel.tryCreateTask
 import nl.adaptivity.process.engine.processModel.tryRunTask
 import nl.adaptivity.process.messaging.InvokableMethod
+import nl.adaptivity.process.util.Constants
 import nl.adaptivity.util.multiplatform.PrincipalCompat
+import nl.adaptivity.xmlutil.XmlEvent
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 
@@ -246,7 +248,7 @@ private class TakeTaskMessage(
     val assignedUser: String?
 ) : RunnableMessage<EngineService> {
     override val messageBody: ICompactFragment
-        get() = CompactFragment(toString())
+        get() = CompactFragment(listOf(XmlEvent.NamespaceImpl("pe", Constants.PROCESS_ENGINE_NS)), "<pe:take>${this}</pe:take>")
 
     private fun <TR : ContextProcessTransaction> runImpl(processEngine: ProcessEngine<TR>) {
         processEngine.inTransaction { tr ->
