@@ -22,6 +22,7 @@ import java.sql.SQLException
 import kotlin.coroutines.Continuation
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.coroutines.startCoroutine
 
 
 /**
@@ -31,12 +32,12 @@ open class StubTransaction : Transaction {
 
     private var _result: Result<Any?>? = null
 
-    val result: Any?
+    private val result: Any?
         get() {
             return requireNotNull(_result) { "Result not set" }.getOrThrow()
         }
 
-    val finishHandler: Continuation<Any?> = object : Continuation<Any?> {
+    private val finishHandler: Continuation<Any?> = object : Continuation<Any?> {
 
         override val context: CoroutineContext get() = EmptyCoroutineContext
 
@@ -61,4 +62,13 @@ open class StubTransaction : Transaction {
 
     override fun addRollbackHandler(runnable: Runnable) = // Do nothing
         Unit
+
+    companion object {
+        fun <TR: StubTransaction, R> inTransaction(trFactory: () -> TR, action: suspend TR.()->R): R {
+            val tr = trFactory()
+            action.startCoroutine(tr, tr.finishHandler)
+            @Suppress("UNCHECKED_CAST")
+            return tr.result as R
+        }
+    }
 }

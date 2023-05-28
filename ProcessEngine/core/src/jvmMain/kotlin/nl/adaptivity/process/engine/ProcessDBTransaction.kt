@@ -47,6 +47,7 @@ class ProcessDBTransaction(
             if (result.isFailure) {
                 rollback()
             }
+            close()
             this@ProcessDBTransaction._result = result
         }
 

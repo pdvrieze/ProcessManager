@@ -91,11 +91,10 @@ class InternalEndpointImpl @JvmOverloads constructor(
         task: UserTask<*>
     ): ActivityResponse<Boolean, Boolean> {
         try {
-            service.inTransaction {
+            return service.inTransaction {
                 task.setEndpoint(endPoint)
                 val result = postTask(get(task))
-                return commit { ActivityResponse.create(NodeInstanceState.Acknowledged, Boolean::class, result) }
-
+                commit { ActivityResponse.create(NodeInstanceState.Acknowledged, Boolean::class, result) }
             }
         } catch (e: Exception) {
             Logger.getAnonymousLogger().log(Level.WARNING, "Error posting task", e)

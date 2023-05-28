@@ -17,6 +17,7 @@ package nl.adaptivity.process.engine
 
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.MemTransactionedHandleMap
+import nl.adaptivity.process.StubTransaction
 import nl.adaptivity.process.engine.ProcessEngine.Companion.newTestInstance
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 import nl.adaptivity.process.engine.servlet.ServletProcessEngine
@@ -38,6 +39,13 @@ class TestServletProcessEngine(
         transactionFactory = object : ProcessTransactionFactory<StubProcessTransaction> {
             override fun startTransaction(engineData: IProcessEngineData<StubProcessTransaction>): StubProcessTransaction {
                 return StubProcessTransaction(engineData)
+            }
+
+            override fun <R> inTransaction(
+                engineData: IProcessEngineData<StubProcessTransaction>,
+                action: suspend StubProcessTransaction.() -> R
+            ): R {
+                return StubTransaction.inTransaction({ StubProcessTransaction(engineData) }, action)
             }
         }
         mProcessModels = MemProcessModelMap()

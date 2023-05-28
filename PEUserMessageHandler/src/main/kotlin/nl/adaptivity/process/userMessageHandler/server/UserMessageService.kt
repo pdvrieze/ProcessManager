@@ -30,6 +30,8 @@ import java.sql.SQLException
 import java.util.concurrent.Future
 import javax.naming.Context
 import javax.naming.InitialContext
+import kotlin.coroutines.startCoroutine
+import kotlin.experimental.ExperimentalTypeInference
 
 
 class UserMessageService<T : Transaction> private constructor(
@@ -76,6 +78,10 @@ class UserMessageService<T : Transaction> private constructor(
             val conn = MonadicDBConnection(dbResource.connection, UserTaskDB)
 
             return MonadicDBTransaction(TransactionBuilder(conn))
+        }
+
+        override fun <R> inTransaction(action: suspend MonadicDBTransaction<UserTaskDB>.() -> R): R {
+            return MonadicDBTransaction.inTransaction({ startTransaction() }, action)
         }
 
         override fun isValidTransaction(transaction: Transaction): Boolean {
@@ -223,9 +229,10 @@ class UserMessageService<T : Transaction> private constructor(
         return transactionFactory.startTransaction()
     }
 
-    inline fun <R> inTransaction(block: UserMessageServiceTransaction.() -> R): R {
-        return newTransaction().use { transaction ->
-            UserMessageServiceTransaction(transaction).block()
+    @OptIn(ExperimentalTypeInference::class)
+    fun <R> inTransaction(@BuilderInference block:  UserMessageServiceTransaction.() -> R): R {
+        return transactionFactory.inTransaction {
+            UserMessageServiceTransaction(this).block()
         }
     }
 

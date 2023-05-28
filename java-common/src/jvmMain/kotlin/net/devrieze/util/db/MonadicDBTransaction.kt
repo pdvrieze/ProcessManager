@@ -23,6 +23,10 @@ import io.github.pdvrieze.kotlinsql.monadic.actions.DBAction
 import net.devrieze.util.Transaction
 import nl.adaptivity.util.multiplatform.Runnable
 import java.sql.SQLWarning
+import kotlin.coroutines.Continuation
+import kotlin.coroutines.CoroutineContext
+import kotlin.coroutines.EmptyCoroutineContext
+import kotlin.coroutines.startCoroutine
 
 open class MonadicDBTransaction<DB: Database>(
     delegateSource: () -> DBTransactionContext<DB>
@@ -32,6 +36,21 @@ open class MonadicDBTransaction<DB: Database>(
 
     @UnmanagedSql
     constructor(connection: MonadicDBConnection<DB>): this({ TransactionBuilder(connection) })
+
+    private val finishHandler: Continuation<Any?> = object : Continuation<Any?> {
+        override val context: CoroutineContext get() = EmptyCoroutineContext
+
+        override fun resumeWith(result: Result<Any?>) {
+            check(_result == null) { "Result already set" }
+            if (result.isFailure) rollback()
+            _result = result
+        }
+    }
+    private var _result: Result<Any?>? = null
+    private val result: Any?
+        get() {
+            return checkNotNull(_result) { "Result not set" }.getOrThrow()
+        }
 
     private val delegate: DBTransactionContext<DB> by lazy(delegateSource)
 
@@ -73,4 +92,13 @@ open class MonadicDBTransaction<DB: Database>(
     override fun addRollbackHandler(onRollback: DBConnectionContext<DB>.() -> Unit) {
         delegate.addRollbackHandler(onRollback)
     }
+
+    companion object {
+        fun <TR: MonadicDBTransaction<*>, R> inTransaction(trFactory: () -> TR, action: suspend TR.() -> R): R {
+            val tr = trFactory()
+            action.startCoroutine(tr, tr.finishHandler)
+            return tr.result as R
+        }
+    }
+
 }

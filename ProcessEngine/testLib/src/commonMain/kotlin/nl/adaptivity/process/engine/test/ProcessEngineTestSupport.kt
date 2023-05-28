@@ -40,10 +40,7 @@ open class ProcessEngineTestSupport(
             engineData: IProcessEngineData<StubProcessTransaction>,
             action: suspend StubProcessTransaction.() -> R
         ): R {
-            val transaction = startTransaction(engineData)
-            action.startCoroutine(transaction, completion = transaction.finishHandler)
-            @Suppress("UNCHECKED_CAST")
-            return transaction.result as R
+            return StubTransaction.inTransaction({ StubProcessTransaction(engineData) }, action)
         }
     }
     val testModelOwnerPrincipal = object : RolePrincipal {

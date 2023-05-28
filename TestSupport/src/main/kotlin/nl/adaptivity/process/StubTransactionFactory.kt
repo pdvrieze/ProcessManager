@@ -31,9 +31,7 @@ class StubTransactionFactory : TransactionFactory<StubTransaction> {
     override fun startTransaction() = transaction
 
     override fun <R> inTransaction(action: suspend StubTransaction.() -> R): R {
-        action.startCoroutine(transaction, completion = transaction.finishHandler)
-        @Suppress("UNCHECKED_CAST")
-        return transaction.result as R
+        return StubTransaction.inTransaction({ transaction }, action)
     }
 
     override fun isValidTransaction(transaction: Transaction): Boolean {

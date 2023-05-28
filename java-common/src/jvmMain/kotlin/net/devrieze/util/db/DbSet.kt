@@ -319,16 +319,20 @@ open class DbSet<TMP, T : Any, TR : MonadicDBTransaction<DB>, DB : Database>(
     }
 
     @OptIn(ExperimentalContracts::class)
-    protected inline fun <R> withTransaction(action: TR.() -> R): R {
+    protected inline fun <R> withTransaction(noinline action: TR.() -> R): R {
         contract {
             callsInPlace(action, InvocationKind.EXACTLY_ONCE)
         }
+        return transactionFactory.inTransaction(action)
+/*
+
         val tr = transactionFactory.startTransaction()
         try {
             return tr.action()
         } finally {
             tr.close()
         }
+*/
     }
 
     @OptIn(ExperimentalContracts::class)

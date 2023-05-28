@@ -28,6 +28,7 @@ interface ContextProcessTransaction : Transaction {
 }
 
 interface ProcessTransactionFactory<T : ContextProcessTransaction> {
+    @Deprecated("Don't use anymore")
     fun startTransaction(engineData: IProcessEngineData<T>): T
 
     fun <R> inTransaction(engineData: IProcessEngineData<T>, action: suspend T.() -> R): R

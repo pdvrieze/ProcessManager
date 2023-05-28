@@ -20,6 +20,7 @@ import net.devrieze.util.MutableTransactionedHandleMap
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.MemTransactionedHandleMap
+import nl.adaptivity.process.StubTransaction
 import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 import nl.adaptivity.process.engine.test.ProcessEngineTestSupport.Companion.PNI_SET_HANDLE
 import nl.adaptivity.process.engine.test.ProcessEngineTestSupport.Companion.cacheInstances
@@ -55,10 +56,7 @@ open class EngineTestData(
                     engineData: IProcessEngineData<StubProcessTransaction>,
                     action: suspend StubProcessTransaction.() -> R
                 ): R {
-                    val transaction = startTransaction(engineData)
-                    action.startCoroutine(transaction, completion = transaction.finishHandler)
-                    @Suppress("UNCHECKED_CAST")
-                    return transaction.result as R
+                    return StubTransaction.inTransaction({ StubProcessTransaction(engineData) }, action)
                 }
             },
             cacheModels(MemProcessModelMap(), 3),
