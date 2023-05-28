@@ -114,7 +114,9 @@ class TestSoapHelper {
         val doc = dbf.newDocumentBuilder().parse(InputSource(StringReader(input)))
         val reader = XmlStreaming.newReader(DOMSource(doc))
         reader.require(EventType.START_DOCUMENT, null, null)
-        reader.next()
+
+        if (reader.next() == EventType.START_DOCUMENT) reader.next()
+
         reader.require(EventType.START_ELEMENT, "urn:bar", "foo")
         reader.next()
         reader.require(EventType.START_ELEMENT, "http://www.w3.org/2003/05/soap-rpc", "result")

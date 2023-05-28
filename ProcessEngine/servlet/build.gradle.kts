@@ -42,8 +42,6 @@ configurations {
     }
 }
 
-val argJvmDefault: String by project
-
 dependencies {
     compileOnly(project(":JavaCommonApi"))
     compileOnly(project(":DarwinJavaApi"))
@@ -103,8 +101,8 @@ artifacts {
 }
 
 java {
-    sourceCompatibility = JavaVersion.VERSION_1_8
-    targetCompatibility = JavaVersion.VERSION_1_8
+    sourceCompatibility = JavaVersion.toVersion(libs.versions.kotlin.classTarget.get())
+    targetCompatibility = JavaVersion.toVersion(libs.versions.kotlin.classTarget.get())
 }
 
 kotlin {
@@ -112,7 +110,6 @@ kotlin {
         compilations.all {
             kotlinOptions {
                 jvmTarget = libs.versions.kotlin.classTarget.get()
-                freeCompilerArgs=listOf(argJvmDefault)
             }
         }
     }

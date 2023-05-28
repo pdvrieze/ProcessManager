@@ -54,7 +54,7 @@ configurations {
     }
 
     "compile" {
-        exclude(group= "org.jetbrains", module= "annotations")
+        exclude(group = "org.jetbrains", module = "annotations")
         attributes {
             attribute(androidAttribute, true)
             attribute(KotlinPlatformType.attribute, KotlinPlatformType.androidJvm)
@@ -65,7 +65,7 @@ configurations {
 
 registerAndroidAttributeForDeps()
 
-class MyPlatformRule:  AttributeDisambiguationRule<KotlinPlatformType> {
+class MyPlatformRule : AttributeDisambiguationRule<KotlinPlatformType> {
     override fun execute(t: MultipleCandidatesDetails<KotlinPlatformType>) {
         if (t.candidateValues.contains(KotlinPlatformType.androidJvm)) {
             t.closestMatch(KotlinPlatformType.androidJvm)
@@ -143,8 +143,8 @@ android {
     defaultConfig {
         minSdkVersion(16)
         targetSdkVersion(androidTarget.toInt())
-        versionCode=2
-        versionName=version.toString()
+        versionCode = 2
+        versionName = version.toString()
 //        manifestPlaceholders = [serverScheme: 'https', serverHost: 'darwin.bournemouth.ac.uk']
 //        jackOptions {
 //            enabled = true
@@ -153,12 +153,12 @@ android {
     }
 
     dataBinding {
-        isEnabled=true
+        isEnabled = true
     }
 
     compileOptions {
-        sourceCompatibility=JavaVersion.VERSION_1_8
-        targetCompatibility=JavaVersion.VERSION_1_8
+        sourceCompatibility = JavaVersion.toVersion(libs.versions.kotlin.androidClassTarget.get())
+        targetCompatibility = JavaVersion.toVersion(libs.versions.kotlin.androidClassTarget.get())
     }
 
     lintOptions {
@@ -175,9 +175,11 @@ android {
             manifestPlaceholders = mapOf("serverScheme" to "http", "serverHost" to "10.0.2.2")
 //            applicationIdSuffix ".debug"
 //            minifyEnabled=true
-            proguardFiles(getDefaultProguardFile("proguard-android.txt"),
-                    "proguard-project.txt")
-            versionNameSuffix="-debug"
+            proguardFiles(
+                getDefaultProguardFile("proguard-android.txt"),
+                "proguard-project.txt"
+            )
+            versionNameSuffix = "-debug"
         }
     }
 

@@ -26,7 +26,6 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.dom.Node
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.CompactFragment
 import org.junit.jupiter.api.Assertions.*
@@ -34,7 +33,6 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.xml.sax.SAXException
-import org.xmlunit.builder.DiffBuilder
 import org.xmlunit.diff.*
 import java.io.*
 import java.nio.charset.Charset
@@ -44,7 +42,6 @@ import java.util.logging.Logger
 import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.parsers.ParserConfigurationException
-import javax.xml.transform.dom.DOMResult
 import kotlin.reflect.KClass
 
 
@@ -146,7 +143,9 @@ class TestProcessData {
     fun testReadFragment() {
         val testDataInner = "<b xmlns:umh='urn:foo'><umh:a xpath='/umh:value' /></b>"
         val reader = XmlStreaming.newReader(StringReader(testDataInner))
-        reader.next()
+        if (reader.next() == EventType.START_DOCUMENT) {
+            reader.next()
+        }
         reader.require(EventType.START_ELEMENT, "", "b")
         reader.next()
         reader.require(EventType.START_ELEMENT, "urn:foo", "a")
@@ -462,7 +461,9 @@ class TestProcessData {
     fun testRead() {
         val testData = "Hello<a>who<b>are</b>you</a>"
         val reader = XmlStreaming.newReader(StringReader("<wrap>$testData</wrap>"))
-        assertEquals(EventType.START_ELEMENT, reader.next())
+        var ev = reader.next()
+        if (ev==EventType.START_DOCUMENT) { ev = reader.next() }
+        assertEquals(EventType.START_ELEMENT, ev)
         assertEquals("wrap", reader.localName)
         assertEquals(EventType.TEXT, reader.next())
         assertEquals("Hello", reader.text)
@@ -490,8 +491,9 @@ class TestProcessData {
     fun testSiblingsToFragment() {
         val testData = "Hello<a>who<b>are<c>you</c>.<d>I</d></b>don't</a>know"
         val reader = XmlStreaming.newReader(StringReader("<wrap>$testData</wrap>"))
-
-        assertEquals(EventType.START_ELEMENT, reader.next())
+        var ev = reader.next()
+        if (ev == EventType.START_DOCUMENT) { ev = reader.next() }
+        assertEquals(EventType.START_ELEMENT, ev)
         assertEquals("wrap", reader.localName)
         assertEquals(EventType.TEXT, reader.next())
 
