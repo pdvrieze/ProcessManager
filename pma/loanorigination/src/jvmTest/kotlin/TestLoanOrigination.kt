@@ -17,6 +17,7 @@
 package nl.adaptivity.process.engine.test.loanOrigination
 
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.RunnableActivity
+import io.github.pdvrieze.process.processModel.dynamicProcessModel.impl.RunningMessageService
 import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.pma.AuthorizationException
 import nl.adaptivity.process.engine.test.ProcessEngineFactory
@@ -64,15 +65,20 @@ class TestLoanOrigination : ProcessEngineTestSupport() {
 
     private fun testRunModel(model: ExecutableProcessModel, createContextFactory: (Logger, Random) -> AbstractLoanContextFactory<*>) {
         val logger = Logger.getLogger(TestLoanOrigination::class.java.name)
-        val pef: ProcessEngineFactory = { messageService, transactionFactory ->
+        lateinit var messageService: RunningMessageService
+        val pef: ProcessEngineFactory = { baseMessageService, transactionFactory ->
             val cf = createContextFactory(logger, Random(1234))
+            val engineService = cf.engineService
+            messageService = RunningMessageService() { engineService }
             defaultEngineFactory(
                 messageService,
                 transactionFactory,
                 cf
-            ).also { cf.engineService.initEngine(it) }
+            ).also { engineService.initEngine(it) }
         }
         testProcess(pef, model) { processEngine, tr, model, hinstance ->
+            messageService.processMessages()
+
             val instance = tr.getInstance(hinstance)
             assertEquals(ProcessInstance.State.FINISHED, instance.state)
             val creditReport = instance.outputs.singleOrNull { it.name == "creditReport" }
