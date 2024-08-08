@@ -36,17 +36,17 @@ constructor(protected val delegate: C, observers: Iterable<(S) -> Unit> = emptyL
 
     abstract fun triggerObservers()
 
-    override fun addAll(elements: Collection<T>) = delegate.addAll(elements).apply { if (this) triggerObservers() }
+    actual override fun addAll(elements: Collection<T>) = delegate.addAll(elements).apply { if (this) triggerObservers() }
 
-    override fun add(element: T) = delegate.add(element).apply { if (this) triggerObservers() }
+    actual override fun add(element: T) = delegate.add(element).apply { if (this) triggerObservers() }
 
-    override fun clear() {
+    actual override fun clear() {
         if (delegate.isNotEmpty()) {
             delegate.clear(); triggerObservers()
         }
     }
 
-    override fun iterator(): MutableIterator<T> = ObservableIterator(this, delegate.iterator())
+    actual override fun iterator(): MutableIterator<T> = ObservableIterator(this, delegate.iterator())
 
     actual fun replaceBy(elements: Iterable<T>): Boolean {
         var hasChanges = false
@@ -69,12 +69,12 @@ constructor(protected val delegate: C, observers: Iterable<(S) -> Unit> = emptyL
         return hasChanges
     }
 
-    override fun remove(element: T) = delegate.remove(element).apply { if (this) triggerObservers() }
+    actual override fun remove(element: T) = delegate.remove(element).apply { if (this) triggerObservers() }
 
-    override fun removeAll(elements: Collection<T>) =
+    actual override fun removeAll(elements: Collection<T>) =
         delegate.removeAll(elements).apply { if (this) triggerObservers() }
 
-    override fun retainAll(elements: Collection<T>): Boolean =
+    actual override fun retainAll(elements: Collection<T>): Boolean =
         delegate.retainAll(elements).apply { if (this) triggerObservers() }
 }
 
@@ -104,6 +104,7 @@ actual constructor(delegate: MutableSet<T>, observers: Iterable<(ObservableSet<T
     }
 }
 
+@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual class ObservableList<T>
 actual constructor(delegate: MutableList<T>, observers: Iterable<(ObservableList<T>) -> Unit>) :
     ObservableCollectionBase<MutableList<T>, T, ObservableList<T>>(delegate, observers), List<T> by delegate,
@@ -113,7 +114,9 @@ actual constructor(delegate: MutableList<T>, observers: Iterable<(ObservableList
         ObservableIterator<T>(this, delegate),
         ListIterator<T> by delegate,
         MutableListIterator<T> {
+
         override val delegate: MutableListIterator<T> get() = super.delegate as MutableListIterator
+
         override fun add(element: T) {
             delegate.add(element)
             triggerObservers()
@@ -132,44 +135,44 @@ actual constructor(delegate: MutableList<T>, observers: Iterable<(ObservableList
     actual constructor(delegate: MutableList<T>, vararg observers: (ObservableList<T>) -> Unit) : this(
         delegate,
         observers.toList()
-                                                                                               )
+    )
 
     override fun triggerObservers() {
         observers.forEach { it(this) }
     }
 
-    override fun iterator() = super.iterator()
+    actual override fun iterator() = super.iterator()
 
-    override fun listIterator(): MutableListIterator<T> = ObservableListIterator(delegate.listIterator())
+    actual override fun listIterator(): MutableListIterator<T> = ObservableListIterator(delegate.listIterator())
 
-    override fun listIterator(index: Int): MutableListIterator<T> = ObservableListIterator(delegate.listIterator(index))
+    actual override fun listIterator(index: Int): MutableListIterator<T> = ObservableListIterator(delegate.listIterator(index))
 
-    override fun subList(fromIndex: Int, toIndex: Int): MutableList<T> {
+    actual override fun subList(fromIndex: Int, toIndex: Int): MutableList<T> {
         return ObservableList(
             delegate.subList(
                 fromIndex,
                 toIndex
-                            )
-                             ).apply { observers.replaceBy(this@ObservableList.observers) }
+            )
+        ).apply { observers.replaceBy(this@ObservableList.observers) }
     }
 
-    override fun add(index: Int, element: T) {
+    actual override fun add(index: Int, element: T) {
         delegate.add(index, element)
         triggerObservers()
     }
 
-    override fun addAll(index: Int, elements: Collection<T>) =
+    actual override fun addAll(index: Int, elements: Collection<T>): Boolean =
         delegate.addAll(index, elements).apply { if (this) triggerObservers() }
 
-    override fun removeAt(index: Int) = delegate.removeAt(index).apply { triggerObservers() }
+    actual override fun removeAt(index: Int): T = delegate.removeAt(index).apply { triggerObservers() }
 
-    override fun set(index: Int, element: T) = delegate.set(index, element).apply { triggerObservers() }
+    actual override fun set(index: Int, element: T): T = delegate.set(index, element).apply { triggerObservers() }
 
-    override fun contains(element: T) = delegate.contains(element)
+    actual override fun contains(element: T): Boolean = delegate.contains(element)
 
-    override fun containsAll(elements: Collection<T>) = delegate.containsAll(elements)
+    actual override fun containsAll(elements: Collection<T>): Boolean = delegate.containsAll(elements)
 
-    override val size: Int get() = delegate.size
+    actual override val size: Int get() = delegate.size
 
-    override fun isEmpty() = delegate.isEmpty()
+    actual override fun isEmpty(): Boolean = delegate.isEmpty()
 }

@@ -54,13 +54,13 @@ open class ProcessEngineTestSupport(
         body: (ProcessEngine<StubProcessTransaction>, StubProcessTransaction, ExecutableProcessModel, PIHandle) -> R
     ): R {
         val processEngine = doCreateRawEngine(createProcessContextFactory)
-        processEngine.startTransaction().use { transaction ->
+        return processEngine.startTransaction().use { transaction ->
 
             val modelHandle = processEngine.addProcessModel(transaction, model, testModelOwnerPrincipal).handle
             val instanceHandle = processEngine.startProcess(transaction, testModelOwnerPrincipal, modelHandle, "testInstance",
                 UUID.randomUUID(), payload)
 
-            return body(processEngine, transaction, transaction.readableEngineData.processModel(modelHandle).mustExist(modelHandle).withPermission(), instanceHandle)
+            body(processEngine, transaction, transaction.readableEngineData.processModel(modelHandle).mustExist(modelHandle).withPermission(), instanceHandle)
         }
     }
 
@@ -71,13 +71,13 @@ open class ProcessEngineTestSupport(
         body: (ProcessEngine<StubProcessTransaction>, StubProcessTransaction, ExecutableProcessModel, PIHandle) -> R
     ): R {
         val processEngine = processEngineFactory(messageService, stubTransactionFactory)
-        processEngine.startTransaction().use { transaction ->
+        return processEngine.startTransaction().use { transaction ->
 
             val modelHandle = processEngine.addProcessModel(transaction, model, testModelOwnerPrincipal).handle
             val instanceHandle = processEngine.startProcess(transaction, testModelOwnerPrincipal, modelHandle, "testInstance",
                 UUID.randomUUID(), payload)
 
-            return body(processEngine, transaction, transaction.readableEngineData.processModel(modelHandle).mustExist(modelHandle).withPermission(), instanceHandle)
+            body(processEngine, transaction, transaction.readableEngineData.processModel(modelHandle).mustExist(modelHandle).withPermission(), instanceHandle)
         }
     }
 

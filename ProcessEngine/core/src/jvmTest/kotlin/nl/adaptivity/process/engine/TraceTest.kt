@@ -164,14 +164,14 @@ abstract class TraceTest(val config: ConfigBase) {
         open val expectedXml: String? get() = null
 
 
-        fun ConfigurableNodeContainer<*>.activity(predecessor: Identified): MessageActivity.Builder =
+        fun ConfigurableNodeContainer.activity(predecessor: Identified): MessageActivity.Builder =
             MessageActivityBase.Builder().apply {
                 this.message = DummyMessage
                 this.predecessor = predecessor
             }
 
 
-        fun ConfigurableNodeContainer<*>.activity(
+        fun ConfigurableNodeContainer.activity(
             predecessor: Identified,
             config: @ConfigurationDsl MessageActivity.Builder.() -> Unit
         ): MessageActivity.Builder = activity(predecessor).apply(config)

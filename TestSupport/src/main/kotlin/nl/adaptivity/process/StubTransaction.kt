@@ -17,7 +17,6 @@
 package nl.adaptivity.process
 
 import net.devrieze.util.Transaction
-
 import java.sql.SQLException
 
 

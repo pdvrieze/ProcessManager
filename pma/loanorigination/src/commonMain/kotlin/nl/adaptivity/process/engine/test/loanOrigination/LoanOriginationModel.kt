@@ -315,7 +315,7 @@ class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<Ex
 
 
 
-fun <I : Any, O : Any> ConfigurableNodeContainer<ExecutableProcessNode>.loanActivity(
+fun <I : Any, O : Any> ConfigurableNodeContainer.loanActivity(
     predecessor: Identified,
     outputSerializer: SerializationStrategy<O>,
     inputSerializer: DeserializationStrategy<I>,
@@ -325,7 +325,7 @@ fun <I : Any, O : Any> ConfigurableNodeContainer<ExecutableProcessNode>.loanActi
 ): RunnableActivity.Builder<I, O, LoanActivityContext> =
     RunnableActivity.Builder(predecessor, inputRefNode, inputRefName, inputSerializer, outputSerializer, action = action)
 
-fun <I : Any, O : Any> ConfigurableNodeContainer<ExecutableProcessNode>.configureLoanActivity(
+fun <I : Any, O : Any> ConfigurableNodeContainer.configureLoanActivity(
     predecessor: Identified,
     outputSerializer: SerializationStrategy<O>,
     inputSerializer: DeserializationStrategy<I>,
@@ -341,7 +341,7 @@ fun <I : Any, O : Any> ConfigurableNodeContainer<ExecutableProcessNode>.configur
         outputSerializer = outputSerializer
     ).apply(config)
 
-fun <I : Any, O : Any> ConfigurableNodeContainer<ExecutableProcessNode>.configureLoanActivity(
+fun <I : Any, O : Any> ConfigurableNodeContainer.configureLoanActivity(
     predecessor: Identified,
     outputSerializer: SerializationStrategy<O>?,
     config: @ConfigurationDsl RunnableActivity.Builder<I, O, LoanActivityContext>.() -> Unit

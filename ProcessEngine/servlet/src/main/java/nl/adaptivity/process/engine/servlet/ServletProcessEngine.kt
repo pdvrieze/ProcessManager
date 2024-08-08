@@ -34,6 +34,7 @@ import nl.adaptivity.process.engine.processModel.*
 import nl.adaptivity.process.messaging.ActivityResponse
 import nl.adaptivity.process.messaging.EndpointServlet
 import nl.adaptivity.process.messaging.GenericEndpoint
+import nl.adaptivity.process.messaging.RESTMethod
 import nl.adaptivity.process.processModel.IXmlMessage
 import nl.adaptivity.process.processModel.RootProcessModel
 import nl.adaptivity.process.processModel.AuthorizationInfo
@@ -181,7 +182,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction> : EndpointServle
         private var data: Writable? = null
 
         init {
-            requireNotNull(message.endpointDescriptor)
+            requireNotNull(message.targetMethod.endpoint)
         }
 
         internal val owner: Principal
@@ -192,10 +193,10 @@ open class ServletProcessEngine<TR : ContextProcessTransaction> : EndpointServle
             get() = message.messageBody.getXmlReader()
 
         override val destination: EndpointDescriptor
-            get() = message.endpointDescriptor!!
+            get() = message.targetMethod.endpoint
 
         override val method: String?
-            get() = message.method
+            get() = (message.targetMethod as? RESTMethod)?.method
 
         override val headers: Collection<ISendableMessage.IHeader>
             get() {
@@ -501,14 +502,14 @@ open class ServletProcessEngine<TR : ContextProcessTransaction> : EndpointServle
         @RestParam(type = RestParamType.PRINCIPAL)
         user: Principal
     ): SerializableData<List<IProcessModelRef<ExecutableProcessNode, ExecutableProcessModel>>> = translateExceptions {
-        processEngine.startTransaction().use { transaction ->
+        return processEngine.startTransaction().use { transaction ->
             val processModels = processEngine.getProcessModels(transaction.readableEngineData, user)
 
             val list = ArrayList<IProcessModelRef<ExecutableProcessNode, ExecutableProcessModel>>()
             for (pm in processModels) {
                 list.add(pm.withPermission().ref)
             }
-            return transaction.commitSerializable(list, REFS_TAG)
+            transaction.commitSerializable(list, REFS_TAG)
         }
     }
 
@@ -525,10 +526,10 @@ open class ServletProcessEngine<TR : ContextProcessTransaction> : EndpointServle
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal
     ): ExecutableProcessModel = translateExceptions {
         try {
-            processEngine.startTransaction().use { transaction ->
+            return processEngine.startTransaction().use { transaction ->
                 val handle1 = if (handle < 0) Handle.invalid<SecureObject<ExecutableProcessModel>>() else Handle(handle)
                 processEngine.invalidateModelCache(handle1)
-                return transaction.commit(
+                transaction.commit(
                     processEngine.getProcessModel(transaction.readableEngineData, handle1, user)
                         ?: throw FileNotFoundException()
                 )
@@ -583,14 +584,14 @@ open class ServletProcessEngine<TR : ContextProcessTransaction> : EndpointServle
             processModelBuilder.handle = handle
 
             try {
-                processEngine.startTransaction().use { transaction ->
+                return processEngine.startTransaction().use { transaction ->
                     val updatedRef = processEngine.updateProcessModel(
                         transaction, if (handle < 0) Handle.invalid() else Handle(handle),
                         ExecutableProcessModel(processModelBuilder),
                         user
                     )
                     val update2 = ProcessModelRef.get(updatedRef)
-                    return transaction.commit(update2)
+                    transaction.commit(update2)
                 }
             } catch (e: SQLException) {
                 logger.log(Level.WARNING, "Error updating process model", e)
@@ -635,10 +636,10 @@ open class ServletProcessEngine<TR : ContextProcessTransaction> : EndpointServle
 
         if (processModel != null) {
             processModel.handle = -1 // The handle cannot be set
-            processEngine.startTransaction().use { transaction ->
+            return processEngine.startTransaction().use { transaction ->
                 val newModelRef = processEngine.addProcessModel(transaction, processModel, owner)
 
-                return transaction.commit(ProcessModelRef.get(newModelRef))
+                transaction.commit(ProcessModelRef.get(newModelRef))
             }
 
         }
@@ -702,9 +703,9 @@ open class ServletProcessEngine<TR : ContextProcessTransaction> : EndpointServle
         @WebParam(name = "uuid") @RestParam(name = "uuid", type = RestParamType.QUERY) uuid: String?,
         @WebParam(name = "owner", header = true) @RestParam(type = RestParamType.PRINCIPAL) owner: Principal
     ): SerializableData<PIHandle> = translateExceptions {
-        processEngine.startTransaction().use { transaction ->
+        return processEngine.startTransaction().use { transaction ->
             val uuid: UUID = uuid?.let { UUID.fromString(it) } ?: UUID.randomUUID()
-            return transaction.commitSerializable(
+            transaction.commitSerializable(
                 processEngine.startProcess(
                     transaction, owner, if (handle < 0) Handle.invalid() else Handle(handle),
                     name ?: "<unnamed>", uuid, null
@@ -746,8 +747,8 @@ open class ServletProcessEngine<TR : ContextProcessTransaction> : EndpointServle
         @RestParam(name = "handle", type = RestParamType.VAR) handle: Long,
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal?
     ): SerializableData<ProcessInstance> = translateExceptions {
-        processEngine.startTransaction().use { transaction ->
-            return transaction.commitSerializable(
+        return processEngine.startTransaction().use { transaction ->
+            transaction.commitSerializable(
                 processEngine.getProcessInstance(
                     transaction,
                     if (handle < 0) Handle.invalid() else Handle(handle),
@@ -770,9 +771,9 @@ open class ServletProcessEngine<TR : ContextProcessTransaction> : EndpointServle
         @RestParam(name = "handle", type = RestParamType.VAR) handle: Long,
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal
     ): String = translateExceptions {
-        processEngine.startTransaction().use { transaction ->
+        return processEngine.startTransaction().use { transaction ->
             transaction.commit(processEngine.tickleInstance(transaction, handle, user))
-            return "success"
+            "success"
         }
     }
 
@@ -788,8 +789,8 @@ open class ServletProcessEngine<TR : ContextProcessTransaction> : EndpointServle
         @RestParam(name = "handle", type = RestParamType.VAR) handle: Long,
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal
     ): ProcessInstance = translateExceptions {
-        processEngine.startTransaction().use { transaction ->
-            return transaction.commit(
+        return processEngine.startTransaction().use { transaction ->
+            transaction.commit(
                 processEngine.cancelInstance(transaction, if (handle < 0) Handle.invalid() else Handle(handle), user)
             )
         }
@@ -892,8 +893,8 @@ open class ServletProcessEngine<TR : ContextProcessTransaction> : EndpointServle
         user: Principal,
     ): NodeInstanceState = translateExceptions {
         require(handle >= 0L)
-        processEngine.startTransaction().use { transaction ->
-            return transaction.commit(processEngine.takeTask(transaction, Handle(handle), assignedUserName, user))
+        return processEngine.startTransaction().use { transaction ->
+            transaction.commit(processEngine.takeTask(transaction, Handle(handle), assignedUserName, user))
         }
     }
 
@@ -911,8 +912,8 @@ open class ServletProcessEngine<TR : ContextProcessTransaction> : EndpointServle
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal
     ): NodeInstanceState = translateExceptions {
         try {
-            processEngine.startTransaction().use { transaction ->
-                return transaction.commit(
+            return processEngine.startTransaction().use { transaction ->
+                transaction.commit(
                     processEngine.updateTaskState(
                         transaction, if (handle < 0) Handle.invalid() else Handle(handle), newState,
                         user
@@ -949,8 +950,8 @@ open class ServletProcessEngine<TR : ContextProcessTransaction> : EndpointServle
     ): NodeInstanceState = translateExceptions {
 
         val payloadNode = DomUtil.nodeToFragment(payload)
-        processEngine.startTransaction().use { transaction ->
-            return transaction.commit(
+        return processEngine.startTransaction().use { transaction ->
+            transaction.commit(
                 processEngine.finishTask(
                     transaction, if (handle < 0) Handle.invalid() else Handle(handle), payloadNode,
                     user
@@ -1027,11 +1028,10 @@ open class ServletProcessEngine<TR : ContextProcessTransaction> : EndpointServle
                                 if (Constants.PROCESS_ENGINE_NS == rootNode.namespaceURI && ActivityResponse.ELEMENTLOCALNAME == rootNode.localName) {
                                     val taskStateAttr = rootNode.getAttribute(ActivityResponse.ATTRTASKSTATE)
                                     try {
-                                        processEngine.startTransaction().use { transaction ->
+                                        return processEngine.startTransaction().use { transaction ->
                                             val nodeInstanceState = NodeInstanceState.valueOf(taskStateAttr)
                                             processEngine.updateTaskState(transaction, handle, nodeInstanceState, owner)
                                             transaction.commit()
-                                            return
                                         }
                                     } catch (e: NullPointerException) {
                                         e.printStackTrace()

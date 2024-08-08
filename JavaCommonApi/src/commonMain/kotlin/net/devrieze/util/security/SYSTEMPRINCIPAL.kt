@@ -19,10 +19,10 @@ package net.devrieze.util.security
 import kotlin.jvm.JvmField
 
 expect object SYSTEMPRINCIPAL: RolePrincipal {
+    override fun hasRole(role: String): Boolean
+    override fun getName(): String
 
-    @JvmField
     public val NS: String /* = "urn:SYSTEMPRINCIPAL"*/
-    @JvmField
     public val TAG: String /* = "systemPrincipal" */
 
 }

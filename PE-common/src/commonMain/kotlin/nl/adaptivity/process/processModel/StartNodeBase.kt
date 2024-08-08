@@ -36,7 +36,7 @@ abstract class StartNodeBase<NodeT : ProcessNode, ModelT : ProcessModel<NodeT>?>
     final override val successor: Identifiable?
         get() = successors.singleOrNull()
 
-    override val eventType: IEventNode.Type?
+    final override val eventType: IEventNode.Type?
 
     constructor(
         ownerModel: ModelT,

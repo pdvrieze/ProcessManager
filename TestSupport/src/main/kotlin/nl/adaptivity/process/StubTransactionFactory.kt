@@ -25,12 +25,12 @@ import net.devrieze.util.TransactionFactory
  */
 class StubTransactionFactory : TransactionFactory<StubTransaction> {
 
-  private val transaction = StubTransaction()
+    private val transaction = StubTransaction()
 
-  override fun startTransaction() = transaction
+    override fun startTransaction() = transaction
 
 
-  override fun isValidTransaction(transaction: Transaction): Boolean {
-    return this.transaction === transaction
-  }
+    override fun isValidTransaction(transaction: Transaction): Boolean {
+        return this.transaction === transaction
+    }
 }

@@ -302,7 +302,8 @@ private inner class HistoryChangeHandler : ValueChangeHandler<String> {
 }
 */
 
-private fun onLinkClick(event: MouseEvent) {
+@JsExport
+public fun onLinkClick(event: MouseEvent) {
   return html.onLinkClick(event)
 }
 

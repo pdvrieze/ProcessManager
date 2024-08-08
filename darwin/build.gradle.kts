@@ -37,11 +37,12 @@ kotlin {
         moduleName = "darwin"
         browser()
         compilations.all {
+
             kotlinOptions {
                 sourceMap = true
                 suppressWarnings = false
                 verbose = true
-                metaInfo = true
+//                metaInfo = true
                 moduleKind = "umd"
             }
         }

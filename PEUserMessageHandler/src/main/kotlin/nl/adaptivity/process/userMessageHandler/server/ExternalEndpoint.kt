@@ -161,7 +161,7 @@ class ExternalEndpoint @JvmOverloads constructor(
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal
     ): XmlTask = translateExceptions {
         service.inTransaction {
-            return commit {
+            commit {
                 val handle1 = java.lang.Long.parseLong(handle)
                 getPendingTask(
                     if (handle1 < 0) Handle.invalid() else Handle(handle1),
@@ -186,7 +186,7 @@ class ExternalEndpoint @JvmOverloads constructor(
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal
     ): NodeInstanceState = translateExceptions {
         service.inTransaction {
-            return startTask(Handle(handleString = handle), user)
+            startTask(Handle(handleString = handle), user)
         }
     }
 
@@ -205,7 +205,7 @@ class ExternalEndpoint @JvmOverloads constructor(
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal
     ): NodeInstanceState = translateExceptions {
         service.inTransaction {
-            return commit { takeTask(Handle(handleString = handle), user) }
+            commit { takeTask(Handle(handleString = handle), user) }
         }
     }
 
@@ -226,7 +226,7 @@ class ExternalEndpoint @JvmOverloads constructor(
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal
     ): NodeInstanceState = translateExceptions {
         service.inTransaction {
-            return commit {
+            commit {
                 val handle1 = java.lang.Long.parseLong(handle)
                 finishTask(
                     if (handle1 < 0) Handle.invalid() else Handle(handle1),
@@ -242,7 +242,7 @@ class ExternalEndpoint @JvmOverloads constructor(
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal
     ): NodeInstanceState = translateExceptions {
         service.inTransaction {
-            return commit {
+            commit {
                 val handle1 = java.lang.Long.parseLong(handle)
                 cancelTask(
                     if (handle1 < 0) Handle.invalid() else Handle(handle1),
@@ -273,13 +273,13 @@ class ExternalEndpoint @JvmOverloads constructor(
             user: Principal
         ): Collection<XmlTask> {
             try {
-                service.newTransaction().use { transaction ->
-                    return transaction.commit(
+                return service.inTransaction {
+                    commit {
                         service.getPendingTasks(
                             transaction,
                             user
                         )
-                    )
+                    }
                 }
             } catch (e: Exception) {
                 Logger.getAnonymousLogger().log(Level.WARNING, "Error retrieving tasks", e)
@@ -299,15 +299,15 @@ class ExternalEndpoint @JvmOverloads constructor(
                 throw IllegalArgumentException("No task information provided")
             }
             try {
-                service.newTransaction().use { transaction ->
-                    val result = service.updateTask(
-                        transaction,
-                        Handle(handleString),
-                        partialNewTask,
-                        user
-                    ) ?: throw HandleNotFoundException()
-                    transaction.commit()
-                    return result
+                return service.inTransaction {
+                    commit {
+                        service.updateTask(
+                            transaction,
+                            Handle(handleString),
+                            partialNewTask,
+                            user
+                        ) ?: throw HandleNotFoundException()
+                    }
                 }
             } catch (e: Exception) {
                 Logger.getAnonymousLogger().log(Level.WARNING, "Error updating task", e)

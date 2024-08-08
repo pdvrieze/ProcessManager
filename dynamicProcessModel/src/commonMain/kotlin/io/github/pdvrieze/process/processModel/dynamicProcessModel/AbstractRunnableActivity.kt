@@ -55,9 +55,10 @@ abstract class AbstractRunnableActivity<I: Any, O: Any, C: ActivityInstanceConte
 
     final val onActivityProvided: RunnableActivity.OnActivityProvided<I, O, C> = builder.onActivityProvided
 
+
     @Suppress("UNCHECKED_CAST")
-    override val defines: List<RunnableActivity.DefineType<*>>
-        get() = super.defines as List<RunnableActivity.DefineType<*>>
+    val runnableDefines: List<RunnableActivity.DefineType<*>>
+        get() = defines as List<RunnableActivity.DefineType<*>>
 
     abstract class Builder<I : Any, O : Any, C: ActivityInstanceContext> : BaseBuilder, ExecutableProcessNode.Builder,
         MessageActivity.Builder {
@@ -72,10 +73,7 @@ abstract class AbstractRunnableActivity<I: Any, O: Any, C: ActivityInstanceConte
 
         var onActivityProvided: RunnableActivity.OnActivityProvided<I, O, C>
 
-        final override val results: MutableCollection<IXmlResultType>
-            get() = super.results
-
-        final override val defines: MutableCollection<IXmlDefineType>
+        val runnableDefines: MutableCollection<IXmlDefineType>
             get() = TypecheckingCollection(RunnableActivity.DefineType::class, super.defines)
 
         constructor(
@@ -180,7 +178,7 @@ abstract class AbstractRunnableActivity<I: Any, O: Any, C: ActivityInstanceConte
     }
 
     fun getInputData(data: List<ProcessData>): I {
-        val mappedData = defines.associate { define ->
+        val mappedData = runnableDefines.associate { define ->
             val ser: DeserializationStrategy<Any> = define.deserializer.nonNullSerializer()
             val elementData = data.singleOrNull() { it.name == define.name }
                 ?: throw NoSuchElementException("Could not find single define with name ${define.refName}")

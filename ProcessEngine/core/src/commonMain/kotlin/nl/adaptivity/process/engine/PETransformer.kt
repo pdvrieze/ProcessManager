@@ -131,7 +131,7 @@ class PETransformer private constructor(
                 if (filterAttributes) {
                     results.add(
                         StartElementEvent(
-                            element.locationInfo, element.namespaceUri, element.localName,
+                            element.extLocationInfo, element.namespaceUri, element.localName,
                             element.prefix,
                             newAttrs.toTypedArray(),
                             namespaceContext.freeze(),

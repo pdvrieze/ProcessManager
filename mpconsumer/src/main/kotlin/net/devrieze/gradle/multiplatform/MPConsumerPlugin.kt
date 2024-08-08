@@ -18,16 +18,12 @@ package multiplatform.net.devrieze.gradle.multiplatform
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.artifacts.Configuration
-import org.gradle.api.artifacts.ConfigurationContainer
 import org.gradle.api.attributes.AttributeDisambiguationRule
 import org.gradle.api.attributes.MultipleCandidatesDetails
-import org.gradle.kotlin.dsl.closureOf
 import org.gradle.kotlin.dsl.hasPlugin
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformAndroidPlugin
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformJsPlugin
+import org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
+import org.jetbrains.kotlin.gradle.plugin.KotlinJsPluginWrapper
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
-import org.jetbrains.kotlin.gradle.plugin.mpp.KotlinMultiplatformPlugin
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsCompilerAttribute
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsCompilerAttribute.Companion.jsCompilerAttribute
 
@@ -41,13 +37,13 @@ class MPConsumerPlugin: Plugin<Project> {
                 val platformType = when {
                     // Don't use classes for the android plugins as we don't want to pull in the android plugin into the
                     // classpath just to find that android is not needed.
-                    plugins.hasPlugin(KotlinPlatformAndroidPlugin::class) or
+                    plugins.hasPlugin(KotlinAndroidPluginWrapper::class) or
                         plugins.hasPlugin("com.android.application") or
                         plugins.hasPlugin("com.android.feature") or
                         plugins.hasPlugin("com.android.test") or
                         plugins.hasPlugin("com.android.library") -> KotlinPlatformType.androidJvm
 
-                    plugins.hasPlugin(KotlinPlatformJsPlugin::class) -> KotlinPlatformType.js
+                    plugins.hasPlugin(KotlinJsPluginWrapper::class) -> KotlinPlatformType.js
 
                     else -> KotlinPlatformType.jvm
                 }

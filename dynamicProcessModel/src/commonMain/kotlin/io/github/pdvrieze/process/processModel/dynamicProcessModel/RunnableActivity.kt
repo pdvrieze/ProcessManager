@@ -16,7 +16,6 @@
 
 package io.github.pdvrieze.process.processModel.dynamicProcessModel
 
-import io.github.pdvrieze.process.processModel.dynamicProcessModel.RunnableActivity.OnActivityProvided
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
 import nl.adaptivity.process.engine.ActivityInstanceContext
@@ -230,7 +229,7 @@ class InputCombiner<T>(val impl: (InputContext.(Map<String, Any?>) -> T)? = null
     }
 }
 
-fun <I : Any, O : Any, C : ActivityInstanceContext> ConfigurableNodeContainer<ExecutableProcessNode>.runnableActivity(
+fun <I : Any, O : Any, C : ActivityInstanceContext> ConfigurableNodeContainer.runnableActivity(
     predecessor: Identified,
     outputSerializer: SerializationStrategy<O>,
     inputSerializer: DeserializationStrategy<I>,
@@ -240,7 +239,7 @@ fun <I : Any, O : Any, C : ActivityInstanceContext> ConfigurableNodeContainer<Ex
 ): RunnableActivity.Builder<I, O, C> =
     RunnableActivity.Builder(predecessor, inputRefNode, inputRefName, inputSerializer, outputSerializer, action = action)
 
-fun <I : Any, O : Any, C: ActivityInstanceContext> ConfigurableNodeContainer<ExecutableProcessNode>.configureRunnableActivity(
+fun <I : Any, O : Any, C: ActivityInstanceContext> ConfigurableNodeContainer.configureRunnableActivity(
     predecessor: Identified,
     outputSerializer: SerializationStrategy<O>,
     inputSerializer: DeserializationStrategy<I>,
@@ -250,7 +249,7 @@ fun <I : Any, O : Any, C: ActivityInstanceContext> ConfigurableNodeContainer<Exe
 ): RunnableActivity.Builder<I, O, C> =
     RunnableActivity.Builder<I, O, C>(predecessor, inputRefNode, inputRefName, inputSerializer, outputSerializer).apply(config)
 
-fun <I : Any, O : Any, C: ActivityInstanceContext> ConfigurableNodeContainer<ExecutableProcessNode>.configureRunnableActivity(
+fun <I : Any, O : Any, C: ActivityInstanceContext> ConfigurableNodeContainer.configureRunnableActivity(
     predecessor: Identified,
     outputSerializer: SerializationStrategy<O>?,
     config: @ConfigurationDsl RunnableActivity.Builder<I, O, C>.() -> Unit

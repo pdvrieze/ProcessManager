@@ -352,7 +352,7 @@ class TestProcessEngine : ProcessEngineTestSupport() {
                 assertEquals(null, r[1].getPath())
 
                 assertEquals(listOf(XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")),
-                             r[0].originalNSContext.sortedBy { it.prefix })
+                    r[0].originalNSContext.sortedBy { it.prefix })
                 if (r[1].originalNSContext.count() == 1) {
                     assertEquals(
                         listOf(XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")),

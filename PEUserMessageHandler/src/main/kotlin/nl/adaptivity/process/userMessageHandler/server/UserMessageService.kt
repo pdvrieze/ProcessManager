@@ -30,6 +30,7 @@ import java.sql.SQLException
 import java.util.concurrent.Future
 import javax.naming.Context
 import javax.naming.InitialContext
+import kotlin.experimental.ExperimentalTypeInference
 
 
 class UserMessageService<T : Transaction> private constructor(
@@ -81,6 +82,7 @@ class UserMessageService<T : Transaction> private constructor(
         override fun isValidTransaction(transaction: Transaction): Boolean {
             return transaction is MonadicDBTransaction<*> && transaction.db === UserTaskDB
         }
+
     }
 
 

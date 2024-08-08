@@ -69,7 +69,6 @@ internal class MyGatheringNamespaceContext(
                 }
             }.iterator()
     }
-
 }
 
 private fun nameSpace(uri: String, prefix: String): Namespace = object : Namespace {

@@ -76,7 +76,7 @@ abstract class RunnableProcessBackedService<S: RunnableProcessBackedService<S>> 
         )
         engineToken = authServiceClient.exchangeAuthCode(authCode)
 
-        this.processHandles= ensureProcessHandles(processEngineService, engineToken, processFactories.arrayMap { it() })
+        this.processHandles= ensureProcessHandles(processEngineService, engineToken, processFactories.arrayMap { it(this) })
     }
 
     protected val processHandles: Array<Handle<ExecutableProcessModel>>

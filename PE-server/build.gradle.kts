@@ -84,7 +84,7 @@ dependencies {
 
     "warContents"(project(path= ":PEUserMessageHandler", configuration= "runtimeElements"))
     "warContents"(project(":DarwinServices"))
-    "warContents"(project(path= ":darwin:war", configuration= "warConfig"))
+//    "warContents"(project(path= ":darwin:war", configuration= "warConfig"))
 //    "warContents"(project(path= ":ProcessEngine:servlet"))
     "warContents"(project(":accountmgr"))
 }

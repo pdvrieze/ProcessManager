@@ -19,24 +19,30 @@ package nl.adaptivity.process.engine.patterns
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.configurableModel.endNode
 import nl.adaptivity.process.processModel.configurableModel.startNode
+import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import org.junit.jupiter.api.DisplayName
 
 @DisplayName("WASP4: Vertical modularisation (subprocesses)")
 class WASP4: TraceTest(Companion) {
     companion object : TraceTest.ConfigBase() {
-        override val modelData: ModelData = run {
-            val model = object : TestConfigurableModel("WASP4") {
-                val start1 by startNode
-                val ac1 by activity(start1)
 
-                val comp1 by object : ConfigurableCompositeActivity(ac1) {
-                    val start2 by startNode
-                    val ac2 by activity(start2)
-                    val end2 by endNode(ac2)
-                }
-                val ac3 by activity(comp1)
-                val end by endNode(ac3)
+        internal class Wasp4Model : TestConfigurableModel("WASP4") {
+            val start1 by startNode
+            val ac1 by activity(start1)
+
+            internal inner class Comp1: ConfigurableCompositeActivity( ac1) {
+                val start2 by startNode
+                val ac2 by activity(start2)
+                val end2 by endNode(ac2)
             }
+
+            val comp1 by Comp1()
+            val ac3 by activity(comp1)
+            val end by endNode(ac3)
+        }
+
+        override val modelData: ModelData = run {
+            val model = Wasp4Model()
             val start2 = model.comp1.start2
             val ac2 = model.comp1.ac2
             val end2 = model.comp1.end2

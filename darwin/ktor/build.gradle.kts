@@ -17,7 +17,7 @@
 import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 
 plugins {
-    kotlin("multiplatform")
+    kotlin("jvm")
     application
     alias(libs.plugins.kotlin.serialization)
     id("mpconsumer")
@@ -31,14 +31,15 @@ base {
 val ktorVersion = libs.versions.ktor.get()
 
 kotlin {
-    jvm {}
+//    jvm {}
+/*
     js(IR) {
         moduleName = "darwin"
         browser {
-            dceTask {
-                keep("darwin.html.onLinkClick")
-                dceOptions.devMode = true
-            }
+//            dceTask {
+//                keep("darwin.html.onLinkClick")
+//                dceOptions.devMode = true
+//            }
 
             webpackTask {
                 devtool = "source-map"
@@ -47,25 +48,28 @@ kotlin {
         }
         binaries.executable()
     }
+*/
 
     sourceSets {
-        val commonMain by getting {
+//        val commonMain by getting {
+//            dependencies {
+//                implementation(libs.kotlinx.serialization.json)
+//                implementation(libs.ktor.client.core)
+//            }
+//        }
+//
+//        val commonTest by getting {
+//            dependencies {
+//                implementation(kotlin("test-common"))
+//                implementation(kotlin("test-annotations-common"))
+//            }
+//        }
+
+        val main by getting {
+//            val webpackTask = tasks.getByName<KotlinWebpack>("jsBrowserDevelopmentWebpack")
             dependencies {
                 implementation(libs.kotlinx.serialization.json)
                 implementation(libs.ktor.client.core)
-            }
-        }
-
-        val commonTest by getting {
-            dependencies {
-                implementation(kotlin("test-common"))
-                implementation(kotlin("test-annotations-common"))
-            }
-        }
-
-        val jvmMain by getting {
-            val webpackTask = tasks.getByName<KotlinWebpack>("jsBrowserDevelopmentWebpack")
-            dependencies {
                 implementation(libs.ktor.serialization.xml)
                 implementation(libs.ktor.serialization.json)
                 implementation(libs.ktor.server.core)
@@ -85,15 +89,19 @@ kotlin {
 //            dependsOn(webpackTask)
         }
 
+/*
         val jsMain by getting {
             dependencies {
                 implementation(libs.ktor.client.js)
                 implementation(libs.ktor.client.json)
                 implementation(libs.ktor.serialization.json)
                 implementation(libs.requirejs)
-                api(project(":darwin"/*, configuration = "jsDefault"*/))
+                api(project(":darwin"*/
+/*, configuration = "jsDefault"*//*
+))
             }
         }
+*/
 
     }
 }

@@ -35,7 +35,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
     override val name: String? = null,
     override val owner: PrincipalCompat,
     override val uuid: UUID
-) : RootProcessModel<NodeT>, ConfigurableNodeContainer<NodeT> {
+) : RootProcessModel<NodeT>, ConfigurableNodeContainer {
 
     class NodeDelegate<T : Identifiable>(override val id: String) :
         ReadOnlyProperty<ConfigurableProcessModel<*>, T>, Identifiable {
@@ -154,13 +154,12 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
     inline operator fun <T : ConfigurableCompositeActivity>
         T.getValue(thisRef: ConfigurableProcessModel<*>, property: KProperty<*>): T = this
 
-    @ConfigurationDsl
-    public abstract inner class ConfigurableCompositeActivity(
+    abstract inner class ConfigurableCompositeActivity(
         predecessor: Identified,
         childId: String? = null,
         id: String? = null
     ) : Identified,
-        ConfigurableNodeContainer<NodeT> /*: ChildProcessModel.Builder<ExecutableProcessNode, ExecutableModelCommon>*/ {
+        ConfigurableNodeContainer /*: ChildProcessModel.Builder<ExecutableProcessNode, ExecutableModelCommon>*/ {
 
         private inline fun rootBuilder() = this@ConfigurableProcessModel.configurationBuilder
 
@@ -250,8 +249,8 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
 
 }
 
-@ConfigurationDsl
-interface ConfigurableNodeContainer<out NodeT : ProcessNode> {
+//@ConfigurationDsl
+interface ConfigurableNodeContainer {
     /**
      * Property to access the builder that allows for configuration. This is only valid for as long as
      * the model has not been initialised. After initialisation accessing this property should throw

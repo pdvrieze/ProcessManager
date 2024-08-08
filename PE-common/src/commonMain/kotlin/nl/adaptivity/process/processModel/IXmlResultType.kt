@@ -76,6 +76,7 @@ interface IXmlResultType {
 
 }
 
+
 val IXmlResultType.path: String?
     inline get() = getPath()
 

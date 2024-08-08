@@ -24,6 +24,7 @@ import nl.adaptivity.xmlutil.XmlWriter
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 import nl.adaptivity.xmlutil.util.XMLFragmentStreamReader
+
 import java.io.IOException
 import java.io.Writer
 

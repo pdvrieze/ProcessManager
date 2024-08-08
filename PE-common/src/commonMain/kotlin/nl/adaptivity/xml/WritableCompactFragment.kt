@@ -33,11 +33,10 @@ expect class WritableCompactFragment private constructor(
     constructor(string: String)
     constructor(orig: ICompactFragment)
 
+    override fun getXmlReader(): XmlReader
     override val content: CharArray
     override val contentString: String
     override val isEmpty: Boolean
     override val namespaces: IterableNamespaceContext
-    override fun getXmlReader(): XmlReader
     override fun serialize(out: XmlWriter)
-
 }

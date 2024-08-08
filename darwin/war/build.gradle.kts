@@ -36,10 +36,12 @@ kotlin {
         js(IR) {
             moduleName = "darwinwar"
             browser {
+/*
                 dceTask {
                     keep("darwin.html.onLinkClick")
                     dceOptions.devMode = true
                 }
+*/
 
                 webpackTask {
                     outputFileName = "darwinwar.js"

@@ -41,7 +41,7 @@ kotlin {
                 sourceMap = true
                 suppressWarnings = false
                 verbose = true
-                metaInfo = true
+//                metaInfo = true
                 moduleKind = "umd"
                 main = "call"
             }

@@ -4,6 +4,7 @@ out
 local.properties
 build
 .gradle
+.kotlin
 .idea/libraries
 .idea/dataSources.ids
 .idea/dataSources.local.xml

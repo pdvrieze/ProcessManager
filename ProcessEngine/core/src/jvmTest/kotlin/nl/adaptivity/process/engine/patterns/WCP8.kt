@@ -32,6 +32,7 @@ import kotlin.random.Random
 @Tag("slow")
 class WCP8() : TraceTest(Companion) {
 
+    @Nested
     @DisplayName("Model is correct")
     inner class TestModelCorrect() {
         @Test
