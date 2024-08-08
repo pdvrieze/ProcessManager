@@ -19,7 +19,7 @@ plugins {
     kotlin("jvm")
     war
     idea
-    mpconsumer
+    id("mpconsumer")
 }
 
 version = "1.0.0"

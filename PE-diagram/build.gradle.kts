@@ -17,7 +17,7 @@
 plugins {
     kotlin("multiplatform")
     idea
-    kotlin("plugin.serialization")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 base {
@@ -43,7 +43,7 @@ kotlin {
         jvmAndroid {
         }
 */
-        js(BOTH) {
+        js {
             browser()
             binaries
         }

@@ -14,14 +14,13 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
-import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
-
 plugins {
-    idea
-    id("project-report")
-    mpconsumer
-    kotlin("android") apply false
-    id("com.android.application") apply false
+//    idea
+//    id("project-report")
+    alias(libs.plugins.kotlin.multiplatform) apply false
+//    mpconsumer
+//    kotlin("android") apply false
+//    id("com.android.application") apply false
 }
 
 //plugins {
@@ -30,33 +29,34 @@ plugins {
 
 description = "The overall project that manages all artefacts of the processmanager"
 
-val collectDir = "$buildDir/artifacts"
+val collectDir = layout.buildDirectory.dir("artifacts")
 
 ext {
 //    set("androidCompatVersion", libs.versions.androidCompat.get())
 //    set("dbcpSpec", "com.zaxxer:HikariCP:${libs.versions.hikaricp.get()}")
-    set("collectDir", "${buildDir}/artifacts")
+    set("collectDir", collectDir)
 }
 
-val androidEnabled get() = (project.ext["androidEnabledProp"] as String).toBoolean()
+//val androidEnabled get() = (project.ext["androidEnabledProp"] as String).toBoolean()
 
 //def artifactType = Attribute.of("artifactType", String)
 
-val tomcatWars by configurations.creating
-val tomcatClasspath by configurations.creating {
-    attributes {
-        attribute(KotlinPlatformType.attribute, KotlinPlatformType.jvm)
-    }
-}
+//val tomcatWars by configurations.creating
+//val tomcatClasspath by configurations.creating {
+//    attributes {
+//        attribute(KotlinPlatformType.attribute, KotlinPlatformType.jvm)
+//    }
+//}
 
-val androidApps = if(!androidEnabled) null else configurations.register("androidApps")
-
-configurations {
-    register("wsDoc")
-}
+//val androidApps = if(!androidEnabled) null else configurations.register("androidApps")
+//
+//configurations {
+//    register("wsDoc")
+//}
 
 
 dependencies {
+/*
 //    tomcatWars(project(path= ":ProcessEngine:servlet", configuration= "archives"))
     tomcatWars(project(path= ":PEUserMessageHandler", configuration= "archives"))
     tomcatWars(project(path= ":accountmgr", configuration= "archives"))
@@ -69,6 +69,7 @@ dependencies {
     tomcatClasspath(project(":DarwinJavaApi"))
     tomcatClasspath(project(":JavaCommonApi"))
     tomcatClasspath(project(":DarwinRealm"))
+*/
 
 /*
     if (Boolean.valueOf(androidEnabledProp)) {
@@ -122,33 +123,33 @@ dependencies {
 //    }
 //}
 
-val copyTomcatWars by tasks.creating(Copy::class) {
-    group = "dist"
-    dependsOn(tomcatWars)
-    from(files( { dependsOn.filterIsInstance<Configuration>() } ))
-    into("${collectDir}/webapps/")
-}
-
-val copyTomcatClasspath by tasks.creating(Copy::class) {
-    group = "dist"
-    dependsOn(tomcatClasspath)
-    from(files( { dependsOn.filterIsInstance<Configuration>() } ))
-    into("${collectDir}/tomcatlibs/")
-    exclude { file -> file.name.contains("tomcat-servlet-api") }
-}
-
-val copyAndroid = if (!androidEnabled) null else tasks.registering(Copy::class) {
-    group = "dist"
-    dependsOn(androidApps)
-    from(files( { dependsOn.filterIsInstance<Configuration>() } ))
-    into("${collectDir}/androidApps/")
-}
-
-val dist by tasks.creating {
-    group = "dist"
-    dependsOn(copyTomcatWars, copyTomcatClasspath)
-    if (androidEnabled) dependsOn(copyAndroid)
-}
+//val copyTomcatWars by tasks.creating(Copy::class) {
+//    group = "dist"
+//    dependsOn(tomcatWars)
+//    from(files( { dependsOn.filterIsInstance<Configuration>() } ))
+//    into(collectDir.map { it.dir("webapps") })
+//}
+//
+//val copyTomcatClasspath by tasks.creating(Copy::class) {
+//    group = "dist"
+//    dependsOn(tomcatClasspath)
+//    from(files( { dependsOn.filterIsInstance<Configuration>() } ))
+//    into(into(collectDir.map { it.dir("tomcatlibs") }))
+//    exclude { file -> file.name.contains("tomcat-servlet-api") }
+//}
+//
+//val copyAndroid = if (!androidEnabled) null else tasks.registering(Copy::class) {
+//    group = "dist"
+//    dependsOn(androidApps)
+//    from(files( { dependsOn.filterIsInstance<Configuration>() } ))
+//    into(into(collectDir.map { it.dir("androidApps") }))
+//}
+//
+//val dist by tasks.creating {
+//    group = "dist"
+//    dependsOn(copyTomcatWars, copyTomcatClasspath)
+//    if (androidEnabled) dependsOn(copyAndroid)
+//}
 
 /*
 task run(dependsOn: [":PE-server:tomcatRun"], type: DefaultTask) {
@@ -165,19 +166,21 @@ htmlDependencyReport {
 }
 */
 
+/*
 allprojects {
     repositories {
         mavenLocal()
         mavenCentral()
         google()
-        maven { url = uri("https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven") }
-        maven { url = uri("https://maven.pkg.jetbrains.space/public/p/compose/dev") }
+//        maven { url = uri("https://maven.pkg.jetbrains.space/public/p/kotlinx-html/maven") }
+//        maven { url = uri("https://maven.pkg.jetbrains.space/public/p/compose/dev") }
     }
 //
 //    tasks.withType(KotlinCompile) {
 //        kotlinOptions.jvmTarget = libs.versions.kotlin.classTarget.get()
 //    }
 }
+*/
 
 /*
 idea {

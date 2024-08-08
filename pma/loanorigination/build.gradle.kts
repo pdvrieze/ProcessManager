@@ -16,9 +16,9 @@
 
 plugins {
     kotlin("multiplatform")
-    id("net.devrieze.gradlecodegen")
-    kotlin("plugin.serialization")
-    mpconsumer
+    alias(libs.plugins.codegen)
+    alias(libs.plugins.kotlin.serialization)
+    id("mpconsumer")
 }
 
 base {
@@ -71,6 +71,7 @@ kotlin {
                 implementation(kotlin("test"))
                 implementation(kotlin("test-annotations-common"))
 
+                implementation(project(":ProcessEngine:simulator"))
 
 //                implementation(project(":java-common"))
 

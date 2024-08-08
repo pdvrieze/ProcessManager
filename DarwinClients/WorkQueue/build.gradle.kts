@@ -20,7 +20,7 @@ plugins {
     kotlin("jvm")
     `java-library`
     idea
-    mpconsumer
+    id("mpconsumer")
 }
 
 version = "1.0.0"

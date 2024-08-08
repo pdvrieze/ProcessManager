@@ -15,9 +15,13 @@
  */
 
 plugins {
-    kotlin("js")
+    kotlin("multiplatform")
     idea
-    mpconsumer
+    id("mpconsumer")
+}
+
+base {
+    archivesName = "accountmgrjs"
 }
 
 description = "Javascript library supporting the accountmanager funcationality."
@@ -25,7 +29,7 @@ description = "Javascript library supporting the accountmanager funcationality."
 val myJavaVersion: JavaVersion by project
 
 kotlin {
-    js(IR) {
+    js {
         moduleName = "accountmgr"
         browser{
         }
@@ -49,17 +53,15 @@ kotlin {
 
     }
 */
+    sourceSets {
+        val jsMain by getting {
+            dependencies {
+            //    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
+                implementation(libs.kotlinx.html)
+                implementation(project(":darwin"))
+            }
+        }
+    }
 }
 
-dependencies {
-//    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
-    implementation(libs.kotlinx.html)
-    implementation(project(":darwin"))
-}
-
-val outDir = "${buildDir}/kotlin2js/main/"
-
-tasks.create<Jar>("jar") {
-    archiveBaseName.set("accountmgrjs")
-}
-
+//val outDir = "${buildDir}/kotlin2js/main/"

@@ -17,7 +17,7 @@ import versions.argJvmDefault
 
 plugins {
     kotlin("multiplatform")
-    kotlin("plugin.serialization")
+    alias(libs.plugins.kotlin.serialization)
     idea
 }
 
@@ -29,107 +29,105 @@ version = "1.0.0"
 description = "The core process engine, independent of deployment location."
 
 kotlin {
-    targets {
-        jvm {
-            compilations.all {
-                kotlinOptions {
-                    jvmTarget = libs.versions.kotlin.classTarget.get()
-                    freeCompilerArgs = listOf(argJvmDefault)
-                }
-                tasks.withType<Test> {
-                    useJUnitPlatform()
-                    systemProperty("junit.jupiter.execution.parallel.enabled", true)
-                }
+    jvm {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = libs.versions.kotlin.classTarget.get()
+                freeCompilerArgs = listOf(argJvmDefault)
             }
-//            attributes.attribute(androidAttribute, false)
-
-/*
-            testRuns.create("WCP1") {
-                setExecutionSourceFrom(compilations[KotlinCompilation.MAIN_COMPILATION_NAME])
-                setExecutionSourceFrom(compilations[KotlinCompilation.TEST_COMPILATION_NAME])
-
-                executionTask.configure {
-                    useJUnitPlatform {
-                        includeEngines("junit-jupiter")
-                    }
-
-                    filter {
-                        includeTestsMatching("nl.adaptivity.process.engine.patterns.WCP1.*")
-                    }
-
-                    description = "Run WCP1"
-
-                }
+            tasks.withType<Test> {
+                useJUnitPlatform()
+                systemProperty("junit.jupiter.execution.parallel.enabled", true)
             }
-*/
+        }
+//        attributes.attribute(androidAttribute, false)
+
+        /*
+                testRuns.create("WCP1") {
+                    setExecutionSourceFrom(compilations[KotlinCompilation.MAIN_COMPILATION_NAME])
+                    setExecutionSourceFrom(compilations[KotlinCompilation.TEST_COMPILATION_NAME])
+
+                    executionTask.configure {
+                        useJUnitPlatform {
+                            includeEngines("junit-jupiter")
+                        }
+
+                        filter {
+                            includeTestsMatching("nl.adaptivity.process.engine.patterns.WCP1.*")
+                        }
+
+                        description = "Run WCP1"
+
+                    }
+                }
+    */
+
+    }
+
+    sourceSets {
+        all {
+            languageSettings {
+                optIn("kotlin.RequiresOptIn")
+                optIn("nl.adaptivity.process.engine.ProcessInstanceStorage")
+            }
+        }
+        val commonMain by getting {
+            dependencies {
+                api(project(":java-common"))
+                api(project(":PE-common"))
+
+                implementation(project(":multiplatform"))
+                implementation(kotlin("stdlib"))
+                implementation(libs.xmlutil.core)
+                implementation(libs.xmlutil.serialization)
+                implementation(libs.xmlutil.serialutil)
+                compileOnly(project(":JavaCommonApi"))
+                compileOnly(project(":DarwinJavaApi"))
+            }
+        }
+        val jvmMain by getting {
+            dependencies {
+                api(project(":java-common"))
+                api(project(":PE-common"))
+                api(libs.jwsApi)
+                api(libs.activationApi)
+                implementation(libs.kotlinx.serialization.core)
+                implementation(kotlin("stdlib-jdk8"))
+
+                runtimeOnly(libs.woodstox)
+
+                compileOnly(libs.jaxb.api)
+                runtimeOnly(libs.jaxb.impl)
+            }
 
         }
-
-        sourceSets {
-            all {
-                languageSettings {
-                    optIn("kotlin.RequiresOptIn")
-                    optIn("nl.adaptivity.process.engine.ProcessInstanceStorage")
-                }
-            }
-            val commonMain by getting {
-                dependencies {
-                    api(project(":java-common"))
-                    api(project(":PE-common"))
-
-                    implementation(project(":multiplatform"))
-                    implementation(kotlin("stdlib"))
-                    implementation(libs.xmlutil.core)
-                    implementation(libs.xmlutil.serialization)
-                    implementation(libs.xmlutil.serialutil)
-                    compileOnly(project(":JavaCommonApi"))
-                    compileOnly(project(":DarwinJavaApi"))
-                }
-            }
-            val jvmMain by getting {
-                dependencies {
-                    api(project(":java-common"))
-                    api(project(":PE-common"))
-                    api(libs.jwsApi)
-                    api(libs.activationApi)
-                    implementation(libs.kotlinx.serialization.core)
-                    implementation(kotlin("stdlib-jdk8"))
-
-                    runtimeOnly(libs.woodstox)
-
-                    compileOnly(libs.jaxb.api)
-                    runtimeOnly(libs.jaxb.impl)
-                }
-
-            }
-            val commonTest by getting {
-                dependencies {
+        val commonTest by getting {
+            dependencies {
 //                    implementation(libs.xmlutil.core)
 //                    implementation(libs.xmlutil.serialization)
-                    implementation(project(":ProcessEngine:testLib"))
-                }
+                implementation(project(":ProcessEngine:testLib"))
             }
-            val jvmTest by getting {
-                dependencies {
-                    implementation(project(":PE-common"))
-                    implementation(kotlin("stdlib-jdk8"))
-                    implementation(libs.kotlinx.serialization.json)
+        }
+        val jvmTest by getting {
+            dependencies {
+                implementation(project(":PE-common"))
+                implementation(kotlin("stdlib-jdk8"))
+                implementation(libs.kotlinx.serialization.json)
 
-                    implementation(libs.jaxb.api)
-                    runtimeOnly(libs.jaxb.impl)
+                implementation(libs.jaxb.api)
+                runtimeOnly(libs.jaxb.impl)
 
-                    implementation(libs.junit5.api)
+                implementation(libs.junit5.api)
 
-                    implementation(libs.xmlunit)
+                implementation(libs.xmlunit)
 //    implementation libs.servletApi
 
-                    implementation(project(":DarwinJavaApi"))
-                    implementation(project(":TestSupport"))
+                implementation(project(":DarwinJavaApi"))
+                implementation(project(":TestSupport"))
 //                    implementation(libs.xmlutil.serialization)
 
-                    runtimeOnly(kotlin("reflect"))
-                    runtimeOnly(libs.junit5.engine)
-                }
+                runtimeOnly(kotlin("reflect"))
+                runtimeOnly(libs.junit5.engine)
             }
         }
     }

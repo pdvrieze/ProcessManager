@@ -16,8 +16,8 @@
 
 plugins {
     kotlin("jvm")
-    mpconsumer
-    kotlin("plugin.serialization")
+    id("mpconsumer")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 base {

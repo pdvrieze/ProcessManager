@@ -26,7 +26,7 @@ base {
 }
 
 kotlin {
-    js(KotlinJsCompilerType.BOTH) {
+    js {
         browser()
     }
 }

@@ -20,7 +20,7 @@ import org.jetbrains.kotlin.gradle.targets.js.KotlinJsCompilerAttribute
 plugins {
     kotlin("multiplatform")
     war
-    mpconsumer
+    id("mpconsumer")
 }
 
 base {

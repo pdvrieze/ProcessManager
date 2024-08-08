@@ -17,7 +17,7 @@
 plugins {
     kotlin("jvm")
     `java-library`
-    mpconsumer
+    id("mpconsumer")
 }
 
 description = "A library that abstracts away the access to the account database through a nicer api"

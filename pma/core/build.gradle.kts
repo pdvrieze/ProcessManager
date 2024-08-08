@@ -1,3 +1,5 @@
+import versions.argJvmDefault
+
 /*
  * Copyright (c) 2019.
  *
@@ -16,9 +18,9 @@
 
 plugins {
     kotlin("multiplatform")
-    id("net.devrieze.gradlecodegen")
-    kotlin("plugin.serialization")
-    mpconsumer
+    alias(libs.plugins.codegen)
+    alias(libs.plugins.kotlin.serialization)
+    id("mpconsumer")
 }
 
 kotlin {
@@ -27,6 +29,7 @@ kotlin {
             compilations.all {
                 kotlinOptions {
                     jvmTarget = libs.versions.kotlin.classTarget.get()
+                    freeCompilerArgs = listOf(argJvmDefault)
                 }
                 tasks.withType<Test> {
                     useJUnitPlatform()

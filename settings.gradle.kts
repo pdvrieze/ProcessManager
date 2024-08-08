@@ -15,51 +15,33 @@
  */
 
 pluginManagement {
+     includeBuild("mpconsumer")
     repositories {
-        mavenLocal()
         mavenCentral()
+        gradlePluginPortal()
+        mavenLocal()
         google()
-        maven { url "https://plugins.gradle.org/m2/" }
-        maven { url "https://maven.pkg.jetbrains.space/public/p/compose/dev" }
+//        maven { url "https://plugins.gradle.org/m2/" }
+//        maven { url "https://maven.pkg.jetbrains.space/public/p/compose/dev" }
 
-    }
-    resolutionStrategy {
-        eachPlugin {
-            switch (requested.id.id) {
-                case "com.android.library":
-                case "com.android.application":
-                    if (requested.version == null) useVersion(androidPluginVersion)
-                    break
-                case "kotlin-android":
-                case "org.jetbrains.kotlin.android":
-                case "org.jetbrains.kotlin.jvm":
-                case "kotlin-android-extensions":
-                case "org.jetbrains.kotlin.multiplatform":
-                case "org.jetbrains.kotlin.plugin.serialization":
-                    if (requested.version == null) useVersion(kotlin_version)
-                    break
-                case "com.bmuschko.tomcat":
-                    useModule("com.bmuschko:gradle-tomcat-plugin:2.7.0")
-                    break
-                case "org.jetbrains.dokka-android":
-                    def ver = requested.version != null ? requested.version : dokkaVersion
-                    useModule("org.jetbrains.dokka:dokka-android-gradle-plugin:${ver}")
-                    break
-                case "net.devrieze.gradlecodegen":
-                    useModule("net.devrieze:gradle-codegen:0.6.0")
-                    break
-            }
-        }
     }
 }
 
-enableFeaturePreview("VERSION_CATALOGS")
+dependencyResolutionManagement {
+//    repositoriesMode = RepositoriesMode.PREFER_SETTINGS
+    repositories {
+        mavenCentral()
+        mavenLocal()
+        google()
+    }
+}
 
 rootProject.name = "ProcessManager"
 
 include(":multiplatform")
 include(":JavaCommonApi")
 
+/*
 if(file("kotlinsql").exists()) {
     includeBuild("kotlinsql") {
         dependencySubstitution {
@@ -76,12 +58,12 @@ if (file("xmlutil").exists()) {
         }
     }
 }
+*/
 
 include(":java-common")
 include(":java-common:jvmonly")
 include(":DarwinJavaApi")
 
-include(":TestSupport")
 include(":PE-common")
 
 include(":endpointDokkalet")
@@ -95,6 +77,7 @@ include(":ProcessEngine:testLib")
 include(":ProcessEngine:servlet")
 include(":ProcessEngine:simulator")
 
+include(":TestSupport")
 include(":DarwinClients:ProcessEngine")
 
 include(":PEUserMessageHandler")
@@ -121,8 +104,8 @@ include(":PE-server")
 
 include(":dynamicProcessModel")
 
-include(':pma:core')
-include(':pma:dynamic')
+include(":pma:core")
+include(":pma:dynamic")
 include(":pma:loanorigination")
 include(":pma:agfil")
 
@@ -130,12 +113,15 @@ include(":pma:agfil")
 /*
 include(":PE-common:endpointDoclet")
 */
+
 // Stale/broken
 //include(":structurizr")
 
 include(":jscommon")
 //include(":webeditor")
 
+
+/*
 // Android modules
 if (Boolean.parseBoolean(androidEnabledProp)) {
     if (file("android-auth").exists()) {
@@ -150,3 +136,4 @@ if (Boolean.parseBoolean(androidEnabledProp)) {
     include(":compose:js")
 
 }
+*/

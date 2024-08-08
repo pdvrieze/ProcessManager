@@ -32,11 +32,6 @@ ext {
     }
 }
 
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
-
 val structurizrVer: String by project
 
 dependencies {

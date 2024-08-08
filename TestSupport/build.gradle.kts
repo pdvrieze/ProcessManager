@@ -52,7 +52,3 @@ dependencies {
     implementation(project(":DarwinJavaApi"))
     implementation(kotlin("stdlib-jdk8"))
 }
-repositories {
-    mavenLocal()
-    mavenCentral()
-}

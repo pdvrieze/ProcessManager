@@ -19,8 +19,8 @@ import org.jetbrains.kotlin.gradle.targets.js.webpack.KotlinWebpack
 plugins {
     kotlin("multiplatform")
     application
-    kotlin("plugin.serialization")
-    mpconsumer
+    alias(libs.plugins.kotlin.serialization)
+    id("mpconsumer")
 }
 
 base {
@@ -42,7 +42,7 @@ kotlin {
 
             webpackTask {
                 devtool = "source-map"
-                outputFileName = "js/darwin.js"
+                mainOutputFileName = "js/darwin.js"
             }
         }
         binaries.executable()
@@ -64,6 +64,7 @@ kotlin {
         }
 
         val jvmMain by getting {
+            val webpackTask = tasks.getByName<KotlinWebpack>("jsBrowserDevelopmentWebpack")
             dependencies {
                 implementation(libs.ktor.serialization.xml)
                 implementation(libs.ktor.serialization.json)
@@ -72,17 +73,16 @@ kotlin {
                 implementation(libs.ktor.server.netty)
                 implementation(libs.ktor.server.contentNegotiation)
                 implementation(libs.ktor.server.compression)
-                implementation(libs.xmlutil.ktor)
                 implementation(libs.logback)
                 implementation(libs.kotlinx.html)
                 implementation(project(":darwin:ktorSupport"))
                 runtimeOnly(libs.requirejs)
 
-                val webpackTask = tasks.getByName<KotlinWebpack>("jsBrowserDevelopmentWebpack")
-                runtimeOnly(files(webpackTask.destinationDirectory))
+//                runtimeOnly(files(webpackTask.outputDirectory))
                 compileOnly(project(":JavaCommonApi"))
                 compileOnly(project(":DarwinJavaApi"))
             }
+//            dependsOn(webpackTask)
         }
 
         val jsMain by getting {
@@ -110,6 +110,7 @@ dependencies {
     "webPacks"(libs.requirejs)
 }
 
+/*
 tasks.named<Jar>("jvmJar") {
     val taskName = if (project.hasProperty("isProduction")) {
         "jsBrowserProductionWebpack"
@@ -121,7 +122,9 @@ tasks.named<Jar>("jvmJar") {
     dependsOn(webpackTask) // make sure JS gets compiled first
 
     from(webPacks.map { zipTree(it) }) {
-        this.include { it.path.endsWith(".js")/* && path.startsWith("META-INF/resources")*/ }
+        this.include { it.path.endsWith(".js")*/
+/* && path.startsWith("META-INF/resources")*//*
+ }
         eachFile {
             logger.debug("Webpack dependency: ${this.sourceName}")
             val i = sourcePath.lastIndexOf('/')
@@ -139,6 +142,7 @@ tasks.named<Jar>("jvmJar") {
 
     duplicatesStrategy = DuplicatesStrategy.WARN
 }
+*/
 
 tasks.named<JavaExec>("run") {
     classpath(configurations["jvmRuntimeClasspath"])

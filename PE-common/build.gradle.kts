@@ -1,3 +1,5 @@
+import versions.argJvmDefault
+
 /*
  * Copyright (c) 2019.
  *
@@ -16,9 +18,8 @@
 
 plugins {
     kotlin("multiplatform")
-    id("net.devrieze.gradlecodegen")
-    kotlin("plugin.serialization")
-    mpconsumer
+    alias(libs.plugins.codegen)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 base {
@@ -28,53 +29,46 @@ base {
 }
 
 kotlin {
-    targets {
-        jvm {
-            compilations.all {
-                kotlinOptions {
-                    jvmTarget = libs.versions.kotlin.classTarget.get()
-                }
-                tasks.withType<Test> {
-                    useJUnitPlatform()
-                }
+    jvm {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = libs.versions.kotlin.classTarget.get()
+                freeCompilerArgs = listOf(argJvmDefault)
+            }
+            tasks.withType<Test> {
+                useJUnitPlatform()
             }
         }
+    }
 /*
-        jvmAndroid {
-            compilations.all {
-                kotlinOptions {
-                    jvmTarget = libs.versions.kotlin.androidClassTarget.get()
-                }
+    jvmAndroid {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = libs.versions.kotlin.androidClassTarget.get()
             }
         }
+    }
 */
-        js(BOTH) {
-            browser()
-            nodejs()
+    js {
+        browser()
+        nodejs()
 
-            compilations.all {
-                kotlinOptions {
-                    sourceMap = true
-                    suppressWarnings = false
-                    verbose = true
-                    metaInfo = true
-                    moduleKind = "umd"
-                    main = "call"
-                }
+        compilations.all {
+            kotlinOptions {
+                sourceMap = true
+                suppressWarnings = false
+                verbose = true
+                metaInfo = true
+                moduleKind = "umd"
+                main = "call"
             }
         }
     }
 
     sourceSets {
-        all {
-            languageSettings {
-                optIn("kotlin.RequiresOptIn")
-            }
-        }
         val commonMain by getting {
             dependencies {
                 implementation(project(":multiplatform"))
-                implementation(kotlin("stdlib"))
 
                 api(libs.kotlinx.serialization.core)
                 api(libs.xmlutil.core)
@@ -96,9 +90,8 @@ kotlin {
             }
         }
         val jvmMain by getting {
-            kotlin.srcDir(file("src/javaMain/kotlin"))
+//            kotlin.srcDir(file("src/javaMain/kotlin"))
             dependencies {
-                implementation(kotlin("stdlib-jdk8"))
                 api(libs.kotlinsql.core)
                 compileOnly(project(":DarwinJavaApi"))
                 compileOnly(project(":JavaCommonApi"))

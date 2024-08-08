@@ -19,7 +19,7 @@ import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 plugins{
     kotlin("jvm")
     idea
-    mpconsumer
+    id("mpconsumer")
 }
 
 version = "1.1.0"

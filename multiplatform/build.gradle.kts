@@ -19,7 +19,7 @@
  */
 
 plugins {
-    kotlin("multiplatform")
+    id(libs.plugins.kotlin.multiplatform.get().pluginId)
 }
 
 base {
@@ -27,55 +27,32 @@ base {
     version = "0.1"
 }
 
+//group = "io.github.pdvrieze.pm"
+//version = "0.1"
+
+//dependencies {
+//    testImplementation(kotlin("test"))
+//}
+
+//tasks.test {
+//    useJUnitPlatform()
+//}
 kotlin {
-    targets {
-        jvm {
-            compilations.all {
-                kotlinOptions {
-                    jvmTarget = libs.versions.kotlin.classTarget.get()
-                }
+    jvmToolchain(11)
+    jvm()
+    js {
+        browser()
+        nodejs()
+        compilations.all {
+            kotlinOptions {
+                sourceMap = true
+                suppressWarnings = false
+                verbose = true
+                metaInfo = true
+                moduleKind = "umd"
+                main = "call"
             }
         }
-        js(BOTH) {
-            browser()
-            nodejs()
-            compilations.all {
-                kotlinOptions {
-                    sourceMap = true
-                    suppressWarnings = false
-                    verbose = true
-                    metaInfo = true
-                    moduleKind = "umd"
-                    main = "call"
-                }
-            }
-        }
+
     }
-
-    sourceSets {
-        all {
-            languageSettings {
-                optIn("kotlin.RequiresOptIn")
-            }
-        }
-        val commonMain by getting {
-        }
-        val javaShared by creating {
-            dependsOn(commonMain)
-        }
-        val jvmMain by getting {
-            dependsOn(javaShared)
-        }
-        val jsMain by getting {
-            dependsOn(commonMain)
-        }
-    }
-
-}
-
-
-
-repositories {
-    mavenLocal()
-    mavenCentral()
 }

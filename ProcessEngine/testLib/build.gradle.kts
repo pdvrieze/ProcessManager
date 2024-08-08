@@ -16,21 +16,18 @@
 
 plugins {
     kotlin("multiplatform")
-    id("net.devrieze.gradlecodegen")
-    kotlin("plugin.serialization")
-    mpconsumer
+    alias(libs.plugins.codegen)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 kotlin {
-    targets {
-        jvm {
-            compilations.all {
-                kotlinOptions {
-                    jvmTarget = libs.versions.kotlin.classTarget.get()
-                }
-                tasks.withType<Test> {
-                    useJUnitPlatform()
-                }
+    jvm {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = libs.versions.kotlin.classTarget.get()
+            }
+            tasks.withType<Test> {
+                useJUnitPlatform()
             }
         }
     }
