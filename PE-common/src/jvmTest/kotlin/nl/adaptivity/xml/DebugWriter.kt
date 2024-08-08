@@ -16,8 +16,8 @@
 
 package nl.adaptivity.xml
 
+import nl.adaptivity.xmlutil.XmlDelegatingWriter
 import nl.adaptivity.xmlutil.XmlWriter
-import nl.adaptivity.xmlutil.util.XmlDelegatingWriter
 
 
 /**

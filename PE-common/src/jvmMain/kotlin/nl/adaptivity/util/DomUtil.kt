@@ -17,12 +17,12 @@
 package nl.adaptivity.util
 
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.core.impl.multiplatform.IOException
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 import org.w3c.dom.*
 import org.xml.sax.InputSource
 import org.xml.sax.SAXException
+import java.io.IOException
 import java.io.InputStream
 import java.io.Reader
 import java.io.StringReader
@@ -103,25 +103,21 @@ object DomUtil {
         return false
     }
 
-    @Throws(IOException::class)
     @JvmStatic
     fun tryParseXml(inputStream: InputStream): Document? {
         return tryParseXml(InputSource(inputStream))
     }
 
-    @Throws(IOException::class)
     @JvmStatic
     fun tryParseXml(reader: Reader): Document? {
         return tryParseXml(InputSource(reader))
     }
 
-    @Throws(IOException::class)
     @JvmStatic
     fun tryParseXml(xmlString: String): Document? {
         return tryParseXml(StringReader(xmlString))
     }
 
-    @Throws(IOException::class)
     @JvmStatic
     fun tryParseXml(xmlSource: InputSource): Document? {
         try {
@@ -139,7 +135,6 @@ object DomUtil {
 
     }
 
-    @Throws(IOException::class)
     @JvmStatic
     fun tryParseXmlFragment(reader: Reader): DocumentFragment {
         try {

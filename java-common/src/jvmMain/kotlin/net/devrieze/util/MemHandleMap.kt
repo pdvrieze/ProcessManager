@@ -115,7 +115,7 @@ actual open class MemHandleMap<V : Any>
     /* (non-Javadoc)
      * @see net.devrieze.util.HandleMap#clear()
      */
-    override fun clear() {
+    actual override fun clear() {
         lock.write {
             _values.fill(null)
             generations.fill(0)
@@ -127,11 +127,11 @@ actual open class MemHandleMap<V : Any>
     /* (non-Javadoc)
      * @see net.devrieze.util.HandleMap#iterator()
      */
-    override fun iterator(): MutableIterator<V> {
+    actual override fun iterator(): MutableIterator<V> {
         return MapIterator()
     }
 
-    override fun forEach(body: MutableHasForEach.ForEachReceiver<V>) {
+    actual override fun forEach(body: MutableHasForEach.ForEachReceiver<V>) {
         var idx: Int = 0
         var changed = false
         val context = ForEachContextImpl {
@@ -176,11 +176,11 @@ actual open class MemHandleMap<V : Any>
     /* (non-Javadoc)
        * @see net.devrieze.util.HandleMap#contains(java.lang.Object)
        */
-    override fun containsElement(element: V): Boolean {
+    actual override fun containsElement(element: V): Boolean {
         return contains(element)
     }
 
-    override fun contains(handle: Handle<V>): Boolean {
+    actual override fun contains(handle: Handle<V>): Boolean {
         return lock.read {
             val index = indexFromHandle(handle.handleValue)
             if (index < 0 || index >= _values.size) {
@@ -202,7 +202,7 @@ actual open class MemHandleMap<V : Any>
     /* (non-Javadoc)
      * @see net.devrieze.util.HandleMap#put(V)
      */
-    override fun <W : V> put(value: W): Handle<W> {
+    actual override fun <W : V> put(value: W): Handle<W> {
         assert(
             if (value is ReadableHandleAware<*>) !value.handle.isValid else true
         ) { "Storing a value that already has a handle is invalid" }
@@ -270,7 +270,7 @@ actual open class MemHandleMap<V : Any>
     /* (non-Javadoc)
      * @see net.devrieze.util.HandleMap#get(net.devrieze.util.MemHandleMap.Handle)
      */
-    override fun get(handle: Handle<V>): V? {
+    actual override fun get(handle: Handle<V>): V? {
         return get(handle.handleValue)
     }
 
@@ -298,7 +298,7 @@ actual open class MemHandleMap<V : Any>
         }
     }
 
-    override fun set(handle: Handle<V>, value: V): V? {
+    actual override fun set(handle: Handle<V>, value: V): V? {
         @Suppress("DEPRECATION")
         return set(handle.handleValue, value)
     }
@@ -308,14 +308,14 @@ actual open class MemHandleMap<V : Any>
      */
     @Deprecated("Don't use, this may be expensive", level = DeprecationLevel.ERROR)
     @Suppress("OverridingDeprecatedMember")
-    override fun getSize() = lock.read { size }
+    actual override fun getSize() = lock.read { size }
 
     fun size() = lock.read { size }
 
     /* (non-Javadoc)
          * @see net.devrieze.util.HandleMap#remove(net.devrieze.util.MemHandleMap.Handle)
          */
-    override fun remove(handle: Handle<V>): Boolean {
+    actual override fun remove(handle: Handle<V>): Boolean {
         return remove(handle.handleValue)
     }
 

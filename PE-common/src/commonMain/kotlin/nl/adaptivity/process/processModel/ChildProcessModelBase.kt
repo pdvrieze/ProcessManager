@@ -36,14 +36,14 @@ import kotlin.jvm.JvmField
 abstract class ChildProcessModelBase<NodeT : ProcessNode> :
     ProcessModelBase<NodeT>, ChildProcessModel<NodeT> {
 
-    override val modelNodes: IdentifyableSet<NodeT>
+    final override val modelNodes: IdentifyableSet<NodeT>
 
     private var _rootModel: RootProcessModel<NodeT>
 
     override val rootModel: RootProcessModel<NodeT>
         get() = _rootModel
 
-    override val id: String?
+    final override val id: String?
 
     @Suppress("LeakingThis")
     constructor(

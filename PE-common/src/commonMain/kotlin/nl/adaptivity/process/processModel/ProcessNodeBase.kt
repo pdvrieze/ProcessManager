@@ -51,9 +51,9 @@ abstract class ProcessNodeBase : ProcessNode {
 
     final override val y: Double
 
-    override val defines: List<IXmlDefineType>
+    final override val defines: List<IXmlDefineType>
 
-    override val results: List<IXmlResultType>
+    final override val results: List<IXmlResultType>
 
     private var _hashCode = 0
 
@@ -358,8 +358,8 @@ abstract class ProcessNodeBase : ProcessNode {
 
     abstract class Builder : ProcessNode.Builder {
 
-        override var id: String?
-        override var label: String?
+        final override var id: String?
+        final override var label: String?
 
         override var x: Double = Double.NaN
 
@@ -386,9 +386,9 @@ abstract class ProcessNodeBase : ProcessNode {
             this.results = results?.toMutableList() ?: mutableListOf()
         }
 
-        override val defines: MutableCollection<IXmlDefineType>
+        final override val defines: MutableCollection<IXmlDefineType>
 
-        override val results: MutableCollection<IXmlResultType>
+        final override val results: MutableCollection<IXmlResultType>
 
         constructor(node: ProcessNode) : this(
             id = node.id,

@@ -16,6 +16,19 @@
 
 package net.devrieze.util
 
+import nl.adaptivity.util.net.devrieze.util.MutableHasForEach
+
 expect open class MemHandleMap<V : Any>: MutableHandleMap<V> {
     constructor(handleAssigner: (V, Handle<V>) -> V? = ::HANDLE_AWARE_ASSIGNER)
+
+    override fun clear()
+    override fun iterator(): MutableIterator<V>
+    override fun <W : V> put(value: W): Handle<W>
+    override fun set(handle: Handle<V>, value: V): V?
+    override fun remove(handle: Handle<V>): Boolean
+    override fun containsElement(element: V): Boolean
+    override fun contains(handle: Handle<V>): Boolean
+    override fun get(handle: Handle<V>): V?
+    override fun getSize(): Int
+    override fun forEach(body: MutableHasForEach.ForEachReceiver<V>)
 }

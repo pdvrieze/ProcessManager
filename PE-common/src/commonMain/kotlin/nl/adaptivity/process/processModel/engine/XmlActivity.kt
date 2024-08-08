@@ -32,10 +32,12 @@ import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
  */
 class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActivity {
 
-    override var message: IXmlMessage?
-        get() = field
+    private var _message: XmlMessage?
+
+    final override var message: IXmlMessage?
+        get() = _message
         private set(value) {
-            field = XmlMessage.from(value)
+            _message = XmlMessage.from(value)
         }
 
     override val childModel: ChildProcessModel<ProcessNode>?
@@ -56,7 +58,7 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
     ) : super(builder.ensureExportable(), newOwner, otherNodes) {
         childModel = null
         childId = null
-        message = builder.message
+        _message = XmlMessage.from(builder.message)
         accessRestrictions = builder.accessRestrictions
     }
 
@@ -66,12 +68,13 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
         otherNodes: Iterable<ProcessNode.Builder>
     ) : super(builder.base.ensureExportable(), buildHelper.newOwner, otherNodes) {
         val base = builder.base
+        val m: IXmlMessage?
         when (base) {
             is ReferenceActivityBuilder -> {
                 val id = base.childId
                 childModel = id?.let { buildHelper.childModel(it) }
                 childId = id
-                message = null
+                _message = null
                 accessRestrictions = null
             }
 
@@ -79,7 +82,7 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
             else -> {
                 childModel = null
                 childId = null
-                message = builder.message
+                _message = XmlMessage.from(builder.message)
                 accessRestrictions = builder.accessRestrictions
             }
         }
@@ -92,7 +95,7 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
     ) : super(builder.ensureExportable(), buildHelper.newOwner, otherNodes) {
         childModel = buildHelper.childModel(builder)
         childId = builder.childId
-        message = null
+        _message = null
         accessRestrictions = null
     }
 
@@ -104,7 +107,7 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
         val id = builder.childId
         childModel = id?.let { buildHelper.childModel(it) }
         childId = id
-        message = null
+        _message = null
         accessRestrictions = null
     }
 
