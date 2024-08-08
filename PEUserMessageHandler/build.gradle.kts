@@ -18,7 +18,7 @@ plugins {
     kotlin("jvm")
     war
     idea
-    kotlin("plugin.serialization")
+    alias(libs.plugins.kotlin.serialization)
 }
 
 version = "1.0.0"

@@ -16,9 +16,9 @@
 
 plugins {
     kotlin("jvm")
-    id("war")
+    war
     idea
-    mpconsumer
+    id("mpconsumer")
 }
 
 base {

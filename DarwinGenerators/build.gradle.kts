@@ -46,10 +46,6 @@ dependencies {
     implementation(libs.jwsApi)
 
 }
-repositories {
-    mavenLocal()
-    mavenCentral()
-}
 
 kotlin.target.compilations.all {
     kotlinOptions.jvmTarget = libs.versions.kotlin.classTarget.get()

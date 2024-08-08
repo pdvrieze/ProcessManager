@@ -16,7 +16,6 @@
 
 plugins {
     kotlin("multiplatform")
-    mpconsumer
 }
 
 base {
@@ -26,36 +25,37 @@ base {
 }
 
 kotlin {
-    targets {
-        jvm {
-            compilations.all {
-                kotlinOptions {
-                    jvmTarget = libs.versions.kotlin.classTarget.get()
-                }
+    applyDefaultHierarchyTemplate()
+    jvm {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = libs.versions.kotlin.classTarget.get()
             }
         }
-        js(BOTH) {
-            browser()
-            nodejs()
-            compilations.all {
-                kotlinOptions {
-                    sourceMap = true
-                    suppressWarnings = false
-                    verbose = true
-                    metaInfo = true
-                    moduleKind = "umd"
-                    main = "call"
-                }
+    }
+    js {
+        browser()
+        nodejs()
+        compilations.all {
+            kotlinOptions {
+                sourceMap = true
+                suppressWarnings = false
+                verbose = true
+                metaInfo = true
+                moduleKind = "umd"
+                main = "call"
             }
         }
     }
 
     sourceSets {
+/*
         all {
             languageSettings {
                 optIn("kotlin.RequiresOptIn")
             }
         }
+*/
         val commonMain by getting {
             dependencies {
                 implementation(project(":multiplatform"))

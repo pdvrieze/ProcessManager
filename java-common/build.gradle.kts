@@ -1,3 +1,5 @@
+import versions.argJvmDefault
+
 /*
  * Copyright (c) 2018. 
  *
@@ -15,9 +17,8 @@
  */
 
 plugins {
-    kotlin("multiplatform")
-    mpconsumer
-    kotlin("plugin.serialization")
+    alias(libs.plugins.kotlin.multiplatform)
+    alias(libs.plugins.kotlin.serialization)
 }
 
 base {
@@ -27,43 +28,42 @@ base {
 }
 
 kotlin {
-    targets {
-        jvm {
-            compilations.all {
-                kotlinOptions {
-                    jvmTarget = libs.versions.kotlin.classTarget.get()
-                }
-                tasks.withType<Test> {
-                    useJUnitPlatform()
-                }
+    applyDefaultHierarchyTemplate()
+
+    jvm {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = libs.versions.kotlin.classTarget.get()
+                freeCompilerArgs = listOf(argJvmDefault)
+
+            }
+            tasks.withType<Test> {
+                useJUnitPlatform()
             }
         }
-        js(BOTH) {
-            browser()
-            nodejs()
-            compilations.all {
-                kotlinOptions {
-                    sourceMap = true
-                    suppressWarnings = false
-                    verbose = true
-                    metaInfo = true
-                    moduleKind = "umd"
-                    main = "call"
-                }
+    }
+    js {
+        browser()
+        nodejs()
+        compilations.all {
+            kotlinOptions {
+                sourceMap = true
+                suppressWarnings = false
+                verbose = true
+                metaInfo = true
+                moduleKind = "umd"
+                main = "call"
             }
         }
     }
 
     sourceSets {
-        all {
-            languageSettings {
-                optIn("kotlin.RequiresOptIn")
-            }
-        }
         val commonMain by getting {
             dependencies {
                 implementation(project(":multiplatform"))
                 implementation(libs.kotlinx.serialization.core)
+                implementation(kotlin("stdlib"))
+                implementation(libs.kotlin.stdlib.jdk8)
 
                 compileOnly(project(":JavaCommonApi"))
 

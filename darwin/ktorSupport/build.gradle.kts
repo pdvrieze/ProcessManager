@@ -44,7 +44,6 @@ dependencies {
     implementation(libs.ktor.serialization.xml)
 
 
-    implementation("io.github.pdvrieze.xmlutil:ktor:$xmlutilVersion")
     implementation("org.jetbrains.kotlinx:kotlinx-html:$kotlinx_html_version")
     api(project(":darwin"))
 }

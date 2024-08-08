@@ -16,7 +16,7 @@
 
 plugins {
     kotlin("multiplatform")
-    mpconsumer
+    id("mpconsumer")
 }
 
 base {
@@ -26,25 +26,23 @@ base {
 }
 
 kotlin {
-    targets {
-        jvm {
-            compilations.all {
-                kotlinOptions {
-                    jvmTarget = libs.versions.kotlin.classTarget.get()
-                }
+    jvm {
+        compilations.all {
+            kotlinOptions {
+                jvmTarget = libs.versions.kotlin.classTarget.get()
             }
         }
-        js(IR) {
-            moduleName = "darwin"
-            browser()
-            compilations.all {
-                kotlinOptions {
-                    sourceMap = true
-                    suppressWarnings = false
-                    verbose = true
-                    metaInfo = true
-                    moduleKind = "umd"
-                }
+    }
+    js(IR) {
+        moduleName = "darwin"
+        browser()
+        compilations.all {
+            kotlinOptions {
+                sourceMap = true
+                suppressWarnings = false
+                verbose = true
+                metaInfo = true
+                moduleKind = "umd"
             }
         }
     }

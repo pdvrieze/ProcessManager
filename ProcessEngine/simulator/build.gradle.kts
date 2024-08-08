@@ -16,9 +16,9 @@
 
 plugins {
     kotlin("multiplatform")
-    id("net.devrieze.gradlecodegen")
-    kotlin("plugin.serialization")
-    mpconsumer
+    alias(libs.plugins.codegen)
+    alias(libs.plugins.kotlin.serialization)
+    id("mpconsumer")
 }
 
 kotlin {

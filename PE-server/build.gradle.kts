@@ -21,9 +21,9 @@ import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 
 plugins {
     java
-    id("com.bmuschko.tomcat")
+    alias(libs.plugins.gradletomcat)
     idea
-    mpconsumer
+    id("mpconsumer")
 }
 
 base {

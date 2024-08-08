@@ -17,7 +17,7 @@
 plugins {
     `java-library`
     kotlin("jvm")
-    mpconsumer
+    id("mpconsumer")
 }
 
 kotlin.target.compilations.all {
