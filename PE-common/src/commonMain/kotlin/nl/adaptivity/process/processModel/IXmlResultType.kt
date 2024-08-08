@@ -22,6 +22,7 @@ import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
+import nl.adaptivity.process.processModel.IXmlResultType
 import nl.adaptivity.serialutil.DelegatingSerializer
 import nl.adaptivity.xmlutil.Namespace
 import nl.adaptivity.xmlutil.XmlReader
@@ -67,8 +68,6 @@ interface IXmlResultType {
 
     companion object Serializer : DelegatingSerializer<IXmlResultType, XmlResultType>(XmlResultType.serializer()) {
 
-        fun serializer(): Serializer = this
-
         override fun fromDelegate(delegate: XmlResultType): IXmlResultType = delegate
 
         override fun IXmlResultType.toDelegate(): XmlResultType {
@@ -77,7 +76,6 @@ interface IXmlResultType {
     }
 
 }
-
 
 val IXmlResultType.path: String?
     inline get() = getPath()

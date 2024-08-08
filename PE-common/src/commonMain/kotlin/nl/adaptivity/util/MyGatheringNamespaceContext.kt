@@ -58,7 +58,7 @@ internal class MyGatheringNamespaceContext(
         "DEPRECATION",
         "OverridingDeprecatedMember"
     )// Somehow this type has no proper generic parameter
-    override fun getPrefixesCompat(namespaceURI: String): Iterator<String> {
+    override fun getPrefixes(namespaceURI: String): Iterator<String> {
         return parentContext
             .flatMap { it.prefixesFor(namespaceURI).asSequence() }
             .apply {
@@ -69,6 +69,7 @@ internal class MyGatheringNamespaceContext(
                 }
             }.iterator()
     }
+
 }
 
 private fun nameSpace(uri: String, prefix: String): Namespace = object : Namespace {
