@@ -88,7 +88,7 @@ fun ProcessInstance?.shouldExist(handle: PIHandle): ProcessInstance = this ?: th
  * @return The node
  * @throws IllegalStateException If it doesn't
  */
-fun <N: ProcessNode, M: RootProcessModel<N>> M?.mustExist(handle: Handle<RootProcessModel<N>>): M = this ?: throw IllegalStateException("Node instance missing: $handle")
+fun <N: ProcessNode, M: RootProcessModel<N>> M?.mustExistModel(handle: Handle<RootProcessModel<N>>): M = this ?: throw IllegalStateException("Node instance missing: $handle")
 
 /**
  * Verify that the node exists. Non-existance could be user errror.

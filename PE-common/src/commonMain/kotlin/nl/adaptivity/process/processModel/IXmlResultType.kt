@@ -65,9 +65,7 @@ interface IXmlResultType {
      */
     val originalNSContext: Iterable<Namespace>
 
-    companion object Serializer : DelegatingSerializer<IXmlResultType, XmlResultType>(XmlResultType.serializer()) {
-
-        fun serializer(): Serializer = this
+    companion object Serializer : DelegatingSerializer<IXmlResultType, XmlResultType>(XmlResultType.Companion) {
 
         override fun fromDelegate(delegate: XmlResultType): IXmlResultType = delegate
 

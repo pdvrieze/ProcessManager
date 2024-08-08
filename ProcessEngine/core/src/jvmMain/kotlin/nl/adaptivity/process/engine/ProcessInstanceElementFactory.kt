@@ -32,6 +32,8 @@ import net.devrieze.util.security.SYSTEMPRINCIPAL
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.ProcessInstance.State
 import nl.adaptivity.process.engine.db.ProcessEngineDB
+import nl.adaptivity.process.processModel.RootProcessModel
+import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.xmlutil.util.CompactFragment
 
 

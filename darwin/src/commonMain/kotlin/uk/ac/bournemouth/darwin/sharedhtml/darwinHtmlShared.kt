@@ -17,8 +17,8 @@
 package uk.ac.bournemouth.darwin.sharedhtml
 
 import kotlinx.html.*
+import kotlinx.html.org.w3c.dom.events.Event
 import kotlinx.html.stream.appendHTML
-import org.w3c.dom.events.Event
 
 const val FIELD_USERNAME = "username"
 const val FIELD_PASSWORD = "password"
