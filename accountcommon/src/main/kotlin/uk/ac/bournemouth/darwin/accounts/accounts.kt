@@ -212,7 +212,7 @@ public open class AccountDb(private val dataSource: DataSource) {
         }
     }
 
-    private fun <T : Any, S : IColumnType<T, S, C>, C : Column<T, S, C>> getSingle(col: C, user: String): T? {
+    private fun <T: Any, S : IColumnType<T, S, C>, C : Column<T, S, C>> getSingle(col: C, user: String): T? {
         return WebAuthDB(dataSource) {
             SELECT(col)
                 .WHERE { u.user eq user }

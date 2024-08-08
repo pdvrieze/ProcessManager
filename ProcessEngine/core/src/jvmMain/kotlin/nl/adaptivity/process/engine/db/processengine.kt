@@ -42,7 +42,7 @@ object ProcessEngineDB : Database(1) {
   val X_PNIHANDLE = CustomColumnType({ BIGINT }, PNIHandle::handleValue, {PNIHandle(it)})
   val X_INSTANCESTATE = CustomColumnType({ VARCHAR(20) }, ProcessInstance.State::toString, ProcessInstance.State::valueOf)
   val X_NODESTATE = CustomColumnType({ VARCHAR(20) { DEFAULT("Sent") } }, NodeInstanceState::toString,
-                               { val lcname= it.lowercase(Locale.ENGLISH); NodeInstanceState.values().first { it.lcname == lcname } })
+                               { val lcname= it.lowercase(Locale.ENGLISH); NodeInstanceState.entries.first { it.lcname == lcname } })
 
   object processModels : MutableTable("processmodels", EXTRACONF) {
     val pmhandle by X_PMHANDLE { NOT_NULL; AUTO_INCREMENT }
