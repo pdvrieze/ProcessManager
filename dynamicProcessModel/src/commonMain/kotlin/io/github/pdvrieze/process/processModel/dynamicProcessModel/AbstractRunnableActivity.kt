@@ -57,7 +57,7 @@ abstract class AbstractRunnableActivity<I: Any, O: Any, C: ActivityInstanceConte
 
     @Suppress("UNCHECKED_CAST")
     override val defines: List<RunnableActivity.DefineType<*>>
-        get() = super.defines as List<RunnableActivity.DefineType<*>>
+        get() = _defines as List<RunnableActivity.DefineType<*>>
 
     abstract class Builder<I : Any, O : Any, C: ActivityInstanceContext> : BaseBuilder, ExecutableProcessNode.Builder,
         MessageActivity.Builder {
