@@ -19,8 +19,8 @@ package net.devrieze.util
 abstract class ObservableCollectionBase<C : MutableCollection<T>, T, S : ObservableCollectionBase<C, T, S>>
 constructor(protected val delegate: C, val observers: Iterable<(S) -> Unit> = emptyList()): MutableCollection<T> {
 
+    override val size: Int get() = delegate.size
     override fun contains(element: T): Boolean = delegate.contains(element)
-    override val size: Int = delegate.size
     override fun isEmpty(): Boolean = delegate.isEmpty()
     override fun containsAll(elements: Collection<T>): Boolean = delegate.containsAll(elements)
 
