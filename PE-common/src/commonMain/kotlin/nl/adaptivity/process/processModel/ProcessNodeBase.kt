@@ -51,9 +51,11 @@ abstract class ProcessNodeBase : ProcessNode {
 
     final override val y: Double
 
-    final override val defines: List<IXmlDefineType>
+    protected val _defines: List<IXmlDefineType>
+    override val defines: List<IXmlDefineType> get() = _defines
 
-    final override val results: List<IXmlResultType>
+    protected val _results: List<IXmlResultType>
+    final override val results: List<IXmlResultType> get() = _results
 
     private var _hashCode = 0
 
@@ -95,10 +97,8 @@ abstract class ProcessNodeBase : ProcessNode {
         this._successors = toIdentifiers(Int.MAX_VALUE, successors)
         this.x = x
         this.y = y
-        @Suppress("LeakingThis")
-        this.defines = defines.toList()
-        @Suppress("LeakingThis")
-        this.results = results.toList()
+        this._defines = defines.toList()
+        this._results = results.toList()
         this.label = label
         this._id = id
     }
@@ -382,13 +382,15 @@ abstract class ProcessNodeBase : ProcessNode {
             this.x = x
             this.y = y
             this.isMultiInstance = isMultiInstance
-            this.defines = defines?.toMutableList() ?: mutableListOf()
-            this.results = results?.toMutableList() ?: mutableListOf()
+            this._defines = defines?.toMutableList() ?: mutableListOf()
+            this._results = results?.toMutableList() ?: mutableListOf()
         }
 
-        final override val defines: MutableCollection<IXmlDefineType>
+        protected val _defines: MutableCollection<IXmlDefineType>
+        override val defines: MutableCollection<IXmlDefineType> get() = _defines
 
-        final override val results: MutableCollection<IXmlResultType>
+        protected val _results: MutableCollection<IXmlResultType>
+        override val results: MutableCollection<IXmlResultType> get() = _results
 
         constructor(node: ProcessNode) : this(
             id = node.id,

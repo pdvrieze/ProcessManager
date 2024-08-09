@@ -24,20 +24,14 @@
 
 package org.w3.soapEnvelope
 
+import kotlinx.serialization.EncodeDefault
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.SerializationException
 import kotlinx.serialization.builtins.MapSerializer
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.buildClassSerialDescriptor
-import kotlinx.serialization.descriptors.element
 import kotlinx.serialization.encoding.*
-import nl.adaptivity.serialutil.decodeElements
-import nl.adaptivity.util.multiplatform.URI
-import nl.adaptivity.util.multiplatform.toUri
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.core.impl.multiplatform.name
 import nl.adaptivity.xmlutil.serialization.*
 import nl.adaptivity.xmlutil.util.ICompactFragment
 
@@ -71,122 +65,18 @@ import nl.adaptivity.xmlutil.util.ICompactFragment
  *                   attribute by updating the map directly. Because of this design, there's no
  *                   setter.
  */
-@Serializable(Envelope.Serializer::class)
+@Serializable/*(Envelope.Serializer::class)*/
+@XmlSerialName(Envelope.ELEMENTLOCALNAME, Envelope.NAMESPACE, Envelope.PREFIX)
 class Envelope<T : Any>(
     val body: Body<T>,
+    @XmlBefore("body")
+    @EncodeDefault(EncodeDefault.Mode.NEVER)
     val header: Header = Header(),
-    val otherAttributes: Map<QName, String> = emptyMap(),
+    @XmlOtherAttributes
+    val otherAttributes: Map<SerializableQName, String> = emptyMap(),
 ) {
 
-    val elementName: QName
-        get() = ELEMENTNAME
-
     constructor(content: T) : this(Body<T>(content))
-
-    public class Serializer<T : Any>(private val bodyContentSerializer: KSerializer<T>) : KSerializer<Envelope<T>> {
-        private val bodySerializer: KSerializer<Body<T>> = Body.Serializer(bodyContentSerializer)
-
-        @OptIn(XmlUtilInternal::class)
-        override val descriptor: SerialDescriptor =
-            buildClassSerialDescriptor(Envelope::class.name, bodyContentSerializer.descriptor) {
-                annotations = SoapSerialObjects.envelopeAnnotations
-                element("otherAttributes", SoapSerialObjects.attrsSerializer.descriptor, isOptional = true)
-                element<Header>("header", isOptional = true)
-                element("body", bodySerializer.descriptor)
-            }
-
-        override fun deserialize(decoder: Decoder): Envelope<T> {
-            var header = Header()
-            lateinit var body: Body<T>
-            var otherAttributes: Map<QName, String> = mutableMapOf()
-            var encodingStyle: URI? = null
-            if (decoder is XML.XmlInput) {
-                val reader: XmlReader = decoder.input
-                otherAttributes = reader.attributes.filter {
-                    when {
-                        it.prefix == XMLConstants.XMLNS_ATTRIBUTE ||
-                            (it.prefix == "" && it.localName == XMLConstants.XMLNS_ATTRIBUTE) -> false
-                        it.namespaceUri != Envelope.NAMESPACE                                 -> true
-                        it.localName == "encodingStyle"                                       -> {
-                            encodingStyle = it.value.toUri(); false
-                        }
-                        else                                                                  -> true
-                    }
-                }.associate { QName(it.namespaceUri, it.localName, it.prefix) to it.value }
-
-                reader.require(EventType.START_ELEMENT, NAMESPACE, ELEMENTLOCALNAME)
-                reader.next()
-                do {
-                    when {
-                        reader.eventType == EventType.START_ELEMENT -> {
-                            when {
-                                reader.namespaceURI != NAMESPACE            -> reader.elementContentToFragment() // ignore but process
-                                reader.localName == Header.ELEMENTLOCALNAME ->
-                                    header = decoder.decodeSerializableValue(Header.serializer())
-
-                                reader.localName == Body.ELEMENTLOCALNAME   ->
-                                    body = decoder.decodeSerializableValue(bodySerializer)
-                                else                                        -> reader.elementContentToFragment() // Ignore again
-                            }
-                        }
-                        reader.eventType.isIgnorable -> reader.next()
-                        else                    -> throw SerializationException("Found unexpected event in xml stream")
-                    }
-
-                } while (reader.eventType != EventType.END_ELEMENT)
-
-                encodingStyle?.let { s ->
-                    if (body.encodingStyle == null) {
-                        body = body.copy(encodingStyle = s)
-                    }
-                }
-            } else {
-                decoder.decodeStructure(descriptor) {
-                    decodeElements(this) { idx ->
-                        when (idx) {
-                            0 -> otherAttributes =
-                                decodeSerializableElement(descriptor, idx, SoapSerialObjects.attrsSerializer)
-                            1 -> header = decodeSerializableElement(descriptor, idx, Header.serializer())
-                            2 -> body = decodeSerializableElement(descriptor, idx, bodySerializer)
-                        }
-                    }
-                }
-            }
-            return Envelope(body, header, otherAttributes)
-        }
-
-        override fun serialize(encoder: Encoder, value: Envelope<T>) {
-            if (encoder is XML.XmlOutput) {
-                val writer: XmlWriter = encoder.target
-                writer.smartStartTag(ELEMENTNAME) {
-                    for ((aName, aValue) in value.otherAttributes) {
-                        val prefixForNs = when (aName.namespaceURI) {
-                            ""   -> ""
-                            else -> writer.getPrefix(aName.namespaceURI)
-                        } ?: run {
-                            writer.namespaceAttr(aName.prefix, aName.namespaceURI)
-                            aName.prefix
-                        }
-                        writer.attribute(aName.namespaceURI, aName.localPart, prefixForNs, aValue)
-                    }
-                    encoder.delegateFormat().encodeToWriter(writer, bodySerializer, value.body)
-                }
-            } else {
-                encoder.encodeStructure(descriptor) {
-                    encodeSerializableElement(
-                        descriptor,
-                        0,
-                        SoapSerialObjects.attrsSerializer,
-                        value.otherAttributes
-                    )
-                    if (value.header.blocks.isNotEmpty() || value.header.otherAttributes.isNotEmpty()) {
-                        encodeSerializableElement(descriptor, 1, Header.serializer(), value.header)
-                    }
-                    encodeSerializableElement(descriptor, 2, bodySerializer, value.body)
-                }
-            }
-        }
-    }
 
     companion object {
 
@@ -207,6 +97,26 @@ class Envelope<T : Any>(
 
     }
 
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as Envelope<*>
+
+        if (body != other.body) return false
+        if (header != other.header) return false
+        if (otherAttributes != other.otherAttributes) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = body.hashCode()
+        result = 31 * result + header.hashCode()
+        result = 31 * result + otherAttributes.hashCode()
+        return result
+    }
+
 }
 
 internal object SoapSerialObjects {
@@ -216,7 +126,7 @@ internal object SoapSerialObjects {
         val envelope: String,
         @XmlSerialName(Header.ELEMENTLOCALNAME, Envelope.NAMESPACE, Envelope.PREFIX)
         val header: String,
-        @XmlSerialName(Body.ELEMENTLOCALNAME, Envelope.NAMESPACE, Envelope.PREFIX)
+        @XmlSerialName("Body", Envelope.NAMESPACE, Envelope.PREFIX)
         val body: String,
         @XmlSerialName("encodingStyle", Envelope.NAMESPACE, Envelope.PREFIX)
         val encodingStyle: String,
@@ -224,25 +134,15 @@ internal object SoapSerialObjects {
         val value: String,
     )
 
-    val envelopeAnnotations = AnnotationHelper.serializer().descriptor.run {
-        getElementAnnotations(getElementIndex("envelope"))
-    }
+    val envelopeAnnotations = listOf(XmlSerialName(Envelope.ELEMENTLOCALNAME, Envelope.NAMESPACE, Envelope.PREFIX))
 
-    val headerAnnotations = AnnotationHelper.serializer().descriptor.run {
-        getElementAnnotations(getElementIndex("header"))
-    }
+    val headerAnnotations = listOf(XmlSerialName(Header.ELEMENTLOCALNAME, Envelope.NAMESPACE, Envelope.PREFIX))
 
-    val bodyAnnotations = AnnotationHelper.serializer().descriptor.run {
-        getElementAnnotations(getElementIndex("body"))
-    }
+    val bodyAnnotations = listOf(XmlSerialName("Body", Envelope.NAMESPACE, Envelope.PREFIX))
 
-    val encodingStyleAnnotations = AnnotationHelper.serializer().descriptor.run {
-        getElementAnnotations(getElementIndex("encodingStyle"))
-    }
+    val encodingStyleAnnotations = listOf(XmlSerialName("encodingStyle", Envelope.NAMESPACE, Envelope.PREFIX))
 
-    val valueAnnotations = AnnotationHelper.serializer().descriptor.run {
-        getElementAnnotations(getElementIndex("value"))
-    }
+    val valueAnnotations = listOf(XmlValue(true))
 
     object attrsSerializer : KSerializer<Map<QName, String>> {
         private val default = MapSerializer(QNameSerializer, String.serializer())

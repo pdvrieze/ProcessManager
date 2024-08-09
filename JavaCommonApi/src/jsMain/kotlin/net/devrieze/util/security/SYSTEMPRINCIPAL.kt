@@ -21,11 +21,11 @@ actual object SYSTEMPRINCIPAL : RolePrincipal {
     public actual val NS: String  = "urn:SYSTEMPRINCIPAL"
     public actual val TAG: String  = "systemPrincipal"
 
-    override fun hasRole(role: String): Boolean {
+    actual override fun hasRole(role: String): Boolean {
         return true
     }
 
-    override fun getName(): String {
+    actual override fun getName(): String {
         return "<SYSTEM PRINCIPAL>"
     }
 

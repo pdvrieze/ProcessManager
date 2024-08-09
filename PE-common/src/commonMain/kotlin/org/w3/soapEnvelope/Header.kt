@@ -30,15 +30,15 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.descriptors.buildClassSerialDescriptor
 import kotlinx.serialization.encoding.*
 import net.devrieze.util.security.SimplePrincipal
-import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.util.multiplatform.URI
 import nl.adaptivity.util.multiplatform.toUri
 import nl.adaptivity.util.net.devrieze.serializers.URISerializer
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.core.impl.multiplatform.name
-import nl.adaptivity.xmlutil.serialization.CompactFragmentSerializer
 import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.util.CompactFragmentSerializer
 
 
 /**
@@ -65,7 +65,8 @@ import nl.adaptivity.xmlutil.util.CompactFragment
  * </complexType>
  *
  */
-@Serializable(Header.Companion::class)
+@Serializable(Header.Serializer::class)
+@XmlSerialName(Header.ELEMENTLOCALNAME, Envelope.NAMESPACE, Envelope.PREFIX)
 class Header(
     val blocks: List<Block<Any>> = emptyList(),
     val encodingStyle: URI? = null,
@@ -74,6 +75,26 @@ class Header(
     @Transient
     var principal: SimplePrincipal? = null
         private set
+
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (other == null || this::class != other::class) return false
+
+        other as Header
+
+        if (blocks != other.blocks) return false
+        if (encodingStyle != other.encodingStyle) return false
+        if (otherAttributes != other.otherAttributes) return false
+
+        return true
+    }
+
+    override fun hashCode(): Int {
+        var result = blocks.hashCode()
+        result = 31 * result + (encodingStyle?.hashCode() ?: 0)
+        result = 31 * result + otherAttributes.hashCode()
+        return result
+    }
 
     sealed class Block<out T: Any> {
         abstract fun get(): T
@@ -89,6 +110,19 @@ class Header(
             return CompactFragment(XML.encodeToString<T>(s, value = data))
         }
 
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other == null || this::class != other::class) return false
+
+            other as SupportedBlock<*>
+
+            return data == other.data
+        }
+
+        override fun hashCode(): Int {
+            return data.hashCode()
+        }
+
         companion object {
             inline operator fun <reified T:Any> invoke(data: T): SupportedBlock<T> {
                 val serializer = kotlinx.serialization.serializer<T>()
@@ -100,9 +134,22 @@ class Header(
     class UnsupportedBlock(val xml: CompactFragment): Block<CompactFragment>() {
         override fun get(): CompactFragment = xml
         override fun toCompactFragment(): CompactFragment = xml
+
+        override fun equals(other: Any?): Boolean {
+            if (this === other) return true
+            if (other == null || this::class != other::class) return false
+
+            other as UnsupportedBlock
+
+            return xml == other.xml
+        }
+
+        override fun hashCode(): Int {
+            return xml.hashCode()
+        }
     }
 
-    companion object : KSerializer<Header> {
+    companion object Serializer: XmlSerializer<Header> {
         private val blockSerializer = ListSerializer(CompactFragmentSerializer)
 
         @OptIn(ExperimentalSerializationApi::class, nl.adaptivity.xmlutil.XmlUtilInternal::class)
@@ -118,37 +165,52 @@ class Header(
             var otherAttributes: Map<QName, String> = emptyMap()
             lateinit var blocks: List<Block<Any>>
             decoder.decodeStructure(descriptor) {
-                if (decoder is XML.XmlInput) {
-                    val reader: XmlReader = decoder.input
-                    otherAttributes = reader.attributes.filter {
-                        when {
-                            it.prefix == XMLConstants.XMLNS_ATTRIBUTE ||
-                                (it.prefix=="" && it.localName == XMLConstants.XMLNS_ATTRIBUTE) -> false
-                            it.namespaceUri!= Envelope.NAMESPACE -> true
-                            it.localName == "encodingStyle" -> { encodingStyle = it.value.toUri(); false }
-                            else -> true
-                        }
-                    }.associate { QName(it.namespaceUri, it.localName, it.prefix) to it.value }
-                    val myBlocks = mutableListOf<Block<Any>>()
-                    while (reader.nextTag()!=EventType.END_ELEMENT) {
-                        // TODO handle "supported header elements"
-                        val cf = reader.elementContentToFragment().let {
-                            it as? CompactFragment ?: CompactFragment(it)
-                        }
-                        myBlocks.add(UnsupportedBlock(cf))
-                    }
-                    blocks = myBlocks
-                } else {
-                    // TODO handle "supported header elements"
-                    var idx: Int
-                    while (decodeElementIndex(descriptor).also { idx = it } != CompositeDecoder.DECODE_DONE) {
-                        when (idx) {
-                            0 -> encodingStyle = decodeSerializableElement(descriptor, idx, URISerializer, encodingStyle)
-                            1 -> otherAttributes = decodeSerializableElement(descriptor, idx, SoapSerialObjects.attrsSerializer, otherAttributes)
-                            2 -> blocks = decodeSerializableElement(descriptor, idx, ListSerializer(CompactFragmentSerializer)).map { UnsupportedBlock(it) }
-                        }
+                // TODO handle "supported header elements"
+                var idx: Int
+                while (decodeElementIndex(descriptor).also { idx = it } != CompositeDecoder.DECODE_DONE) {
+                    when (idx) {
+                        0 -> encodingStyle = decodeSerializableElement(descriptor, idx, URISerializer, encodingStyle)
+                        1 -> otherAttributes = decodeSerializableElement(descriptor, idx, SoapSerialObjects.attrsSerializer, otherAttributes)
+                        2 -> blocks = decodeSerializableElement(descriptor, idx, ListSerializer(CompactFragmentSerializer)).map { UnsupportedBlock(it) }
                     }
                 }
+            }
+            return Header(blocks, encodingStyle, otherAttributes)
+        }
+
+        override fun deserializeXML(
+            decoder: Decoder,
+            input: XmlReader,
+            previousValue: Header?,
+            isValueChild: Boolean
+        ): Header {
+            var encodingStyle: URI? = null
+            var otherAttributes: Map<QName, String> = emptyMap()
+            lateinit var blocks: List<Block<Any>>
+            decoder.decodeStructure(descriptor) {
+                otherAttributes = input.attributes.filter {
+                    when {
+                        it.prefix == XMLConstants.XMLNS_ATTRIBUTE ||
+                            (it.prefix == "" && it.localName == XMLConstants.XMLNS_ATTRIBUTE) -> false
+
+                        it.namespaceUri != Envelope.NAMESPACE -> true
+                        it.localName == "encodingStyle" -> {
+                            encodingStyle = it.value.toUri(); false
+                        }
+
+                        else -> true
+                    }
+                }.associate { QName(it.namespaceUri, it.localName, it.prefix) to it.value }
+
+                val myBlocks = mutableListOf<Block<Any>>()
+                while (input.nextTag() != EventType.END_ELEMENT) {
+                    // TODO handle "supported header elements"
+                    val cf = input.elementContentToFragment().let {
+                        it as? CompactFragment ?: CompactFragment(it)
+                    }
+                    myBlocks.add(UnsupportedBlock(cf))
+                }
+                blocks = myBlocks
             }
             return Header(blocks, encodingStyle, otherAttributes)
         }
@@ -167,13 +229,11 @@ class Header(
             }
         }
 
+        override fun serializeXML(encoder: Encoder, output: XmlWriter, value: Header, isValueChild: Boolean) {
+            serialize(encoder, value)
+        }
+
         const val ELEMENTLOCALNAME = "Header"
-        val ELEMENTNAME = QName(Envelope.NAMESPACE, ELEMENTLOCALNAME, Envelope.PREFIX)
-        const val PRINCIPALLOCALNAME = "principal"
-        val PRINCIPALQNAME = QName(
-            Engine.NAMESPACE, "principal",
-            Engine.NSPREFIX
-        )
     }
 
 }
