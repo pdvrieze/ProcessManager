@@ -18,7 +18,9 @@ package nl.adaptivity.diagram.svg
 
 import io.github.pdvrieze.xmlutil.testutil.assertXmlEquals
 import nl.adaptivity.diagram.Rectangle
-import nl.adaptivity.xmlutil.XmlStreaming
+import nl.adaptivity.xmlutil.core.impl.newWriter
+import nl.adaptivity.xmlutil.newWriter
+import nl.adaptivity.xmlutil.xmlStreaming
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Test
 import java.io.CharArrayWriter
@@ -49,7 +51,7 @@ class SVGPathTest {
 
             drawRect(rect, rectPen)
         }
-        XmlStreaming.newWriter(System.out, "UTF-8").use { xmlWriter ->
+        xmlStreaming.newWriter(System.out, "UTF-8").use { xmlWriter ->
             canvas.serialize(xmlWriter)
         }
         assertEquals(canvas.bounds, Rectangle(-0.113, -0.128, 4.490, 4.256))
@@ -108,7 +110,7 @@ class SVGPathTest {
         }
         assertEquals(canvas.bounds, Rectangle(4.0, -1.783, 60.157, 97.783))
         val writer = CharArrayWriter()
-        XmlStreaming.newWriter(writer).use {
+        xmlStreaming.newWriter(writer).use {
             canvas.serialize(it)
         }
         val RealSVG =
