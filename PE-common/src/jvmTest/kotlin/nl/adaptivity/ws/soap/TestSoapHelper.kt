@@ -20,9 +20,10 @@ import io.github.pdvrieze.xmlutil.testutil.assertXmlEquals
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.xml.DebugWriter
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.serialization.CompactFragmentSerializer
+import nl.adaptivity.xmlutil.core.impl.newReader
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.util.CompactFragmentSerializer
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -54,7 +55,7 @@ class TestSoapHelper {
     </task>
   </taskParam>
 </umh:postTask>"""
-        val result = SoapHelper.unmarshalWrapper(XmlStreaming.newReader(StringReader(input)))
+        val result = SoapHelper.unmarshalWrapper(xmlStreaming.newReader(StringReader(input)))
         Assertions.assertEquals(2, result.size)
         assertNotNull(result["repliesParam"])
         assertNotNull(result["taskParam"])
@@ -63,7 +64,7 @@ class TestSoapHelper {
     @Test
     @Throws(Exception::class)
     fun testUnmarshalSoapResponse() {
-        val env = Envelope.deserialize(XmlStreaming.newReader(StringReader(SOAP_RESPONSE1)))
+        val env = Envelope.deserialize(xmlStreaming.newReader(SOAP_RESPONSE1))
         val bodyContent = env.body.child as CompactFragment?
         assertXmlEquals(SOAP_RESPONSE1_BODY, bodyContent!!.contentString)
     }
@@ -72,7 +73,7 @@ class TestSoapHelper {
     @Throws(Exception::class)
     fun testRoundtripSoapResponse() {
         val xml: XML = XML { indent = 2; autoPolymorphic = true }
-        val serializer = Envelope.Serializer(CompactFragmentSerializer)
+        val serializer = Envelope.serializer(CompactFragmentSerializer)
         val env: Envelope<CompactFragment> = xml.decodeFromString(serializer, SOAP_RESPONSE1)
         assertXmlEquals(SOAP_RESPONSE1_BODY, env.body.child.contentString.trim())
 
@@ -84,10 +85,10 @@ class TestSoapHelper {
     @Throws(Exception::class)
     fun testRoundtripSoapResponse2() {
         val xml: XML = XML { indent = 2; autoPolymorphic = true }
-        val serializer = Envelope.Serializer(CompactFragmentSerializer)
-        val env = Envelope.deserialize(XmlStreaming.newReader(StringReader(SOAP_RESPONSE2)))
+        val serializer = Envelope.serializer(CompactFragmentSerializer)
+        val env = Envelope.deserialize(xmlStreaming.newReader(SOAP_RESPONSE2))
         val caw = CharArrayWriter()
-        val out = DebugWriter(XmlStreaming.newWriter(caw))
+        val out = DebugWriter(xmlStreaming.newWriter(caw))
         XML.encodeToWriter(out, env)
         out.close()
         assertXmlEquals(SOAP_RESPONSE2, caw.toString())
@@ -99,7 +100,7 @@ class TestSoapHelper {
         val dbf = DocumentBuilderFactory.newInstance()
         dbf.isNamespaceAware = true
         val doc = dbf.newDocumentBuilder().parse(InputSource(StringReader(SOAP_RESPONSE1)))
-        val env = Envelope.deserialize(XmlStreaming.newReader(DOMSource(doc)))
+        val env = Envelope.deserialize(xmlStreaming.newReader(doc))
         val bodyContent = env.body.child as CompactFragment?
         assertXmlEquals(SOAP_RESPONSE1_BODY, bodyContent!!.contentString)
     }
@@ -112,8 +113,8 @@ class TestSoapHelper {
         val dbf = DocumentBuilderFactory.newInstance()
         dbf.isNamespaceAware = true
         val doc = dbf.newDocumentBuilder().parse(InputSource(StringReader(input)))
-        val reader = XmlStreaming.newReader(DOMSource(doc))
-        reader.require(EventType.START_DOCUMENT, null, null)
+        val reader = xmlStreaming.newReader(DOMSource(doc))
+        assertFalse(reader.isStarted)
 
         if (reader.next() == EventType.START_DOCUMENT) reader.next()
 
@@ -153,13 +154,13 @@ class TestSoapHelper {
   """
         private val SOAP_RESPONSE1 =
             """<soap:Envelope xmlns:soap="http://www.w3.org/2003/05/soap-envelope">
-  <soap:Body soap:encodingStyle="http://www.w3.org/2003/05/soap-encoding">$SOAP_RESPONSE1_BODY  </soap:Body>
+  <soap:Body encodingStyle="http://www.w3.org/2003/05/soap-encoding">$SOAP_RESPONSE1_BODY  </soap:Body>
 </soap:Envelope>
 """
 
         private val SOAP_RESPONSE2 =
             "<soap:Envelope xmlns:soap=\"http://www.w3.org/2003/05/soap-envelope\">\n" +
-                    "  <soap:Body soap:encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\">" + ("<getProcessNodeInstanceSoapResponse>\n" +
+                    "  <soap:Body encodingStyle=\"http://www.w3.org/2003/05/soap-encoding\">" + ("<getProcessNodeInstanceSoapResponse>\n" +
                     "    </getProcessNodeInstanceSoapResponse>\n" +
                     "  ") +
                     "  </soap:Body>\n" +
