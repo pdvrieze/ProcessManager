@@ -23,34 +23,34 @@ actual constructor(private val handleAssigner: (V, Handle<V>) -> V?) : MutableHa
     private var nextHandle: Long = 0L
     private val backingMap: MutableMap<Handle<*>, V> = mutableMapOf()
 
-    override fun containsElement(element: V): Boolean = when (element) {
+    actual override fun containsElement(element: V): Boolean = when (element) {
         is ReadableHandleAware<*> -> backingMap.containsKey(element.handle)
         else -> backingMap.containsValue(element)
     }
 
-    override fun contains(handle: Handle<V>): Boolean {
+    actual override fun contains(handle: Handle<V>): Boolean {
         return backingMap.containsKey(handle)
     }
 
-    override fun get(handle: Handle<V>): V? {
+    actual override fun get(handle: Handle<V>): V? {
         return backingMap[handle]
     }
 
     @Deprecated("Don't use, this may be expensive", level = DeprecationLevel.ERROR)
     @Suppress("OverridingDeprecatedMember")
-    override fun getSize(): Int {
+    actual override fun getSize(): Int {
         return backingMap.size
     }
 
-    override fun iterator(): MutableIterator<V> {
+    actual override fun iterator(): MutableIterator<V> {
         return backingMap.values.iterator()
     }
 
-    override fun forEach(body: MutableHasForEach.ForEachReceiver<V>) {
+    actual override fun forEach(body: MutableHasForEach.ForEachReceiver<V>) {
         MutableHasForEach.forEach(backingMap.values.iterator(), body)
     }
 
-    override fun <W : V> put(value: W): Handle<W> {
+    actual override fun <W : V> put(value: W): Handle<W> {
         val handle1 = nextHandle++
         val handle = if (handle1 < 0) Handle.invalid() else Handle<W>(handle1)
         val storedValue =
@@ -59,7 +59,7 @@ actual constructor(private val handleAssigner: (V, Handle<V>) -> V?) : MutableHa
         return handle
     }
 
-    override fun set(handle: Handle<V>, value: V): V? {
+    actual override fun set(handle: Handle<V>, value: V): V? {
         return backingMap[handle].also {
             val storedValue =
                 handleAssigner(value, handle) ?: throw IllegalArgumentException("Could not set a handle to the value")
@@ -67,11 +67,11 @@ actual constructor(private val handleAssigner: (V, Handle<V>) -> V?) : MutableHa
         }
     }
 
-    override fun remove(handle: Handle<V>): Boolean {
+    actual override fun remove(handle: Handle<V>): Boolean {
         return backingMap.remove(handle) != null
     }
 
-    override fun clear() {
+    actual override fun clear() {
         return backingMap.clear()
     }
 }
