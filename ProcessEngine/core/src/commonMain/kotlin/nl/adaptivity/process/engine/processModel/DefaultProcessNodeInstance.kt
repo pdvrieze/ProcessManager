@@ -108,8 +108,9 @@ class DefaultProcessNodeInstance :
         subject: PrincipalCompat,
         permission: SecurityProvider.Permission
     ): IntermediatePermissionDecision {
-        if (node !is MessageActivity) return IntermediatePermissionDecision.PASS
-        val ar = node.accessRestrictions ?: return IntermediatePermissionDecision.PASS
+        val n = node
+        if (n !is MessageActivity) return IntermediatePermissionDecision.PASS
+        val ar = n.accessRestrictions ?: return IntermediatePermissionDecision.PASS
         return when {
             ar.hasAccess(this, subject, permission) ->
                 IntermediatePermissionDecision.ALLOW

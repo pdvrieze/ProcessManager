@@ -44,7 +44,7 @@ class PMAActivityInstance <C : PmaActivityContext<C>> : ProcessNodeInstance<PMAA
 
     @Suppress("UNCHECKED_CAST")
     override val node: IPMAMessageActivity<C>
-        get() = super.node as IPMAMessageActivity<C>
+        get() = _node as IPMAMessageActivity<C>
 
     override fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder<C> {
         return ExtBuilder(this, processInstanceBuilder)

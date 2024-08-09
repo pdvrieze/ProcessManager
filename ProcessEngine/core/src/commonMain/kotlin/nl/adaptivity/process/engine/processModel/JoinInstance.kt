@@ -181,7 +181,7 @@ class JoinInstance : ProcessNodeInstance<JoinInstance> {
     }
 
     override val node: ExecutableJoin
-        get() = super.node as ExecutableJoin
+        get() = _node as ExecutableJoin
 
     fun canFinish() = predecessors.size >= node.min
 

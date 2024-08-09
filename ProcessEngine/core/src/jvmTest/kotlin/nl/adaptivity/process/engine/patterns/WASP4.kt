@@ -19,6 +19,7 @@ package nl.adaptivity.process.engine.patterns
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.processModel.configurableModel.endNode
 import nl.adaptivity.process.processModel.configurableModel.startNode
+import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import org.junit.jupiter.api.DisplayName
 
 @DisplayName("WASP4: Vertical modularisation (subprocesses)")
@@ -29,7 +30,7 @@ class WASP4: TraceTest(Companion) {
                 val start1 by startNode
                 val ac1 by activity(start1)
 
-                val comp1 by object : ConfigurableCompositeActivity(ac1) {
+                val comp1 by object : ConfigurableCompositeActivity<ExecutableProcessNode>(this, ac1) {
                     val start2 by startNode
                     val ac2 by activity(start2)
                     val end2 by endNode(ac2)

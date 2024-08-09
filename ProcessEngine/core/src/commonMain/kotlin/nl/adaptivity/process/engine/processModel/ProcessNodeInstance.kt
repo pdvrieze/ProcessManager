@@ -54,7 +54,7 @@ import kotlin.contracts.contract
  * @property failureCause For a failure, the cause of the failure
  */
 abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T>>(
-    override val node: ExecutableProcessNode,
+    node: ExecutableProcessNode,
     predecessors: Iterable<PNIHandle>,
     processInstanceBuilder: ProcessInstance.Builder,
     override val hProcessInstance: PIHandle,
@@ -65,8 +65,13 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T>>(
     results: Iterable<ProcessData> = emptyList(),
     val failureCause: Throwable? = null
 ) : SecureObject<T>,
-    ReadableHandleAware<SecureProcessNodeInstance>,
+    ReadableHandleAware<SecureObject<IProcessNodeInstance>>,
     IProcessNodeInstance {
+
+    protected val _node: ExecutableProcessNode = node
+
+    override val node: ExecutableProcessNode
+        get() = _node
 
     override val results: List<ProcessData> = results.toList()
 
@@ -74,7 +79,6 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T>>(
         predecessors.asSequence().filter { it.isValid }.toArraySet()
 
     init {
-        @Suppress("LeakingThis")
         if (state != SkippedInvalidated &&
             !(node.isMultiInstance || ((node as? ExecutableJoin)?.isMultiMerge == true))
         ) {
@@ -322,7 +326,9 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T>>(
                 throw ProcessException("instance ${node.id}:${handle.handleValue}($state) cannot be finished as it is already in a final state.")
             }
             state = Complete
-            node.results.mapTo(results.apply { clear() }) { (it as IPlatformXmlResultType).applyData(resultPayload) }
+            node.results.mapTo(results.apply { clear() }) {
+                (it as IPlatformXmlResultType).applyData(resultPayload)
+            }
         }
 
 

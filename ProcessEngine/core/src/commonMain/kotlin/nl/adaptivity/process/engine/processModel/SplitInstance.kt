@@ -101,7 +101,7 @@ class SplitInstance : ProcessNodeInstance<SplitInstance> {
     }
 
     override val node: ExecutableSplit
-        get() = super.node as ExecutableSplit
+        get() = _node as ExecutableSplit
 
     constructor(
         node: ExecutableSplit,

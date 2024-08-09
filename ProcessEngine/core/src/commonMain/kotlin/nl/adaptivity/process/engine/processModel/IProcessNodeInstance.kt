@@ -37,7 +37,7 @@ typealias PNIHandle = Handle<SecureProcessNodeInstance>
 /**
  * Simple base interface for process node instances that can also be implemented by builders
  */
-interface IProcessNodeInstance : ReadableHandleAware<SecureProcessNodeInstance> {
+interface IProcessNodeInstance : ReadableHandleAware<SecureObject<IProcessNodeInstance>> {
     val node: ExecutableProcessNode
 
     val predecessors: Set<PNIHandle>

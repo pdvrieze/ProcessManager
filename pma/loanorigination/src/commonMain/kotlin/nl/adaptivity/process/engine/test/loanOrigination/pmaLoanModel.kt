@@ -59,8 +59,8 @@ val pmaLoanModel =
             }
         }
 
-        val loanEvaluationOut: OutputRef<LoanEvaluation>
-        val creditReportOut: OutputRef<CreditReport>
+        val loanEvaluationOut = DelayedOutputRef<LoanEvaluation>()
+        val creditReportOut = DelayedOutputRef<CreditReport>()
 
         val evaluateCredit by compositeActivity(createLoanRequest) {
             val customerIdInput = input("customerId", inputCustomerMasterData)
@@ -159,9 +159,9 @@ val pmaLoanModel =
 
             val end by endNode(getLoanEvaluation)
 
-            loanEvaluationOut = output("loanEvaluation", getLoanEvaluation)
+            loanEvaluationOut.set(output("loanEvaluation", getLoanEvaluation))
 
-            creditReportOut = output("creditReport", getCreditReport)
+            creditReportOut.set(output("creditReport", getCreditReport))
         }
 
         val chooseBundledProduct: DataNodeHandle<LoanProductBundle> by taskActivity(
@@ -174,7 +174,7 @@ val pmaLoanModel =
             }
         }
 
-        val approvedOfferOut: OutputRef<PricedLoanProductBundle>
+        val approvedOfferOut = DelayedOutputRef<PricedLoanProductBundle>()
 
         val offerPriceLoan by compositeActivity(chooseBundledProduct) {
             val loanEvalInput = input("loanEval", loanEvaluationOut)
@@ -212,7 +212,7 @@ val pmaLoanModel =
 
             val end by endNode(approveOffer)
 
-            approvedOfferOut = output("approvedOffer", approveOffer)
+            approvedOfferOut.set(output("approvedOffer", approveOffer))
         }
         val printOffer: DataNodeHandle<Offer> by taskActivity(
             predecessor = offerPriceLoan,

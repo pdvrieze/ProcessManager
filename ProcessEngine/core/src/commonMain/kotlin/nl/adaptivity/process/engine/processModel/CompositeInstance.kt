@@ -139,7 +139,7 @@ class CompositeInstance(builder: Builder) : ProcessNodeInstance<CompositeInstanc
                 throw ProcessException("Child process instance handles must be valid if the state isn't pending")
         }
 
-    override val node: ExecutableCompositeActivity get() = super.node as ExecutableCompositeActivity
+    override val node: ExecutableCompositeActivity get() = _node as ExecutableCompositeActivity
 
     override fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder =
         ExtBuilder(this, processInstanceBuilder)

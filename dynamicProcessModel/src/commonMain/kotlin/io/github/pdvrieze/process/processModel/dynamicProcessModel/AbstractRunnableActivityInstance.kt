@@ -16,7 +16,7 @@ abstract class AbstractRunnableActivityInstance<InputT : Any, OutputT : Any, C :
 ) : ProcessNodeInstance<InstT>(builder) {
 
     @Suppress("UNCHECKED_CAST")
-    override val node: NodeT get() = super.node as NodeT
+    override val node: NodeT get() = _node as NodeT
 
     fun ActivityInstanceContext.getInputData(nodeInstanceSource: IProcessInstance): InputT {
         val defines = getDefines(nodeInstanceSource)

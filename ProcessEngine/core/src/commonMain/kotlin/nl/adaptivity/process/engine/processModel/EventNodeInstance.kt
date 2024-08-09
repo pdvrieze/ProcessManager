@@ -10,11 +10,12 @@ import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.processModel.engine.ExecutableEventNode
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.multiplatform.PrincipalCompat
+import nl.adaptivity.xmlutil.util.ICompactFragment
 
 class EventNodeInstance : ProcessNodeInstance<EventNodeInstance> {
 
     override val node: ExecutableEventNode
-        get() = super.node as ExecutableEventNode
+        get() = _node as ExecutableEventNode
 
     constructor(
         node: ExecutableProcessNode,
@@ -42,6 +43,11 @@ class EventNodeInstance : ProcessNodeInstance<EventNodeInstance> {
 
     constructor(builder: Builder) : super(builder)
 
+    init {
+        check(state != NodeInstanceState.Complete || results.size == node.results.size) {
+            "Result counts not matching"
+        }
+    }
 
     override fun builder(processInstanceBuilder: ProcessInstance.Builder): ExtBuilder {
         return ExtBuilder(this, processInstanceBuilder)
@@ -68,6 +74,9 @@ class EventNodeInstance : ProcessNodeInstance<EventNodeInstance> {
             return true // The implementation is finish
         }
 
+        override fun doFinishTask(engineData: MutableProcessEngineDataAccess, resultPayload: ICompactFragment?) {
+            super.doFinishTask(engineData, resultPayload)
+        }
     }
 
     class BaseBuilder(

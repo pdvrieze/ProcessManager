@@ -64,9 +64,9 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
             }
         }
         return RunnableActivityInstance.BaseBuilder<I, O, ActivityInstanceContext>(
-            this as RunnableActivity<I, O, *>, predecessor.handle,
-            processInstanceBuilder,
-            processInstanceBuilder.owner, entryNo
+            node = this as RunnableActivity<I, O, *>, predecessor = predecessor.handle,
+            processInstanceBuilder = processInstanceBuilder,
+            owner = processInstanceBuilder.owner, entryNo = entryNo
         )
     }
 

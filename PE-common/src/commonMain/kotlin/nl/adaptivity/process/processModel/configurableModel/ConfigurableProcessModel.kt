@@ -143,7 +143,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
     ): Identifier = this
 
 
-    operator fun <T : ConfigurableCompositeActivity> T.provideDelegate(
+    operator fun <T : ConfigurableCompositeActivity<NodeT>> T.provideDelegate(
         thisRef: ConfigurableProcessModel<*>,
         property: KProperty<*>
     ): T {
@@ -151,18 +151,19 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
         return this
     }
 
-    inline operator fun <T : ConfigurableCompositeActivity>
+    inline operator fun <T : ConfigurableCompositeActivity<NodeT>>
         T.getValue(thisRef: ConfigurableProcessModel<*>, property: KProperty<*>): T = this
 
     @ConfigurationDsl
-    public abstract inner class ConfigurableCompositeActivity(
+    public abstract class ConfigurableCompositeActivity<NodeT : ProcessNode>(
+        private val ownerModel: ConfigurableProcessModel<NodeT>,
         predecessor: Identified,
         childId: String? = null,
         id: String? = null
     ) : Identified,
         ConfigurableNodeContainer<NodeT> /*: ChildProcessModel.Builder<ExecutableProcessNode, ExecutableModelCommon>*/ {
 
-        private inline fun rootBuilder() = this@ConfigurableProcessModel.configurationBuilder
+        private inline fun rootBuilder() = ownerModel.configurationBuilder
 
         override val configurationBuilder: CompositeActivity.ModelBuilder = ActivityBase.CompositeActivityBuilder(
             rootBuilder(),
@@ -198,7 +199,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
         }
 
         operator fun ProcessNode.Builder.provideDelegate(
-            thisRef: ConfigurableCompositeActivity,
+            thisRef: ConfigurableCompositeActivity<NodeT>,
             property: KProperty<*>
         ): Identifier {
             val modelBuilder = configurationBuilder
@@ -215,7 +216,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
         }
 
         protected inline operator fun Identifier.getValue(
-            thisRef: ConfigurableCompositeActivity,
+            thisRef: ConfigurableCompositeActivity<NodeT>,
             property: KProperty<*>
         ): Identifier = this
 
