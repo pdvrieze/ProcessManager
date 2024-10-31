@@ -59,7 +59,7 @@ class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<Ex
     val evaluateCredit = EvaluateCredit(this, createLoanRequest)
 
     inner class EvaluateCredit(ownerModel: LoanOriginationModel, predecessor: Identified) :
-        ConfigurableCompositeActivity<ExecutableProcessNode>(ownerModel, predecessor) {
+        ConfigurableCompositeActivity<ExecutableProcessNode>(ownerModel, predecessor, "evaluateCredit") {
 
         init {
             input("customerId", this@LoanOriginationModel.inputCustomerMasterData)

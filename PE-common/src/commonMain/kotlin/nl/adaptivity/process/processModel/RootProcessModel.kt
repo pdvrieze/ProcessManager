@@ -74,7 +74,7 @@ interface RootProcessModel<out NodeT : ProcessNode> : ProcessModel<NodeT> {
             super.normalize(pedantic)
             childModels.filter { it.childId == null }.forEach {
                 if (pedantic) {
-                    throw IllegalProcessModelException("No child id for child model defined")
+                    throw IllegalProcessModelException("No child id for child model defined, with nodes: ${it.nodes.joinToString { it.id.toString() }}")
                 } else {
                     it.ensureChildId()
                 }
