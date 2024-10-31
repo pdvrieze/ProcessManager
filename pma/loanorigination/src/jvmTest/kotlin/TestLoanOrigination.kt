@@ -18,14 +18,22 @@ package nl.adaptivity.process.engine.test.loanOrigination
 
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.RunnableActivity
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.impl.RunningMessageService
+import kotlinx.serialization.encodeToString
+import kotlinx.serialization.serializer
 import nl.adaptivity.process.engine.ProcessInstance
+import nl.adaptivity.process.engine.impl.CompactFragment
 import nl.adaptivity.process.engine.pma.AuthorizationException
 import nl.adaptivity.process.engine.test.ProcessEngineFactory
 import nl.adaptivity.process.engine.test.ProcessEngineTestSupport
+import nl.adaptivity.process.engine.test.loanOrigination.datatypes.Approval
+import nl.adaptivity.process.engine.test.loanOrigination.datatypes.Offer
+import nl.adaptivity.process.engine.test.loanOrigination.systems.SignedDocument
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
+import nl.adaptivity.xmlutil.serialization.XML
 import org.junit.jupiter.api.Assertions.assertThrows
 import java.util.logging.Logger
 import kotlin.random.Random
+import kotlin.reflect.typeOf
 import kotlin.test.Test
 import kotlin.test.assertEquals
 import kotlin.test.assertIs
@@ -49,6 +57,20 @@ class TestLoanOrigination : ProcessEngineTestSupport() {
     fun testRunObjectModel() {
         val model = ExecutableProcessModel(LoanOriginationModel(testModelOwnerPrincipal).configurationBuilder)
         testRunModel(model) { logger, random -> LoanContextFactory(logger, random) }
+    }
+
+    @Test
+    fun testSerializeSignedApproval() {
+        val approval = SignedDocument("admin", 5L, Approval(true))
+        val offer = SignedDocument("admin", 4L, Offer("1", "2", "signature"))
+        val serialized1 = CompactFragment { writer ->
+            XML.defaultInstance.encodeToWriter(writer, serializer<SignedDocument<Offer>>(), offer)
+        }
+        val serialized2 = CompactFragment { writer ->
+            XML.defaultInstance.encodeToWriter(writer, serializer<SignedDocument<Approval>>(), approval)
+        }
+        assertEquals("<SignedDocument signedBy=\"admin\" nodeInstanceHandle=\"4\"><Offer id=\"1\" customerId=\"2\" customerSignature=\"signature\"/></SignedDocument>", serialized1.contentString)
+        assertEquals("<SignedDocument signedBy=\"admin\" nodeInstanceHandle=\"5\"><Approval>true</Approval></SignedDocument>", serialized2.contentString)
     }
 
     @Test
