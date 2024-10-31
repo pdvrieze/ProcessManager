@@ -55,7 +55,7 @@ class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<Ex
             }
         }
     }
-    val evaluateCredit by object : ConfigurableCompositeActivity(createLoanRequest) {
+    val evaluateCredit by object : ConfigurableCompositeActivity(createLoanRequest, "evaluateCredit") {
 
         init {
             input("customerId", this@LoanOriginationModel.inputCustomerMasterData)
