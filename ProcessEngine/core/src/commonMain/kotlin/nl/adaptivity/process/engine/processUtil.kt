@@ -74,25 +74,25 @@ fun <N:SecureObject<V>, V:Any> N?.shouldExist(handle: Handle<SecureObject<V>>): 
  * @return The node
  * @throws IllegalStateException If it doesn't
  */
-fun ProcessInstance?.mustExist(handle: PIHandle): ProcessInstance = this ?: throw IllegalStateException("Node instance missing: $handle")
+fun ProcessInstance?.mustExist(handle: PIHandle): ProcessInstance = this ?: throw IllegalStateException("Process instance missing: $handle")
 
 /**
  * Verify that the node exists. Non-existance could be user errror.
  * @return The node
  * @throws HandleNotFoundException If it doesn't.
  */
-fun ProcessInstance?.shouldExist(handle: PIHandle): ProcessInstance = this ?: throw HandleNotFoundException("Node instance missing: $handle")
+fun ProcessInstance?.shouldExist(handle: PIHandle): ProcessInstance = this ?: throw HandleNotFoundException("Process instance missing: $handle")
 
 /**
- * Verify that the node instance exists. If it doesn't exist this is an internal error
+ * Verify that the model exists. If it doesn't exist this is an internal error
  * @return The node
  * @throws IllegalStateException If it doesn't
  */
-fun <N: ProcessNode, M: RootProcessModel<N>> M?.mustExist(handle: Handle<RootProcessModel<N>>): M = this ?: throw IllegalStateException("Node instance missing: $handle")
+fun <N: ProcessNode, M: RootProcessModel<N>> M?.mustExistModel(handle: Handle<RootProcessModel<N>>): M = this ?: throw IllegalStateException("Process model missing: $handle")
 
 /**
- * Verify that the node exists. Non-existance could be user errror.
+ * Verify that the model exists. Non-existance could be user errror.
  * @return The node
  * @throws HandleNotFoundException If it doesn't.
  */
-fun <N: ProcessNode, M: RootProcessModel<N>> M?.shouldExist(handle: Handle<RootProcessModel<N>>): M = this ?: throw HandleNotFoundException("Node instance missing: $handle")
+fun <N: ProcessNode, M: RootProcessModel<N>> M?.shouldExistModel(handle: Handle<RootProcessModel<N>>): M = this ?: throw HandleNotFoundException("Process model missing: $handle")
