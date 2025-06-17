@@ -15,8 +15,8 @@ junit5 = "1.9.2"
 jupiter = "5.9.2"
 jwsApi="1.1.1"
 kmongo = "4.2.7"
+kotlin-lang = "2.0.21"
 kotlin-apiVersion = "2.0"
-kotlin-compiler = "2.0.21"
 kotlin-classTarget = "11"
 kotlin-androidClassTarget = "1.8"
 kotlin-languageVersion = "2.0"
@@ -49,8 +49,6 @@ junit5-engine = { module = "org.junit.jupiter:junit-jupiter-engine", version.ref
 kotlinsql-monadic = { module = "io.github.pdvrieze.kotlinsql:kotlinsql-monadic", version.ref="kotlinsql" }
 kotlinsql-core = { module = "io.github.pdvrieze.kotlinsql:kotlinsql-core", version.ref="kotlinsql" }
 
-kotlin-stdlib-jdk8 = { module = "org.jetbrains.kotlin:kotlin-stdlib-jdk8", version.ref="kotlin-compiler" }
-
 kotlinx-html = { module = "org.jetbrains.kotlinx:kotlinx-html", version.ref="kotlinx-html" }
 
 kotlinx-serialization-core = { module = "org.jetbrains.kotlinx:kotlinx-serialization-core", version.ref = "kotlinx-serialization" }
@@ -68,10 +66,6 @@ ktor-server-compression = { module = "io.ktor:ktor-server-compression", version.
 
 ktor-server-test-host = { module = "io.ktor:ktor-server-test-host", version.ref = "ktor" }
 ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor"}
-
-kxml2 = "net.sf.kxml:kxml2:2.3.0"
-
-logback = { module = "ch.qos.logback:logback-classic", version.ref="logback" }
 
 mariadbConnector = { module= "org.mariadb.jdbc:mariadb-java-client", version.ref="mariaDbConnector"}
 
@@ -96,11 +90,11 @@ xmlutil-xmlserializable = { module = "io.github.pdvrieze.xmlutil:xmlserializable
 
 [plugins]
 dokka = { id = "org.jetbrains.dokka", version.ref="dokka" }
-kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref="kotlin-compiler" }
-kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref="kotlin-compiler" }
-kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref="kotlin-compiler" }
-kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref="kotlin-compiler" }
-kotlin-js = { id = "org.jetbrains.kotlin.js", version.ref="kotlin-compiler" }
+kotlin-multiplatform = { id = "org.jetbrains.kotlin.multiplatform", version.ref="kotlin-lang" }
+kotlin-serialization = { id = "org.jetbrains.kotlin.plugin.serialization", version.ref="kotlin-lang" }
+kotlin-jvm = { id = "org.jetbrains.kotlin.jvm", version.ref="kotlin-lang" }
+kotlin-android = { id = "org.jetbrains.kotlin.android", version.ref="kotlin-lang" }
+kotlin-js = { id = "org.jetbrains.kotlin.js", version.ref="kotlin-lang" }
 codegen = { id = "net.devrieze.gradlecodegen", version = "0.6.0"}
 gradletomcat = { id="com.bmuschko.tomcat", version = "2.7.0"}
 

@@ -28,7 +28,7 @@ gradlePlugin {
 }
 
 dependencies {
-    val kotlin_version: String = project.libs.versions.kotlin.compiler.get()
+    val kotlin_version: String = project.libs.versions.kotlin.lang.get()
 
     compileOnly("org.jetbrains.kotlin:kotlin-gradle-plugin:$kotlin_version")
 }

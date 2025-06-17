@@ -130,6 +130,9 @@ kotlin {
         }
 */
         val jsMain by getting {
+            dependencies {
+                api(project(":JavaCommonApi"))
+            }
 //            dependsOn(commonMain)
         }
     }

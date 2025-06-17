@@ -77,7 +77,6 @@ kotlin {
                 implementation(libs.ktor.server.netty)
                 implementation(libs.ktor.server.contentNegotiation)
                 implementation(libs.ktor.server.compression)
-                implementation(libs.logback)
                 implementation(libs.kotlinx.html)
                 implementation(project(":darwin:ktorSupport"))
                 runtimeOnly(libs.requirejs)

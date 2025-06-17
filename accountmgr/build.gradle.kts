@@ -35,7 +35,6 @@ configurations {
 }
 
 dependencies {
-    implementation(libs.kotlin.stdlib.jdk8)
     implementation(libs.kotlinx.html)
     implementation("com.sun.mail:javax.mail:1.5.5")
     implementation(libs.kotlinsql.monadic)

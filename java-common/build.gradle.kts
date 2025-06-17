@@ -63,7 +63,6 @@ kotlin {
                 implementation(project(":multiplatform"))
                 implementation(libs.kotlinx.serialization.core)
                 implementation(kotlin("stdlib"))
-                implementation(libs.kotlin.stdlib.jdk8)
 
                 compileOnly(project(":JavaCommonApi"))
 
