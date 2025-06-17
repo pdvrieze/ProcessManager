@@ -1,11 +1,3 @@
-[submodule "darwinlib"]
-	path = darwinlib
-	url = https://github.com/pdvrieze/darwinlib.git
-	ignore = dirty
-[submodule "android-auth"]
-	path = android-auth
-	url = https://github.com/pdvrieze/darwin-android-auth.git
-	ignore = dirty
 [submodule "webeditor"]
 	path = webeditor
 	url = https://github.com/pdvrieze/webeditor.git
