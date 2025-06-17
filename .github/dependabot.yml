@@ -7,10 +7,10 @@ updates:
     ignore:
       - dependency-name: "*"
         update-types: ["version-update:semver-major"]
-  - package-ecosystem: "npm"
-    directory: "/"
-    schedule:
-      interval: yearly
-    ignore:
-      - dependency-name: "*"
+  # - package-ecosystem: "npm"
+  #   directory: "/"
+  #   schedule:
+  #     interval: yearly
+  #   ignore:
+  #     - dependency-name: "*"
 
