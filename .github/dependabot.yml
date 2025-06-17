@@ -9,6 +9,8 @@ updates:
         - "version-update:semver-major"
   - package-ecosystem: "npm"
     directory: "/"
+    schedule:
+      interval: yearly
     ignore:
       - dependency-name: "*"
 
