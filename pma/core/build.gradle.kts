@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import versions.argJvmDefault
 
 /*
@@ -24,16 +26,17 @@ plugins {
 }
 
 kotlin {
+    compilerOptions {
+        languageVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.fromVersion(libs.versions.kotlin.languageVersion.get())
+        apiVersion = KotlinVersion.fromVersion(libs.versions.kotlin.apiVersion.get())
+    }
     targets {
         jvm {
-            compilations.all {
-                kotlinOptions {
-                    jvmTarget = libs.versions.kotlin.classTarget.get()
-                    freeCompilerArgs = listOf(argJvmDefault)
-                }
-                tasks.withType<Test> {
-                    useJUnitPlatform()
-                }
+            compilerOptions {
+                jvmTarget = JvmTarget.fromTarget(libs.versions.kotlin.classTarget.get())
+            }
+            tasks.withType<Test> {
+                useJUnitPlatform()
             }
         }
 /*

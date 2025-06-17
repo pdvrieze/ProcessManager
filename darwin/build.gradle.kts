@@ -1,3 +1,7 @@
+import org.jetbrains.kotlin.gradle.dsl.JsModuleKind
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+
 /*
  * Copyright (c) 2019.
  *
@@ -26,25 +30,23 @@ base {
 }
 
 kotlin {
+    compilerOptions {
+        languageVersion = KotlinVersion.fromVersion(libs.versions.kotlin.languageVersion.get())
+        apiVersion = KotlinVersion.fromVersion(libs.versions.kotlin.apiVersion.get())
+    }
+
     jvm {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = libs.versions.kotlin.classTarget.get()
-            }
+        compilerOptions {
+            jvmTarget = JvmTarget.fromTarget(libs.versions.kotlin.classTarget.get())
         }
     }
     js(IR) {
-        moduleName = "darwin"
-        browser()
-        compilations.all {
-
-            kotlinOptions {
-                sourceMap = true
-                suppressWarnings = false
-                verbose = true
-//                metaInfo = true
-                moduleKind = "umd"
-            }
+        outputModuleName = "darwin"
+        compilerOptions {
+            sourceMap = true
+            suppressWarnings = false
+            verbose = true
+            moduleKind = JsModuleKind.MODULE_UMD
         }
     }
 

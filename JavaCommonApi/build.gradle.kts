@@ -1,3 +1,8 @@
+import org.jetbrains.kotlin.gradle.dsl.JsMainFunctionExecutionMode
+import org.jetbrains.kotlin.gradle.dsl.JsModuleKind
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+
 /*
  * Copyright (c) 2019.
  *
@@ -26,25 +31,25 @@ base {
 
 kotlin {
     applyDefaultHierarchyTemplate()
+    compilerOptions {
+        languageVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.fromVersion(libs.versions.kotlin.languageVersion.get())
+        apiVersion = KotlinVersion.fromVersion(libs.versions.kotlin.apiVersion.get())
+    }
     jvm {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = libs.versions.kotlin.classTarget.get()
-            }
+        compilerOptions {
+            jvmTarget = JvmTarget.fromTarget(libs.versions.kotlin.classTarget.get())
         }
     }
     js {
         browser()
         nodejs()
-        compilations.all {
-            kotlinOptions {
-                sourceMap = true
-                suppressWarnings = false
-                verbose = true
+        compilerOptions {
+            sourceMap = true
+            suppressWarnings = false
+            verbose = true
 //                metaInfo = true
-                moduleKind = "umd"
-                main = "call"
-            }
+            moduleKind = JsModuleKind.MODULE_UMD
+            main = JsMainFunctionExecutionMode.CALL
         }
     }
 

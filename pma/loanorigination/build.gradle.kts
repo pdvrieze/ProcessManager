@@ -1,3 +1,6 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+
 /*
  * Copyright (c) 2019.
  *
@@ -28,12 +31,16 @@ base {
 }
 
 kotlin {
+    compilerOptions {
+        languageVersion = KotlinVersion.fromVersion(libs.versions.kotlin.languageVersion.get())
+        apiVersion = KotlinVersion.fromVersion(libs.versions.kotlin.apiVersion.get())
+    }
     targets {
         jvm {
+            compilerOptions {
+                jvmTarget = JvmTarget.fromTarget(libs.versions.kotlin.classTarget.get())
+            }
             compilations.all {
-                kotlinOptions {
-                    jvmTarget = libs.versions.kotlin.classTarget.get()
-                }
                 tasks.withType<Test> {
                     useJUnitPlatform()
                 }
@@ -51,11 +58,6 @@ kotlin {
     }
 
     sourceSets {
-        all {
-            languageSettings {
-                optIn("kotlin.RequiresOptIn")
-            }
-        }
         val commonMain by getting {
             dependencies {
                 implementation(project(":ProcessEngine:core"))

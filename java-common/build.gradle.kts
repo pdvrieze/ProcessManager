@@ -1,3 +1,7 @@
+import org.jetbrains.kotlin.gradle.dsl.JsMainFunctionExecutionMode
+import org.jetbrains.kotlin.gradle.dsl.JsModuleKind
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import versions.argJvmDefault
 
 /*
@@ -30,13 +34,17 @@ base {
 kotlin {
     applyDefaultHierarchyTemplate()
 
-    jvm {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = libs.versions.kotlin.classTarget.get()
-                freeCompilerArgs = listOf(argJvmDefault)
+    compilerOptions {
+        languageVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.fromVersion(libs.versions.kotlin.languageVersion.get())
+        apiVersion = KotlinVersion.fromVersion(libs.versions.kotlin.apiVersion.get())
+    }
 
-            }
+    jvm {
+        compilerOptions {
+            jvmTarget = JvmTarget.fromTarget(libs.versions.kotlin.classTarget.get())
+        }
+
+        compilations.all {
             tasks.withType<Test> {
                 useJUnitPlatform()
             }
@@ -45,15 +53,13 @@ kotlin {
     js {
         browser()
         nodejs()
-        compilations.all {
-            kotlinOptions {
-                sourceMap = true
-                suppressWarnings = false
-                verbose = true
+        compilerOptions {
+            sourceMap = true
+            suppressWarnings = false
+            verbose = true
 //                metaInfo = true
-                moduleKind = "umd"
-                main = "call"
-            }
+            moduleKind = JsModuleKind.MODULE_UMD
+            main = JsMainFunctionExecutionMode.CALL
         }
     }
 

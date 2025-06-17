@@ -11,20 +11,19 @@ dokka = "1.7.20"
 easywsdl = "2.6.0"
 hikaricp = "5.0.1"
 jaxb="2.3.3"
-junit5 = "1.9.2"
-jupiter = "5.9.2"
+junit5 = "1.11.4"
+jupiter = "5.11.4"
 jwsApi="1.1.1"
 kmongo = "4.2.7"
-kotlin-lang = "2.0.21"
+kotlin-lang = "2.2.0-RC3"
 kotlin-apiVersion = "2.0"
 kotlin-classTarget = "11"
 kotlin-androidClassTarget = "1.8"
 kotlin-languageVersion = "2.0"
 kotlinsql="0.8.99"
 kotlinx-html="0.11.0"
-kotlinx-serialization = "1.7.1"
+kotlinx-serialization = "1.8.1"
 ktor = "3.2.0"
-logback = "1.2.13"
 mariaDbConnector="2.7.3"
 mysqlConnector="5.1.36"
 reactWrappers = "17.0.2-pre.214-kotlin-1.5.20"
@@ -34,6 +33,7 @@ testng="7.4.0"
 tomcat="10.1.42" #7.0.68
 tomcatPlugin="2.7.0"
 xmlutil="0.90.2-SNAPSHOT"
+#xmlutil="0.91.1"
 #xmlutil="0.85.0"
 
 [libraries]
@@ -81,6 +81,7 @@ tomcat = { module = "org.apache.tomcat:tomcat-catalina", version.ref = "tomcat"}
 woodstox = { module = "com.fasterxml.woodstox:woodstox-core", version = "7.1.1"}
 
 xmlutil-core = { module = "io.github.pdvrieze.xmlutil:core", version.ref = "xmlutil"}
+xmlutil-coreJdk = { module = "io.github.pdvrieze.xmlutil:core-jdk", version.ref = "xmlutil"}
 xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version.ref = "xmlutil"}
 xmlutil-serialutil = { module = "io.github.pdvrieze.xmlutil:serialutil", version.ref = "xmlutil"}
 xmlutil-testutil = { module = "io.github.pdvrieze.xmlutil:testutil", version.ref = "xmlutil"}

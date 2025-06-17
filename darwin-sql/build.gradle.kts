@@ -1,3 +1,5 @@
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+
 /*
  * Copyright (c) 2017.
  *
@@ -33,14 +35,9 @@ dependencies {
 }
 
 kotlin {
-    target {
-        compilations.all {
-            kotlinOptions {
-                val catalog = project.extensions.getByName("libs")
-
-                jvmTarget = libs.versions.kotlin.classTarget.get()
-            }
-        }
+    compilerOptions {
+        languageVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.fromVersion(libs.versions.kotlin.languageVersion.get())
+        apiVersion = KotlinVersion.fromVersion(libs.versions.kotlin.apiVersion.get())
     }
 }
 

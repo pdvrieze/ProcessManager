@@ -1,3 +1,6 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+
 /*
  * Copyright (c) 2018.
  *
@@ -106,17 +109,10 @@ java {
 }
 
 kotlin {
-    target {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = libs.versions.kotlin.classTarget.get()
-            }
-        }
-    }
-    sourceSets.all {
-        languageSettings {
-            optIn("kotlin.RequiresOptIn")
-        }
+    compilerOptions {
+        jvmTarget = JvmTarget.fromTarget(libs.versions.kotlin.classTarget.get())
+        languageVersion = KotlinVersion.fromVersion(libs.versions.kotlin.languageVersion.get())
+        apiVersion = KotlinVersion.fromVersion(libs.versions.kotlin.apiVersion.get())
     }
 }
 

@@ -1,3 +1,6 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+
 /*
  * Copyright (c) 2017.
  *
@@ -36,19 +39,10 @@ dependencies {
 
 kotlin {
     explicitApiWarning()
-    target {
-        compilations.all {
-            kotlinOptions {
-                jvmTarget = libs.versions.kotlin.classTarget.get()
-            }
-        }
-    }
-    sourceSets.all {
-        languageSettings.apply {
-            languageVersion = libs.versions.kotlin.languageVersion.get()
-            apiVersion = libs.versions.kotlin.apiVersion.get()
-            optIn("kotlin.RequiresOptIn")
-        }
+    compilerOptions {
+        jvmTarget = JvmTarget.fromTarget(libs.versions.kotlin.classTarget.get())
+        languageVersion = KotlinVersion.fromVersion(libs.versions.kotlin.languageVersion.get())
+        apiVersion = KotlinVersion.fromVersion(libs.versions.kotlin.apiVersion.get())
     }
 }
 

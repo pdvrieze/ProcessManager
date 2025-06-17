@@ -18,14 +18,11 @@ package multiplatform.net.devrieze.gradle.multiplatform
 
 import org.gradle.api.Plugin
 import org.gradle.api.Project
-import org.gradle.api.attributes.AttributeDisambiguationRule
-import org.gradle.api.attributes.MultipleCandidatesDetails
 import org.gradle.kotlin.dsl.hasPlugin
 import org.jetbrains.kotlin.gradle.plugin.KotlinAndroidPluginWrapper
 import org.jetbrains.kotlin.gradle.plugin.KotlinJsPluginWrapper
 import org.jetbrains.kotlin.gradle.plugin.KotlinPlatformType
 import org.jetbrains.kotlin.gradle.targets.js.KotlinJsCompilerAttribute
-import org.jetbrains.kotlin.gradle.targets.js.KotlinJsCompilerAttribute.Companion.jsCompilerAttribute
 
 class MPConsumerPlugin: Plugin<Project> {
     override fun apply(project: Project) {
@@ -74,23 +71,8 @@ class MPConsumerPlugin: Plugin<Project> {
                 }
                 logger.lifecycle("Registering the platform type attributes to the schema with the resolution rules")
                 KotlinPlatformType.setupAttributesMatchingStrategy(dependencies.attributesSchema)
-                dependencies.attributesSchema.attribute(jsCompilerAttribute) {
-                    disambiguationRules.add(KotlinJsDisambiguationRule::class.java)
-                }
 
             }
-        }
-    }
-}
-
-class KotlinJsDisambiguationRule : AttributeDisambiguationRule<KotlinJsCompilerAttribute> {
-    override fun execute(details: MultipleCandidatesDetails<KotlinJsCompilerAttribute?>) = with(details) {
-        @Suppress("DEPRECATION")
-        if (consumerValue == null || consumerValue == KotlinJsCompilerAttribute.both) {
-            if (candidateValues == setOf(KotlinJsCompilerAttribute.legacy, KotlinJsCompilerAttribute.ir))
-                closestMatch(KotlinJsCompilerAttribute.legacy)
-        } else {
-            closestMatch(consumerValue!!)
         }
     }
 }

@@ -14,6 +14,8 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import org.jetbrains.kotlin.gradle.tasks.KotlinCompile
 
 plugins{
@@ -34,6 +36,8 @@ dependencies {
     implementation(project(":accountcommon"))
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = libs.versions.kotlin.classTarget.get()
+kotlin.compilerOptions {
+    jvmTarget = JvmTarget.fromTarget(libs.versions.kotlin.classTarget.get())
+    languageVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.fromVersion(libs.versions.kotlin.languageVersion.get())
+    apiVersion = KotlinVersion.fromVersion(libs.versions.kotlin.apiVersion.get())
 }

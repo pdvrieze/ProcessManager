@@ -104,7 +104,7 @@ actual constructor(delegate: MutableSet<T>, observers: Iterable<(ObservableSet<T
     }
 }
 
-@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
+//@Suppress("EXPECT_ACTUAL_CLASSIFIERS_ARE_IN_BETA_WARNING")
 actual class ObservableList<T>
 actual constructor(delegate: MutableList<T>, observers: Iterable<(ObservableList<T>) -> Unit>) :
     ObservableCollectionBase<MutableList<T>, T, ObservableList<T>>(delegate, observers), List<T> by delegate,
@@ -127,9 +127,9 @@ actual constructor(delegate: MutableList<T>, observers: Iterable<(ObservableList
             triggerObservers()
         }
 
-        override fun hasNext() = super.hasNext()
+        override fun hasNext(): Boolean = super.hasNext()
 
-        override fun next() = super.next()
+        override fun next(): T = super.next()
     }
 
     actual constructor(delegate: MutableList<T>, vararg observers: (ObservableList<T>) -> Unit) : this(
@@ -141,7 +141,7 @@ actual constructor(delegate: MutableList<T>, observers: Iterable<(ObservableList
         observers.forEach { it(this) }
     }
 
-    actual override fun iterator() = super.iterator()
+    actual override fun iterator(): MutableIterator<T> = super.iterator()
 
     actual override fun listIterator(): MutableListIterator<T> = ObservableListIterator(delegate.listIterator())
 

@@ -1,3 +1,6 @@
+import org.jetbrains.kotlin.gradle.dsl.JsMainFunctionExecutionMode
+import org.jetbrains.kotlin.gradle.dsl.JsModuleKind
+
 /*
  * Copyright (c) 2016.
  *
@@ -30,17 +33,18 @@ val myJavaVersion: JavaVersion by project
 
 kotlin {
     js {
-        moduleName = "accountmgr"
+        outputModuleName = "accountmgr"
+
+        compilerOptions {
+            sourceMap = true
+            suppressWarnings = false
+            verbose = true
+            moduleKind = JsModuleKind.MODULE_UMD
+            main = JsMainFunctionExecutionMode.CALL
+        }
         browser{
         }
         binaries.executable()
-        compilations.all {
-            kotlinOptions {
-                sourceMap = true
-                verbose = true
-                moduleKind = "umd"
-            }
-        }
     }
 /*
     kotlinOptions {

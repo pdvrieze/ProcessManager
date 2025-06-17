@@ -13,6 +13,8 @@
  * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 import versions.argJvmDefault
 
 plugins {
@@ -29,12 +31,16 @@ version = "1.0.0"
 description = "The core process engine, independent of deployment location."
 
 kotlin {
+    compilerOptions {
+        languageVersion = KotlinVersion.fromVersion(libs.versions.kotlin.languageVersion.get())
+        apiVersion = KotlinVersion.fromVersion(libs.versions.kotlin.apiVersion.get())
+        optIn.add("nl.adaptivity.process.engine.ProcessInstanceStorage")
+    }
     jvm {
+        compilerOptions {
+            jvmTarget = JvmTarget.fromTarget(libs.versions.kotlin.classTarget.get())
+        }
         compilations.all {
-            kotlinOptions {
-                jvmTarget = libs.versions.kotlin.classTarget.get()
-                freeCompilerArgs = listOf(argJvmDefault)
-            }
             tasks.withType<Test> {
                 useJUnitPlatform()
                 systemProperty("junit.jupiter.execution.parallel.enabled", true)
@@ -65,12 +71,6 @@ kotlin {
     }
 
     sourceSets {
-        all {
-            languageSettings {
-                optIn("kotlin.RequiresOptIn")
-                optIn("nl.adaptivity.process.engine.ProcessInstanceStorage")
-            }
-        }
         val commonMain by getting {
             dependencies {
                 api(project(":java-common"))
@@ -113,6 +113,7 @@ kotlin {
                 implementation(project(":PE-common"))
                 implementation(kotlin("stdlib-jdk8"))
                 implementation(libs.kotlinx.serialization.json)
+                implementation(libs.xmlutil.coreJdk)
 
                 implementation(libs.jaxb.api)
                 runtimeOnly(libs.jaxb.impl)

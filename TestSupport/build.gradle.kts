@@ -1,3 +1,6 @@
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
+
 /*
  * Copyright (c) 2018.
  *
@@ -23,8 +26,10 @@ version = "1.0.0"
 description = "A library with process engine support classes"
 
 kotlin {
-    target.compilations.all {
-        kotlinOptions.jvmTarget = libs.versions.kotlin.classTarget.get()
+    compilerOptions {
+        jvmTarget = JvmTarget.fromTarget(libs.versions.kotlin.classTarget.get())
+        languageVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.fromVersion(libs.versions.kotlin.languageVersion.get())
+        apiVersion = KotlinVersion.fromVersion(libs.versions.kotlin.apiVersion.get())
     }
 }
 

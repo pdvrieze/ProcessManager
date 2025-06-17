@@ -13,6 +13,8 @@
  * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 plugins{
     kotlin("jvm")
@@ -47,6 +49,10 @@ dependencies {
 
 }
 
-kotlin.target.compilations.all {
-    kotlinOptions.jvmTarget = libs.versions.kotlin.classTarget.get()
+kotlin {
+    compilerOptions {
+        jvmTarget = JvmTarget.fromTarget(libs.versions.kotlin.classTarget.get())
+        languageVersion = KotlinVersion.fromVersion(libs.versions.kotlin.languageVersion.get())
+        apiVersion = KotlinVersion.fromVersion(libs.versions.kotlin.apiVersion.get())
+    }
 }
