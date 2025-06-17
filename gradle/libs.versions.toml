@@ -23,15 +23,15 @@ kotlin-languageVersion = "2.0"
 kotlinsql="0.8.99"
 kotlinx-html="0.11.0"
 kotlinx-serialization = "1.7.1"
-ktor = "2.2.4"
-logback = "1.2.3"
+ktor = "2.3.13"
+logback = "1.2.13"
 mariaDbConnector="2.7.3"
 mysqlConnector="5.1.36"
 reactWrappers = "17.0.2-pre.214-kotlin-1.5.20"
 requirejs = "2.3.5"
 spek2="2.0.17"
 testng="7.4.0"
-tomcat="10.0.18" #7.0.68
+tomcat="10.1.42" #7.0.68
 tomcatPlugin="2.7.0"
 xmlutil="0.90.2-SNAPSHOT"
 #xmlutil="0.85.0"
@@ -84,7 +84,7 @@ servletApi = { module = "org.apache.tomcat:tomcat-servlet-api", version.ref = "t
 
 tomcat = { module = "org.apache.tomcat:tomcat-catalina", version.ref = "tomcat"}
 
-woodstox = { module = "com.fasterxml.woodstox:woodstox-core", version = "5.1.0"}
+woodstox = { module = "com.fasterxml.woodstox:woodstox-core", version = "7.1.1"}
 
 xmlutil-core = { module = "io.github.pdvrieze.xmlutil:core", version.ref = "xmlutil"}
 xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version.ref = "xmlutil"}

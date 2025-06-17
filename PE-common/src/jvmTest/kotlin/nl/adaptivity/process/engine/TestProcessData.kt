@@ -26,6 +26,7 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.core.impl.newReader
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.CompactFragment
 import org.junit.jupiter.api.Assertions.*
@@ -33,7 +34,6 @@ import org.junit.jupiter.api.BeforeAll
 import org.junit.jupiter.api.Test
 import org.junit.jupiter.api.assertThrows
 import org.xml.sax.SAXException
-import org.xmlunit.diff.*
 import java.io.*
 import java.nio.charset.Charset
 import java.util.*
@@ -750,14 +750,15 @@ class TestProcessData {
         }
 
         @BeforeAll
-        private fun init() {
-            XmlStreaming.setFactory(null) // make sure to have the default factory
+        @JvmStatic
+        public fun init() {
+            xmlStreaming.setFactory(null) // make sure to have the default factory
         }
 
         @Throws(IOException::class, XmlException::class)
         private fun getProcessModel(name: String): XmlProcessModel {
             getDocument(name).use { inputStream ->
-                val input = XmlStreaming.newReader(inputStream, "UTF-8")
+                val input = xmlStreaming.newReader(inputStream, "UTF-8")
                 return xml.decodeFromReader(XmlProcessModel.serializer(), input)
             }
         }
