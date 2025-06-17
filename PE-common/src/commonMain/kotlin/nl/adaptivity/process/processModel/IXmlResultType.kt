@@ -66,6 +66,7 @@ interface IXmlResultType {
     val originalNSContext: Iterable<Namespace>
 
     companion object Serializer : DelegatingSerializer<IXmlResultType, XmlResultType>(XmlResultType.serializer()) {
+        override val descriptor: SerialDescriptor = SerialDescriptor(IXmlResultType::class.qualifiedName!!, delegateSerializer.descriptor)
 
         override fun fromDelegate(delegate: XmlResultType): IXmlResultType = delegate
 
@@ -91,7 +92,8 @@ fun IXmlResultType.getOriginalNSContext(): Iterable<Namespace> = originalNSConte
 object IXmlResultTypeListSerializer : KSerializer<List<IXmlResultType>> {
     val delegate = ListSerializer(XmlResultType)
 
-    override val descriptor: SerialDescriptor = delegate.descriptor
+    override val descriptor: SerialDescriptor =
+        SerialDescriptor(IXmlResultType.descriptor.serialName+".list",delegate.descriptor)
 
     override fun deserialize(decoder: Decoder): List<IXmlResultType> {
         return delegate.deserialize(decoder)

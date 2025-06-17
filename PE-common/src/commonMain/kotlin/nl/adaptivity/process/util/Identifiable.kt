@@ -48,14 +48,13 @@ interface Identifiable : Comparable<Identifiable> {
     }
 
     companion object: DelegatingSerializer<Identifiable, String?>(String.serializer().nullable) {
+        override val descriptor: SerialDescriptor = SerialDescriptor(Identifiable::class.qualifiedName!!, String.serializer().descriptor)
+
         override fun fromDelegate(delegate: String?): Identifiable = Identifier(delegate!!)
 
         override fun Identifiable.toDelegate(): String? {
             return id
         }
-
-        override val descriptor: SerialDescriptor
-            get() = String.serializer().descriptor
     }
 
 }

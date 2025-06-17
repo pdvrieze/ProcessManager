@@ -37,6 +37,8 @@ interface Identified : Identifiable {
         get() = Identifier(id)
 
     companion object: DelegatingSerializer<Identified, String>(String.serializer()) {
+        override val descriptor: SerialDescriptor = SerialDescriptor(Identified::class.qualifiedName!!, String.serializer().descriptor)
+
         override fun fromDelegate(delegate: String): Identified = Identifier(delegate)
 
         override fun Identified.toDelegate(): String = id

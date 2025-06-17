@@ -93,7 +93,7 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode>,
 
         private val delegateSerializer = SerialDelegate.serializer()
 
-        override val descriptor: SerialDescriptor get() = delegateSerializer.descriptor
+        override val descriptor: SerialDescriptor = SerialDescriptor(ExecutableProcessModel::class.qualifiedName!!, delegateSerializer.descriptor)
 
         override fun serialize(encoder: Encoder, value: ExecutableProcessModel) {
             delegateSerializer.serialize(encoder, SerialDelegate(value))

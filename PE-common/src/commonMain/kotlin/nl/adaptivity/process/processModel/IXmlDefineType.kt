@@ -105,6 +105,8 @@ interface IXmlDefineType {
     ): IXmlDefineType
 
     companion object Serializer : DelegatingSerializer<IXmlDefineType, XmlDefineType>(XmlDefineType.serializer()) {
+        override val descriptor: SerialDescriptor = SerialDescriptor(IXmlDefineType::class.qualifiedName!!, delegateSerializer.descriptor)
+
         override fun fromDelegate(delegate: XmlDefineType): IXmlDefineType = delegate
         override fun IXmlDefineType.toDelegate(): XmlDefineType =
             this as? XmlDefineType ?: XmlDefineType(this)
@@ -135,7 +137,7 @@ object IXmlDefineTypeListSerializer : KSerializer<List<IXmlDefineType>> {
 
     val delegate = ListSerializer(XmlDefineType)
 
-    override val descriptor: SerialDescriptor = delegate.descriptor
+    override val descriptor: SerialDescriptor = SerialDescriptor("IXmlDefineType.List", delegate.descriptor)
 
     override fun deserialize(decoder: Decoder): List<IXmlDefineType> {
         return delegate.deserialize(decoder)

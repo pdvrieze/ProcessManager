@@ -166,9 +166,9 @@ class ValueHolder<T> constructor(val name: QName, val value: T) {
 
 fun <T> SerializationStrategy<T>.toSerializer(): KSerializer<T> {
     if (this is KSerializer<T>) return this
+    val d = descriptor
     return object : KSerializer<T> {
-        override val descriptor: SerialDescriptor
-            get() = this@toSerializer.descriptor
+        override val descriptor: SerialDescriptor = SerialDescriptor(d.serialName + "_x", d)
 
         override fun deserialize(decoder: Decoder): T {
             throw UnsupportedOperationException("This wrapper wraps a single serialization strategy, it does not support deserialization")
@@ -182,9 +182,9 @@ fun <T> SerializationStrategy<T>.toSerializer(): KSerializer<T> {
 
 fun <T> DeserializationStrategy<T>.toSerializer(): KSerializer<T> {
     if (this is KSerializer<T>) return this
+    val d = descriptor
     return object : KSerializer<T> {
-        override val descriptor: SerialDescriptor
-            get() = this@toSerializer.descriptor
+        override val descriptor: SerialDescriptor = SerialDescriptor(d.serialName + "_x", d)
 
         override fun deserialize(decoder: Decoder): T {
             return this@toSerializer.deserialize(decoder)

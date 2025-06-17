@@ -567,8 +567,7 @@ class HttpMessage {
 }
 
 internal object CharsetSerializer: KSerializer<Charset>  {
-    override val descriptor: SerialDescriptor
-        get() = PrimitiveSerialDescriptor("java.nio.Charset", PrimitiveKind.STRING)
+    override val descriptor: SerialDescriptor = PrimitiveSerialDescriptor("java.nio.Charset", PrimitiveKind.STRING)
 
     override fun deserialize(decoder: Decoder): Charset {
         return Charset.forName(decoder.decodeString())

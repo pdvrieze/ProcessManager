@@ -17,6 +17,7 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.descriptors.SerialDescriptor
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.messaging.InvokableMethod
 import nl.adaptivity.process.messaging.RESTMethod
@@ -74,6 +75,8 @@ interface IXmlMessage {
 }
 
 object IXmlMessageSerializer: DelegatingSerializer<IXmlMessage, XmlMessage>(XmlMessage.Companion) {
+    override val descriptor: SerialDescriptor = SerialDescriptor(IXmlMessage::class.qualifiedName!!, delegateSerializer.descriptor)
+
     override fun fromDelegate(delegate: XmlMessage): IXmlMessage = delegate
 
     override fun IXmlMessage.toDelegate(): XmlMessage = XmlMessage.from(this)

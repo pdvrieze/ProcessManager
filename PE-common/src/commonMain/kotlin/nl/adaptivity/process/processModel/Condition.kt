@@ -40,7 +40,7 @@ interface Condition {
 
     object Serializer: KSerializer<Condition> {
         private val delegate =  XmlCondition.Companion
-        override val descriptor: SerialDescriptor get() = delegate.descriptor
+        override val descriptor: SerialDescriptor = SerialDescriptor(Condition::class.qualifiedName!!, delegate.descriptor)
 
         override fun deserialize(decoder: Decoder): Condition {
             return delegate.deserialize(decoder)
