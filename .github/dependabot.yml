@@ -5,8 +5,8 @@ updates:
     schedule:
       interval: "weekly"
     ignore:
-      update-types:
-        - "version-update:semver-major"
+      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
   - package-ecosystem: "npm"
     directory: "/"
     schedule:
