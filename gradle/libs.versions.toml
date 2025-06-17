@@ -86,8 +86,6 @@ tomcat = { module = "org.apache.tomcat:tomcat-catalina", version.ref = "tomcat"}
 
 woodstox = { module = "com.fasterxml.woodstox:woodstox-core", version = "5.1.0"}
 
-xmlunit = { module = "org.xmlunit:xmlunit-core", version = "2.6.0"}
-
 xmlutil-core = { module = "io.github.pdvrieze.xmlutil:core", version.ref = "xmlutil"}
 xmlutil-serialization = { module = "io.github.pdvrieze.xmlutil:serialization", version.ref = "xmlutil"}
 xmlutil-serialutil = { module = "io.github.pdvrieze.xmlutil:serialutil", version.ref = "xmlutil"}

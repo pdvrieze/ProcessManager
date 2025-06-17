@@ -37,7 +37,6 @@ import org.w3c.dom.NodeList
 import org.w3c.dom.Text
 import org.xml.sax.SAXException
 import org.xml.sax.SAXParseException
-import org.xmlunit.diff.*
 import java.io.*
 import java.nio.charset.Charset
 import java.util.*
@@ -168,8 +167,9 @@ class TestEngineProcessData {
         }
 
         @BeforeAll
-        private fun init() {
-            XmlStreaming.setFactory(null) // make sure to have the default factory
+        @JvmStatic
+        public fun init() {
+            xmlStreaming.setFactory(null) // make sure to have the default factory
         }
 
         @Throws(IOException::class, XmlException::class)
@@ -364,14 +364,3 @@ class TestEngineProcessData {
 
 }
 
-val NAMESPACE_DIFF_EVAL: DifferenceEvaluator = DifferenceEvaluator { comparison, outcome ->
-    when {
-        outcome == ComparisonResult.DIFFERENT &&
-            comparison.type == ComparisonType.NAMESPACE_PREFIX -> ComparisonResult.SIMILAR
-
-        else                                                   -> DifferenceEvaluators.Default.evaluate(
-            comparison,
-            outcome
-        )
-    }
-}

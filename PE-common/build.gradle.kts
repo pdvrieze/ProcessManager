@@ -112,7 +112,7 @@ kotlin {
                 implementation(libs.junit5.api)
 
 
-                implementation(libs.xmlunit)
+                implementation(libs.xmlutil.testutil)
                 implementation(libs.mockito.core)
                 implementation(libs.mockito.kotlin)
                 implementation(kotlin("test-junit5"))

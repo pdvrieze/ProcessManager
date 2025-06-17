@@ -119,7 +119,7 @@ kotlin {
 
                 implementation(libs.junit5.api)
 
-                implementation(libs.xmlunit)
+                implementation(libs.xmlutil.testutil)
 //    implementation libs.servletApi
 
                 implementation(project(":DarwinJavaApi"))

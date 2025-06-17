@@ -68,7 +68,7 @@ dependencies {
 //    testImplementation(project(path= ":PE-common", configuration="testRuntime"))
 
     testImplementation(libs.junit5.api)
-    testImplementation(libs.xmlunit)
+    testImplementation(libs.xmlutil.testutil)
     testRuntimeOnly(libs.junit5.engine)
 }
 
