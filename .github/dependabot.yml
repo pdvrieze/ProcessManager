@@ -1,14 +1,16 @@
 version: 2
 updates:
   - package-ecosystem: "gradle"
+    directory: "/"
     schedule:
       interval: "weekly"
-    update-types:
-      - "minor"
-      - "patch"
-  - package-ecosystem: "npm"
     ignore:
       - dependency-name: "*"
-  - package-ecosystem: "yarn"
-    ignore:
-      - dependency-name: "*"
+        update-types: ["version-update:semver-major"]
+  # - package-ecosystem: "npm"
+  #   directory: "/"
+  #   schedule:
+  #     interval: yearly
+  #   ignore:
+  #     - dependency-name: "*"
+
