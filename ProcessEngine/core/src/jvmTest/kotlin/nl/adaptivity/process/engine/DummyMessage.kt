@@ -22,7 +22,7 @@ object DummyMessage: IXmlMessage {
         return "DummyMessage"
     }
 
-    val JSON = "\"message\":{\"namespaces\":[],\"content\":\"\",\"type\":\"application/x-dummy\",\"url\":\"/dummy\",\"method\":\"POST\"}"
+    val JSON = "\"message\":{\"content\":{\"namespaces\":[], \"content\":\"\"},\"type\":\"application/x-dummy\",\"url\":\"/dummy\",\"method\":\"POST\"}"
     val XML = "<pe:message type=\"application/x-dummy\" url=\"/dummy\" method=\"POST\"/>"
 
 

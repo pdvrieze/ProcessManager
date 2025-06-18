@@ -212,7 +212,7 @@ class XmlMessage : XMLContainer, IXmlMessage {
 
         override fun serialize(encoder: Encoder, value: XmlMessage) {
             val endpoint = value.targetMethod.endpoint
-            val serviceName = endpoint.serviceName
+            val serviceName = (value.targetMethod as? SOAPMethod)?.endpoint?.serviceName
             val delegate = SerialDelegate(
                 serviceName = serviceName?.getLocalPart(),
                 serviceNS = serviceName?.getNamespaceURI(),
