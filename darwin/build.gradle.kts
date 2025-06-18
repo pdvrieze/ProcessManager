@@ -1,7 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.JsModuleKind
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
-
 /*
  * Copyright (c) 2019.
  *
@@ -17,6 +13,10 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
  * You should have received a copy of the GNU Lesser General Public License along with ProcessManager.  If not,
  * see <http://www.gnu.org/licenses/>.
  */
+
+import org.jetbrains.kotlin.gradle.dsl.JsModuleKind
+import org.jetbrains.kotlin.gradle.dsl.JvmTarget
+import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 plugins {
     kotlin("multiplatform")
@@ -40,7 +40,7 @@ kotlin {
             jvmTarget = JvmTarget.fromTarget(libs.versions.kotlin.classTarget.get())
         }
     }
-    js(IR) {
+    js {
         outputModuleName = "darwin"
         compilerOptions {
             sourceMap = true
@@ -48,6 +48,7 @@ kotlin {
             verbose = true
             moduleKind = JsModuleKind.MODULE_UMD
         }
+        browser()
     }
 
     sourceSets {

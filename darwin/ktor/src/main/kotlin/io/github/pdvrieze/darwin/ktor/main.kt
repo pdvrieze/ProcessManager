@@ -42,7 +42,7 @@ fun main() {
     embeddedServer(Netty, 9090, module = Application::myApplicationModule).start(wait = true)
 }
 
-private suspend fun PipelineContext<Unit, ApplicationCall>.mainPage() {
+private suspend fun RoutingContext.mainPage() {
     darwinResponse {
         darwinDialog(title = "loading", id = "banner") {
             img(alt = "loading...", src = "/assets/progress_large.gif") { width = "192"; height = "192" }
@@ -50,7 +50,7 @@ private suspend fun PipelineContext<Unit, ApplicationCall>.mainPage() {
     }
 }
 
-private suspend fun PipelineContext<Unit, ApplicationCall>.menu() {
+private suspend fun RoutingContext.menu() {
     call.respondTextWriter {
         appendHTML().darwinMenu(KtorServletRequestInfo(call))
     }

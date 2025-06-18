@@ -21,6 +21,7 @@ import io.ktor.server.auth.*
 import io.ktor.http.*
 import io.ktor.server.request.*
 import io.ktor.server.response.*
+import io.ktor.server.routing.RoutingContext
 import io.ktor.util.pipeline.*
 import kotlinx.coroutines.runBlocking
 import kotlinx.html.HtmlBlockTag
@@ -34,7 +35,7 @@ import java.io.CharArrayWriter
 import java.io.Writer
 import java.security.Principal
 
-public suspend fun PipelineContext<*, ApplicationCall>.darwinResponse(
+public suspend fun RoutingContext.darwinResponse(
     windowTitle: String = "Darwin",
     pageTitle: String? = null,
     includeLogin: Boolean = true,
@@ -46,7 +47,7 @@ public suspend fun PipelineContext<*, ApplicationCall>.darwinResponse(
     return resp.darwinResponse(req, windowTitle, pageTitle, includeLogin, context, bodyContent)
 }
 
-public suspend fun PipelineContext<*, ApplicationCall>.darwinResponse(windowTitle: String = "Darwin",
+public suspend fun RoutingContext.darwinResponse(windowTitle: String = "Darwin",
                                                                       pageTitle: String? = null,
                                                                       includeLogin: Boolean = true,
                                                                       bodyContent: ContextTagConsumer<HtmlBlockTag>.() -> Unit) {
@@ -96,7 +97,7 @@ public class KtorServletRequestInfo(private val call: ApplicationCall): RequestI
         get() = ktorPrincipal?.let(::KtorPrincipal)
 
     override val contextPath: String
-        get() = call.application.environment.rootPath
+        get() = call.application.rootPath
 
 }
 

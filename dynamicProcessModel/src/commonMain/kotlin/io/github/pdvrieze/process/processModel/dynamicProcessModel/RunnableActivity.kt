@@ -30,7 +30,10 @@ import nl.adaptivity.process.processModel.configurableModel.ConfigurationDsl
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
+import nl.adaptivity.xmlutil.IterableNamespaceContext
 import nl.adaptivity.xmlutil.Namespace
+import nl.adaptivity.xmlutil.SimpleNamespaceContext
+import nl.adaptivity.xmlutil.XmlUtilInternal
 
 typealias RunnableAction<I, O, C> = C.(I) -> O
 typealias NoInputRunnableAction<O, C> = C.() -> O
@@ -135,7 +138,9 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
         pathNSContext: Iterable<Namespace> = emptyList()
     ) : IXmlDefineType {
         override val content: Nothing? get() = null
-        override val originalNSContext: Iterable<Namespace> get() = emptyList()
+
+        @OptIn(XmlUtilInternal::class)
+        override val originalNSContext: IterableNamespaceContext get() = SimpleNamespaceContext()
 
         override fun getRefNode(): String? = refNode?.id
 
@@ -151,16 +156,13 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
 
         override fun getPath(): String? = path
 
-        override fun setPath(namespaceContext: Iterable<Namespace>, value: String?): Nothing =
-            throw UnsupportedOperationException("Immutable type")
-
         override fun copy(
             name: String,
             refNode: String?,
             refName: String?,
             path: String?,
             content: CharArray?,
-            nsContext: Iterable<Namespace>
+            nsContext: IterableNamespaceContext
         ): DefineType<T> {
             return DefineType(name, Identifier(refNode!!), refName!!, path, deserializer, nsContext)
         }

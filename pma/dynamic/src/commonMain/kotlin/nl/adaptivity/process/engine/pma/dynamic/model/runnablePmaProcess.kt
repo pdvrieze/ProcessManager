@@ -2,6 +2,7 @@
 
 package nl.adaptivity.process.engine.pma.dynamic.model
 
+import net.devrieze.util.collection.replaceBy
 import net.devrieze.util.security.SYSTEMPRINCIPAL
 import nl.adaptivity.process.engine.pma.dynamic.TaskBuilderContext.BrowserContext
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaActivityContext
@@ -24,10 +25,20 @@ fun <AIC : DynamicPmaActivityContext<AIC, BIC>, BIC : BrowserContext<AIC, BIC>> 
     val context = RootPmaModelBuilderContext<AIC, BIC>(name, owner, uuid).apply(configureAction)
     val noPathImports = context.modelBuilder.imports
         .filter { it.path==null }
-    if(noPathImports.size>1) {
-        for(import in noPathImports) {
-            import.setPath(import.originalNSContext.toList(), "/${import.name}/node()")
+
+    var updateCount = 0
+    val newImports = context.modelBuilder.imports.map { define ->
+        when (define.getPath()) {
+            null -> {
+                ++updateCount
+                define.copy(path = "/${define.name}/node()")
+            }
+            else -> define
         }
+    }
+
+    if(updateCount>1) {
+        context.modelBuilder.imports.replaceBy(newImports)
     }
     return ExecutableProcessModel(context.modelBuilder, true)
 }

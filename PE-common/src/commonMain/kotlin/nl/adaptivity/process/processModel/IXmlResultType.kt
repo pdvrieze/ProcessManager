@@ -46,15 +46,6 @@ interface IXmlResultType {
     fun getPath(): String?
 
     /**
-     * Sets the value of the path property.
-     *
-     * @param namespaceContext
-     *
-     * @param value allowed object is [String]
-     */
-    fun setPath(namespaceContext: Iterable<Namespace>, value: String?)
-
-    /**
      * A reader for the underlying body stream.
      */
     val bodyStreamReader: XmlReader
@@ -65,8 +56,10 @@ interface IXmlResultType {
      */
     val originalNSContext: Iterable<Namespace>
 
-    companion object Serializer : DelegatingSerializer<IXmlResultType, XmlResultType>(XmlResultType.serializer()) {
-        override val descriptor: SerialDescriptor = SerialDescriptor(IXmlResultType::class.qualifiedName!!, delegateSerializer.descriptor)
+    fun copy(name: String = this.name, path: String? = this.path, content: CharArray? = this.content, originalNSContext: Iterable<Namespace> = this.originalNSContext): IXmlResultType
+
+    private class Serializer : DelegatingSerializer<IXmlResultType, XmlResultType>(XmlResultType.serializer()) {
+        override val descriptor: SerialDescriptor = SerialDescriptor("nl.adaptivity.process.processModel.IXmlResultType", delegateSerializer.descriptor)
 
         override fun fromDelegate(delegate: XmlResultType): IXmlResultType = delegate
 
@@ -90,10 +83,10 @@ var IXmlResultType.name: String
 fun IXmlResultType.getOriginalNSContext(): Iterable<Namespace> = originalNSContext
 
 object IXmlResultTypeListSerializer : KSerializer<List<IXmlResultType>> {
-    val delegate = ListSerializer(XmlResultType)
+    val delegate = ListSerializer(XmlResultType.serializer())
 
     override val descriptor: SerialDescriptor =
-        SerialDescriptor(IXmlResultType.descriptor.serialName+".list",delegate.descriptor)
+        SerialDescriptor(IXmlResultType.serializer().descriptor.serialName+".list",delegate.descriptor)
 
     override fun deserialize(decoder: Decoder): List<IXmlResultType> {
         return delegate.deserialize(decoder)

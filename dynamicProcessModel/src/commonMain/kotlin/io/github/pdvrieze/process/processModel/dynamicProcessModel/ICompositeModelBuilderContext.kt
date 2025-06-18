@@ -9,7 +9,10 @@ import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.XmlResultType
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
+import nl.adaptivity.xmlutil.IterableNamespaceContext
 import nl.adaptivity.xmlutil.Namespace
+import nl.adaptivity.xmlutil.SimpleNamespaceContext
+import nl.adaptivity.xmlutil.XmlUtilInternal
 
 interface ICompositeModelBuilderContext<AIC: ActivityInstanceContext>: IModelBuilderContext<AIC> {
 
@@ -21,7 +24,21 @@ interface ICompositeModelBuilderContext<AIC: ActivityInstanceContext>: IModelBui
         refName: String? = null,
         path: String? = null,
         content: CharArray? = null,
-        nsContext: Iterable<Namespace> = emptyList(),
+        nsContext: Iterable<Namespace>,
+        deserializer: DeserializationStrategy<T>,
+    ): InputRef<T> {
+        @OptIn(XmlUtilInternal::class)
+        return input(name, refNode, refName, path, content, SimpleNamespaceContext(nsContext), deserializer)
+    }
+
+    @OptIn(XmlUtilInternal::class)
+    fun <T> input(
+        name: String,
+        refNode: Identified,
+        refName: String? = null,
+        path: String? = null,
+        content: CharArray? = null,
+        nsContext: IterableNamespaceContext = SimpleNamespaceContext(),
         deserializer: DeserializationStrategy<T>,
     ): InputRef<T>
 
@@ -39,6 +56,19 @@ interface ICompositeModelBuilderContext<AIC: ActivityInstanceContext>: IModelBui
         nsContext: Iterable<Namespace>,
         serializer: KSerializer<T>
     ): OutputRef<T> {
+        @OptIn(XmlUtilInternal::class)
+        return output(name, refNode, refName, path, content, SimpleNamespaceContext(nsContext), serializer)
+    }
+
+    fun <T> output(
+        name: String,
+        refNode: Identified,
+        refName: String?,
+        path: String?,
+        content: CharArray?,
+        nsContext: IterableNamespaceContext,
+        serializer: KSerializer<T>
+    ): OutputRef<T> {
 
         modelBuilder.results.add(XmlResultType(name, "/$name/node()"))
         modelBuilder.exports.add(XmlDefineType(name, refNode, refName, path, content, nsContext))
@@ -48,7 +78,6 @@ interface ICompositeModelBuilderContext<AIC: ActivityInstanceContext>: IModelBui
         }
         return ChildOutputRefImpl(Identifier(requireNotNull(modelBuilder.id)), name, serializer)
     }
-
 
 }
 

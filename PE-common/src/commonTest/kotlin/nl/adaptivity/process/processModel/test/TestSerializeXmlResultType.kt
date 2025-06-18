@@ -19,7 +19,9 @@ package nl.adaptivity.process.processModel.test
 import kotlinx.serialization.serializer
 import nl.adaptivity.process.processModel.IXmlResultType
 import nl.adaptivity.process.processModel.XmlResultType
+import nl.adaptivity.xmlutil.SimpleNamespaceContext
 import nl.adaptivity.xmlutil.XmlEvent
+import nl.adaptivity.xmlutil.XmlUtilInternal
 import nl.adaptivity.xmlutil.serialization.XML
 import kotlin.test.Ignore
 import kotlin.test.Test
@@ -31,7 +33,9 @@ class TestSerializeXmlResultType {
     fun testSerializeIXmlResultType() {
         if (isLegacyJs || isJsNode) return
 
-        val data: IXmlResultType = XmlResultType("myName", "/ns1:myPath", originalNSContext = listOf(XmlEvent.NamespaceImpl("ns1", "http://example.org/ns1")))
+        @OptIn(XmlUtilInternal::class)
+        val data: IXmlResultType = XmlResultType("myName", "/ns1:myPath", originalNSContext = SimpleNamespaceContext("ns1", "http://example.org/ns1"))
+
         val expected = """<result xmlns="http://adaptivity.nl/ProcessEngine/" xmlns:ns1="http://example.org/ns1" name="myName" xpath="/ns1:myPath"/>"""
         val serialized = XML.encodeToString(IXmlResultType.serializer(), data, "")
         assertEquals(expected, serialized.replace(" />", "/>"))
@@ -41,7 +45,8 @@ class TestSerializeXmlResultType {
     fun testSerializeXmlResultType() {
         if (isLegacyJs || isJsNode) return
 
-        val data = XmlResultType("myName", "/ns1:myPath", originalNSContext = listOf(XmlEvent.NamespaceImpl("ns1", "http://example.org/ns1")))
+        @OptIn(XmlUtilInternal::class)
+        val data = XmlResultType("myName", "/ns1:myPath", originalNSContext = SimpleNamespaceContext("ns1", "http://example.org/ns1"))
         val expected = """<result xmlns="http://adaptivity.nl/ProcessEngine/" xmlns:ns1="http://example.org/ns1" name="myName" xpath="/ns1:myPath"/>"""
         val serialized = XML.encodeToString(data)
         assertEquals(expected, serialized.replace(" />", "/>"))

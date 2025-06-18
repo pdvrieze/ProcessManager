@@ -110,7 +110,7 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode>,
         @JvmStatic
         fun deserialize(reader: XmlReader): ExecutableProcessModel {
             return ExecutableProcessModel(
-                XML { autoPolymorphic = true }.decodeFromReader<XmlProcessModel.Builder>(
+                XML { recommended_0_90_2 { isCachingEnabled = false } }.decodeFromReader<XmlProcessModel.Builder>(
                     reader
                 )
             )

@@ -9,7 +9,10 @@ import nl.adaptivity.process.processModel.configurableModel.ConfigurationDsl
 import nl.adaptivity.process.processModel.engine.ExecutableEventNode
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.IdentifyableSet
+import nl.adaptivity.xmlutil.IterableNamespaceContext
 import nl.adaptivity.xmlutil.Namespace
+import nl.adaptivity.xmlutil.SimpleNamespaceContext
+import nl.adaptivity.xmlutil.XmlUtilInternal
 
 interface IModelBuilderContext<AIC : ActivityInstanceContext> : IModelBuilderContextDelegates {
     val startNode: StartNode.Builder
@@ -107,7 +110,19 @@ interface IModelBuilderContext<AIC : ActivityInstanceContext> : IModelBuilderCon
         refName: String? = null,
         path: String? = null,
         content: CharArray? = null,
-        nsContext: Iterable<Namespace> = emptyList()
+        nsContext: Iterable<Namespace>
+    ): ProcessResultRef<T> {
+        return processResult(name, refNode, refName, path, content, nsContext, refNode.serializer)
+    }
+
+    @OptIn(XmlUtilInternal::class)
+    fun <T> processResult(
+        name: String,
+        refNode: NodeHandle<T>,
+        refName: String? = null,
+        path: String? = null,
+        content: CharArray? = null,
+        nsContext: IterableNamespaceContext = SimpleNamespaceContext(),
     ): ProcessResultRef<T> {
         return processResult(name, refNode, refName, path, content, nsContext, refNode.serializer)
     }
@@ -118,7 +133,21 @@ interface IModelBuilderContext<AIC : ActivityInstanceContext> : IModelBuilderCon
         refName: String? = null,
         path: String? = null,
         content: CharArray? = null,
-        nsContext: Iterable<Namespace> = emptyList(),
+        nsContext: Iterable<Namespace>,
+        serializer: KSerializer<T>,
+    ): ProcessResultRef<T> {
+        @OptIn(XmlUtilInternal::class)
+        return processResult(name, refNode, refName, path, content, SimpleNamespaceContext(nsContext), serializer)
+    }
+
+    @OptIn(XmlUtilInternal::class)
+    fun <T> processResult(
+        name: String,
+        refNode: Identified,
+        refName: String? = null,
+        path: String? = null,
+        content: CharArray? = null,
+        nsContext: IterableNamespaceContext = SimpleNamespaceContext(),
         serializer: KSerializer<T>
     ): ProcessResultRef<T> {
         modelBuilder.exports.add(XmlDefineType(name, refNode, refName, path, content, nsContext))

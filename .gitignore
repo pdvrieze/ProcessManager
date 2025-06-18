@@ -27,3 +27,5 @@ kotlinsql
 /DarwinClients/*/gen/*
 /endpointDokkalet/
 *.bak
+/.idea/kotlinc.xml
+/.idea/vcs.xml

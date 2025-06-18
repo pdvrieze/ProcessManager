@@ -23,6 +23,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.serialutil.DelegatingSerializer
+import nl.adaptivity.xmlutil.IterableNamespaceContext
 import nl.adaptivity.xmlutil.Namespace
 
 @Serializable(IXmlDefineType.Serializer::class)
@@ -80,20 +81,10 @@ interface IXmlDefineType {
     fun getPath(): String?
 
     /**
-     * Sets the value of the path property.
-
-     * @param namespaceContext
-     *
-     * @param value allowed object is [String]
-     */
-    fun setPath(namespaceContext: Iterable<Namespace>, value: String?)
-
-
-    /**
      * Get the namespace context that defines the "missing" namespaces in the content.
      * @return
      */
-    val originalNSContext: Iterable<Namespace>
+    val originalNSContext: IterableNamespaceContext
 
     fun copy(
         name: String = getName(),
@@ -101,11 +92,11 @@ interface IXmlDefineType {
         refName: String? = getRefName(),
         path: String? = getPath(),
         content: CharArray? = this.content,
-        nsContext: Iterable<Namespace> = originalNSContext
+        nsContext: IterableNamespaceContext = originalNSContext
     ): IXmlDefineType
 
-    companion object Serializer : DelegatingSerializer<IXmlDefineType, XmlDefineType>(XmlDefineType.serializer()) {
-        override val descriptor: SerialDescriptor = SerialDescriptor(IXmlDefineType::class.qualifiedName!!, delegateSerializer.descriptor)
+    private class Serializer : DelegatingSerializer<IXmlDefineType, XmlDefineType>(XmlDefineType.serializer()) {
+        override val descriptor: SerialDescriptor = SerialDescriptor("nl.adaptivity.process.processModel.IXmlDefineType", delegateSerializer.descriptor)
 
         override fun fromDelegate(delegate: XmlDefineType): IXmlDefineType = delegate
         override fun IXmlDefineType.toDelegate(): XmlDefineType =
@@ -135,7 +126,7 @@ var IXmlDefineType.name: String
 
 object IXmlDefineTypeListSerializer : KSerializer<List<IXmlDefineType>> {
 
-    val delegate = ListSerializer(XmlDefineType)
+    val delegate = ListSerializer(XmlDefineType.serializer())
 
     override val descriptor: SerialDescriptor = SerialDescriptor("IXmlDefineType.List", delegate.descriptor)
 

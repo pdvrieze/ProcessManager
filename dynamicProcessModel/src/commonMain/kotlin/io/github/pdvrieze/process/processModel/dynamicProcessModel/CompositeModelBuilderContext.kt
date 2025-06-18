@@ -9,6 +9,7 @@ import nl.adaptivity.process.processModel.ActivityBase
 import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.XmlResultType
 import nl.adaptivity.process.util.Identified
+import nl.adaptivity.xmlutil.IterableNamespaceContext
 import nl.adaptivity.xmlutil.Namespace
 import kotlin.experimental.ExperimentalTypeInference
 
@@ -23,7 +24,7 @@ abstract class CompositeModelBuilderContext<AIC : ActivityInstanceContext> : Mod
         refName: String?,
         path: String?,
         content: CharArray?,
-        nsContext: Iterable<Namespace>,
+        nsContext: IterableNamespaceContext,
         deserializer: DeserializationStrategy<T>,
     ): InputRef<T> {
         modelBuilder.defines.add(XmlDefineType(name, refNode, refName, path, content, nsContext))

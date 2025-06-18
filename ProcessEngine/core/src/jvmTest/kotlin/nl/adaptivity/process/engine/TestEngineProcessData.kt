@@ -27,6 +27,7 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.core.impl.newReader
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.CompactFragment
 import org.junit.jupiter.api.Assertions.*
@@ -175,8 +176,8 @@ class TestEngineProcessData {
         @Throws(IOException::class, XmlException::class)
         private fun getProcessModel(name: String): XmlProcessModel {
             getDocument(name).use { inputStream ->
-                val input = XmlStreaming.newReader(inputStream, "UTF-8")
-                return XML { autoPolymorphic = true }.decodeFromReader(XmlProcessModel.serializer(), input)
+                val input = xmlStreaming.newReader(inputStream, "UTF-8")
+                return XML { recommended_0_90_2 { isCachingEnabled = false } }.decodeFromReader(XmlProcessModel.serializer(), input)
             }
         }
 

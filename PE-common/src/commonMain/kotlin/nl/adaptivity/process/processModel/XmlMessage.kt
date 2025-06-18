@@ -19,22 +19,21 @@ package nl.adaptivity.process.processModel
 import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.nullable
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.CompositeDecoder
-import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import kotlinx.serialization.serializer
 import nl.adaptivity.messaging.EndpointDescriptorImpl
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.messaging.*
+import nl.adaptivity.process.messaging.RESTMethod
+import nl.adaptivity.process.messaging.SOAPMethod
 import nl.adaptivity.serialutil.readNullableString
 import nl.adaptivity.util.multiplatform.toUri
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
+import nl.adaptivity.xmlutil.serialization.XmlValue
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 import kotlin.jvm.JvmName
@@ -88,7 +87,7 @@ class XmlMessage : XMLContainer, IXmlMessage {
     override val targetMethod: InvokableMethod
 
     @OptIn(XmlUtilInternal::class)
-    override val messageBody: ICompactFragment
+    override val messageBody: CompactFragment
         get() = CompactFragment(namespaces, content)
 
     constructor() : this(service = null) { /* default constructor */
@@ -149,8 +148,8 @@ class XmlMessage : XMLContainer, IXmlMessage {
         namespaces = newMessageBody.namespaces
     }
 
-    override fun serializeAttributes(out: XmlWriter) {
-        super.serializeAttributes(out)
+    fun serializeAttributes(out: XmlWriter) {
+        // No attributes by default
         out.writeAttribute("type", targetMethod.contentType)
         targetMethod.endpoint.run {
             serviceName?.run {
@@ -162,14 +161,6 @@ class XmlMessage : XMLContainer, IXmlMessage {
         out.writeAttribute("operation", operation)
         out.writeAttribute("url", targetMethod.url)
         out.writeAttribute("method", (targetMethod as? RESTMethod)?.method)
-    }
-
-    override fun serializeStartElement(out: XmlWriter) {
-        out.smartStartTag(ELEMENTNAME)
-    }
-
-    override fun serializeEndElement(out: XmlWriter) {
-        out.endTag(ELEMENTNAME)
     }
 
     override fun serialize(out: XmlWriter) {
@@ -204,18 +195,25 @@ class XmlMessage : XMLContainer, IXmlMessage {
         return result
     }
 
+    @Serializable
+    @XmlSerialName(ELEMENTLOCALNAME, Engine.NAMESPACE, Engine.NSPREFIX)
+    private class SerialDelegate(
+        @SerialName("serviceName") val serviceName: String? = null,
+        @SerialName("serviceNS") val serviceNS: String? = null,
+        @SerialName("endpoint") val endpoint: String? = null,
+        @SerialName("operation") val operation: String? = null,
+        @SerialName("url") val url: String? = null,
+        @SerialName("method") val method: String? = null,
+        @SerialName("type") val contentType: String? = null,
+        @XmlValue val content: CompactFragment? = null
+    ) {
+        val service: DescQName? get() = serviceName?.let { DescQName(serviceNS ?: "", it) }
+    }
+
     @OptIn(ExperimentalSerializationApi::class)
     companion object : XmlContainerSerializer<XmlMessage>() {
-        override val descriptor: SerialDescriptor = SerialDescriptor("XmlMessage", serializer<XmlMessageData>().descriptor) // TODO use concrete serializer instance
-
-        private val nullStringSerializer = String.serializer().nullable
-        private val typeIdx = descriptor.getElementIndex("type")
-        private val serviceNSIdx = descriptor.getElementIndex("serviceNS")
-        private val serviceNameIdx = descriptor.getElementIndex("serviceName")
-        private val endpointIdx = descriptor.getElementIndex("endpoint")
-        private val operationIdx = descriptor.getElementIndex("operation")
-        private val urlIdx = descriptor.getElementIndex("url")
-        private val methodIdx = descriptor.getElementIndex("method")
+        private val delegateSerializer = SerialDelegate.serializer()
+        override val descriptor: SerialDescriptor = SerialDescriptor("XmlMessage", delegateSerializer.descriptor)
 
         const val ELEMENTLOCALNAME = "message"
 
@@ -232,43 +230,30 @@ class XmlMessage : XMLContainer, IXmlMessage {
             return message as? XmlMessage ?: XmlMessage(message, message.messageBody)
         }
 
-        override fun deserialize(decoder: Decoder): XmlMessage {
-            val data = XmlMessageData(this).apply {
-                deserialize(descriptor, decoder, Companion)
-            }
 
-            return XmlMessage(data.service, data.endpoint, data.operation, data.url, data.method, data.contentType, data.fragment)
+        @Suppress("DEPRECATION")
+        override fun deserialize(decoder: Decoder): XmlMessage {
+            val data = delegateSerializer.deserialize(decoder)
+            return XmlMessage(data.service, data.endpoint, data.operation, data.url, data.method, data.contentType, data.content)
         }
 
 
         override fun serialize(encoder: Encoder, value: XmlMessage) {
-            super.serialize(descriptor, encoder, value)
+            val endpoint = value.targetMethod.endpoint
+            val serviceName = endpoint.serviceName
+            val delegate = SerialDelegate(
+                serviceName = serviceName?.getLocalPart(),
+                serviceNS = serviceName?.getNamespaceURI(),
+                endpoint = endpoint.endpointName,
+                operation = (value.targetMethod as? SOAPMethod)?.operation,
+                url = endpoint.endpointLocation?.toString(),
+                method = (value.targetMethod as? RESTMethod)?.method,
+                contentType = value.contentType,
+                content = CompactFragment(value.namespaces, value.content),
+            )
+            delegateSerializer.serialize(encoder, delegate)
         }
 
-        override fun writeAdditionalValues(encoder: CompositeEncoder, desc: SerialDescriptor, data: XmlMessage) {
-            super.writeAdditionalValues(encoder, desc, data)
-            val targetService = data.targetMethod
-
-            encoder.encodeSerializableElement(desc, typeIdx, nullStringSerializer, data.contentType)
-            if (targetService !is RESTMethod) {
-                encoder.encodeSerializableElement(desc, serviceNSIdx, nullStringSerializer,
-                    data.targetMethod.endpoint.serviceName?.getNamespaceURI()
-                )
-                encoder.encodeSerializableElement(desc, serviceNameIdx, nullStringSerializer,
-                    data.targetMethod.endpoint.serviceName?.getLocalPart()
-                )
-                encoder.encodeSerializableElement(desc, endpointIdx, nullStringSerializer,
-                    data.targetMethod.endpoint.endpointName
-                )
-            }
-            if (targetService is SOAPMethod) {
-                encoder.encodeSerializableElement(desc, operationIdx, nullStringSerializer, targetService.operation)
-            }
-            encoder.encodeSerializableElement(desc, urlIdx, nullStringSerializer, targetService.endpoint.endpointLocation?.toString())
-            if (targetService is RESTMethod) {
-                encoder.encodeSerializableElement(desc, methodIdx, nullStringSerializer, targetService.method)
-            }
-        }
 
         @Serializable
         @XmlSerialName(ELEMENTLOCALNAME, Engine.NAMESPACE, Engine.NSPREFIX)
@@ -281,8 +266,7 @@ class XmlMessage : XMLContainer, IXmlMessage {
             var operation: String? = null
             var url: String? = null
             var method: String? = null
-            @SerialName("type")
-            var contentType: String? = null
+            @SerialName("type") var contentType: String? = null
 
             val service: DescQName? get() = serviceName?.let { DescQName(serviceNS ?: "", it) }
 

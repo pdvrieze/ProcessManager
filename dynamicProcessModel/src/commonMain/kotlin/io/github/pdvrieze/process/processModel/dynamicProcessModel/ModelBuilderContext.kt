@@ -6,6 +6,7 @@ import io.github.pdvrieze.process.processModel.dynamicProcessModel.RunnableActiv
 import kotlinx.serialization.DeserializationStrategy
 import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.serializer
+import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.processModel.ActivityBase
 import nl.adaptivity.process.processModel.configurableModel.ConfigurationDsl
@@ -227,12 +228,21 @@ inline fun <C : ActivityInstanceContext> ModelBuilderContext<C>.compositeActivit
         callsInPlace(configure, InvocationKind.EXACTLY_ONCE)
     }
     val context = compositeActivityContext(predecessor).apply(configure)
-    val unMappedImports = context.activityBuilder.imports.filter { it.getPath()==null }
-    if (unMappedImports.size>1) {
-        for (define in unMappedImports) {
-            define.setPath(define.originalNSContext, "/${define.name}/node()")
+
+    var updateCount = 0
+    val newImports = context.activityBuilder.imports.map { define ->
+        when (define.getPath()) {
+            null -> {
+                ++updateCount
+                define.copy(path = "/${define.name}/node()")
+            }
+            else -> define
         }
     }
+    if (updateCount>1) {
+        context.activityBuilder.imports.replaceBy(newImports)
+    }
+
     return context.activityBuilder
 }
 

@@ -18,10 +18,9 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.Serializer
+import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.buildClassSerialDescriptor
-import kotlinx.serialization.descriptors.element
+import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.process.ProcessConsts.Engine
@@ -29,36 +28,42 @@ import nl.adaptivity.util.multiplatform.toCharArray
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
+import nl.adaptivity.xmlutil.serialization.XmlValue
+import nl.adaptivity.xmlutil.util.CompactFragment
 
-@Serializable(XmlResultType.Companion::class)
+@Serializable(XmlResultType.Serializer::class)
 class XmlResultType : XPathHolder, IPlatformXmlResultType {
     override val bodyStreamReader: XmlReader
         get() = getXmlReader()
 
+    @OptIn(XmlUtilInternal::class)
     constructor(
         name: String?,
         path: String? = null,
         content: CharArray? = null,
-        originalNSContext: Iterable<Namespace> = emptyList()
+        originalNSContext: IterableNamespaceContext = SimpleNamespaceContext()
     ) : super(name, path, content, originalNSContext)
 
+    @OptIn(XmlUtilInternal::class)
     constructor(
         name: String?,
         path: String? = null,
         content: CharSequence?,
-        nsContext: Iterable<Namespace> = emptyList()
+        nsContext: IterableNamespaceContext = SimpleNamespaceContext()
     ) : this(name, path, content?.toCharArray(), nsContext)
 
-    override fun serializeStartElement(out: XmlWriter) {
-        out.smartStartTag(ELEMENTNAME)
-    }
-
-    override fun serializeEndElement(out: XmlWriter) {
-        out.endTag(ELEMENTNAME)
+    override fun copy(
+        name: String,
+        path: String?,
+        content: CharArray?,
+        originalNSContext: Iterable<Namespace>
+    ): XmlResultType {
+        @OptIn(XmlUtilInternal::class)
+        return XmlResultType(name, path, content, originalNSContext as? IterableNamespaceContext ?: SimpleNamespaceContext(originalNSContext))
     }
 
     override fun serialize(out: XmlWriter) {
-        XML { autoPolymorphic = true }.encodeToWriter(out, Companion, this)
+        XML { autoPolymorphic = true }.encodeToWriter(out, serializer(), this)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -77,7 +82,7 @@ class XmlResultType : XPathHolder, IPlatformXmlResultType {
     }
 
     @ProcessModelDSL
-    class Builder constructor(
+    class Builder(
         var name: String? = null,
         var path: String? = null,
         var content: CharArray? = CharArray(0),
@@ -89,51 +94,68 @@ class XmlResultType : XPathHolder, IPlatformXmlResultType {
         constructor(orig: IXmlResultType) : this(orig.name, orig.path, orig.content?.copyOf(), orig.originalNSContext)
 
         fun build(): XmlResultType {
-            return XmlResultType(name, path, content, nsContext)
+            @OptIn(XmlUtilInternal::class)
+            return XmlResultType(name, path, content, SimpleNamespaceContext(nsContext))
         }
 
     }
 
     /** Dummy serializer that is just used to get the annotations on the type. */
     @Serializable
-    @XmlSerialName(value = XmlResultType.ELEMENTLOCALNAME, namespace = Engine.NAMESPACE, prefix = Engine.NSPREFIX)
-    private class XmlResultTypeAnnotationHelper {}
+    @XmlSerialName(value = ELEMENTLOCALNAME, namespace = Engine.NAMESPACE, prefix = Engine.NSPREFIX)
+    private class SerialDelegate private constructor(
+        @SerialName("name") val name: String? = null,
+        @SerialName("xpath") val _xpath: String? = null,
+        @SerialName("path") val _path: String? = null,
+        @XmlValue val content: CompactFragment,
+    ) : XPathHolderSerializer.SerialDelegateBase {
+        override val xpath: String? get() = _xpath ?: _path
+        override val namespaces: Iterable<Namespace> get() = content.namespaces
 
-    companion object : XPathHolderSerializer<XmlResultType>() {
-        override val descriptor = buildClassSerialDescriptor("XmlResultType") {
-            annotations = XmlResultTypeAnnotationHelper.serializer().descriptor.annotations
-            element<String>("name")
-            element<String>("xpath")
-            element<String>("namespaces")
-            element<String>("content")
+        constructor(
+            name: String? = null,
+            xpath: String? = null,
+            content: CompactFragment,
+        ): this(name, xpath, null, content)
+    }
+
+    private class Serializer : XPathHolderSerializer<XmlResultType, SerialDelegate>(SerialDelegate.serializer()) {
+        override val descriptor = SerialDescriptor(
+            "nl.adaptivity.process.processModel.XmlResultType",
+            delegateSerializer.descriptor
+        )
+
+        override fun deserialize(decoder: Decoder): XmlResultType {
+            val data = delegateSerializer.deserialize(decoder)
+            val xpath = data.xpath
+            val extNamespaces = when (decoder) {
+                is XML.XmlInput if (xpath!=null) -> extNamespaces(data.content.namespaces, xpath, decoder.input.namespaceContext)
+                else -> data.content.namespaces
+            }
+            return XmlResultType(data.name, xpath, data.content.content, extNamespaces)
         }
 
-        @kotlin.jvm.JvmStatic
-        fun deserialize(reader: XmlReader): XmlResultType {
-            return XML { autoPolymorphic = true }.decodeFromReader(this, reader)
+        override fun serialize(encoder: Encoder, value: XmlResultType) {
+            val p = value.getPath()
+            val extNamespaces = when (encoder) {
+                is XML.XmlOutput if (p!=null) -> extNamespaces(value.namespaces, p, encoder.target.namespaceContext)
+                else -> value.namespaces
+            }
+            val delegate = SerialDelegate(value.name, p, CompactFragment(extNamespaces, value.content))
+            delegateSerializer.serialize(encoder, delegate)
         }
+
+    }
+
+    companion object {
 
         const val ELEMENTLOCALNAME = "result"
-        private val ELEMENTNAME = QName(
-            Engine.NAMESPACE,
-            ELEMENTLOCALNAME, Engine.NSPREFIX
-        )
 
         @Deprecated(
             "Use normal factory method",
             ReplaceWith("XmlResultType(import)", "nl.adaptivity.process.processModel.XmlResultType")
         )
         operator fun get(import: IXmlResultType) = XmlResultType(import)
-
-        override fun deserialize(decoder: Decoder): XmlResultType {
-            val data = PathHolderData(this)
-            data.deserialize(descriptor, decoder, XmlResultType)
-            return XmlResultType(data.name, data.path, data.content, data.namespaces)
-        }
-
-        override fun serialize(encoder: Encoder, value: XmlResultType) {
-            serialize(descriptor, encoder, value)
-        }
     }
 
 }
@@ -142,9 +164,11 @@ fun XmlResultType(import: IXmlResultType): XmlResultType {
     if (import is XmlResultType) {
         return import
     }
-    val originalNSContext: Iterable<Namespace> = import.originalNSContext
+    val originalNSContext = import.originalNSContext
+
+    @OptIn(XmlUtilInternal::class)
     return XmlResultType(
         import.getName(), import.getPath(), content = null,
-        originalNSContext = originalNSContext
+        originalNSContext = SimpleNamespaceContext(originalNSContext)
     )
 }

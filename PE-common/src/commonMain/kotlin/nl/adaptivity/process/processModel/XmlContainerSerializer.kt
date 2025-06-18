@@ -20,6 +20,7 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
+import kotlinx.serialization.SerializationStrategy
 import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.*
@@ -28,53 +29,22 @@ import nl.adaptivity.serialutil.CharArrayAsStringSerializer
 import nl.adaptivity.util.MyGatheringNamespaceContext
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.dom2.attributes
+import nl.adaptivity.xmlutil.dom2.childNodes
+import nl.adaptivity.xmlutil.dom2.documentElement
+import nl.adaptivity.xmlutil.dom2.length
+import nl.adaptivity.xmlutil.dom2.localName
+import nl.adaptivity.xmlutil.dom2.namespaceURI
+import nl.adaptivity.xmlutil.dom2.prefix
+import nl.adaptivity.xmlutil.dom2.value
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 
 internal expect fun visitXpathUsedPrefixes(path: CharSequence?, namespaceContext: NamespaceContext)
 
-@OptIn(XmlUtilInternal::class)
+@OptIn(XmlUtilInternal::class, ExperimentalXmlUtilApi::class)
 abstract class XmlContainerSerializer<T : XMLContainer>: KSerializer<T> {
-
-    @OptIn(ExperimentalSerializationApi::class)
-    fun serialize(desc: SerialDescriptor, encoder: Encoder, data: T) {
-        encoder.encodeStructure(desc) {
-            val childOut = this
-            if (childOut is XML.XmlOutput) {
-                val writer: XmlWriter = childOut.target
-                val origIndentString = writer.indentString
-                writer.indentString="" // We want to retain the structure, so don't reindent.
-
-                for ((prefix, nsUri) in data.namespaces) {
-                    if (writer.getNamespaceUri(prefix) != nsUri) {
-                        writer.namespaceAttr(prefix, nsUri)
-                    }
-                }
-                writeAdditionalValues(childOut, desc, data)
-
-                if (! data.isEmpty) {
-                    writer.serialize(data.getXmlReader())
-
-                    // This ensures that indentation is not applied for the end tag
-                    // (indentation should only happen if no content was written)
-                    writer.ignorableWhitespace("")
-                }
-
-                writer.indentString = origIndentString
-            } else {
-                childOut.encodeSerializableElement(
-                    desc, desc.getElementIndex("namespaces"), ListSerializer(Namespace),
-                    data.namespaces.toList()
-                )
-                childOut.encodeStringElement(desc, desc.getElementIndex("content"), data.contentString)
-                writeAdditionalValues(childOut, desc, data)
-            }
-        }
-    }
-
-    open fun writeAdditionalValues(out: CompositeEncoder, desc: SerialDescriptor, data: T) {}
-
 
     internal open fun getFilter(gatheringNamespaceContext: MyGatheringNamespaceContext): NamespaceGatherer {
         return NamespaceGatherer(gatheringNamespaceContext)
@@ -101,47 +71,44 @@ abstract class XmlContainerSerializer<T : XMLContainer>: KSerializer<T> {
             @Suppress("NAME_SHADOWING")
             decoder.decodeStructure(desc) {
                 val input = this
-                if (input is XML.XmlInput) {
-                    val reader = input.input
-                    for (i in 0 until reader.attributeCount) {
-                        handleAttribute(reader.getAttributeLocalName(i), reader.getAttributeValue(i))
-                    }
-
-                    val namespacesMap = mutableMapOf<String, String>()
-
-                    val gatheringNamespaceContext =
-                        MyGatheringNamespaceContext(namespacesMap, reader.namespaceContext.freeze())
-
-                    handleLastRootAttributeReadEvent(reader, gatheringNamespaceContext)
-
-                    reader.next()
-                    // We have finished the start element, now only read the content
-                    // If we don't skip here we will read the element itself
-                    val gatheringReader = FilteringReader(reader, owner.getFilter(gatheringNamespaceContext))
-
-                    val frag = gatheringReader.siblingsToFragment()
-                    content = frag.content
-
-                    namespaces = SimpleNamespaceContext(namespacesMap)
-
-                } else {
-                    // TODO look at using the description to resolve the indices
-                    loop@ while (true) {
-                        when (val next = input.decodeElementIndex(desc)) {
-                            CompositeDecoder.DECODE_DONE -> break@loop
-                            else             -> when (desc.getElementName(next)) {
-                                "namespaces" -> namespaces = input.decodeSerializableElement(desc, next, ListSerializer(Namespace))
-                                "content"    -> content = input.decodeSerializableElement(
-                                    desc, 0,
-                                    CharArrayAsStringSerializer
-                                )
-                                else         -> readAdditionalChild(desc, input, next)
-                            }
+                loop@while (true) {
+                    when (val next = input.decodeElementIndex(desc)) {
+                        CompositeDecoder.DECODE_DONE -> break@loop
+                        else             -> when (desc.getElementName(next)) {
+                            "namespaces" -> namespaces = input.decodeSerializableElement(desc, next, ListSerializer(Namespace))
+                            "content"    -> content = input.decodeSerializableElement(desc, 0, CharArrayAsStringSerializer)
+                            else         -> readAdditionalChild(desc, input, next)
                         }
-
                     }
+
                 }
             }
+
+        }
+
+        @OptIn(ExperimentalSerializationApi::class)
+        fun deserialize(desc: SerialDescriptor, reader: XmlReader, owner: XmlContainerSerializer<in T>) {
+            @Suppress("NAME_SHADOWING")
+            for (i in 0 until reader.attributeCount) {
+                handleAttribute(reader.getAttributeLocalName(i), reader.getAttributeValue(i))
+            }
+
+            val namespacesMap = mutableMapOf<String, String>()
+
+            val gatheringNamespaceContext =
+                MyGatheringNamespaceContext(namespacesMap, reader.namespaceContext.freeze())
+
+            handleLastRootAttributeReadEvent(reader, gatheringNamespaceContext)
+
+            reader.next()
+            // We have finished the start element, now only read the content
+            // If we don't skip here we will read the element itself
+            val gatheringReader = FilteringReader(reader, owner.getFilter(gatheringNamespaceContext))
+
+            val frag = gatheringReader.siblingsToFragment()
+            content = frag.content
+
+            namespaces = SimpleNamespaceContext(namespacesMap)
 
         }
 

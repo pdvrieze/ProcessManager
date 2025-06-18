@@ -21,15 +21,21 @@ import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.CompositeDecoder
-import kotlinx.serialization.encoding.CompositeEncoder
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.util.MyGatheringNamespaceContext
 import nl.adaptivity.xmlutil.*
 
-abstract class XPathHolderSerializer<T : XPathHolder> : XmlContainerSerializer<T>() {
+abstract class XPathHolderSerializer<T : XPathHolder, D: XPathHolderSerializer.SerialDelegateBase>(
+    protected val delegateSerializer: KSerializer<D>
+) : XmlContainerSerializer<T>() {
+
+    interface SerialDelegateBase {
+        val xpath: String?
+        val namespaces: Iterable<Namespace>
+    }
 
     protected open class PathHolderData<T : XPathHolder>(
-        val owner: XPathHolderSerializer<in T>,
+        val owner: XPathHolderSerializer<in T, *>,
         var name: String? = null,
         var path: String? = null
     ) : ContainerData<T>() {
@@ -62,17 +68,25 @@ abstract class XPathHolderSerializer<T : XPathHolder> : XmlContainerSerializer<T
         }
     }
 
-    override fun getFilter(gatheringNamespaceContext: MyGatheringNamespaceContext): NamespaceGatherer {
+    fun extNamespaces(namespaces: Iterable<Namespace>, xpath: String, parentContext: NamespaceContext): IterableNamespaceContext {
+        val namespaces = buildMap {
+            for ((p, n) in namespaces) {
+                put(p, n)
+            }
+
+            val newContext = MyGatheringNamespaceContext(this, parentContext)
+            visitXpathUsedPrefixes(xpath, newContext)
+        }.map { XmlEvent.NamespaceImpl(it.key, it.value) }
+
+        @OptIn(XmlUtilInternal::class)
+        return SimpleNamespaceContext(namespaces)
+    }
+
+
+    override fun getFilter(gatheringNamespaceContext: MyGatheringNamespaceContext): XmlContainerSerializer.NamespaceGatherer {
         return XPathholderNamespaceGatherer(gatheringNamespaceContext)
     }
 
-    open fun writeAdditionalAttributes(writer: XmlWriter, data: T) {}
-
-    @OptIn(ExperimentalSerializationApi::class)
-    override fun writeAdditionalValues(out: CompositeEncoder, desc: SerialDescriptor, data: T) {
-        out.encodeSerializableElement(desc, desc.getElementIndex("name"), nullStringSerializer, data._name)
-        out.encodeSerializableElement(desc, desc.getElementIndex("xpath"), nullStringSerializer, data.getPath())
-    }
 
     internal open class XPathholderNamespaceGatherer(gatheringNamespaceContext: MyGatheringNamespaceContext) :
         NamespaceGatherer(gatheringNamespaceContext) {

@@ -19,7 +19,12 @@ package nl.adaptivity.process.processModel
 import nl.adaptivity.xmlutil.*
 
 
-expect abstract class XPathHolder : XMLContainer {
+expect abstract class XPathHolder(
+    name: String?,
+    path: String?,
+    content: CharArray?,
+    originalNSContext: IterableNamespaceContext
+) : XMLContainer {
     /**
      * @see nl.adaptivity.process.processModel.IXmlResultType#setName(java.lang.String)
      */
@@ -27,34 +32,11 @@ expect abstract class XPathHolder : XMLContainer {
 
     constructor()
 
-    constructor(
-        name: String?,
-        path: String?,
-        content: CharArray?,
-        originalNSContext: Iterable<Namespace>
-    )
-
     fun getName(): String
 
     fun setName(value: String)
 
     fun getPath(): String?
-
-    @Deprecated("This should be immutable")
-    fun setPath(namespaceContext: Iterable<Namespace>, value: String?)
-
-    override fun deserializeChildren(reader: XmlReader)
-
-    override fun serializeAttributes(out: XmlWriter)
-
-    override fun visitNamespaces(baseContext: NamespaceContext)
-
-    override fun visitNamesInAttributeValue(
-        referenceContext: NamespaceContext,
-        owner: QName,
-        attributeName: QName,
-        attributeValue: CharSequence
-    )
 
     override fun equals(other: Any?): Boolean
     override fun hashCode(): Int

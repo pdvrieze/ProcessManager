@@ -22,7 +22,10 @@ import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.UUID
+import nl.adaptivity.xmlutil.IterableNamespaceContext
 import nl.adaptivity.xmlutil.Namespace
+import nl.adaptivity.xmlutil.SimpleNamespaceContext
+import nl.adaptivity.xmlutil.XmlUtilInternal
 import kotlin.properties.ReadOnlyProperty
 import kotlin.reflect.KProperty
 
@@ -225,7 +228,20 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
             refName: String? = null,
             path: String? = null,
             content: CharArray? = null,
-            nsContext: Iterable<Namespace> = emptyList()
+            nsContext: Iterable<Namespace>
+        ) {
+            @OptIn(XmlUtilInternal::class)
+            input(name, refNode, refName, path, content, SimpleNamespaceContext(nsContext))
+        }
+
+        @OptIn(XmlUtilInternal::class)
+        fun input(
+            name: String,
+            refNode: Identified,
+            refName: String? = null,
+            path: String? = null,
+            content: CharArray? = null,
+            nsContext: IterableNamespaceContext = SimpleNamespaceContext()
         ) {
             configurationBuilder.defines.add(XmlDefineType(name, refNode, refName, path, content, nsContext))
             configurationBuilder.imports.add(XmlResultType(name, "/$name/node()"))
@@ -238,7 +254,20 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
             refName: String? = null,
             path: String? = null,
             content: CharArray? = null,
-            nsContext: Iterable<Namespace> = emptyList()
+            nsContext: Iterable<Namespace>
+        ) {
+            @OptIn(XmlUtilInternal::class)
+            output(name, refNode, refName, path, content, SimpleNamespaceContext(nsContext))
+        }
+
+        @OptIn(XmlUtilInternal::class)
+        fun output(
+            name: String,
+            refNode: Identified,
+            refName: String? = null,
+            path: String? = null,
+            content: CharArray? = null,
+            nsContext: IterableNamespaceContext = SimpleNamespaceContext()
         ) {
             configurationBuilder.results.add(XmlResultType(name, "/$name/node()"))
             configurationBuilder.exports.add(XmlDefineType(name, refNode, refName, path, content, nsContext))

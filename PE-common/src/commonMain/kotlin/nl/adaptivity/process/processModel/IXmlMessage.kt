@@ -75,7 +75,7 @@ interface IXmlMessage {
 }
 
 object IXmlMessageSerializer: DelegatingSerializer<IXmlMessage, XmlMessage>(XmlMessage.Companion) {
-    override val descriptor: SerialDescriptor = SerialDescriptor(IXmlMessage::class.qualifiedName!!, delegateSerializer.descriptor)
+    override val descriptor: SerialDescriptor = SerialDescriptor("nl.adaptivity.process.processModel.IXmlMessage", delegateSerializer.descriptor)
 
     override fun fromDelegate(delegate: XmlMessage): IXmlMessage = delegate
 

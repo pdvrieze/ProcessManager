@@ -28,21 +28,17 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.descriptors.buildClassSerialDescriptor
-import kotlinx.serialization.descriptors.element
-import kotlinx.serialization.encoding.CompositeDecoder
-import kotlinx.serialization.encoding.CompositeEncoder
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.serialutil.encodeNullableStringElement
-import nl.adaptivity.serialutil.readNullableString
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
+import nl.adaptivity.xmlutil.serialization.XmlValue
+import nl.adaptivity.xmlutil.util.CompactFragment
 
-@Serializable(XmlDefineType.Companion::class)
+@Serializable(XmlDefineType.Serializer::class)
 class XmlDefineType : XPathHolder, IXmlDefineType {
 
     @ProcessModelDSL
@@ -72,7 +68,8 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         }
 
         fun build(): XmlResultType {
-            return XmlResultType(name, path, content, nsContext)
+            @OptIn(XmlUtilInternal::class)
+            return XmlResultType(name, path, content, SimpleNamespaceContext(nsContext))
         }
     }
 
@@ -84,13 +81,14 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
 
     constructor() {}
 
+    @OptIn(XmlUtilInternal::class)
     constructor(
         name: String?,
         refNode: String?,
         refName: String? = null,
         path: String? = null,
         content: CharArray? = null,
-        originalNSContext: Iterable<Namespace> = emptyList()
+        originalNSContext: IterableNamespaceContext = SimpleNamespaceContext()
     ) : super(
         name, path, content,
         originalNSContext
@@ -100,13 +98,14 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
     }
 
 
+    @OptIn(XmlUtilInternal::class)
     constructor(
         name: String?,
         refNode: Identified,
         refName: String? = null,
         path: String? = null,
         content: CharArray? = null,
-        originalNSContext: Iterable<Namespace> = emptyList()
+        originalNSContext: IterableNamespaceContext = SimpleNamespaceContext()
     ) : this(name, refNode.id, refName, path, content, originalNSContext)
 
     override fun copy(
@@ -115,27 +114,13 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         refName: String?,
         path: String?,
         content: CharArray?,
-        nsContext: Iterable<Namespace>
+        nsContext: IterableNamespaceContext
     ): XmlDefineType {
         return XmlDefineType(name, refNode, refName, path, content, nsContext)
     }
 
-    override fun serializeStartElement(out: XmlWriter) {
-        out.smartStartTag(QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX))
-    }
-
-    override fun serializeEndElement(out: XmlWriter) {
-        out.endTag(QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX))
-    }
-
-    override fun serializeAttributes(out: XmlWriter) {
-        super.serializeAttributes(out)
-        out.writeAttribute("refnode", getRefNode())
-        out.writeAttribute("refname", getRefName())
-    }
-
     override fun serialize(out: XmlWriter) {
-        XML { autoPolymorphic = true }.encodeToWriter(out, Companion, this)
+        XML { autoPolymorphic = true }.encodeToWriter(out, serializer(), this)
     }
 
     override fun getRefNode(): String? {
@@ -187,31 +172,62 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         return "XmlDefineType(content=$contentString, namespaces=(${originalNSContext.joinToString()}), name=$name, path=${getPath()}, refNode=$_refNode, refName=$_refName)"
     }
 
-    /** Dummy serializer that is just used to get the annotations on the type. */
     @Serializable
     @XmlSerialName(value = ELEMENTLOCALNAME, namespace = Engine.NAMESPACE, prefix = Engine.NSPREFIX)
-    private class XmlDefineTypeAnnotationHelper {}
+    private class SerialDelegate private constructor(
+        @SerialName("name") val name: String?,
+        @SerialName("refnode") val refNode: String? = null,
+        @SerialName("refname") val refName: String? = null,
+        @SerialName("xpath") val _xpath: String? = null,
+        @SerialName("path") val _path: String? = null,
+        @XmlValue val content: CompactFragment,
+    ): XPathHolderSerializer.SerialDelegateBase {
+        override val namespaces: Iterable<Namespace> get() = content.namespaces
+        override val xpath: String? get() = _xpath ?: _path
 
-    companion object : XPathHolderSerializer<XmlDefineType>() {
+        constructor(
+            name: String?,
+            refNode: String? = null,
+            refName: String? = null,
+            xpath: String? = null,
+            content: CompactFragment
+        ): this(name, refNode, refName, xpath, null, content)
+    }
+
+    private class Serializer : XPathHolderSerializer<XmlDefineType, SerialDelegate>(SerialDelegate.serializer()) {
 
         @OptIn(ExperimentalSerializationApi::class)
-        override val descriptor = buildClassSerialDescriptor("nl.adaptivity.process.processModel.XmlDefineType") {
-            annotations = XmlDefineTypeAnnotationHelper.serializer().descriptor.annotations
-            element<String?>("name")
-            element<String?>("refnode")
-            element<String?>("refname")
-            element<String?>("xpath")
-            element<List<Namespace>>("namespaces")
-            element<String>("content")
+        override val descriptor = SerialDescriptor(
+            "nl.adaptivity.process.processModel.XmlDefineType",
+            delegateSerializer.descriptor
+        )
+
+        override fun deserialize(decoder: Decoder): XmlDefineType {
+            val data = delegateSerializer.deserialize(decoder)
+            val xpath = data.xpath
+            val extNamespaces: IterableNamespaceContext = when (decoder) {
+                is XML.XmlInput if (xpath!=null) -> extNamespaces(data.content.namespaces, xpath, decoder.input.namespaceContext)
+                else -> data.content.namespaces
+            }
+            return XmlDefineType(data.name, data.refNode, data.refName, xpath, data.content.content, extNamespaces)
         }
+
+        override fun serialize(encoder: Encoder, value: XmlDefineType) {
+            val p = value.getPath()
+            val extNamespaces = when (encoder) {
+                is XML.XmlOutput if (p!=null) -> extNamespaces(value.namespaces, p, encoder.target.namespaceContext)
+                else -> value.namespaces
+            }
+            val delegate = SerialDelegate(value.name, value.refNode, value.refName, p, CompactFragment(extNamespaces, value.content))
+            delegateSerializer.serialize(encoder, delegate)
+        }
+
+    }
+
+    companion object{
 
         const val ELEMENTLOCALNAME = "define"
-        val ELEMENTNAME = QName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
 
-        @kotlin.jvm.JvmStatic
-        fun deserialize(reader: XmlReader): XmlDefineType {
-            return XML.decodeFromReader(reader)
-        }
 
         @Deprecated(
             "Use normal factory method",
@@ -220,50 +236,6 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         @kotlin.jvm.JvmStatic
         operator fun get(export: IXmlDefineType) = XmlDefineType(export)
 
-        override fun deserialize(decoder: Decoder): XmlDefineType {
-            val data = DefineTypeData()
-            data.deserialize(descriptor, decoder, Companion)
-            return XmlDefineType(data.name, data.refNode, data.refName, data.path, data.content, data.namespaces)
-        }
-
-        override fun writeAdditionalAttributes(writer: XmlWriter, data: XmlDefineType) {
-            super.writeAdditionalAttributes(writer, data)
-            writer.writeAttribute("refname", data.getRefName())
-            writer.writeAttribute("refnode", data.getRefNode())
-        }
-
-        override fun writeAdditionalValues(out: CompositeEncoder, desc: SerialDescriptor, data: XmlDefineType) {
-            super.writeAdditionalValues(out, desc, data)
-            out.encodeNullableStringElement(desc, desc.getElementIndex("refname"), data.getRefName())
-            out.encodeNullableStringElement(desc, desc.getElementIndex("refnode"), data.getRefNode())
-        }
-
-        override fun serialize(encoder: Encoder, value: XmlDefineType) {
-            serialize(descriptor, encoder, value)
-        }
-
-        private class DefineTypeData(
-            var refNode: String? = null,
-            var refName: String? = null
-        ) : PathHolderData<XmlDefineType>(XmlDefineType.Companion) {
-
-            override fun readAdditionalChild(desc: SerialDescriptor, decoder: CompositeDecoder, index: Int) {
-                val name = desc.getElementName(index)
-                when (name) {
-                    "refnode" -> refNode = decoder.readNullableString(desc, index)
-                    "refname" -> refName = decoder.readNullableString(desc, index)
-                    else -> super.readAdditionalChild(desc, decoder, index)
-                }
-            }
-
-            override fun handleAttribute(attributeLocalName: String, attributeValue: String) {
-                when (attributeLocalName) {
-                    "refnode" -> refNode = attributeValue
-                    "refname" -> refName = attributeValue
-                    else -> super.handleAttribute(attributeLocalName, attributeValue)
-                }
-            }
-        }
 
     }
 }
@@ -272,8 +244,13 @@ fun XmlDefineType(export: IXmlDefineType): XmlDefineType {
     if (export is XmlDefineType) {
         return export
     }
+    @OptIn(XmlUtilInternal::class)
     return XmlDefineType(
-        export.getName(), export.getRefNode(), export.getRefName(), export.getPath(), export.content,
-        export.originalNSContext ?: emptyList<Namespace>()
+        name = export.getName(),
+        refNode = export.getRefNode(),
+        refName = export.getRefName(),
+        path = export.getPath(),
+        content = export.content,
+        originalNSContext = export.originalNSContext
     )
 }

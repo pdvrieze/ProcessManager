@@ -21,22 +21,25 @@ import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.util.MyGatheringNamespaceContext
 import nl.adaptivity.util.multiplatform.assert
-import nl.adaptivity.util.xml.CombinedNamespaceContext
-import nl.adaptivity.xmlutil.util.CombiningNamespaceContext
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.*
 import org.w3c.dom.Document
 import org.w3c.dom.DocumentFragment
 import org.w3c.dom.Node
 
-actual abstract class XPathHolder : XMLContainer {
+actual abstract class XPathHolder actual constructor(
+    name: String?,
+    path: String?,
+    content: CharArray?,
+    originalNSContext: IterableNamespaceContext
+) : XMLContainer(pathNamespaces(originalNSContext, path), content ?: CharArray(0)) {
     /**
      * @see nl.adaptivity.process.processModel.IXmlResultType#setName(java.lang.String)
      */
-    actual var _name: String? = null
+    actual var _name: String? = name
 
     //  @Volatile private var path: XPathExpression? = null // This is merely a cache.
-    private var pathString: String? = null
+    private val pathString: String? = path
 
 /*
     // TODO support a functionresolver
@@ -58,17 +61,8 @@ actual abstract class XPathHolder : XMLContainer {
     val xPath: XPathExpression? get() = path
 */
 
-    actual constructor() : super()
-
-    actual constructor(
-        name: String?,
-        path: String?,
-        content: CharArray?,
-        originalNSContext: Iterable<Namespace>
-                      ) : super(originalNSContext, content ?: CharArray(0)) {
-        _name = name
-        setPath(originalNSContext, path)
-    }
+    @OptIn(XmlUtilInternal::class)
+    actual constructor() : this(null, null, null, SimpleNamespaceContext())
 
     actual fun getName() = _name ?: throw NullPointerException("Name not set")
 
@@ -80,32 +74,10 @@ actual abstract class XPathHolder : XMLContainer {
         return pathString
     }
 
-    actual fun setPath(namespaceContext: Iterable<Namespace>, value: String?) {
-        if (pathString != null && pathString == value) {
-            return
-        }
-        pathString = value
-        updateNamespaceContext(namespaceContext)
-        assert(value == null)
-    }
 
     @OptIn(XmlUtilInternal::class)
-    actual override fun deserializeChildren(reader: XmlReader) {
-        super.deserializeChildren(reader)
-        val namespaces = mutableMapOf<String, String>()
-        val gatheringNamespaceContext = CombinedNamespaceContext(
-            SimpleNamespaceContext.from(originalNSContext),
-            MyGatheringNamespaceContext(namespaces, reader.namespaceContext)
-        )
-        visitNamespaces(gatheringNamespaceContext)
-        if (namespaces.isNotEmpty()) {
-            addNamespaceContext(SimpleNamespaceContext(namespaces))
-        }
-    }
-
-    @OptIn(XmlUtilInternal::class)
-    actual override fun serializeAttributes(out: XmlWriter) {
-        super.serializeAttributes(out)
+    fun serializeAttributes(out: XmlWriter) {
+        // No attributes by default
         if (pathString != null) {
             val namepaces = mutableMapOf<String, String>()
             // Have a namespace that gathers those namespaces that are not known already in the outer context
@@ -124,23 +96,12 @@ actual abstract class XPathHolder : XMLContainer {
         out.writeAttribute("name", _name)
     }
 
-    actual override fun visitNamespaces(baseContext: NamespaceContext) {
+    fun visitNamespaces(baseContext: NamespaceContext) {
         if (pathString != null) {
             visitXpathUsedPrefixes(pathString, baseContext)
         }
-        super.visitNamespaces(baseContext)
     }
 
-    actual override fun visitNamesInAttributeValue(
-        referenceContext: NamespaceContext,
-        owner: QName,
-        attributeName: QName,
-        attributeValue: CharSequence
-                                                  ) {
-        if (Constants.MODIFY_NS_STR == owner.getNamespaceURI() && (XMLConstants.NULL_NS_URI == attributeName.getNamespaceURI() || XMLConstants.DEFAULT_NS_PREFIX == attributeName.getPrefix()) && "xpath" == attributeName.getLocalPart()) {
-            visitXpathUsedPrefixes(attributeValue, referenceContext)
-        }
-    }
 
     private val namespaceResolver: NamespaceResolver = { prefix -> namespaces.getNamespaceURI(prefix) }
 
@@ -181,6 +142,17 @@ actual abstract class XPathHolder : XMLContainer {
         result = 31 * result + (_name?.hashCode() ?: 0)
         result = 31 * result + (pathString?.hashCode() ?: 0)
         return result
+    }
+
+    companion object {
+        fun pathNamespaces(namespaceContext: IterableNamespaceContext, value: String?): Iterable<Namespace> {
+            val p = value?: return namespaceContext
+            val result = mutableMapOf<String, String>()
+            val gatheringNamespaceContext = MyGatheringNamespaceContext(result, namespaceContext)
+            visitXpathUsedPrefixes(p, gatheringNamespaceContext)
+
+            return result.entries.map { (p, u) -> XmlEvent.NamespaceImpl(p, u)}
+        }
     }
 
 }

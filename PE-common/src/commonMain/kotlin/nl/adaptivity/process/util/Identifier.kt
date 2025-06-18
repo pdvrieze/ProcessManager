@@ -78,7 +78,7 @@ class Identifier(override var id: String) : Identified {
     }
 
     companion object: DelegatingSerializer<Identifier, String>(String.serializer()) {
-        override val descriptor: SerialDescriptor = SerialDescriptor(Identifier::class.qualifiedName!!, String.serializer().descriptor)
+        override val descriptor: SerialDescriptor = SerialDescriptor("nl.adaptivity.process.util.Identifier", String.serializer().descriptor)
 
         override fun fromDelegate(delegate: String): Identifier = Identifier(delegate)
 

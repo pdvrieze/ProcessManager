@@ -75,7 +75,7 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode> {
     companion object : KSerializer<XmlProcessModel> {
         private val delegateSerializer = SerialDelegate.serializer()
 
-        override val descriptor: SerialDescriptor = SerialDescriptor(XmlProcessModel::class.qualifiedName!!, delegateSerializer.descriptor)
+        override val descriptor: SerialDescriptor = SerialDescriptor("nl.adaptivity.process.processModel.XmlProcessModel", delegateSerializer.descriptor)
 
         val serialModule = SerializersModule {
             include(ProcessNodeBase.serialModule)
@@ -127,7 +127,7 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode> {
         companion object : KSerializer<Builder> {
             private val delegateSerializer = SerialDelegate.serializer()
 
-            override val descriptor: SerialDescriptor = SerialDescriptor(Builder::class.qualifiedName!!,delegateSerializer.descriptor)
+            override val descriptor: SerialDescriptor = SerialDescriptor("nl.adaptivity.process.processModel.XmlProcessModel.Builder",delegateSerializer.descriptor)
 
             override fun deserialize(decoder: Decoder): Builder {
                 return Builder(delegateSerializer.deserialize(decoder))

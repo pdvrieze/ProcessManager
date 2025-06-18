@@ -19,7 +19,10 @@ package nl.adaptivity.process.processModel.configurableModel
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.process.util.IdentifyableSet
+import nl.adaptivity.xmlutil.IterableNamespaceContext
 import nl.adaptivity.xmlutil.Namespace
+import nl.adaptivity.xmlutil.SimpleNamespaceContext
+import nl.adaptivity.xmlutil.XmlUtilInternal
 
 val ConfigurableNodeContainer.startNode
     get():StartNode.Builder = StartNodeBase.Builder()
@@ -102,7 +105,20 @@ fun ConfigurableProcessModel<*>.input(
     refName: String? = null,
     path: String? = null,
     content: CharArray? = null,
-    nsContext: Iterable<Namespace> = emptyList()
+    nsContext: Iterable<Namespace>
+) {
+    @OptIn(XmlUtilInternal::class)
+    input(name, refNode, refName, path, content, SimpleNamespaceContext(nsContext))
+}
+
+@OptIn(XmlUtilInternal::class)
+fun ConfigurableProcessModel<*>.input(
+    name: String,
+    refNode: Identified,
+    refName: String? = null,
+    path: String? = null,
+    content: CharArray? = null,
+    nsContext: IterableNamespaceContext = SimpleNamespaceContext()
 ) {
     configurationBuilder.imports.add(XmlResultType(name, "/$name", content, nsContext))
 }
@@ -113,7 +129,20 @@ fun ConfigurableProcessModel<*>.output(
     refName: String? = null,
     path: String? = null,
     content: CharArray? = null,
-    nsContext: Iterable<Namespace> = emptyList()
+    nsContext: Iterable<Namespace>
+) {
+    @OptIn(XmlUtilInternal::class)
+    output(name, refNode, refName, path, content, SimpleNamespaceContext(nsContext))
+}
+
+@OptIn(XmlUtilInternal::class)
+fun ConfigurableProcessModel<*>.output(
+    name: String,
+    refNode: Identified,
+    refName: String? = null,
+    path: String? = null,
+    content: CharArray? = null,
+    nsContext: IterableNamespaceContext = SimpleNamespaceContext()
 ) {
     configurationBuilder.exports.add(XmlDefineType(name, refNode, refName, path, content, nsContext))
 }
