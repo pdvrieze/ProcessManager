@@ -49,6 +49,7 @@ import javax.xml.parsers.ParserConfigurationException
 import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathFactory
 import kotlin.reflect.KClass
+import kotlin.test.assertContains
 
 
 /**
@@ -65,8 +66,12 @@ class TestEngineProcessData {
         val ac1: XmlActivity = pm.modelNodes["ac1"] as XmlActivity
 
         val result1 = ac1.results[0] as IPlatformXmlResultType
+        assertEquals("name", result1.name)
+        assertEquals("http://adaptivity.nl/userMessageHandler", result1.originalNSContext.firstOrNull { it.prefix == "umh" }?.namespaceURI)
 
         val result2 = ac1.results[1] as IPlatformXmlResultType
+        assertEquals("user", result2.name)
+//         assertEquals(emptySet<Namespace>(), result2.originalNSContext.toSet())
 
         val testData = CompactFragment(
             "<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>"

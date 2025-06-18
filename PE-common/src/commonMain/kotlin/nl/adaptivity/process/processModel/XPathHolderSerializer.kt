@@ -19,11 +19,14 @@ package nl.adaptivity.process.processModel
 import kotlinx.serialization.*
 import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.CompositeDecoder
+import kotlinx.serialization.encoding.Decoder
+import nl.adaptivity.process.processModel.XmlDefineType.SerialDelegate
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.util.MyGatheringNamespaceContext
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.util.ICompactFragment
 
 abstract class XPathHolderSerializer<T : XPathHolder, D: XPathHolderSerializer.SerialDelegateBase>(
     protected val delegateSerializer: KSerializer<D>
@@ -31,7 +34,7 @@ abstract class XPathHolderSerializer<T : XPathHolder, D: XPathHolderSerializer.S
 
     interface SerialDelegateBase {
         val xpath: String?
-        val namespaces: Iterable<Namespace>
+        val content: CompactFragment
     }
 
     protected open class PathHolderData<T : XPathHolder>(
@@ -40,37 +43,34 @@ abstract class XPathHolderSerializer<T : XPathHolder, D: XPathHolderSerializer.S
         var path: String? = null
     ) : ContainerData<T>() {
 
-        override fun handleLastRootAttributeReadEvent(
-            reader: XmlReader,
-            gatheringNamespaceContext: MyGatheringNamespaceContext
-        ) {
-            if (!path.isNullOrEmpty()) {
-                visitXpathUsedPrefixes(path, gatheringNamespaceContext)
-            }
-        }
-
-        @OptIn(ExperimentalSerializationApi::class)
-        override fun readAdditionalChild(desc: SerialDescriptor, decoder: CompositeDecoder, index: Int) {
-            when (desc.getElementName(index)) {
-                "name"  -> name = decoder.decodeSerializableElement(desc, index, nullStringSerializer)
-//                "path",
-//                "xpath" -> path = decoder.readNullableString(desc, index)
-                else    -> super.readAdditionalChild(desc, decoder, index)
-            }
-        }
-
-        override fun handleAttribute(attributeLocalName: String, attributeValue: String) {
-            when (attributeLocalName) {
-                "name"  -> name = attributeValue
-                "path",
-                "xpath" -> path = attributeValue
-            }
-        }
     }
 
-    fun extNamespaces(namespaces: Iterable<Namespace>, xpath: String, parentContext: NamespaceContext): IterableNamespaceContext {
+    protected fun deserializeCommon(decoder: Decoder): Pair<D, IterableNamespaceContext> {
+        val data: D
+        val extNamespaces: IterableNamespaceContext
+
+        when (decoder) {
+            is XML.XmlInput -> {
+                val nsContext = decoder.input.namespaceContext.freeze()
+                data = delegateSerializer.deserialize(decoder)
+
+                extNamespaces = when (val xpath = data.xpath)  {
+                    null -> data.content.namespaces
+                    else -> extNamespaces(data.content, xpath, nsContext)
+                }
+            }
+
+            else -> {
+                data = delegateSerializer.deserialize(decoder)
+                extNamespaces = data.content.namespaces
+            }
+        }
+        return data to extNamespaces
+    }
+
+    fun extNamespaces(fragment: ICompactFragment, xpath: String, parentContext: NamespaceContext): IterableNamespaceContext {
         val namespaces = buildMap {
-            for ((p, n) in namespaces) {
+            for ((p, n) in fragment.namespaces) {
                 put(p, n)
             }
 

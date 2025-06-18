@@ -16,28 +16,12 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.SerializationStrategy
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.*
 import nl.adaptivity.process.util.Constants
-import nl.adaptivity.serialutil.CharArrayAsStringSerializer
 import nl.adaptivity.util.MyGatheringNamespaceContext
 import nl.adaptivity.util.multiplatform.assert
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.dom2.attributes
-import nl.adaptivity.xmlutil.dom2.childNodes
-import nl.adaptivity.xmlutil.dom2.documentElement
-import nl.adaptivity.xmlutil.dom2.length
-import nl.adaptivity.xmlutil.dom2.localName
-import nl.adaptivity.xmlutil.dom2.namespaceURI
-import nl.adaptivity.xmlutil.dom2.prefix
-import nl.adaptivity.xmlutil.dom2.value
-import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 
@@ -62,66 +46,6 @@ abstract class XmlContainerSerializer<T : XMLContainer>: KSerializer<T> {
                 CompactFragment(namespaces, it)
             }
 
-        open fun handleAttribute(attributeLocalName: String, attributeValue: String) {
-            throw SerializationException("Unknown attribute: $attributeLocalName")
-        }
-
-        @OptIn(ExperimentalSerializationApi::class)
-        fun deserialize(desc: SerialDescriptor, decoder: Decoder, owner: XmlContainerSerializer<in T>) {
-            @Suppress("NAME_SHADOWING")
-            decoder.decodeStructure(desc) {
-                val input = this
-                loop@while (true) {
-                    when (val next = input.decodeElementIndex(desc)) {
-                        CompositeDecoder.DECODE_DONE -> break@loop
-                        else             -> when (desc.getElementName(next)) {
-                            "namespaces" -> namespaces = input.decodeSerializableElement(desc, next, ListSerializer(Namespace))
-                            "content"    -> content = input.decodeSerializableElement(desc, 0, CharArrayAsStringSerializer)
-                            else         -> readAdditionalChild(desc, input, next)
-                        }
-                    }
-
-                }
-            }
-
-        }
-
-        @OptIn(ExperimentalSerializationApi::class)
-        fun deserialize(desc: SerialDescriptor, reader: XmlReader, owner: XmlContainerSerializer<in T>) {
-            @Suppress("NAME_SHADOWING")
-            for (i in 0 until reader.attributeCount) {
-                handleAttribute(reader.getAttributeLocalName(i), reader.getAttributeValue(i))
-            }
-
-            val namespacesMap = mutableMapOf<String, String>()
-
-            val gatheringNamespaceContext =
-                MyGatheringNamespaceContext(namespacesMap, reader.namespaceContext.freeze())
-
-            handleLastRootAttributeReadEvent(reader, gatheringNamespaceContext)
-
-            reader.next()
-            // We have finished the start element, now only read the content
-            // If we don't skip here we will read the element itself
-            val gatheringReader = FilteringReader(reader, owner.getFilter(gatheringNamespaceContext))
-
-            val frag = gatheringReader.siblingsToFragment()
-            content = frag.content
-
-            namespaces = SimpleNamespaceContext(namespacesMap)
-
-        }
-
-        open fun readAdditionalChild(desc: SerialDescriptor, decoder: CompositeDecoder, index: Int) {
-            throw UnsupportedOperationException("No support to reading additional child at index: $index")
-        }
-
-
-        internal open fun handleLastRootAttributeReadEvent(
-            reader: XmlReader,
-            gatheringNamespaceContext: MyGatheringNamespaceContext
-        ) {
-        }
 
     }
 

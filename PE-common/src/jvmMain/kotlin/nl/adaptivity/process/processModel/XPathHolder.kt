@@ -34,7 +34,7 @@ actual abstract class XPathHolder actual constructor(
     path: String?,
     content: CharArray?,
     originalNSContext: IterableNamespaceContext,
-) : XMLContainer(pathNamespaces(originalNSContext, path), content ?: CharArray(0)) {
+) : XMLContainer(originalNSContext.freeze(), content ?: CharArray(0)) {
     /**
      * @see nl.adaptivity.process.processModel.IXmlResultType#setName(java.lang.String)
      */

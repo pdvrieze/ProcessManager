@@ -25,9 +25,6 @@ expect abstract class XPathHolder(
     content: CharArray?,
     originalNSContext: IterableNamespaceContext
 ) : XMLContainer {
-    /**
-     * @see nl.adaptivity.process.processModel.IXmlResultType#setName(java.lang.String)
-     */
     var _name: String?
 
     constructor()
@@ -41,6 +38,7 @@ expect abstract class XPathHolder(
     override fun equals(other: Any?): Boolean
     override fun hashCode(): Int
 }
+
 
 
 

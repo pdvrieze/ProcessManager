@@ -24,6 +24,7 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.process.ProcessConsts.Engine
+import nl.adaptivity.process.util.PrefixCompactFragmentSerializer
 import nl.adaptivity.util.multiplatform.toCharArray
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XML
@@ -49,7 +50,7 @@ class XmlResultType : XPathHolder, IPlatformXmlResultType {
         name: String?,
         path: String? = null,
         content: CharSequence?,
-        nsContext: IterableNamespaceContext = SimpleNamespaceContext()
+        nsContext: IterableNamespaceContext/* = SimpleNamespaceContext()*/
     ) : this(name, path, content?.toCharArray(), nsContext)
 
     override fun copy(
@@ -107,10 +108,9 @@ class XmlResultType : XPathHolder, IPlatformXmlResultType {
         @SerialName("name") val name: String? = null,
         @SerialName("xpath") val _xpath: String? = null,
         @SerialName("path") val _path: String? = null,
-        @XmlValue val content: CompactFragment,
+        @XmlValue override val content: @Serializable(PrefixCompactFragmentSerializer::class) CompactFragment,
     ) : XPathHolderSerializer.SerialDelegateBase {
         override val xpath: String? get() = _xpath ?: _path
-        override val namespaces: Iterable<Namespace> get() = content.namespaces
 
         constructor(
             name: String? = null,
@@ -126,22 +126,13 @@ class XmlResultType : XPathHolder, IPlatformXmlResultType {
         )
 
         override fun deserialize(decoder: Decoder): XmlResultType {
-            val data = delegateSerializer.deserialize(decoder)
-            val xpath = data.xpath
-            val extNamespaces = when (decoder) {
-                is XML.XmlInput if (xpath!=null) -> extNamespaces(data.content.namespaces, xpath, decoder.input.namespaceContext)
-                else -> data.content.namespaces
-            }
-            return XmlResultType(data.name, xpath, data.content.content, extNamespaces)
+            val (data, extNamespaces) = deserializeCommon(decoder)
+
+            return XmlResultType(data.name, data.xpath, data.content.content, extNamespaces)
         }
 
         override fun serialize(encoder: Encoder, value: XmlResultType) {
-            val p = value.getPath()
-            val extNamespaces = when (encoder) {
-                is XML.XmlOutput if (p!=null) -> extNamespaces(value.namespaces, p, encoder.target.namespaceContext)
-                else -> value.namespaces
-            }
-            val delegate = SerialDelegate(value.name, p, CompactFragment(extNamespaces, value.content))
+            val delegate = SerialDelegate(value.name, value.getPath(), value.fragment)
             delegateSerializer.serialize(encoder, delegate)
         }
 

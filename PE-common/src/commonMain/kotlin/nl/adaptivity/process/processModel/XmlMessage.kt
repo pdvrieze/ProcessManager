@@ -20,7 +20,6 @@ import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.CompositeDecoder
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.messaging.EndpointDescriptorImpl
@@ -28,7 +27,6 @@ import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.messaging.*
 import nl.adaptivity.process.messaging.RESTMethod
 import nl.adaptivity.process.messaging.SOAPMethod
-import nl.adaptivity.serialutil.readNullableString
 import nl.adaptivity.util.multiplatform.toUri
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XML
@@ -72,18 +70,6 @@ import nl.adaptivity.xmlutil.QName as XmlQName
 @XmlSerialName(XmlMessage.ELEMENTLOCALNAME, Engine.NAMESPACE, Engine.NSPREFIX)
 class XmlMessage : XMLContainer, IXmlMessage {
 
-    override var namespaces: IterableNamespaceContext
-        get() = super.namespaces
-        set(value) {
-            super.namespaces = value
-        }
-
-    override var content: CharArray
-        get() = super.content
-        set(value) {
-            super.content = value
-        }
-
     override val targetMethod: InvokableMethod
 
     @OptIn(XmlUtilInternal::class)
@@ -104,7 +90,7 @@ class XmlMessage : XMLContainer, IXmlMessage {
         method: String? = null,
         contentType: String? = null,
         messageBody: ICompactFragment? = null
-    ) {
+    ) : super(messageBody ?: CompactFragment("")) {
         if (service!=null && endpoint != null && operation != null) {
             targetMethod = SOAPMethodDesc(service, endpoint, operation, url)
         } else {
@@ -114,38 +100,24 @@ class XmlMessage : XMLContainer, IXmlMessage {
             val descriptor = EndpointDescriptorImpl(service, endpoint, url.toUri())
             targetMethod = RESTMethodDesc(descriptor, method, contentType)
         }
-        messageBody?.let {
-            namespaces = SimpleNamespaceContext(it.namespaces)
-            content = it.content
-        }
     }
 
     constructor(
         service: SOAPMethod,
         messageBody: ICompactFragment? = null
-    ) {
+    ) : super(messageBody ?: CompactFragment("")) {
         this.targetMethod = service
-        messageBody ?: CompactFragment("").let {
-            this.content = it.content
-            this.namespaces = it.namespaces
-        }
     }
 
     constructor(
         service: RESTMethod,
         messageBody: ICompactFragment? = null
-    ) {
+    ) : super(messageBody ?: CompactFragment("")) {
         this.targetMethod = service
-        messageBody ?: CompactFragment("").let {
-            this.content = it.content
-            this.namespaces = it.namespaces
-        }
     }
 
-    constructor(baseMessage: IXmlMessage, newMessageBody: ICompactFragment) {
+    constructor(baseMessage: IXmlMessage, newMessageBody: ICompactFragment) : super(newMessageBody) {
         targetMethod = baseMessage.targetMethod
-        content = newMessageBody.content
-        namespaces = newMessageBody.namespaces
     }
 
     fun serializeAttributes(out: XmlWriter) {
@@ -270,27 +242,6 @@ class XmlMessage : XMLContainer, IXmlMessage {
 
             val service: DescQName? get() = serviceName?.let { DescQName(serviceNS ?: "", it) }
 
-            override fun handleAttribute(attributeLocalName: String, attributeValue: String) {
-                return when (attributeLocalName) {
-                    "serviceName" -> serviceName = attributeValue
-                    "serviceNS"   -> serviceNS = attributeValue
-                    "endpoint"    -> endpoint = attributeValue
-                    "operation"   -> operation = attributeValue
-                    "url"         -> url = attributeValue
-                    "method"      -> method = attributeValue
-                    "type"        -> contentType = attributeValue
-
-                    else          -> super.handleAttribute(attributeLocalName, attributeValue)
-                }
-            }
-
-            override fun readAdditionalChild(desc: SerialDescriptor, decoder: CompositeDecoder, index: Int) {
-                val name = desc.getElementName(index)
-                val value = decoder.readNullableString(desc, index)
-                if (value != null) {
-                    handleAttribute(name, value)
-                }
-            }
         }
     }
 

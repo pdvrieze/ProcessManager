@@ -32,6 +32,7 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.util.Identified
+import nl.adaptivity.process.util.PrefixCompactFragmentSerializer
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
@@ -180,9 +181,8 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         @SerialName("refname") val refName: String? = null,
         @SerialName("xpath") val _xpath: String? = null,
         @SerialName("path") val _path: String? = null,
-        @XmlValue val content: CompactFragment,
+        @XmlValue override val content: @Serializable(PrefixCompactFragmentSerializer::class) CompactFragment,
     ): XPathHolderSerializer.SerialDelegateBase {
-        override val namespaces: Iterable<Namespace> get() = content.namespaces
         override val xpath: String? get() = _xpath ?: _path
 
         constructor(
@@ -203,22 +203,13 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         )
 
         override fun deserialize(decoder: Decoder): XmlDefineType {
-            val data = delegateSerializer.deserialize(decoder)
-            val xpath = data.xpath
-            val extNamespaces: IterableNamespaceContext = when (decoder) {
-                is XML.XmlInput if (xpath!=null) -> extNamespaces(data.content.namespaces, xpath, decoder.input.namespaceContext)
-                else -> data.content.namespaces
-            }
-            return XmlDefineType(data.name, data.refNode, data.refName, xpath, data.content.content, extNamespaces)
+            val (data, extNamespaces) = deserializeCommon(decoder)
+
+            return XmlDefineType(data.name, data.refNode, data.refName, data.xpath, data.content.content, extNamespaces)
         }
 
         override fun serialize(encoder: Encoder, value: XmlDefineType) {
-            val p = value.getPath()
-            val extNamespaces = when (encoder) {
-                is XML.XmlOutput if (p!=null) -> extNamespaces(value.namespaces, p, encoder.target.namespaceContext)
-                else -> value.namespaces
-            }
-            val delegate = SerialDelegate(value.name, value.refNode, value.refName, p, CompactFragment(extNamespaces, value.content))
+            val delegate = SerialDelegate(value.name, value.refNode, value.refName, value.getPath(), value.fragment)
             delegateSerializer.serialize(encoder, delegate)
         }
 

@@ -29,21 +29,20 @@ import nl.adaptivity.xmlutil.util.XMLFragmentStreamReader
  * Created by pdvrieze on 30/10/15.
  */
 @OptIn(XmlUtilInternal::class)
-abstract class XMLContainer
-private constructor(
+abstract class XMLContainer(
     fragment: ICompactFragment
 ) : ICompactFragment {
 
     var fragment: CompactFragment = CompactFragment(fragment)
         private set
 
-    override var namespaces: IterableNamespaceContext
+    final override var namespaces: IterableNamespaceContext
         get() = fragment.namespaces
-        set(value) { fragment = CompactFragment(value, fragment.content) }
+        private set(value) { fragment = CompactFragment(value, fragment.content) }
 
-    override var content: CharArray
+    final override var content: CharArray
         get() = fragment.content
-        set(value) { fragment = CompactFragment(fragment.namespaces, value) }
+        private set(value) { fragment = CompactFragment(fragment.namespaces, value) }
 
 
     constructor(namespaces: Iterable<Namespace>, content: CharArray) :
