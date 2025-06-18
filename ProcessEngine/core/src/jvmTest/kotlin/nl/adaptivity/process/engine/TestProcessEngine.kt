@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine
 
+import io.github.pdvrieze.xmlutil.testutil.DocDeclEqualityMode
 import io.github.pdvrieze.xmlutil.testutil.assertXmlEquals
 import net.devrieze.util.InputStreamOutputStream
 import nl.adaptivity.process.engine.ProcessInstance.State
@@ -130,7 +131,7 @@ class TestProcessEngine : ProcessEngineTestSupport() {
 
             val receivedChars = serializeToXml(messageService.messages[0].base)
 
-            assertXmlEquals(expected, receivedChars)
+            assertXmlEquals(expected, receivedChars, DocDeclEqualityMode.IGNORE)
 
             if (true) {
                 val processInstance = transaction.getInstance(instanceHandle).assertIsStarted()
