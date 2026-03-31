@@ -26,7 +26,6 @@ import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.core.impl.newReader
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.CompactFragment
 import org.junit.jupiter.api.Assertions.*
@@ -77,7 +76,7 @@ class TestProcessData {
         val pm = getProcessModel("testModel2.xml")
         val ac2 = pm.getNode("ac2") as XmlActivity?
         val serialized = XmlMessage.from(ac2!!.message).toString()
-        val msg2 = XmlStreaming.deSerialize(StringReader(serialized), XmlMessage::class.java)
+        val msg2 = XML.v1.decodeFromString<XmlMessage>(serialized)
         assertEquals(ac2.message!!.messageBody.contentString, msg2.messageBody.contentString)
         assertEquals(ac2.message, msg2)
     }
@@ -118,8 +117,8 @@ class TestProcessData {
 
         assertEquals(2, ac1.results.size)
         val result1 = ac1.results[0] as IPlatformXmlResultType
-        assertEquals("name", result1.getName())
-        assertEquals("/umh:result/umh:value[@name='user']/text()", result1.getPath())
+        assertEquals("name", result1.name)
+        assertEquals("/umh:result/umh:value[@name='user']/text()", result1.path)
         val snc1 = SimpleNamespaceContext.from(result1.originalNSContext)
         assertEquals(1, snc1.size)
         assertEquals("umh", snc1.getPrefix(0))
@@ -135,14 +134,14 @@ class TestProcessData {
         val nsContext = SimpleNamespaceContext(arrayOf("umh"), arrayOf("http://adaptivity.nl/userMessageHandler"))
         val expression = "/umh:result/umh:value[@name='user']/text()"
         val result = XmlResultType("foo", expression, null as CharArray?, nsContext)
-        assertEquals(1, SimpleNamespaceContext.from(result.originalNSContext).size)
+        assertEquals(1, SimpleNamespaceContext.from(result.content.namespaces).size)
     }
 
     @Test
     @Throws(XmlException::class)
     fun testReadFragment() {
         val testDataInner = "<b xmlns:umh='urn:foo'><umh:a xpath='/umh:value' /></b>"
-        val reader = XmlStreaming.newReader(StringReader(testDataInner))
+        val reader = xmlStreaming.newReader(StringReader(testDataInner))
         if (reader.next() == EventType.START_DOCUMENT) {
             reader.next()
         }
@@ -181,7 +180,7 @@ class TestProcessData {
 
             val result = ac1Results[0] as XmlResultType
 
-            XmlStreaming.newWriter(caw).use { xsw ->
+            xmlStreaming.newWriter(caw).use { xsw ->
                 xml.encodeToWriter(xsw, XmlResultType.serializer(), result)
             }
 
@@ -199,13 +198,13 @@ class TestProcessData {
         val processModel = getProcessModel("testModel2.xml")
         run {
             val caw = CharArrayWriter()
-            val xsw = XmlStreaming.newWriter(caw)
+            val xsw = xmlStreaming.newWriter(caw)
 
             val ac1 = processModel.getNode("ac1")
             assertEquals("ac1", ac1!!.id)
             val ac1Results = ArrayList(ac1.results)
             val result = ac1Results[1] as XmlResultType
-            result.serialize(xsw)
+            XML.encodeToWriter(xsw, result)
             xsw.close()
 
             val actual = caw.toString()
@@ -222,7 +221,7 @@ class TestProcessData {
 
     @Test
     @Throws(Exception::class)
-    fun testXmlStreamingRoundTripProcessModel1() {
+    fun testxmlStreamingRoundTripProcessModel1() {
 
         testRoundTrip<XmlProcessModel>(
             getDocument("testModel2.xml"),
@@ -236,7 +235,7 @@ class TestProcessData {
     @Test
     fun testParseProcessModel1() {
         val inputStream = getDocument("processmodel1.xml")
-        val parser = XmlStreaming.newReader(inputStream, "UTF-8")
+        val parser = xmlStreaming.newReader(inputStream, "UTF-8")
         val model = XmlProcessModel.deserialize(parser)
         checkModel1(model)
     }
@@ -245,7 +244,7 @@ class TestProcessData {
     fun testParseProcessModel1NewDeserializer() {
         val inputStream = getDocument("processmodel1.xml")
 
-        val parser = XmlStreaming.newReader(inputStream, "UTF-8")
+        val parser = xmlStreaming.newReader(inputStream, "UTF-8")
         val model = xml.decodeFromReader<XmlProcessModel>(/*XmlProcessModel.serializer(),*/ parser)
         checkModel1(model)
     }
@@ -302,7 +301,7 @@ class TestProcessData {
     @Throws(XmlException::class, FileNotFoundException::class)
     fun testParseProcessModel2() {
         val inputStream = getDocument("processmodel2.xml")
-        val parser = XmlStreaming.newReader(inputStream, "UTF-8")
+        val parser = xmlStreaming.newReader(inputStream, "UTF-8")
         val model = XmlProcessModel.deserialize(parser)
         checkModel2(model)
     }
@@ -323,7 +322,7 @@ class TestProcessData {
     @Test
     fun testParseProcessModel2NewDeserializer() {
         val inputStream = getDocument("processmodel2.xml")
-        val parser = XmlStreaming.newReader(inputStream, "UTF-8")
+        val parser = xmlStreaming.newReader(inputStream, "UTF-8")
         val model = xml.decodeFromReader(XmlProcessModel.serializer(), parser)
         checkModel2(model)
     }
@@ -408,7 +407,7 @@ class TestProcessData {
         val pm = getProcessModel("testModel2.xml")
 
         val caw = CharArrayWriter()
-        val xsw = XmlStreaming.newWriter(caw)
+        val xsw = xmlStreaming.newWriter(caw)
 
         val result: XmlResultType = run {
             val modelNodes = pm.modelNodes
@@ -417,7 +416,7 @@ class TestProcessData {
             it.next().results.iterator().next() as XmlResultType
         }
 
-        result.serialize(xsw)
+        XML.encodeToWriter(xsw, result)
         xsw.close()
         val control =
             "<result xpath=\"/umh:result/umh:value[@name='user']/text()\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xmlns=\"http://adaptivity.nl/ProcessEngine/\"/>"
@@ -460,7 +459,7 @@ class TestProcessData {
     @Throws(Exception::class)
     fun testRead() {
         val testData = "Hello<a>who<b>are</b>you</a>"
-        val reader = XmlStreaming.newReader(StringReader("<wrap>$testData</wrap>"))
+        val reader = xmlStreaming.newReader(StringReader("<wrap>$testData</wrap>"))
         var ev = reader.next()
         if (ev==EventType.START_DOCUMENT) { ev = reader.next() }
         assertEquals(EventType.START_ELEMENT, ev)
@@ -490,14 +489,14 @@ class TestProcessData {
     @Throws(Exception::class)
     fun testSiblingsToFragment() {
         val testData = "Hello<a>who<b>are<c>you</c>.<d>I</d></b>don't</a>know"
-        val reader = XmlStreaming.newReader(StringReader("<wrap>$testData</wrap>"))
+        val reader = xmlStreaming.newReader(StringReader("<wrap>$testData</wrap>"))
         var ev = reader.next()
         if (ev == EventType.START_DOCUMENT) { ev = reader.next() }
         assertEquals(EventType.START_ELEMENT, ev)
         assertEquals("wrap", reader.localName)
         assertEquals(EventType.TEXT, reader.next())
 
-        XmlStreaming.setFactory(null) // reset to the default one
+        xmlStreaming.setFactory(null) // reset to the default one
         val fragment = reader.siblingsToFragment()
 
         assertEquals(null, fragment.namespaces.firstOrNull())
@@ -515,9 +514,10 @@ class TestProcessData {
         val result = testRoundTrip(xml, XmlResultType::class, XmlResultType.serializer()) {
             assertEquals("name", it.name)
             assertEquals("/umh:result/umh:value[@name='user']/text()", it.path)
-            assertEquals("", it.contentString)
-            assertEquals(1, it.namespaces.count())
-            assertEquals("http://adaptivity.nl/userMessageHandler", it.namespaces.getNamespaceURI("umh"))
+            val fragment = it.content
+            assertEquals("", fragment.contentString)
+            assertEquals(1, fragment.namespaces.count())
+            assertEquals("http://adaptivity.nl/userMessageHandler", fragment.namespaces.getNamespaceURI("umh"))
         }
         assertTrue(result.contains("xmlns:umh=\"http://adaptivity.nl/userMessageHandler\""))
     }
@@ -550,7 +550,7 @@ class TestProcessData {
         testRoundTrip(xmlString, XmlResultType::class, XmlResultType.serializer()) { result ->
             assertEquals(
                 listOf(XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")),
-                result.namespaces.toList()
+                result.content.namespaces.toList()
             )
         }
     }
@@ -578,9 +578,9 @@ class TestProcessData {
         val rt: XmlResultType = Companion.xml.decodeFromString(
             XmlResultType.serializer(),
             xml
-        )//pXmlResultType.deserialize(XmlStreaming.newReader(StringReader(xml)))
-        assertEquals(expectedContent, rt.contentString)
-        val namespaces = rt.originalNSContext
+        )//pXmlResultType.deserialize(xmlStreaming.newReader(StringReader(xml)))
+        assertEquals(expectedContent, rt.content.contentString)
+        val namespaces = rt.content.namespaces
         val it = namespaces.iterator()
         val ns = it.next()
         assertEquals("umh", ns.prefix)
@@ -790,11 +790,11 @@ class TestProcessData {
                 expected = reader.readString(Charset.defaultCharset())
                 streamReaderFactory = {
                     reader.reset()
-                    XmlStreaming.newReader(reader, Charset.defaultCharset().toString())
+                    xmlStreaming.newReader(reader, Charset.defaultCharset().toString())
                 }
             } else {
                 expected = reader.readString(Charset.defaultCharset())
-                streamReaderFactory = { XmlStreaming.newReader(StringReader(expected)) }
+                streamReaderFactory = { xmlStreaming.newReader(StringReader(expected)) }
             }
 
             return testRoundTripCombined<T>(
@@ -815,7 +815,7 @@ class TestProcessData {
             testObject: (T) -> Unit = {}
         ): String {
             return testRoundTripCombined(
-                xml, { XmlStreaming.newReader(StringReader(xml)) },
+                xml, { xmlStreaming.newReader(StringReader(xml)) },
                 serializer = serializer,
                 serialModule = serialModule,
                 testObject = testObject
@@ -836,7 +836,7 @@ class TestProcessData {
             testObject: (T) -> Unit = {}
         ): String {
             return testRoundTripCombined(
-                xml, { XmlStreaming.newReader(StringReader(xml)) }, serializer = serializer,
+                xml, { xmlStreaming.newReader(StringReader(xml)) }, serializer = serializer,
                 serialModule = serialModule,
                 repairNamespaces = repairNamespaces,
                 omitXmlDecl = omitXmlDecl,
@@ -852,7 +852,7 @@ class TestProcessData {
             testObject: (T) -> Unit = {}
         ): String {
             return testRoundTripCombined(
-                xml, { XmlStreaming.newReader(StringReader(xml)) },
+                xml, { xmlStreaming.newReader(StringReader(xml)) },
                 serializer = serializer,
                 serialModule = serialModule,
                 testObject = testObject
@@ -874,7 +874,7 @@ class TestProcessData {
             testObject: (T) -> Unit = {}
         ): String {
             return testRoundTripCombined(
-                xml, { XmlStreaming.newReader(StringReader(xml)) }, serializer,
+                xml, { xmlStreaming.newReader(StringReader(xml)) }, serializer,
                 serialModule,
                 repairNamespaces = repairNamespaces,
                 omitXmlDecl = omitXmlDecl

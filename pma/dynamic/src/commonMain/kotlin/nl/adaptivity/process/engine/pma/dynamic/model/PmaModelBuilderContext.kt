@@ -17,7 +17,6 @@ import nl.adaptivity.process.engine.pma.models.ServiceId
 import nl.adaptivity.process.engine.pma.models.ServiceName
 import nl.adaptivity.process.processModel.ActivityBase
 import nl.adaptivity.process.processModel.configurableModel.ConfigurationDsl
-import nl.adaptivity.process.processModel.name
 import nl.adaptivity.process.util.Identified
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind

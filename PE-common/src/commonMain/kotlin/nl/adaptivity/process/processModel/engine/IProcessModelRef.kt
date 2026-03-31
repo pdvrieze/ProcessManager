@@ -17,11 +17,9 @@
 package nl.adaptivity.process.processModel.engine
 
 import net.devrieze.util.Handle
-import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.RootProcessModel
 import nl.adaptivity.util.multiplatform.UUID
-import nl.adaptivity.xmlutil.XmlSerializable
 
 
 interface IProcessModelRef<out NodeT : ProcessNode, out ObjectT : RootProcessModel<NodeT>> {

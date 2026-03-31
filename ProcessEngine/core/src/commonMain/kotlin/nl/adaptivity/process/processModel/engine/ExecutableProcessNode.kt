@@ -36,8 +36,8 @@ interface ExecutableProcessNode : ProcessNode, Identified {
 
     interface Builder : ProcessNode.Builder {
 
-        override fun result(builder: XmlResultType.Builder.() -> Unit) {
-            results.add(XmlResultType.Builder().apply(builder).build())
+        override fun result(name: String, builder: XmlResultType.Builder.() -> Unit) {
+            results.add(XmlResultType.Builder(name).apply(builder).build())
         }
 
         fun build(

@@ -33,10 +33,12 @@ import nl.adaptivity.process.engine.processModel.NodeInstanceState.*
 import nl.adaptivity.process.processModel.RootProcessModel
 import nl.adaptivity.process.processModel.engine.*
 import nl.adaptivity.util.multiplatform.PrincipalCompat
-import nl.adaptivity.xmlutil.XmlStreaming
+import nl.adaptivity.xmlutil.core.impl.multiplatform.InputStream
+import nl.adaptivity.xmlutil.newReader
 import nl.adaptivity.xmlutil.siblingsToFragment
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
+import nl.adaptivity.xmlutil.xmlStreaming
 import org.xml.sax.SAXException
 import java.io.IOException
 import java.net.HttpURLConnection
@@ -937,7 +939,8 @@ class ProcessEngine<TR : ContextProcessTransaction> {
         user: Principal
     ) {
         try {
-            val reader = resultSource?.let { XmlStreaming.newReader(it.inputStream, "UTF8") }
+            val inputStream = resultSource?.inputStream
+            val reader = inputStream?.let { xmlStreaming.newReader(it) }
             val xml = reader?.siblingsToFragment()
             finishTask(transaction, handle, xml, user)
 

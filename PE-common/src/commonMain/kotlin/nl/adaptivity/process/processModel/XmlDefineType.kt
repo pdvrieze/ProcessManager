@@ -38,70 +38,33 @@ import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import nl.adaptivity.xmlutil.serialization.XmlValue
 import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.util.ICompactFragment
 
 @Serializable(XmlDefineType.Serializer::class)
-class XmlDefineType : XPathHolder, IXmlDefineType {
+class XmlDefineType(
+    name: String,
+    override val refNode: String?,
+    override val refName: String? = null,
+    path: String?,
+    content: ICompactFragment,
+) : XPathHolder(name, path, content), IXmlDefineType {
 
-    @ProcessModelDSL
-    class Builder {
-
-        var name: String? = null
-        var path: String? = null
-        var content: CharArray
-        var nsContext: MutableList<Namespace>
-
-        internal constructor() {
-            name = null
-            path = null
-            content = CharArray(0)
-            nsContext = ArrayList<Namespace>()
-        }
-
-        internal constructor(orig: IXmlResultType) {
-            name = orig.getName()
-            path = orig.getPath()
-            content = orig.content?.copyOf() ?: CharArray(0)
-            nsContext = ArrayList<Namespace>()
-            val origContext = orig.originalNSContext
-            for (ns in origContext) {
-                nsContext.add(ns)
-            }
-        }
-
-        fun build(): XmlResultType {
-            @OptIn(XmlUtilInternal::class)
-            return XmlResultType(name, path, content, SimpleNamespaceContext(nsContext))
-        }
-    }
-
-    @SerialName("refnode")
-    private var _refNode: String? = null
-
-    @SerialName("refname")
-    private var _refName: String? = null
-
-    constructor() {}
+    constructor(): this("", null)
 
     @OptIn(XmlUtilInternal::class)
     constructor(
-        name: String?,
+        name: String,
         refNode: String?,
         refName: String? = null,
         path: String? = null,
         content: CharArray? = null,
         originalNSContext: IterableNamespaceContext = SimpleNamespaceContext()
-    ) : super(
-        name, path, content,
-        originalNSContext
-    ) {
-        this._refNode = refNode
-        this._refName = refName
-    }
+    ) : this(name, refNode, refName, path, CompactFragment(originalNSContext, content))
 
 
     @OptIn(XmlUtilInternal::class)
     constructor(
-        name: String?,
+        name: String,
         refNode: Identified,
         refName: String? = null,
         path: String? = null,
@@ -114,39 +77,24 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         refNode: String?,
         refName: String?,
         path: String?,
+        content: CompactFragment
+    ): IXmlDefineType {
+        return XmlDefineType(name, refNode, refName, path, content)
+    }
+
+    override fun copy(
+        name: String,
+        refNode: String?,
+        refName: String?,
+        path: String?,
         content: CharArray?,
         nsContext: IterableNamespaceContext
     ): XmlDefineType {
         return XmlDefineType(name, refNode, refName, path, content, nsContext)
     }
 
-    override fun serialize(out: XmlWriter) {
+    fun serialize(out: XmlWriter) {
         XML { autoPolymorphic = true }.encodeToWriter(out, serializer(), this)
-    }
-
-    override fun getRefNode(): String? {
-        return _refNode
-    }
-
-    /* (non-Javadoc)
-     * @see nl.adaptivity.process.processModel.IXmlDefineType#setRefNode(String)
-     */
-    override fun setRefNode(value: String?) {
-        this._refNode = value
-    }
-
-    /* (non-Javadoc)
-     * @see nl.adaptivity.process.processModel.XmlImportType#getName()
-     */
-    override fun getRefName(): String? {
-        return _refName
-    }
-
-    /* (non-Javadoc)
-     * @see nl.adaptivity.process.processModel.XmlImportType#setName(java.lang.String)
-     */
-    override fun setRefName(value: String?) {
-        this._refName = value
     }
 
     override fun equals(other: Any?): Boolean {
@@ -156,27 +104,56 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
 
         other as XmlDefineType
 
-        if (_refNode != other._refNode) return false
-        if (_refName != other._refName) return false
+        if (refNode != other.refNode) return false
+        if (refName != other.refName) return false
 
         return true
     }
 
     override fun hashCode(): Int {
         var result = super.hashCode()
-        result = 31 * result + (_refNode?.hashCode() ?: 0)
-        result = 31 * result + (_refName?.hashCode() ?: 0)
+        result = 31 * result + (refNode?.hashCode() ?: 0)
+        result = 31 * result + (refName?.hashCode() ?: 0)
         return result
     }
 
     override fun toString(): String {
-        return "XmlDefineType(content=$contentString, namespaces=(${originalNSContext.joinToString()}), name=$name, path=${getPath()}, refNode=$_refNode, refName=$_refName)"
+        return "XmlDefineType(content=$content, name=$name, path=$path, refNode=$refNode, refName=$refName)"
     }
+
+    @ProcessModelDSL
+    class Builder {
+
+        var name: String
+        var path: String? = null
+        var content: CharArray
+        var nsContext: MutableList<Namespace>
+
+        internal constructor(name: String) {
+            this.name = name
+            path = null
+            content = CharArray(0)
+            nsContext = ArrayList<Namespace>()
+        }
+
+        internal constructor(orig: IXmlResultType) {
+            name = orig.name
+            path = orig.path
+            content = orig.content.content.copyOf()
+            nsContext = orig.originalNSContext.mapTo(ArrayList()) { it }
+        }
+
+        fun build(): XmlResultType {
+            @OptIn(XmlUtilInternal::class)
+            return XmlResultType(name, path, content, SimpleNamespaceContext(nsContext))
+        }
+    }
+
 
     @Serializable
     @XmlSerialName(value = ELEMENTLOCALNAME, namespace = Engine.NAMESPACE, prefix = Engine.NSPREFIX)
     private class SerialDelegate private constructor(
-        @SerialName("name") val name: String?,
+        @SerialName("name") val name: String,
         @SerialName("refnode") val refNode: String? = null,
         @SerialName("refname") val refName: String? = null,
         @SerialName("xpath") val _xpath: String? = null,
@@ -186,7 +163,7 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         override val xpath: String? get() = _xpath ?: _path
 
         constructor(
-            name: String?,
+            name: String,
             refNode: String? = null,
             refName: String? = null,
             xpath: String? = null,
@@ -209,7 +186,7 @@ class XmlDefineType : XPathHolder, IXmlDefineType {
         }
 
         override fun serialize(encoder: Encoder, value: XmlDefineType) {
-            val delegate = SerialDelegate(value.name, value.refNode, value.refName, value.getPath(), value.fragment)
+            val delegate = SerialDelegate(value.name, value.refNode, value.refName, value.path, value.content)
             delegateSerializer.serialize(encoder, delegate)
         }
 
@@ -237,11 +214,10 @@ fun XmlDefineType(export: IXmlDefineType): XmlDefineType {
     }
     @OptIn(XmlUtilInternal::class)
     return XmlDefineType(
-        name = export.getName(),
-        refNode = export.getRefNode(),
-        refName = export.getRefName(),
-        path = export.getPath(),
+        name = export.name,
+        refNode = export.refNode,
+        refName = export.refName,
+        path = export.path,
         content = export.content,
-        originalNSContext = export.originalNSContext
     )
 }

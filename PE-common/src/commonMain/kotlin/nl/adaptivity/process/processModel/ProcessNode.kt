@@ -74,8 +74,8 @@ interface ProcessNode : Positioned, Identifiable {
         val idBase: String
         var isMultiInstance: Boolean
 
-        fun result(builder: XmlResultType.Builder.() -> Unit) {
-            results.add(XmlResultType.Builder().apply(builder).build())
+        fun result(name: String, builder: XmlResultType.Builder.() -> Unit) {
+            results.add(XmlResultType.Builder(name).apply(builder).build())
         }
 
         fun <R> visit(visitor: BuilderVisitor<R>): R

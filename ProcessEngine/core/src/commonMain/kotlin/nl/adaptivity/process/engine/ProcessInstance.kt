@@ -35,6 +35,7 @@ import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
+import nl.adaptivity.xmlutil.xmlserializable.XmlSerializable
 
 @RequiresOptIn("Not safe access to store stuff")
 @Target(

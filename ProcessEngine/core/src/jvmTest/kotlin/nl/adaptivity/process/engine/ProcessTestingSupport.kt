@@ -28,6 +28,7 @@ import nl.adaptivity.process.util.Identified
 import org.junit.jupiter.api.Assertions.*
 import java.io.ByteArrayOutputStream
 import java.io.PrintStream
+import kotlin.test.fail
 
 @Retention(AnnotationRetention.SOURCE)
 @DslMarker
@@ -154,8 +155,7 @@ fun Dsl.givenProcess(engine: ProcessEngine<StubProcessTransaction>, processModel
 */
 
 fun kfail(message: String): Nothing {
-    fail<Any?>(message)
-    throw UnsupportedOperationException("This code should not be reachable")
+    fail(message)
 }
 
 internal fun Boolean.toXPath() = if (this) "true()" else "false()"

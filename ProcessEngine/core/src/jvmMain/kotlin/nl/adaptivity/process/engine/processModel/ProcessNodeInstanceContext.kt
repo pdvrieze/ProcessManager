@@ -20,7 +20,6 @@ import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.engine.PETransformer.AbstractDataContext
 import nl.adaptivity.process.engine.ProcessData
 import nl.adaptivity.process.processModel.MessageActivity
-import nl.adaptivity.process.processModel.name
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.util.CompactFragment
@@ -76,7 +75,7 @@ actual class ProcessNodeInstanceContext actual constructor(
         if (provideResults) {
             // allow for missing values in the database. If they were "defined" treat is as an empty value.
             processNodeInstance.node.results
-                .firstOrNull { valueName == it.getName() }
+                .firstOrNull { valueName == it.name }
                 ?.let { return ProcessData(valueName, EMPTY_FRAGMENT) }
         }
         return null

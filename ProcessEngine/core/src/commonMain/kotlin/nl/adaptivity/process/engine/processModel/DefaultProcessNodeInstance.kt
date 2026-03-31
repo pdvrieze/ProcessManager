@@ -31,8 +31,8 @@ import nl.adaptivity.process.processModel.engine.ExecutableActivity
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.net.devrieze.util.security.ActiveSecureObject
-import nl.adaptivity.xmlutil.XmlDeserializerFactory
 import nl.adaptivity.xmlutil.XmlReader
+import nl.adaptivity.xmlutil.xmlserializable.XmlDeserializerFactory
 
 /**
  * Class to represent the instanciation of a node. Subclasses may add behaviour.
@@ -180,7 +180,7 @@ class DefaultProcessNodeInstance :
                     messageService: IMessageService<MSG_T>,
                     messageActivity: MessageActivity
                 ): MessageSendingResult {
-                    val preparedMessage = messageService.createMessage(messageActivity.message ?: XmlMessage())
+                    val preparedMessage = messageService.createMessage(messageActivity.message ?: XmlMessage.EMPTY)
                     return tryCreateTask {
                         val aic = createActivityContext(engineData)
                         messageService.sendMessage(engineData, preparedMessage, aic)// TODO remove cast

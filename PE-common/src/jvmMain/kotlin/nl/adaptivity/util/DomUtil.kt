@@ -223,17 +223,11 @@ object DomUtil {
 
     @JvmStatic
     fun childrenToDocumentFragment(input: XmlReader): DocumentFragment {
-        val dbf = DocumentBuilderFactory.newInstance()
-        dbf.isNamespaceAware = true
-        val doc: Document
-        try {
-            doc = dbf.newDocumentBuilder().newDocument()
-        } catch (e: ParserConfigurationException) {
-            throw XmlException(e)
-        }
+
+        val doc = xmlStreaming.platformDOMImplementation.createDocument(null, null, null)
 
         val documentFragment = doc.createDocumentFragment()
-        val out = XmlStreaming.newWriter(DOMResult(documentFragment), true)
+        val out = xmlStreaming.newWriter(documentFragment)
         while (input.hasNext() && input.next() !== EventType.END_ELEMENT) {
             if(input.eventType == EventType.END_DOCUMENT) break
             input.writeCurrent(out)
@@ -256,7 +250,7 @@ object DomUtil {
         }
 
         val documentFragment = doc.createDocumentFragment()
-        val out = XmlStreaming.newWriter(DOMResult(documentFragment), true)
+        val out = xmlStreaming.newWriter(documentFragment)
         `in`.writeCurrent(out)
         if (`in`.eventType === EventType.START_ELEMENT) {
             out.writeElementContent(null, `in`)
@@ -279,10 +273,9 @@ object DomUtil {
     @JvmStatic
     fun nodeToFragment(node: Node?): ICompactFragment {
         return when (node) {
-            null    -> CompactFragment("")
+            null -> CompactFragment("")
             is Text -> CompactFragment(node.data)
-            is DocumentFragment -> DomReader(node).siblingsToFragment()
-            else    -> DomReader(node).siblingsToFragment()
+            else -> xmlStreaming.newReader(node).siblingsToFragment()
         }
     }
 

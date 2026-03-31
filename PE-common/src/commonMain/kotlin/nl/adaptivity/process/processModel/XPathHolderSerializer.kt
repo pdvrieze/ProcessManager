@@ -17,11 +17,7 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.*
-import kotlinx.serialization.builtins.nullable
-import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.encoding.Decoder
-import nl.adaptivity.process.processModel.XmlDefineType.SerialDelegate
-import nl.adaptivity.process.util.Constants
 import nl.adaptivity.util.MyGatheringNamespaceContext
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XML
@@ -30,19 +26,11 @@ import nl.adaptivity.xmlutil.util.ICompactFragment
 
 abstract class XPathHolderSerializer<T : XPathHolder, D: XPathHolderSerializer.SerialDelegateBase>(
     protected val delegateSerializer: KSerializer<D>
-) : XmlContainerSerializer<T>() {
+) : KSerializer<T> {
 
     interface SerialDelegateBase {
         val xpath: String?
         val content: CompactFragment
-    }
-
-    protected open class PathHolderData<T : XPathHolder>(
-        val owner: XPathHolderSerializer<in T, *>,
-        var name: String? = null,
-        var path: String? = null
-    ) : ContainerData<T>() {
-
     }
 
     protected fun deserializeCommon(decoder: Decoder): Pair<D, IterableNamespaceContext> {
@@ -83,37 +71,5 @@ abstract class XPathHolderSerializer<T : XPathHolder, D: XPathHolderSerializer.S
     }
 
 
-    override fun getFilter(gatheringNamespaceContext: MyGatheringNamespaceContext): XmlContainerSerializer.NamespaceGatherer {
-        return XPathholderNamespaceGatherer(gatheringNamespaceContext)
-    }
-
-
-    internal open class XPathholderNamespaceGatherer(gatheringNamespaceContext: MyGatheringNamespaceContext) :
-        NamespaceGatherer(gatheringNamespaceContext) {
-
-        override fun visitNamesInAttributeValue(
-            referenceContext: NamespaceContext,
-            owner: QName,
-            attributeName: QName,
-            attributeValue: CharSequence,
-            localPrefixes: List<List<String>>
-        ) {
-            if (Constants.MODIFY_NS_STR == owner.getNamespaceURI() && (XMLConstants.NULL_NS_URI == attributeName.getNamespaceURI() || XMLConstants.DEFAULT_NS_PREFIX == attributeName.getPrefix()) && "xpath" == attributeName.getLocalPart()) {
-                val namesInPath = mutableMapOf<String, String>()
-                val newContext = MyGatheringNamespaceContext(namesInPath, referenceContext)
-                visitXpathUsedPrefixes(attributeValue, newContext)
-                for (prefix in namesInPath.keys) {
-                    if (localPrefixes.none { prefix in it }) {
-                        gatheringNamespaceContext.getNamespaceURI(prefix)
-                    }
-                }
-
-            }
-        }
-
-    }
-
-
 }
 
-private val nullStringSerializer = String.serializer().nullable

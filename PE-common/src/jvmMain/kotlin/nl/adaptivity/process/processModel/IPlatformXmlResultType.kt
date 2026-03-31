@@ -26,13 +26,13 @@ actual interface IPlatformXmlResultType: IXmlResultType {
 
     val xPath: XPathExpression?
 
-    object Serializer : DelegatingSerializer<IXmlResultType, XmlResultType>(XmlResultType.serializer()) {
+    object Serializer : DelegatingSerializer<IPlatformXmlResultType, XmlResultType>("nl.adaptivity.process.processModel.IPlatformXmlResultType", XmlResultType.serializer()) {
         override val descriptor: SerialDescriptor =
             SerialDescriptor("nl.adaptivity.process.processModel.IPlatformXmlResultType", delegateSerializer.descriptor)
 
-        override fun fromDelegate(delegate: XmlResultType): IXmlResultType = delegate
+        override fun fromDelegate(delegate: XmlResultType): IPlatformXmlResultType = delegate
 
-        override fun IXmlResultType.toDelegate(): XmlResultType {
+        override fun IPlatformXmlResultType.toDelegate(): XmlResultType {
             return this as? XmlResultType ?: XmlResultType(this)
         }
     }

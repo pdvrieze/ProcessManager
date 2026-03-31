@@ -30,10 +30,12 @@ import kotlinx.serialization.encoding.decodeStructure
 import net.devrieze.util.Named
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.serialutil.decodeElements
-import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.serialization.ICompactFragmentSerializer
+import nl.adaptivity.xmlutil.QName
+import nl.adaptivity.xmlutil.XmlReader
+import nl.adaptivity.xmlutil.XmlUtilInternal
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
+import nl.adaptivity.xmlutil.siblingsToFragment
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 
@@ -103,7 +105,7 @@ constructor(
                         0 -> name = decodeSerializableElement(descriptor, 0, String.serializer().nullable)
                         1 -> content = when (this) {
                             is XML.XmlInput -> this.input.siblingsToFragment()
-                            else            -> decodeSerializableElement(descriptor, 1, ICompactFragmentSerializer)
+                            else            -> decodeSerializableElement(descriptor, 1, ICompactFragment.serializer())
                         }
                     }
 
@@ -121,7 +123,7 @@ constructor(
             if (newOutput is XML.XmlOutput) {
                 value.content.serialize(newOutput.target)
             } else {
-                newOutput.encodeSerializableElement(descriptor, 1, ICompactFragmentSerializer, value.content)
+                newOutput.encodeSerializableElement(descriptor, 1, ICompactFragment.serializer(), value.content)
             }
             newOutput.endStructure(descriptor)
         }

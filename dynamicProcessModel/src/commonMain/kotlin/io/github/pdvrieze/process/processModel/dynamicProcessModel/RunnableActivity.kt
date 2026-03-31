@@ -24,7 +24,10 @@ import nl.adaptivity.process.engine.ProcessInstance
 import nl.adaptivity.process.engine.processModel.IProcessNodeInstance
 import nl.adaptivity.process.engine.processModel.ProcessNodeInstance
 import nl.adaptivity.process.engine.updateChild
-import nl.adaptivity.process.processModel.*
+import nl.adaptivity.process.processModel.IXmlDefineType
+import nl.adaptivity.process.processModel.IXmlMessage
+import nl.adaptivity.process.processModel.ProcessModel
+import nl.adaptivity.process.processModel.ProcessNode
 import nl.adaptivity.process.processModel.configurableModel.ConfigurableNodeContainer
 import nl.adaptivity.process.processModel.configurableModel.ConfigurationDsl
 import nl.adaptivity.process.processModel.engine.ExecutableProcessNode
@@ -34,6 +37,7 @@ import nl.adaptivity.xmlutil.IterableNamespaceContext
 import nl.adaptivity.xmlutil.Namespace
 import nl.adaptivity.xmlutil.SimpleNamespaceContext
 import nl.adaptivity.xmlutil.XmlUtilInternal
+import nl.adaptivity.xmlutil.util.CompactFragment
 
 typealias RunnableAction<I, O, C> = C.(I) -> O
 typealias NoInputRunnableAction<O, C> = C.() -> O
@@ -129,32 +133,25 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
         }
     }
 
-    class DefineType<T>(
-        private val name: String,
-        private val refNode: Identified?,
-        private val refName: String,
-        private val path: String?,
+    class DefineType<T> private constructor(
+        override val name: String,
+        override val refNode: String?,
+        override val refName: String,
+        override val path: String?,
         val deserializer: DeserializationStrategy<T>,
-        pathNSContext: Iterable<Namespace> = emptyList()
+        override val content: CompactFragment = CompactFragment(""),
     ) : IXmlDefineType {
-        override val content: Nothing? get() = null
+        constructor(
+            name: String,
+            refNode: Identified?,
+            refName: String,
+            path: String?,
+            deserializer: DeserializationStrategy<T>,
+            pathNSContext: Iterable<Namespace> = emptyList(),
+        ): this(name, refNode?.id, refName, path, deserializer, CompactFragment(pathNSContext,""))
 
         @OptIn(XmlUtilInternal::class)
         override val originalNSContext: IterableNamespaceContext get() = SimpleNamespaceContext()
-
-        override fun getRefNode(): String? = refNode?.id
-
-        override fun setRefNode(value: String?): Nothing = throw UnsupportedOperationException("Immutable type")
-
-        override fun getRefName(): String? = refName
-
-        override fun setRefName(value: String?): Nothing = throw UnsupportedOperationException("Immutable type")
-
-        override fun getName(): String = name
-
-        override fun setName(value: String): Nothing = throw UnsupportedOperationException("Immutable type")
-
-        override fun getPath(): String? = path
 
         override fun copy(
             name: String,
@@ -167,15 +164,35 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
             return DefineType(name, Identifier(refNode!!), refName!!, path, deserializer, nsContext)
         }
 
+        override fun copy(
+            name: String,
+            refNode: String?,
+            refName: String?,
+            path: String?,
+            content: CompactFragment
+        ): IXmlDefineType {
+            return DefineType(name, refNode, refName!!, path, deserializer, content)
+        }
+
         fun <U : Any> copy(
-            name: String = getName(),
-            refNode: Identified? = this.refNode,
-            refName: String = getRefName()!!,
-            path: String? = getPath(),
+            name: String = this.name,
+            refNode: Identified?,
+            refName: String = this.refName,
+            path: String? = this.path,
             deserializer: DeserializationStrategy<U>,
             nsContext: Iterable<Namespace> = originalNSContext
         ): DefineType<U> {
-            return DefineType(name, refNode, refName, path, deserializer, nsContext)
+            return DefineType(name, refNode?.id, refName, path, deserializer, CompactFragment(nsContext,""))
+        }
+
+        fun <U : Any> copy(
+            name: String = this.name,
+            refName: String = this.refName,
+            path: String? = this.path,
+            deserializer: DeserializationStrategy<U>,
+            nsContext: Iterable<Namespace> = originalNSContext
+        ): DefineType<U> {
+            return DefineType(name, refNode, refName, path, deserializer, CompactFragment(nsContext, ""))
         }
 
     }

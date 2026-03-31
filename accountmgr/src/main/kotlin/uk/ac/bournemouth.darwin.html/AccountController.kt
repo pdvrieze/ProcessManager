@@ -23,7 +23,6 @@ import io.github.pdvrieze.darwin.servlet.support.htmlAccepted
 import kotlinx.html.*
 import net.devrieze.util.nullIfNot
 import net.devrieze.util.overrideIf
-import nl.adaptivity.xmlutil.XmlStreaming
 import nl.adaptivity.xmlutil.XmlWriter
 import nl.adaptivity.xmlutil.smartStartTag
 import nl.adaptivity.xmlutil.writeAttribute
@@ -51,6 +50,8 @@ import jakarta.servlet.http.Cookie
 import jakarta.servlet.http.HttpServlet
 import jakarta.servlet.http.HttpServletRequest
 import jakarta.servlet.http.HttpServletResponse
+import nl.adaptivity.xmlutil.newWriter
+import nl.adaptivity.xmlutil.xmlStreaming
 
 
 //internal const val MAXTOKENLIFETIME = 864000 /* Ten days */
@@ -265,7 +266,7 @@ class AccountController : HttpServlet() {
                 resp.contentType = "text/xml"
                 resp.characterEncoding="UTF8"
                 resp.outputStream.use {
-                    XmlStreaming.newWriter(it, "UTF8").use { writer ->
+                    xmlStreaming.newWriter(it, "UTF8").use { writer ->
                         writer.startDocument(null, null, null)
                         info.toXmlWriter(writer)
                         writer.endDocument()

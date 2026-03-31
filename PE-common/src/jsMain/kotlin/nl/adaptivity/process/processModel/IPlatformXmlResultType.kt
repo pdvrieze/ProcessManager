@@ -24,12 +24,12 @@ import org.w3c.dom.Node
 @Serializable(with = IPlatformXmlResultType.Serializer::class)
 actual interface IPlatformXmlResultType: IXmlResultType {
 
-    fun applyData(payload: Node?): ProcessData
+//    fun applyData(payload: Node?): ProcessData
 
-    object Serializer : DelegatingSerializer<IXmlResultType, XmlResultType>(XmlResultType.serializer()) {
-        override fun fromDelegate(delegate: XmlResultType): IXmlResultType = delegate
+    object Serializer : DelegatingSerializer<IPlatformXmlResultType, XmlResultType>("nl.adaptivity.process.processModel.IPlatformXmlResultType", XmlResultType.serializer()) {
+        override fun fromDelegate(delegate: XmlResultType): IPlatformXmlResultType = delegate
 
-        override fun IXmlResultType.toDelegate(): XmlResultType {
+        override fun IPlatformXmlResultType.toDelegate(): XmlResultType {
             return this as? XmlResultType ?: XmlResultType(this)
         }
     }

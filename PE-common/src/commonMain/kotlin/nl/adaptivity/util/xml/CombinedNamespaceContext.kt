@@ -22,7 +22,7 @@ import nl.adaptivity.xmlutil.*
 class CombinedNamespaceContext(
     val primary: NamespaceContext,
     val secondary: NamespaceContext
-) : NamespaceContextImpl {
+) : NamespaceContext {
 
     override fun getNamespaceURI(prefix: String): String? {
         val namespaceURI = primary.getNamespaceURI(prefix)
@@ -44,8 +44,8 @@ class CombinedNamespaceContext(
     )
     @Suppress("OverridingDeprecatedMember")
     override fun getPrefixes(namespaceURI: String): Iterator<String> {
-        val prefixes1 = primary.prefixesFor(namespaceURI)
-        val prefixes2 = secondary.prefixesFor(namespaceURI)
+        val prefixes1 = primary.getPrefixes(namespaceURI)
+        val prefixes2 = secondary.getPrefixes(namespaceURI)
         val prefixes = hashSetOf<String>()
         while (prefixes1.hasNext()) {
             prefixes.add(prefixes1.next())

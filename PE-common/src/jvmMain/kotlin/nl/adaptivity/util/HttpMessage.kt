@@ -379,7 +379,7 @@ class HttpMessage {
                 val xml: Document
 
                 val isXml =
-                    XmlStreaming.newReader(InputStreamReader(ByteArrayInputStream(bytes), characterEncoding!!)).isXml()
+                    xmlStreaming.newReader(ByteArrayInputStream(bytes), characterEncoding!!.name()).isXml()
 
                 if (!isXml) {
                     addByteContent(bytes, request.contentType)

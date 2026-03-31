@@ -18,7 +18,6 @@ package nl.adaptivity.diagram.svg
 
 import io.github.pdvrieze.xmlutil.testutil.assertXmlEquals
 import nl.adaptivity.diagram.Rectangle
-import nl.adaptivity.xmlutil.core.impl.newWriter
 import nl.adaptivity.xmlutil.newWriter
 import nl.adaptivity.xmlutil.xmlStreaming
 import org.junit.jupiter.api.Assertions

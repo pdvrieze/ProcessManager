@@ -53,7 +53,7 @@ private object WebProcess1Config : TraceTest.ConfigBase() {
 
             val ac1 by activity(split1) {
                 label = "Analyze insurance agreement"
-                result { name = "result"; path = "/" }
+                result("result") { path = "/" }
             }
 
             val split2 by split(ac1) {
@@ -63,7 +63,7 @@ private object WebProcess1Config : TraceTest.ConfigBase() {
 
             val ac2 by activity(split1) {
                 label = "Offer immediate help"
-                result { name = "result"; path = "/" }
+                result("result") { path = "/" }
             }
 
             val split3 by split(ac2) {
@@ -149,7 +149,7 @@ private object WebProcess1Config2 : TraceTest.ConfigBase() {
 
             val ac1 by activity(split1) {
                 label = "Analyze insurance agreement"
-                result { name = "result"; path = "/" }
+                result("result") { path = "/" }
             }
 
             val split2 by split(ac1) {
@@ -159,7 +159,7 @@ private object WebProcess1Config2 : TraceTest.ConfigBase() {
 
             val ac2 by activity(split1) {
                 label = "Offer immediate help"
-                result { name = "result"; path = "/" }
+                result("result") { path = "/" }
             }
 
             val split3 by split(ac2) {

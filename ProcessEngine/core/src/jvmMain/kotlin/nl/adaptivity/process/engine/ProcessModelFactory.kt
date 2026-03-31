@@ -39,8 +39,8 @@ import nl.adaptivity.process.engine.db.ProcessEngineDB
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
 import nl.adaptivity.process.processModel.engine.PMHandle
 import nl.adaptivity.process.processModel.engine.XmlProcessModel
-import nl.adaptivity.xmlutil.XmlStreaming
 import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.xmlStreaming
 import java.io.StringReader
 
 
@@ -64,7 +64,7 @@ internal class ProcessModelFactory() :
         val handle = pm.pmhandle.value(row)
 
         val r: XmlProcessModel.Builder = pm.model.nullableValue(row)?.let {
-            XmlProcessModel.Builder.deserialize(XmlStreaming.newReader(StringReader(it))).also { xmlModel ->
+            XmlProcessModel.Builder.deserialize(xmlStreaming.newReader(it)).also { xmlModel ->
                 xmlModel.handle = handle.handleValue
             }
         } ?: XmlProcessModel.Builder().apply {

@@ -29,6 +29,7 @@ import nl.adaptivity.process.engine.impl.getClass
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.util.multiplatform.randomUUID
 import nl.adaptivity.xmlutil.XmlReader
+import nl.adaptivity.xmlutil.serialization.FormatCache
 import nl.adaptivity.xmlutil.serialization.XML
 
 typealias PMHandle=Handle<SecureObject<ExecutableProcessModel>>
@@ -110,7 +111,7 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode>,
         @JvmStatic
         fun deserialize(reader: XmlReader): ExecutableProcessModel {
             return ExecutableProcessModel(
-                XML { recommended_0_90_2 { isCachingEnabled = false } }.decodeFromReader<XmlProcessModel.Builder>(
+                XML.v1 { policy { formatCache = FormatCache.Dummy } }.decodeFromReader<XmlProcessModel.Builder>(
                     reader
                 )
             )

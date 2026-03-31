@@ -38,6 +38,7 @@ import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 import nl.adaptivity.xmlutil.xmlserializable.XmlDeserializer
+import nl.adaptivity.xmlutil.xmlserializable.XmlSerializable
 import org.w3c.dom.Node
 import org.w3c.dom.NodeList
 import java.io.*
@@ -292,8 +293,8 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
                 val factory = parameterJavaClass.getAnnotation(XmlDeserializer::class.java)
                 if (factory != null) {
                     try {
-                        result = factory.value.java.newInstance()
-                            .deserialize(XmlStreaming.newReader(DOMSource(result as Node?)))
+                        result = factory.value.java.getDeclaredConstructor().newInstance()
+                            .deserialize(xmlStreaming.newReader(result))
                     } catch (e: IllegalAccessException) {
                         throw XmlException(e)
                     } catch (e: InstantiationException) {
@@ -334,7 +335,7 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
                 pResponse.contentType = "text/xml"
                 XMLOutputFactory.newInstance().let { factory ->
                     factory.setProperty(XMLOutputFactory.IS_REPAIRING_NAMESPACES, java.lang.Boolean.TRUE)
-                    XmlStreaming.newWriter(pResponse.outputStream, pResponse.characterEncoding, true).use { out ->
+                    xmlStreaming.newWriter(pResponse.outputStream, pResponse.characterEncoding, true).use { out ->
                         out.startDocument(null, null, null)
                         value.serialize(out)
                         out.endDocument()
@@ -377,7 +378,7 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
             // By default don't use JAXB
             setContentType(pResponse, "text/xml")
             OutputStreamWriter(pResponse.outputStream, pResponse.characterEncoding).use { writer ->
-                XmlStreaming.newWriter(writer).use { xmlWriter ->
+                xmlStreaming.newWriter(writer).use { xmlWriter ->
                     result.serialize(xmlWriter)
                 }
             }
@@ -385,7 +386,7 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
         }
         if (result is SerializableData<*>) {
             setContentType(pResponse, "text/xml")
-            XmlStreaming.newWriter(pResponse.writer).use { writer ->
+            xmlStreaming.newWriter(pResponse.writer).use { writer ->
                 result.encodeToWriter(writer, xmlFormat)
             }
             return
@@ -452,7 +453,7 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
 
         try {
             // As long as JAXB is an option, we have to know that this is a StAXWriter as JAXB needs to write to that.
-            XmlStreaming.newWriter(outputStream, "UTF-8").use { xmlWriter ->
+            xmlStreaming.newWriter(outputStream, "UTF-8").use { xmlWriter ->
 
                 var marshaller: Marshaller? = null
                 xmlWriter.smartStartTag(outerTagName) {
@@ -578,7 +579,7 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
                         if (deserializer != null) {
                             return XML.Companion.decodeFromReader(
                                 deserializer,
-                                XmlStreaming.newReader(DOMSource(n))
+                                xmlStreaming.newReader(n)
                             ) as T
                         } else {
                             return JAXB.unmarshal(DOMSource(match), paramType)

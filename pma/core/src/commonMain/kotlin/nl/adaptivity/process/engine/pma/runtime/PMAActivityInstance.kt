@@ -64,7 +64,7 @@ class PMAActivityInstance <C : PmaActivityContext<C>> : ProcessNodeInstance<PMAA
                 @Suppress("UNCHECKED_CAST")
                 val node: IPMAMessageActivity<AIC> = node as IPMAMessageActivity<AIC>
 
-                val message = node.message ?: XmlMessage()
+                val message = node.message ?: XmlMessage.EMPTY
                 val aic = contextFactory.newActivityInstanceContext(engineData, this)
 
                 val authorizations = node.authorizationTemplates.mapNotNull { it.instantiateScope(aic) }

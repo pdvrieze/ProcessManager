@@ -16,8 +16,9 @@
 
 package nl.adaptivity.process.engine.impl
 
-import nl.adaptivity.xmlutil.XmlStreaming
 import nl.adaptivity.xmlutil.XmlWriter
+import nl.adaptivity.xmlutil.newWriter
+import nl.adaptivity.xmlutil.xmlStreaming
 import java.io.CharArrayWriter
 import javax.xml.bind.JAXB
 import javax.xml.bind.JAXBElement
@@ -45,7 +46,7 @@ actual inline fun generateXmlString(
                                    ): CharArray {
     val caw = CharArrayWriter()
     caw.use {
-        XmlStreaming.newWriter(caw, repairNamespaces = repairNamespaces).use { writer ->
+        xmlStreaming.newWriter(caw, repairNamespaces = repairNamespaces).use { writer ->
             generator(writer)
         }
     }

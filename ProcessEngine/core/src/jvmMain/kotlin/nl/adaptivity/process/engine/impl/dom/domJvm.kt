@@ -14,13 +14,15 @@
  * see <http://www.gnu.org/licenses/>.
  */
 
+@file:OptIn(ExperimentalXmlUtilApi::class)
+
 package nl.adaptivity.process.engine.impl.dom
 
-import nl.adaptivity.process.engine.impl.Result
-import nl.adaptivity.process.engine.impl.Source
 import nl.adaptivity.util.DomUtil
-import nl.adaptivity.xmlutil.XmlStreaming
+import nl.adaptivity.xmlutil.ExperimentalXmlUtilApi
+import nl.adaptivity.xmlutil.XmlWriter
 import nl.adaptivity.xmlutil.util.ICompactFragment
+import nl.adaptivity.xmlutil.xmlStreaming
 import javax.xml.namespace.QName
 import javax.xml.xpath.XPathFactory
 
@@ -42,8 +44,10 @@ actual typealias XPathExpression = javax.xml.xpath.XPathExpression
 actual typealias XPath = javax.xml.xpath.XPath
 actual fun newXPath(): XPath = XPathFactory.newInstance().newXPath()
 
-actual fun Result.newWriter() = XmlStreaming.newWriter(this)
-actual fun Source.newReader() = XmlStreaming.newReader(this)
+actual fun DOMResult.newWriter(): XmlWriter = xmlStreaming.newWriter(node)
+
+
+actual fun DOMSource.newReader() = xmlStreaming.newReader(node)
 
 actual object XPathConstants {
     actual val NUMBER: QName = javax.xml.xpath.XPathConstants.NUMBER

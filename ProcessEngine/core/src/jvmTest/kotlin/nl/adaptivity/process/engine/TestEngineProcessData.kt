@@ -23,11 +23,13 @@ import kotlinx.serialization.modules.SerializersModule
 import net.devrieze.util.readString
 import nl.adaptivity.process.engine.impl.dom.toDocumentFragment
 import nl.adaptivity.process.engine.processModel.applyData
-import nl.adaptivity.process.processModel.*
-import nl.adaptivity.process.processModel.engine.*
+import nl.adaptivity.process.processModel.IPlatformXmlResultType
+import nl.adaptivity.process.processModel.XmlResultType
+import nl.adaptivity.process.processModel.engine.XmlActivity
+import nl.adaptivity.process.processModel.engine.XmlProcessModel
 import nl.adaptivity.process.util.Constants
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.core.impl.newReader
+import nl.adaptivity.xmlutil.serialization.FormatCache
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.CompactFragment
 import org.junit.jupiter.api.Assertions.*
@@ -49,7 +51,6 @@ import javax.xml.parsers.ParserConfigurationException
 import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathFactory
 import kotlin.reflect.KClass
-import kotlin.test.assertContains
 
 
 /**
@@ -96,7 +97,7 @@ class TestEngineProcessData {
             "<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>"
         )
         val xPath = XPathFactory.newInstance().newXPath()
-        xPath.namespaceContext = SimpleNamespaceContext.from(result.originalNSContext)
+        xPath.namespaceContext = SimpleNamespaceContext.from(result.content.namespaces)
         val pathExpression = xPath.compile(expression)
         val apply2 = pathExpression.evaluate(testData.toDocumentFragment(), XPathConstants.NODESET) as NodeList
         assertNotNull(apply2)
@@ -128,7 +129,7 @@ class TestEngineProcessData {
             input.toCharArray()
         )
         val caw = CharArrayWriter()
-        val out = XmlStreaming.newWriter(caw, true)
+        val out = xmlStreaming.newWriter(caw, true)
         transformer.transform(cf.getXmlReader(), out)
         out.close()
         run {
@@ -182,7 +183,7 @@ class TestEngineProcessData {
         private fun getProcessModel(name: String): XmlProcessModel {
             getDocument(name).use { inputStream ->
                 val input = xmlStreaming.newReader(inputStream, "UTF-8")
-                return XML { recommended_0_90_2 { isCachingEnabled = false } }.decodeFromReader(XmlProcessModel.serializer(), input)
+                return XML.v1 { policy { formatCache = FormatCache.Dummy } }.decodeFromReader(XmlProcessModel.serializer(), input)
             }
         }
 
@@ -213,11 +214,11 @@ class TestEngineProcessData {
                 expected = reader.readString(Charset.defaultCharset())
                 streamReaderFactory = {
                     reader.reset()
-                    XmlStreaming.newReader(reader, Charset.defaultCharset().toString())
+                    xmlStreaming.newReader(reader, Charset.defaultCharset().toString())
                 }
             } else {
                 expected = reader.readString(Charset.defaultCharset())
-                streamReaderFactory = { XmlStreaming.newReader(StringReader(expected)) }
+                streamReaderFactory = { xmlStreaming.newReader(StringReader(expected)) }
             }
 
             return testRoundTripCombined<T>(
@@ -238,7 +239,7 @@ class TestEngineProcessData {
             testObject: (T) -> Unit = {}
         ): String {
             return testRoundTripCombined(
-                xml, { XmlStreaming.newReader(StringReader(xml)) }, target,
+                xml, { xmlStreaming.newReader(StringReader(xml)) }, target,
                 serializer = serializer,
                 serialModule = serialModule,
                 testObject = testObject
@@ -259,7 +260,7 @@ class TestEngineProcessData {
             testObject: (T) -> Unit = {}
         ): String {
             return testRoundTripCombined(
-                xml, { XmlStreaming.newReader(StringReader(xml)) }, target, serializer = serializer,
+                xml, { xmlStreaming.newReader(StringReader(xml)) }, target, serializer = serializer,
                 serialModule = serialModule,
                 repairNamespaces = repairNamespaces,
                 omitXmlDecl = omitXmlDecl
@@ -278,7 +279,7 @@ class TestEngineProcessData {
             testObject: (T) -> Unit = {}
         ): String {
             return testRoundTripCombined(
-                xml, { XmlStreaming.newReader(StringReader(xml)) }, target,
+                xml, { xmlStreaming.newReader(StringReader(xml)) }, target,
                 serializer = serializer,
                 serialModule = serialModule,
                 testObject = testObject
@@ -300,7 +301,7 @@ class TestEngineProcessData {
             testObject: (T) -> Unit = {}
         ): String {
             return testRoundTripCombined(
-                xml, { XmlStreaming.newReader(StringReader(xml)) }, target, serializer,
+                xml, { xmlStreaming.newReader(StringReader(xml)) }, target, serializer,
                 serialModule,
                 repairNamespaces = repairNamespaces,
                 omitXmlDecl = omitXmlDecl
@@ -341,11 +342,10 @@ class TestEngineProcessData {
             testObject: (T) -> Unit = {}
         ): String {
             assertNotNull(reader)
-            val xml = XML(serialModule) {
+            val xml = XML.v1(serialModule) {
                 this.repairNamespaces = repairNamespaces
-                this.omitXmlDecl = omitXmlDecl
-                this.indent = 4
-                this.autoPolymorphic = true
+                xmlDeclMode = XmlDeclMode.from(omitXmlDecl)
+                setIndent(4)
             }
             val obj = xml.decodeFromReader(target, reader)
             testObject(obj)

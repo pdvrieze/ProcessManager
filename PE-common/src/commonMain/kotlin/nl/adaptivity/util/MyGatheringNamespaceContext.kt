@@ -23,7 +23,7 @@ import nl.adaptivity.xmlutil.*
 internal class MyGatheringNamespaceContext(
     private val resultMap: MutableMap<String, String>,
     private vararg val parentContext: NamespaceContext
-) : NamespaceContextImpl, IterableNamespaceContext {
+) : NamespaceContext, IterableNamespaceContext {
 
     override fun iterator(): Iterator<Namespace> {
         return resultMap.map { nameSpace(it.key, it.value) }.iterator()
@@ -60,7 +60,7 @@ internal class MyGatheringNamespaceContext(
     )// Somehow this type has no proper generic parameter
     override fun getPrefixes(namespaceURI: String): Iterator<String> {
         return parentContext
-            .flatMap { it.prefixesFor(namespaceURI).asSequence() }
+            .flatMap { it.getPrefixes(namespaceURI).asSequence() }
             .apply {
                 if (namespaceURI != XMLConstants.XMLNS_ATTRIBUTE_NS_URI && namespaceURI != XMLConstants.XML_NS_URI) {
                     for (prefix in this) {

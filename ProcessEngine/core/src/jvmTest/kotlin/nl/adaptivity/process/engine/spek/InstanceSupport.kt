@@ -16,8 +16,6 @@
 
 package nl.adaptivity.process.engine.spek
 
-import kotlinx.serialization.SerializationException
-import kotlinx.serialization.encodeToString
 import net.devrieze.util.writer
 import nl.adaptivity.process.engine.*
 import nl.adaptivity.process.engine.processModel.CompositeInstance
@@ -27,10 +25,8 @@ import nl.adaptivity.process.engine.processModel.SecureProcessNodeInstance
 import nl.adaptivity.process.processModel.EndNode
 import nl.adaptivity.process.processModel.StartNode
 import nl.adaptivity.process.util.Identified
-import nl.adaptivity.xmlutil.XmlStreaming
 import nl.adaptivity.xmlutil.newWriter
 import nl.adaptivity.xmlutil.serialization.XML
-import nl.adaptivity.xmlutil.serialization.defaultSharedFormatCache
 import nl.adaptivity.xmlutil.xmlStreaming
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertTrue

@@ -22,9 +22,10 @@ import net.devrieze.util.ReaderInputStream
 import net.devrieze.util.security.SimplePrincipal
 import nl.adaptivity.process.engine.processModel.NodeInstanceState
 import nl.adaptivity.process.engine.processModel.NodeInstanceState.Complete
+import nl.adaptivity.xmlutil.ExperimentalXmlUtilApi
 import nl.adaptivity.xmlutil.XmlException
-import nl.adaptivity.xmlutil.XmlStreaming
 import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.xmlStreaming
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.BeforeEach
@@ -35,9 +36,9 @@ import java.io.StringReader
 import java.nio.charset.Charset
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.parsers.ParserConfigurationException
-import javax.xml.transform.dom.DOMSource
 
 
+@OptIn(ExperimentalXmlUtilApi::class)
 class TestXmlTask {
 
     private lateinit var sampleTask: XmlTask
@@ -82,8 +83,9 @@ class TestXmlTask {
     @Test
     @Throws(XmlException::class)
     fun testDeserialize() {
-        val reader = StringReader("<task state=\"Complete\" xmlns=\"http://adaptivity.nl/userMessageHandler\" />")
-        val result = XmlStreaming.deSerialize(reader, XmlTask::class.java)
+        val source = "<task state=\"Complete\" xmlns=\"http://adaptivity.nl/userMessageHandler\" />"
+
+        val result = XML.v1.decodeFromString<XmlTask>(source)
         Assertions.assertEquals(Complete, result.state)
         Assertions.assertEquals(-1L, result.handleValue)
         Assertions.assertEquals(Handle.invalid<Any>(), result.handle)
@@ -114,9 +116,9 @@ class TestXmlTask {
 
     @Test
     fun testDeserialize3() {
-        val reader =
-            StringReader("<task handle='1' instancehandle='3' summary='bar' state=\"Complete\" xmlns=\"http://adaptivity.nl/userMessageHandler\"><item name='one' type='label' value='two'><option>three</option><option>four</option></item></task>")
-        val result = XmlStreaming.deSerialize(reader, XmlTask::class.java)
+        val source =
+            "<task handle='1' instancehandle='3' summary='bar' state=\"Complete\" xmlns=\"http://adaptivity.nl/userMessageHandler\"><item name='one' type='label' value='two'><option>three</option><option>four</option></item></task>"
+        val result = XML.v1.decodeFromString<XmlTask>(source)
         Assertions.assertEquals(Complete, result.state)
         Assertions.assertEquals(1L, result.handleValue)
         Assertions.assertEquals(Handle<Any>(1L), result.handle)
@@ -147,7 +149,7 @@ class TestXmlTask {
         val root = doc.documentElement
         Assertions.assertEquals("task", root.tagName)
 
-        val result = XmlStreaming.deSerialize(DOMSource(root), XmlTask::class.java)
+        val result = XML.v1.decodeFromReader<XmlTask>(xmlStreaming.newReader(root))
         Assertions.assertEquals(Complete, result.state)
         Assertions.assertEquals(-1L, result.handleValue)
         Assertions.assertEquals(Handle.invalid<Any>(), result.handle)

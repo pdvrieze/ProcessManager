@@ -17,14 +17,9 @@
 package nl.adaptivity.process.util
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
-import kotlinx.serialization.*
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.serialutil.DelegatingSerializer
-import nl.adaptivity.serialutil.simpleSerialClassDesc
 
 /**
  * Created by pdvrieze on 04/12/16.
@@ -36,9 +31,7 @@ interface Identified : Identifiable {
     override val identifier: Identifier
         get() = Identifier(id)
 
-    companion object: DelegatingSerializer<Identified, String>(String.serializer()) {
-        override val descriptor: SerialDescriptor = SerialDescriptor("nl.adaptivity.process.util.Identified", String.serializer().descriptor)
-
+    companion object: DelegatingSerializer<Identified, String>("nl.adaptivity.process.util.Identified", String.serializer()) {
         override fun fromDelegate(delegate: String): Identified = Identifier(delegate)
 
         override fun Identified.toDelegate(): String = id

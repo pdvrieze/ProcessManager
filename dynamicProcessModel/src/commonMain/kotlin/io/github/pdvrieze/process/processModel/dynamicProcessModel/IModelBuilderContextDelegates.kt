@@ -4,7 +4,6 @@ import kotlinx.serialization.KSerializer
 import nl.adaptivity.process.processModel.CompositeActivity
 import nl.adaptivity.process.processModel.ProcessModel
 import nl.adaptivity.process.processModel.ProcessNode
-import nl.adaptivity.process.processModel.name
 import nl.adaptivity.process.util.Identified
 import kotlin.reflect.KProperty
 

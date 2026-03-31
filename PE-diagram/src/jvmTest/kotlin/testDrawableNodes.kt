@@ -16,10 +16,12 @@
 
 import nl.adaptivity.diagram.svg.JVMTextMeasurer
 import nl.adaptivity.diagram.svg.SVGCanvas
-import nl.adaptivity.xmlutil.XmlStreaming
-import java.io.StringWriter
 import nl.adaptivity.process.diagram.*
-import kotlin.test.*
+import nl.adaptivity.xmlutil.newWriter
+import nl.adaptivity.xmlutil.xmlStreaming
+import java.io.StringWriter
+import kotlin.test.Test
+import kotlin.test.assertEquals
 
 class NodeTest {
   @Test
@@ -72,7 +74,7 @@ class NodeTest {
 
   fun testDrawNode(node: DrawableProcessNode.Builder<*>): String {
     return StringWriter().also {
-      XmlStreaming.newWriter(it).use { xmlWriter ->
+      xmlStreaming.newWriter(it).use { xmlWriter ->
         val canvas = SVGCanvas(JVMTextMeasurer())
         val bounds = node.bounds
         node.x = bounds.width / 2.0

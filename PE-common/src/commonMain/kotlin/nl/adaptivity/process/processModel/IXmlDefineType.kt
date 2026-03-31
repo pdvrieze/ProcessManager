@@ -24,79 +24,46 @@ import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.serialutil.DelegatingSerializer
 import nl.adaptivity.xmlutil.IterableNamespaceContext
-import nl.adaptivity.xmlutil.Namespace
+import nl.adaptivity.xmlutil.util.CompactFragment
 
 @Serializable(IXmlDefineType.Serializer::class)
 interface IXmlDefineType {
 
-    val content: CharArray?
+    val content: CompactFragment
 
-    /**
-     * Gets the value of the node property.
-     *
-     * @return possible object is [String]
-     */
-    fun getRefNode(): String?
+    val refNode: String?
 
-    /**
-     * Sets the value of the node property.
-     *
-     * @param value allowed object is [String]
-     */
-    fun setRefNode(value: String?)
+    val refName: String?
 
-    /**
-     * Gets the value of the name property.
-     *
-     * @return possible object is [String]
-     */
-    fun getRefName(): String?
 
-    /**
-     * Sets the value of the name property.
-     *
-     * @param value allowed object is [String]
-     */
-    fun setRefName(value: String?)
+    val name: String
 
-    /**
-     * Gets the value of the paramName property.
-     *
-     * @return possible object is [String]
-     */
-    fun getName(): String
-
-    /**
-     * Sets the value of the paramName property.
-     *
-     * @param value allowed object is [String]
-     */
-    fun setName(value: String)
-
-    /**
-     * Gets the value of the path property.
-     *
-     * @return possible object is [String]
-     */
-    fun getPath(): String?
+    val path: String?
 
     /**
      * Get the namespace context that defines the "missing" namespaces in the content.
      * @return
      */
-    val originalNSContext: IterableNamespaceContext
+    val originalNSContext: IterableNamespaceContext get() = content.namespaces
 
     fun copy(
-        name: String = getName(),
-        refNode: String? = getRefNode(),
-        refName: String? = getRefName(),
-        path: String? = getPath(),
-        content: CharArray? = this.content,
+        name: String = this.name,
+        refNode: String? = this.refNode,
+        refName: String? = this.refName,
+        path: String? = this.path,
+        content: CharArray? = this.content.content,
         nsContext: IterableNamespaceContext = originalNSContext
     ): IXmlDefineType
 
-    private class Serializer : DelegatingSerializer<IXmlDefineType, XmlDefineType>(XmlDefineType.serializer()) {
-        override val descriptor: SerialDescriptor = SerialDescriptor("nl.adaptivity.process.processModel.IXmlDefineType", delegateSerializer.descriptor)
+    fun copy(
+        name: String = this.name,
+        refNode: String? = this.refNode,
+        refName: String? = this.refName,
+        path: String? = this.path,
+        content: CompactFragment = this.content,
+    ): IXmlDefineType
+
+    private class Serializer : DelegatingSerializer<IXmlDefineType, XmlDefineType>("nl.adaptivity.process.processModel.IXmlDefineType", XmlDefineType.serializer()) {
 
         override fun fromDelegate(delegate: XmlDefineType): IXmlDefineType = delegate
         override fun IXmlDefineType.toDelegate(): XmlDefineType =
@@ -105,23 +72,14 @@ interface IXmlDefineType {
 
 }
 
-var IXmlDefineType.refNode: String?
-    inline get() = getRefNode()
-    inline set(value) {
-        setRefNode(value)
-    }
+val IXmlDefineType.refNode: String?
+    inline get() = refNode
 
-var IXmlDefineType.refName: String?
-    inline get() = getRefName()
-    inline set(value) {
-        setRefName(value)
-    }
+val IXmlDefineType.refName: String?
+    inline get() = refName
 
-var IXmlDefineType.name: String
-    inline get() = getName()
-    inline set(value) {
-        setName(value)
-    }
+val IXmlDefineType.name: String
+    inline get() = name
 
 
 object IXmlDefineTypeListSerializer : KSerializer<List<IXmlDefineType>> {

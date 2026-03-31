@@ -36,7 +36,6 @@ import nl.adaptivity.util.multiplatform.toUri
 import nl.adaptivity.util.net.devrieze.serializers.URISerializer
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.core.impl.multiplatform.name
-import nl.adaptivity.xmlutil.serialization.CompactFragmentSerializer
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.CompactFragment
 
@@ -103,7 +102,7 @@ class Header(
     }
 
     companion object : KSerializer<Header> {
-        private val blockSerializer = ListSerializer(CompactFragmentSerializer)
+        private val blockSerializer = ListSerializer(CompactFragment.serializer())
 
         @OptIn(ExperimentalSerializationApi::class, nl.adaptivity.xmlutil.XmlUtilInternal::class)
         override val descriptor: SerialDescriptor = buildClassSerialDescriptor(Header::class.name) {
@@ -145,7 +144,7 @@ class Header(
                         when (idx) {
                             0 -> encodingStyle = decodeSerializableElement(descriptor, idx, URISerializer, encodingStyle)
                             1 -> otherAttributes = decodeSerializableElement(descriptor, idx, SoapSerialObjects.attrsSerializer, otherAttributes)
-                            2 -> blocks = decodeSerializableElement(descriptor, idx, ListSerializer(CompactFragmentSerializer)).map { UnsupportedBlock(it) }
+                            2 -> blocks = decodeSerializableElement(descriptor, idx, ListSerializer(CompactFragment.serializer())).map { UnsupportedBlock(it) }
                         }
                     }
                 }

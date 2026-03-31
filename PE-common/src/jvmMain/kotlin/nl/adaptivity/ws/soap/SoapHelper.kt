@@ -25,8 +25,11 @@ import nl.adaptivity.io.WritableReader
 import nl.adaptivity.messaging.MessagingException
 import nl.adaptivity.xmlutil.util.ICompactFragment
 import nl.adaptivity.util.DomUtil
+import nl.adaptivity.util.activation.toInputStream
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.xmlserializable.XmlDeserializer
+import nl.adaptivity.xmlutil.xmlserializable.XmlDeserializerFactory
+import nl.adaptivity.xmlutil.xmlserializable.XmlSerializable
 import org.w3.soapEnvelope.Envelope
 import org.w3.soapEnvelope.Header
 import org.w3c.dom.Document
@@ -42,7 +45,6 @@ import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.parsers.ParserConfigurationException
 import javax.xml.transform.Source
-import javax.xml.transform.dom.DOMResult
 import javax.xml.transform.dom.DOMSource
 import java.lang.reflect.InvocationTargetException
 import java.lang.reflect.Method
@@ -102,7 +104,7 @@ object SoapHelper {
         fun <T> deserialize(target: Class<T>, deserializer: Class<out XmlDeserializerFactory<out T>>, value: Node): T {
             try {
                 val factory = deserializer.newInstance()
-                return target.cast(factory.deserialize(XmlStreaming.newReader(DOMSource(value))))
+                return target.cast(factory.deserialize(xmlStreaming.newReader(value)))
             } catch (e: InstantiationException) {
                 throw XmlException(e)
             } catch (e: IllegalAccessException) {
@@ -182,7 +184,7 @@ object SoapHelper {
             }
             if (headerElem is XmlSerializable) {
                 try {
-                    val out = XmlStreaming.newWriter(DOMResult(header))
+                    val out = xmlStreaming.newWriter(header)
                     headerElem.serialize(out)
                 } catch (e: MessagingException) {
                     throw e
@@ -273,7 +275,7 @@ object SoapHelper {
         } else if (Types.isPrimitive(paramType) || Types.isPrimitiveWrapper(paramType)) {
             wrapper.appendChild(ownerDoc.createTextNode(pParam.elem3.toString()))
         } else if (XmlSerializable::class.java.isAssignableFrom(paramType)) {
-            val xmlWriter = XmlStreaming.newWriter(DOMResult(wrapper))
+            val xmlWriter = xmlStreaming.newWriter(wrapper)
             (pParam.elem3 as XmlSerializable).serialize(xmlWriter)
             xmlWriter.close()
         } else if (Collection::class.java.isAssignableFrom(paramType)) {
@@ -315,6 +317,7 @@ object SoapHelper {
         return wrapper
     }
 
+    @Deprecated("Avoid using Source types.")
     @Throws(XmlException::class)
     fun <T> processResponse(
         resultType: Class<T>,
@@ -322,8 +325,8 @@ object SoapHelper {
         useSiteAnnotations: Array<Annotation>,
         source: Source
     ): T? {
-        val `in` = XmlStreaming.newReader(source)
-        val env = Envelope.deserialize(`in`)
+        val input = xmlStreaming.newReader(source.toInputStream())
+        val env = Envelope.deserialize(input)
         return processResponse(resultType, context, useSiteAnnotations, env)
     }
 
@@ -365,7 +368,7 @@ object SoapHelper {
         useSiteAnnotations: Array<Annotation>,
         content: Writable
     ): T? {
-        val env = Envelope.deserialize(XmlStreaming.newReader(WritableReader(content)))
+        val env = Envelope.deserialize(xmlStreaming.newReader(WritableReader(content)))
         return processResponse(resultType, context, useSiteAnnotations, env)
     }
 

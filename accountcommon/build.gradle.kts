@@ -26,6 +26,7 @@ plugins {
 description = "A library that abstracts away the access to the account database through a nicer api"
 
 dependencies {
+
     api(libs.kotlinsql.monadic)
 
     implementation(project(":darwin-sql"))
@@ -35,6 +36,10 @@ dependencies {
 
     testRuntimeOnly(libs.junit5.engine)
     testRuntimeOnly(libs.mariadbConnector)
+}
+
+java {
+    targetCompatibility = JavaVersion.toVersion(libs.versions.kotlin.classTarget.get())
 }
 
 kotlin {

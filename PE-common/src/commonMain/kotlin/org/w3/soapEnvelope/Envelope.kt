@@ -39,6 +39,7 @@ import nl.adaptivity.util.multiplatform.toUri
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.core.impl.multiplatform.name
 import nl.adaptivity.xmlutil.serialization.*
+import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 
 /**
@@ -202,7 +203,7 @@ class Envelope<T : Any>(
 
         @kotlin.jvm.JvmStatic
         fun deserialize(reader: XmlReader): Envelope<out ICompactFragment> {
-            return XML { indent=2; autoPolymorphic = true }.decodeFromReader(serializer(CompactFragmentSerializer), reader)
+            return XML.v1 { setIndent(2) }.decodeFromReader(serializer(CompactFragment.serializer()), reader)
         }
 
     }

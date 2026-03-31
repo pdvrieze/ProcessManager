@@ -19,13 +19,16 @@ package nl.adaptivity.process.engine
 import nl.adaptivity.process.engine.impl.JAXBmarshal
 import nl.adaptivity.process.engine.impl.dom.*
 import nl.adaptivity.process.engine.impl.getClass
-import nl.adaptivity.xmlutil.XmlStreaming
+import nl.adaptivity.util.activation.toInputStream
+import nl.adaptivity.xmlutil.newReader
+import nl.adaptivity.xmlutil.newWriter
+import nl.adaptivity.xmlutil.xmlStreaming
 import javax.xml.bind.JAXBElement
 import javax.xml.transform.Result
 import javax.xml.transform.Source
 
-fun PETransformer.transform(source: Source, result: Result) {
-    transform(XmlStreaming.newReader(source), XmlStreaming.newWriter(result, true))
+fun PETransformer.transform(source: Source, result: DOMResult) {
+    transform(xmlStreaming.newReader(source.toInputStream()), result.newWriter())
 }
 
 

@@ -20,11 +20,12 @@ import io.github.pdvrieze.xmlutil.testutil.assertXmlEquals
 import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.XmlResultType
 import nl.adaptivity.process.util.Constants.USER_MESSAGE_HANDLER_NS
-import nl.adaptivity.xmlutil.DomReader
 import nl.adaptivity.xmlutil.SimpleNamespaceContext
 import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlUtilInternal
+import nl.adaptivity.xmlutil.newReader
 import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.xmlStreaming
 import org.junit.jupiter.api.Assertions.assertEquals
 import org.junit.jupiter.api.Assertions.assertNotNull
 import org.junit.jupiter.api.Test
@@ -123,9 +124,9 @@ class TestXmlResultType {
 
         val testHolder = XML.decodeFromString<XmlDefineType>(testData)
 
-        assertNotNull(SimpleNamespaceContext.from(testHolder.originalNSContext))
+        assertNotNull(SimpleNamespaceContext.from(testHolder.content.namespaces))
         assertEquals(
-            USER_MESSAGE_HANDLER_NS, SimpleNamespaceContext.from(testHolder.originalNSContext)
+            USER_MESSAGE_HANDLER_NS, SimpleNamespaceContext.from(testHolder.content.namespaces)
                 .getNamespaceURI("umh")
         )
     }
@@ -138,12 +139,12 @@ class TestXmlResultType {
 
         val testHolder = XML.decodeFromString<XmlResultType>(testData)
 
-        assertNotNull(SimpleNamespaceContext.from(testHolder.originalNSContext))
+        assertNotNull(SimpleNamespaceContext.from(testHolder.content.namespaces))
         assertEquals(
             USER_MESSAGE_HANDLER_NS,
-            SimpleNamespaceContext.from(testHolder.originalNSContext).getNamespaceURI("umh")
+            SimpleNamespaceContext.from(testHolder.content.namespaces).getNamespaceURI("umh")
         )
-        assertEquals("foo" as Any, testHolder.getName())
+        assertEquals("foo" as Any, testHolder.name)
     }
 
     @Test
@@ -172,7 +173,7 @@ class TestXmlResultType {
         val frag = document.createDocumentFragment()
         frag.appendChild(outer)
 
-        assertXmlEquals(DomReader(expected), DomReader(frag))
+        assertXmlEquals(xmlStreaming.newReader(expected), xmlStreaming.newReader(frag))
         //    XMLAssert.assertXMLEqual(expected, document);
 
         val xPath = XPathFactory.newInstance().newXPath()

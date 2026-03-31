@@ -22,7 +22,6 @@ import nl.adaptivity.process.engine.impl.dom.NodeList
 import nl.adaptivity.process.engine.impl.dom.XPathConstants
 import nl.adaptivity.process.engine.impl.dom.toDocumentFragment
 import nl.adaptivity.process.processModel.IPlatformXmlResultType
-import nl.adaptivity.process.processModel.path
 import nl.adaptivity.util.DomUtil
 import nl.adaptivity.xmlutil.SimpleNamespaceContext
 import nl.adaptivity.xmlutil.XmlUtilInternal
@@ -35,13 +34,13 @@ actual fun IPlatformXmlResultType.applyData(payload: ICompactFragment?): Process
     val xPath = this.xPath
     // shortcircuit missing path
     if (payload == null) {
-        return ProcessData(getName(), CompactFragment(""))
+        return ProcessData(name, CompactFragment(""))
     }
-    val processData = if (getPath() == null || "." == getPath()) {
-        ProcessData(getName(), payload)
+    val processData = if (path == null || "." == path) {
+        ProcessData(name, payload)
     } else {
         ProcessData(
-            getName(),
+            name,
             DomUtil.nodeListToFragment(
                 xPath!!.evaluate(
                     payload.toDocumentFragment(),
@@ -52,15 +51,15 @@ actual fun IPlatformXmlResultType.applyData(payload: ICompactFragment?): Process
 
         // TODO check whether this can use work by CompactFragment implementing InputSource instead
     }
-    val content = content
-    if (content?.isNotEmpty() ?: false) {
+    val content = this@applyData.content.content
+    if (content.isNotEmpty()) {
         val transformer = PETransformer.create(SimpleNamespaceContext.from(originalNSContext), processData)
         val reader = transformer.createFilter(bodyStreamReader)
 
         if (reader.hasNext()) reader.next() // Initialise the reader
 
         val transformed = reader.siblingsToFragment()
-        return ProcessData(getName(), transformed)
+        return ProcessData(name, transformed)
     } else {
         return processData
     }

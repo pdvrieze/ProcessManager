@@ -16,34 +16,22 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.builtins.ListSerializer
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.serialutil.DelegatingSerializer
 import nl.adaptivity.xmlutil.Namespace
 import nl.adaptivity.xmlutil.XmlReader
+import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.util.ICompactFragment
 
 @Serializable(with = IXmlResultType.Serializer::class)
 interface IXmlResultType {
 
-    val content: CharArray?
+    val content: CompactFragment
 
-    /**
-     * The value of the name property.
-     */
-    fun getName(): String
+    val name: String
 
-    fun setName(value: String)
-
-    /**
-     * Gets the value of the path property.
-     *
-     * @return possible object is [String]
-     */
-    fun getPath(): String?
+    val path: String?
 
     /**
      * A reader for the underlying body stream.
@@ -54,12 +42,13 @@ interface IXmlResultType {
      * Get the namespace context for evaluating the xpath expression.
      * @return the context
      */
-    val originalNSContext: Iterable<Namespace>
+    val originalNSContext: Iterable<Namespace> get() = content.namespaces
 
-    fun copy(name: String = this.name, path: String? = this.path, content: CharArray? = this.content, originalNSContext: Iterable<Namespace> = this.originalNSContext): IXmlResultType
+    fun copy(name: String = this.name, path: String? = this.path, content: ICompactFragment = this.content): IXmlResultType
 
-    private class Serializer : DelegatingSerializer<IXmlResultType, XmlResultType>(XmlResultType.serializer()) {
-        override val descriptor: SerialDescriptor = SerialDescriptor("nl.adaptivity.process.processModel.IXmlResultType", delegateSerializer.descriptor)
+    fun copy(name: String = this.name, path: String? = this.path, content: CharArray? = this.content.content, originalNSContext: Iterable<Namespace> = this.content?.namespaces ?: emptyList()): IXmlResultType
+
+    private class Serializer : DelegatingSerializer<IXmlResultType, XmlResultType>("nl.adaptivity.process.processModel.IXmlResultType", XmlResultType.serializer()) {
 
         override fun fromDelegate(delegate: XmlResultType): IXmlResultType = delegate
 
@@ -68,31 +57,4 @@ interface IXmlResultType {
         }
     }
 
-}
-
-
-val IXmlResultType.path: String?
-    inline get() = getPath()
-
-var IXmlResultType.name: String
-    inline get(): String = getName()
-    inline set(value) {
-        setName(value)
-    }
-
-fun IXmlResultType.getOriginalNSContext(): Iterable<Namespace> = originalNSContext
-
-object IXmlResultTypeListSerializer : KSerializer<List<IXmlResultType>> {
-    val delegate = ListSerializer(XmlResultType.serializer())
-
-    override val descriptor: SerialDescriptor =
-        SerialDescriptor(IXmlResultType.serializer().descriptor.serialName+".list",delegate.descriptor)
-
-    override fun deserialize(decoder: Decoder): List<IXmlResultType> {
-        return delegate.deserialize(decoder)
-    }
-
-    override fun serialize(encoder: Encoder, value: List<IXmlResultType>) {
-        delegate.serialize(encoder, value.map(::XmlResultType))
-    }
 }

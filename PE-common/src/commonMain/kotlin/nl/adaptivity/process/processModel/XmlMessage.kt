@@ -17,17 +17,18 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.ExperimentalSerializationApi
+import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
+import kotlinx.serialization.SerializationException
 import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
-import nl.adaptivity.messaging.EndpointDescriptorImpl
+import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.messaging.*
 import nl.adaptivity.process.messaging.RESTMethod
 import nl.adaptivity.process.messaging.SOAPMethod
-import nl.adaptivity.util.multiplatform.toUri
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
@@ -48,94 +49,46 @@ import nl.adaptivity.xmlutil.QName as XmlQName
  * The following schema fragment specifies the expected content contained within
  * this class.
  *
- * ```
+ * ```xml
  * <complexType name="Message">
- * <complexContent>
- * <restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
- * <sequence>
- * <any processContents='lax'/>
- * </sequence>
- * <attribute name="serviceNS" type="{http://www.w3.org/2001/XMLSchema}string" />
- * <attribute name="endpoint" type="{http://www.w3.org/2001/XMLSchema}string" />
- * <attribute name="operation" type="{http://www.w3.org/2001/XMLSchema}string" />
- * <attribute name="serviceName" type="{http://www.w3.org/2001/XMLSchema}NCName" />
- * <attribute name="url" type="{http://www.w3.org/2001/XMLSchema}string" />
- * <attribute name="method" type="{http://www.w3.org/2001/XMLSchema}string" />
- * </restriction>
- * </complexContent>
+ *   <complexContent>
+ *     <restriction base="{http://www.w3.org/2001/XMLSchema}anyType">
+ *       <sequence>
+ *         <any processContents='lax'/>
+ *       </sequence>
+ *       <attribute name="serviceNS" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *       <attribute name="endpoint" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *       <attribute name="operation" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *       <attribute name="serviceName" type="{http://www.w3.org/2001/XMLSchema}NCName" />
+ *       <attribute name="url" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *       <attribute name="method" type="{http://www.w3.org/2001/XMLSchema}string" />
+ *     </restriction>
+ *   </complexContent>
  * </complexType>
  * ```
  */
 @Serializable(XmlMessage.Companion::class)
 @XmlSerialName(XmlMessage.ELEMENTLOCALNAME, Engine.NAMESPACE, Engine.NSPREFIX)
-class XmlMessage : XMLContainer, IXmlMessage {
+class XmlMessage private constructor(
+    override val targetMethod: InvokableMethod,
+    messageBody: ICompactFragment,
+) : IXmlMessage {
 
-    override val targetMethod: InvokableMethod
-
-    @OptIn(XmlUtilInternal::class)
-    override val messageBody: CompactFragment
-        get() = CompactFragment(namespaces, content)
-
-    constructor() : this(service = null) { /* default constructor */
-    }
-
-
-    @Deprecated("Use one of the functions explicitly taking a service kind")
-    @OptIn(XmlUtilInternal::class)
-    constructor(
-        service: DescQName? = null,
-        endpoint: String? = null,
-        operation: String? = null,
-        url: String? = null,
-        method: String? = null,
-        contentType: String? = null,
-        messageBody: ICompactFragment? = null
-    ) : super(messageBody ?: CompactFragment("")) {
-        if (service!=null && endpoint != null && operation != null) {
-            targetMethod = SOAPMethodDesc(service, endpoint, operation, url)
-        } else {
-            requireNotNull(method) { "A service must have either soap info or rest info. Method missing."  }
-            requireNotNull(url) { "A service must have either soap info or rest info. url missing."  }
-            requireNotNull(contentType) { "For a Rest service the content type cannot be null" }
-            val descriptor = EndpointDescriptorImpl(service, endpoint, url.toUri())
-            targetMethod = RESTMethodDesc(descriptor, method, contentType)
-        }
-    }
+    override val messageBody = CompactFragment(messageBody)
 
     constructor(
         service: SOAPMethod,
         messageBody: ICompactFragment? = null
-    ) : super(messageBody ?: CompactFragment("")) {
-        this.targetMethod = service
-    }
+    ) : this(targetMethod = service, messageBody= messageBody ?: CompactFragment(""))
 
     constructor(
         service: RESTMethod,
         messageBody: ICompactFragment? = null
-    ) : super(messageBody ?: CompactFragment("")) {
-        this.targetMethod = service
-    }
+    ) : this(targetMethod = service, messageBody = messageBody ?: CompactFragment(""))
 
-    constructor(baseMessage: IXmlMessage, newMessageBody: ICompactFragment) : super(newMessageBody) {
-        targetMethod = baseMessage.targetMethod
-    }
+    constructor(baseMessage: IXmlMessage, newMessageBody: ICompactFragment) : this(baseMessage.targetMethod, newMessageBody)
 
-    fun serializeAttributes(out: XmlWriter) {
-        // No attributes by default
-        out.writeAttribute("type", targetMethod.contentType)
-        targetMethod.endpoint.run {
-            serviceName?.run {
-                out.writeAttribute("serviceNS", namespaceURI)
-                out.writeAttribute("serviceName", getLocalPart())
-            }
-            endpointName?.let { out.writeAttribute("endpoint", it) }
-        }
-        out.writeAttribute("operation", operation)
-        out.writeAttribute("url", targetMethod.url)
-        out.writeAttribute("method", (targetMethod as? RESTMethod)?.method)
-    }
-
-    override fun serialize(out: XmlWriter) {
+    fun serialize(out: XmlWriter) {
         XML { autoPolymorphic = true }.encodeToWriter(out, Companion, this)
     }
 
@@ -150,21 +103,26 @@ class XmlMessage : XMLContainer, IXmlMessage {
 
         other as XmlMessage
 
-        if (operation != other.operation) return false
-        if (namespaces != other.namespaces) return false
-        if (!content.contentEquals(other.content)) return false
-        if (targetMethod != other.targetMethod) return false
-
-        return true
+        return targetMethod == other.targetMethod
     }
 
     override fun hashCode(): Int {
         var result = super.hashCode()
-        result = 31 * result + (operation?.hashCode() ?: 0)
-        result = 31 * result + namespaces.hashCode()
-        result = 31 * result + content.contentHashCode()
         result = 31 * result + targetMethod.hashCode()
         return result
+    }
+
+    internal object DummyMethod : InvokableMethod {
+        override val endpoint: EndpointDescriptor
+            get() = object : EndpointDescriptor {
+                override val serviceName: Nothing? get() = null
+                override val endpointName: Nothing? get() = null
+                override val endpointLocation: Nothing? get() = null
+
+                override fun isSameService(other: EndpointDescriptor?): Boolean = other == DummyMethod
+            }
+        override val contentType: String? get() = null
+        override val url: String? get() = null
     }
 
     @Serializable
@@ -179,17 +137,38 @@ class XmlMessage : XMLContainer, IXmlMessage {
         @SerialName("type") val contentType: String? = null,
         @XmlValue val content: CompactFragment? = null
     ) {
-        val service: DescQName? get() = serviceName?.let { DescQName(serviceNS ?: "", it) }
+        val targetMethod: InvokableMethod get() = when {
+            serviceNS == null -> throw SerializationException("Null service")
+            serviceName == null -> throw SerializationException("Null service namespace")
+
+            endpoint != null -> when {
+                operation == null -> throw SerializationException("Soap method operation is null")
+                else -> SOAPMethodDesc(DescQName(serviceNS, serviceName), endpoint, operation, url)
+            }
+
+            url == null -> throw SerializationException("Null URL for rest method")
+            method == null -> throw SerializationException("Method missing")
+            contentType == null -> throw SerializationException("ContentType missing")
+
+            else -> RESTMethodDesc(
+                serviceName = DescQName(serviceNS, serviceName),
+                method = method,
+                url = url,
+                contentType = contentType,
+            )
+        }
     }
 
     @OptIn(ExperimentalSerializationApi::class)
-    companion object : XmlContainerSerializer<XmlMessage>() {
+    companion object : KSerializer<XmlMessage> {
         private val delegateSerializer = SerialDelegate.serializer()
         override val descriptor: SerialDescriptor = SerialDescriptor("XmlMessage", delegateSerializer.descriptor)
 
         const val ELEMENTLOCALNAME = "message"
 
         val ELEMENTNAME = XmlQName(Engine.NAMESPACE, ELEMENTLOCALNAME, Engine.NSPREFIX)
+
+        val EMPTY: XmlMessage = XmlMessage(DummyMethod, CompactFragment(""))
 
 
         @JvmName("fromNullable")
@@ -206,7 +185,11 @@ class XmlMessage : XMLContainer, IXmlMessage {
         @Suppress("DEPRECATION")
         override fun deserialize(decoder: Decoder): XmlMessage {
             val data = delegateSerializer.deserialize(decoder)
-            return XmlMessage(data.service, data.endpoint, data.operation, data.url, data.method, data.contentType, data.content)
+            return when (val method = data.targetMethod) {
+                is SOAPMethod -> XmlMessage(method, data.content)
+                is RESTMethod -> XmlMessage(method as RESTMethod, data.content)
+                else -> error("Unsupported method type")
+            }
         }
 
 
@@ -221,28 +204,11 @@ class XmlMessage : XMLContainer, IXmlMessage {
                 url = endpoint.endpointLocation?.toString(),
                 method = (value.targetMethod as? RESTMethod)?.method,
                 contentType = value.contentType,
-                content = CompactFragment(value.namespaces, value.content),
+                content = value.messageBody,
             )
             delegateSerializer.serialize(encoder, delegate)
         }
 
-
-        @Serializable
-        @XmlSerialName(ELEMENTLOCALNAME, Engine.NAMESPACE, Engine.NSPREFIX)
-        private class XmlMessageData : ContainerData<XmlMessage> {
-            constructor(owner: XmlMessage.Companion) : super()
-
-            var serviceName: String? = null
-            var serviceNS: String? = null
-            var endpoint: String? = null
-            var operation: String? = null
-            var url: String? = null
-            var method: String? = null
-            @SerialName("type") var contentType: String? = null
-
-            val service: DescQName? get() = serviceName?.let { DescQName(serviceNS ?: "", it) }
-
-        }
     }
 
 }

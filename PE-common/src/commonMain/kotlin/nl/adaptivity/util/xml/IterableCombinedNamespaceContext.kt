@@ -17,12 +17,13 @@
 package nl.adaptivity.util.xml
 
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.util.impl.CombiningNamespaceContext
 
 @OptIn(XmlUtilInternal::class)
 class IterableCombinedNamespaceContext(
     val primary: NamespaceContext,
     val secondary: NamespaceContext
-) : IterableNamespaceContext, NamespaceContextImpl {
+) : IterableNamespaceContext {
 
     override fun getNamespaceURI(prefix: String): String? {
         val namespaceURI = primary.getNamespaceURI(prefix)
@@ -59,7 +60,7 @@ class IterableCombinedNamespaceContext(
                 this
             } else {
                 @Suppress("DEPRECATION")
-                (IterableCombinedNamespaceContext(primary.freeze(), secondary.freeze()))
+                (CombiningNamespaceContext(primary.freeze(), secondary.freeze()))
             }
         }
     }
@@ -78,8 +79,8 @@ class IterableCombinedNamespaceContext(
     )
     @Suppress("OverridingDeprecatedMember")
     override fun getPrefixes(namespaceURI: String): Iterator<String> {
-        val prefixes1 = primary.prefixesFor(namespaceURI)
-        val prefixes2 = secondary.prefixesFor(namespaceURI)
+        val prefixes1 = primary.getPrefixes(namespaceURI)
+        val prefixes2 = secondary.getPrefixes(namespaceURI)
         val prefixes = hashSetOf<String>()
         while (prefixes1.hasNext()) {
             prefixes.add(prefixes1.next())
@@ -90,7 +91,7 @@ class IterableCombinedNamespaceContext(
         return prefixes.iterator()
     }
 
-    override fun plus(secondary: FreezableNamespaceContext): FreezableNamespaceContext =
+    override fun plus(secondary: IterableNamespaceContext): IterableNamespaceContext =
         @Suppress("DEPRECATION")
-        (IterableCombinedNamespaceContext(this, secondary))
+        (CombiningNamespaceContext(this, secondary))
 }

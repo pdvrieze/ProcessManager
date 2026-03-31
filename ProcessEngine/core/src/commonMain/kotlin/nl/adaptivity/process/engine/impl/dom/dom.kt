@@ -27,9 +27,9 @@ import nl.adaptivity.xmlutil.util.ICompactFragment
 expect class DOMResult : Result {
     constructor(node: Node)
 }
-expect fun Result.newWriter(): XmlWriter
+expect fun DOMResult.newWriter(): XmlWriter
 
-expect fun Source.newReader(): XmlReader
+expect fun DOMSource.newReader(): XmlReader
 expect class DOMSource : Source {
     constructor(node: Node)
 }

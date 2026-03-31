@@ -25,8 +25,6 @@
 package org.w3.soapEnvelope
 
 import kotlinx.serialization.Serializable
-import nl.adaptivity.xmlutil.QName
-import nl.adaptivity.xmlutil.serialization.CompactFragmentSerializer
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import nl.adaptivity.xmlutil.util.CompactFragment
 
@@ -55,7 +53,6 @@ import nl.adaptivity.xmlutil.util.CompactFragment
 @Serializable
 @XmlSerialName("Detail", Envelope.NAMESPACE, Envelope.PREFIX)
 class Detail(
-    @Serializable(CompactFragmentSerializer::class)
     val content: CompactFragment
 ) {
     // TODO add encodingStyle

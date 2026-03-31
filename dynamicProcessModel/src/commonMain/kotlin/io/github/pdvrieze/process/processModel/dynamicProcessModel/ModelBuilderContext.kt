@@ -10,7 +10,6 @@ import net.devrieze.util.collection.replaceBy
 import nl.adaptivity.process.engine.ActivityInstanceContext
 import nl.adaptivity.process.processModel.ActivityBase
 import nl.adaptivity.process.processModel.configurableModel.ConfigurationDsl
-import nl.adaptivity.process.processModel.name
 import nl.adaptivity.process.util.Identified
 import kotlin.contracts.ExperimentalContracts
 import kotlin.contracts.InvocationKind
@@ -231,11 +230,12 @@ inline fun <C : ActivityInstanceContext> ModelBuilderContext<C>.compositeActivit
 
     var updateCount = 0
     val newImports = context.activityBuilder.imports.map { define ->
-        when (define.getPath()) {
+        when (define.path) {
             null -> {
                 ++updateCount
                 define.copy(path = "/${define.name}/node()")
             }
+
             else -> define
         }
     }

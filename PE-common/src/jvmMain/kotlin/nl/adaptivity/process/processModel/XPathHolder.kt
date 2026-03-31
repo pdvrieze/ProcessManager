@@ -16,82 +16,59 @@
 
 package nl.adaptivity.process.processModel
 
-import nl.adaptivity.process.util.Constants
-import nl.adaptivity.util.MyGatheringNamespaceContext
-import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.util.ICompactFragment
 import java.util.logging.Level
 import java.util.logging.Logger
-import javax.xml.XMLConstants
-import javax.xml.bind.annotation.XmlAttribute
 import javax.xml.namespace.NamespaceContext
-import javax.xml.namespace.QName
 import javax.xml.xpath.XPathExpression
 import javax.xml.xpath.XPathExpressionException
 import javax.xml.xpath.XPathFactory
 
 actual abstract class XPathHolder actual constructor(
-    name: String?,
-    path: String?,
-    content: CharArray?,
-    originalNSContext: IterableNamespaceContext,
-) : XMLContainer(originalNSContext.freeze(), content ?: CharArray(0)) {
-    /**
-     * @see nl.adaptivity.process.processModel.IXmlResultType#setName(java.lang.String)
-     */
-    actual var _name: String? = name
+    actual val name: String,
+    actual val path: String?,
+    content: ICompactFragment,
+) {
 
-    //  @Volatile private var path: XPathExpression? = null // This is merely a cache.
-    private val pathString: String? = path
+    actual val content: CompactFragment = CompactFragment(content)
 
     // TODO support a functionresolver
     @Volatile
-    private var path: XPathExpression? = null
+    private var _path: XPathExpression? = null
         get() {
             field?.let { return it }
-            return if (pathString == null) {
+            return if (path == null) {
                 return SELF_PATH
             } else {
                 XPathFactory.newInstance().newXPath().apply {
-                    if (originalNSContext.iterator().hasNext()) {
-                        namespaceContext = originalNSContext
+                    if (this@XPathHolder.content.namespaces.iterator().hasNext()) {
+                        namespaceContext = this@XPathHolder.content.namespaces
                     }
-                }.compile(pathString)
+                }.compile(path)
             }.apply { field = this }
         }
 
-    val xPath: XPathExpression? get() = path
+    val xPath: XPathExpression? get() = _path
 
-    @OptIn(XmlUtilInternal::class)
-    actual constructor() : this(null, null, null, SimpleNamespaceContext())
-
-    actual fun getName() = _name ?: throw NullPointerException("Name not set")
-
-    actual fun setName(value: String) {
-        _name = value
-    }
-
-    @XmlAttribute(name = "xpath")
-    actual fun getPath(): String? {
-        return pathString
-    }
 
     actual override fun equals(other: Any?): Boolean {
         if (this === other) return true
         if (javaClass != other?.javaClass) return false
-        if (!super.equals(other)) return false
 
         other as XPathHolder
 
-        if (_name != other._name) return false
-        if (pathString != other.pathString) return false
+        if (name != other.name) return false
+        if (path != other.path) return false
+        if (this@XPathHolder.content != other.content) return false
 
         return true
     }
 
     actual override fun hashCode(): Int {
-        var result = super.hashCode()
-        result = 31 * result + (_name?.hashCode() ?: 0)
-        result = 31 * result + (pathString?.hashCode() ?: 0)
+        var result = name?.hashCode() ?: 0
+        result = 31 * result + (path?.hashCode() ?: 0)
+        result = 31 * result + this@XPathHolder.content.hashCode()
         return result
     }
 
@@ -108,16 +85,8 @@ actual abstract class XPathHolder actual constructor(
 
         }
 
-        fun pathNamespaces(namespaceContext: IterableNamespaceContext, value: String?): Iterable<Namespace> {
-            val p = value?: return namespaceContext
-            val result = mutableMapOf<String, String>()
-            val gatheringNamespaceContext = MyGatheringNamespaceContext(result, namespaceContext)
-            visitXpathUsedPrefixes(p, gatheringNamespaceContext)
-
-            return result.entries.map { (p, u) -> XmlEvent.NamespaceImpl(p, u)}
-        }
-
     }
+
 }
 
 internal actual fun visitXpathUsedPrefixes(path: CharSequence?, namespaceContext: NamespaceContext) {

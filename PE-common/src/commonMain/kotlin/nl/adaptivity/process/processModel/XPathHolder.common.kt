@@ -16,24 +16,20 @@
 
 package nl.adaptivity.process.processModel
 
-import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.util.ICompactFragment
 
 
 expect abstract class XPathHolder(
-    name: String?,
+    name: String,
     path: String?,
-    content: CharArray?,
-    originalNSContext: IterableNamespaceContext
-) : XMLContainer {
-    var _name: String?
+    content: ICompactFragment,
+) {
 
-    constructor()
+    val name: String
+    val path: String?
+    val content: CompactFragment
 
-    fun getName(): String
-
-    fun setName(value: String)
-
-    fun getPath(): String?
 
     override fun equals(other: Any?): Boolean
     override fun hashCode(): Int

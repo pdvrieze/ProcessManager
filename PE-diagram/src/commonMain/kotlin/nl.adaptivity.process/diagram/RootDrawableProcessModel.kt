@@ -34,6 +34,7 @@ import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.UUID
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.serialization.XML
+import nl.adaptivity.xmlutil.serialization.XML1_0
 import kotlin.jvm.JvmOverloads
 import kotlin.math.max
 
@@ -153,7 +154,7 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
 
         @kotlin.jvm.JvmStatic
         fun deserialize(reader: XmlReader): RootDrawableProcessModel {
-            return XML.decodeFromReader(reader)
+            return XML.v1.decodeFromReader(reader)
         }
 
         @kotlin.jvm.JvmStatic

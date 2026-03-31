@@ -66,6 +66,7 @@ kotlin {
                 implementation(project(":java-common"))
                 implementation(project(":PE-common"))
                 implementation(libs.xmlutil.core)
+                implementation(libs.xmlutil.serialization)
                 implementation(libs.xmlutil.xmlserializable)
                 compileOnly(project(":JavaCommonApi"))
 

@@ -17,13 +17,10 @@
 package nl.adaptivity.ws.soap
 
 import io.github.pdvrieze.xmlutil.testutil.assertXmlEquals
-import nl.adaptivity.process.engine.*
 import nl.adaptivity.xml.DebugWriter
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.core.impl.newReader
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.util.CompactFragment
-import nl.adaptivity.xmlutil.util.CompactFragmentSerializer
 import org.junit.jupiter.api.Assertions
 import org.junit.jupiter.api.Assertions.assertFalse
 import org.junit.jupiter.api.Assertions.assertNotNull
@@ -33,7 +30,6 @@ import org.xml.sax.InputSource
 import java.io.CharArrayWriter
 import java.io.StringReader
 import javax.xml.parsers.DocumentBuilderFactory
-import javax.xml.transform.dom.DOMSource
 
 
 /**
@@ -72,8 +68,8 @@ class TestSoapHelper {
     @Test
     @Throws(Exception::class)
     fun testRoundtripSoapResponse() {
-        val xml: XML = XML { indent = 2; autoPolymorphic = true }
-        val serializer = Envelope.serializer(CompactFragmentSerializer)
+        val xml: XML = XML.v1 { setIndent(2) }
+        val serializer = Envelope.serializer(CompactFragment.serializer())
         val env: Envelope<CompactFragment> = xml.decodeFromString(serializer, SOAP_RESPONSE1)
         assertXmlEquals(SOAP_RESPONSE1_BODY, env.body.child.contentString.trim())
 
@@ -84,12 +80,12 @@ class TestSoapHelper {
     @Test
     @Throws(Exception::class)
     fun testRoundtripSoapResponse2() {
-        val xml: XML = XML { indent = 2; autoPolymorphic = true }
-        val serializer = Envelope.serializer(CompactFragmentSerializer)
+        val xml: XML = XML.v1 { setIndent(2) }
+        val serializer = Envelope.serializer(CompactFragment.serializer())
         val env = Envelope.deserialize(xmlStreaming.newReader(SOAP_RESPONSE2))
         val caw = CharArrayWriter()
         val out = DebugWriter(xmlStreaming.newWriter(caw))
-        XML.encodeToWriter(out, env)
+        xml.encodeToWriter(out, env)
         out.close()
         assertXmlEquals(SOAP_RESPONSE2, caw.toString())
     }
@@ -113,7 +109,7 @@ class TestSoapHelper {
         val dbf = DocumentBuilderFactory.newInstance()
         dbf.isNamespaceAware = true
         val doc = dbf.newDocumentBuilder().parse(InputSource(StringReader(input)))
-        val reader = xmlStreaming.newReader(DOMSource(doc))
+        val reader = xmlStreaming.newReader(doc)
         assertFalse(reader.isStarted)
 
         if (reader.next() == EventType.START_DOCUMENT) reader.next()

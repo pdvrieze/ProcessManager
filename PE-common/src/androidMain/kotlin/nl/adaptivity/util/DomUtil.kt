@@ -239,7 +239,7 @@ object DomUtil {
         }
 
         val documentFragment = doc.createDocumentFragment()
-        val out = XmlStreaming.newWriter(DOMResult(documentFragment), true)
+        val out = xmlStreaming.newWriter(DOMResult(documentFragment), true)
         while (input.hasNext() && input.next() !== EventType.END_ELEMENT) {
             input.writeCurrent(out)
             if (input.eventType === EventType.START_ELEMENT) {
@@ -261,7 +261,7 @@ object DomUtil {
         }
 
         val documentFragment = doc.createDocumentFragment()
-        val out = XmlStreaming.newWriter(DOMResult(documentFragment), true)
+        val out = xmlStreaming.newWriter(DOMResult(documentFragment), true)
         `in`.writeCurrent(out)
         if (`in`.eventType === EventType.START_ELEMENT) {
             out.writeElementContent(null, `in`)
@@ -288,7 +288,7 @@ object DomUtil {
         } else if (node is Text) {
             return CompactFragment(node.data)
         }
-        return XmlStreaming.newReader(DOMSource(node)).siblingsToFragment()
+        return xmlStreaming.newReader(DOMSource(node)).siblingsToFragment()
     }
 
     @JvmStatic

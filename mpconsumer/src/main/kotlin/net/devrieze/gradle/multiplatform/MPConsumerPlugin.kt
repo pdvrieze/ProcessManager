@@ -45,7 +45,7 @@ class MPConsumerPlugin: Plugin<Project> {
                     else -> KotlinPlatformType.jvm
                 }
                 configurations.configureEach {
-                    if (! isCanBeConsumed) {
+                    if (! isCanBeConsumed && isCanBeResolved) {
                         attributes {
                             if (!contains(KotlinPlatformType.attribute)) {
                                 logger.info("Adding kotlin usage attribute $platformType to configuration: ${name}")

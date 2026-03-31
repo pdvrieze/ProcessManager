@@ -48,6 +48,7 @@ import nl.adaptivity.util.DomUtil
 import nl.adaptivity.util.SerializableData
 import nl.adaptivity.util.commitSerializable
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.serialization.XML
 import org.jetbrains.annotations.TestOnly
 import org.w3.soapEnvelope.Envelope
 import org.w3c.dom.Element
@@ -555,7 +556,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction> : EndpointServle
         @RestParam(name = "processUpload", type = RestParamType.ATTACHMENT) attachment: DataHandler,
         @RestParam(type = RestParamType.PRINCIPAL) user: Principal
     ): ProcessModelRef<*, *> = translateExceptions {
-        val builder = XmlStreaming.deSerialize(attachment.inputStream, XmlProcessModel.Builder::class.java)
+        val builder = XML.v1.decodeFromReader<XmlProcessModel.Builder>(xmlStreaming.newReader(attachment.inputStream))
         return updateProcessModel(handle, builder, user)
     }
 
@@ -614,7 +615,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction> : EndpointServle
         @RestParam(name = "processUpload", type = RestParamType.ATTACHMENT) attachment: DataHandler,
         @RestParam(type = RestParamType.PRINCIPAL) owner: Principal
     ): ProcessModelRef<*, *>? = translateExceptions {
-        val processModel = XmlStreaming.deSerialize(attachment.inputStream, XmlProcessModel.Builder::class.java)
+        val processModel = XML.v1.decodeFromReader<XmlProcessModel.Builder>(xmlStreaming.newReader(attachment.inputStream))
         return postProcessModel(processModel, owner)
     }
 

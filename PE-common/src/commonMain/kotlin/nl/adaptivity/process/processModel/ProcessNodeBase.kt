@@ -154,7 +154,7 @@ abstract class ProcessNodeBase : ProcessNode {
     override fun getDefine(name: String): IXmlDefineType? = defines.firstOrNull { it.name == name }
 
     override fun getResult(name: String): IXmlResultType? {
-        return results.firstOrNull { it.getName() == name }
+        return results.firstOrNull { it.name == name }
     }
 
     @Deprecated("Don't use")
@@ -425,13 +425,13 @@ abstract class ProcessNodeBase : ProcessNode {
 
 private fun <E : IXmlDefineType> Collection<E>.resolveNodes(nodeBuilders: Iterable<ProcessNode.Builder>): Collection<IXmlDefineType> =
     map { define ->
-        val refNode = define.getRefNode()
+        val refNode = define.refNode
         val d: IXmlDefineType = when {
-            refNode != null && define.getRefName().isNullOrBlank() -> {
+            refNode != null && define.refName.isNullOrBlank() -> {
                 val pred = nodeBuilders.first { it.id == refNode }
                 val result = pred.results.singleOrNull()
                     ?: throw IllegalArgumentException("Cannot resolve missing result in ${refNode} when there is no single result (${pred.results.count()})")
-                define.copy(refName = result.getName())
+                define.copy(refName = result.name)
             }
             else                                                   -> define
         }

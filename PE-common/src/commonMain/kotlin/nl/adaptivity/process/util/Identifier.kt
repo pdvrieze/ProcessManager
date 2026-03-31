@@ -17,14 +17,9 @@
 package nl.adaptivity.process.util
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Serializer
-import kotlinx.serialization.*
 import kotlinx.serialization.builtins.serializer
 import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.serialutil.DelegatingSerializer
-import nl.adaptivity.serialutil.simpleSerialClassDesc
 
 
 /**
@@ -77,9 +72,7 @@ class Identifier(override var id: String) : Identified {
         return id.hashCode()
     }
 
-    companion object: DelegatingSerializer<Identifier, String>(String.serializer()) {
-        override val descriptor: SerialDescriptor = SerialDescriptor("nl.adaptivity.process.util.Identifier", String.serializer().descriptor)
-
+    companion object: DelegatingSerializer<Identifier, String>("nl.adaptivity.process.util.Identifier", String.serializer()) {
         override fun fromDelegate(delegate: String): Identifier = Identifier(delegate)
 
         override fun Identifier.toDelegate(): String = id

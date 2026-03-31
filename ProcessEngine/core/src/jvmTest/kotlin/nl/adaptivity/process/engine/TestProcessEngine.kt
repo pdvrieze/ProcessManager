@@ -36,6 +36,7 @@ import nl.adaptivity.process.processModel.engine.ExecutableStartNode
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.util.activation.writeToResult
 import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.xmlserializable.XmlSerializable
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.w3c.dom.Document
@@ -71,7 +72,7 @@ class TestProcessEngine : ProcessEngineTestSupport() {
 
     @Throws(XmlException::class)
     private fun getStream(name: String): XmlReader {
-        return XmlStreaming.newReader(getXml(name))
+        return xmlStreaming.newReader(getXml(name))
     }
 
     @Throws(XmlException::class)
@@ -97,7 +98,7 @@ class TestProcessEngine : ProcessEngineTestSupport() {
         return CharArrayWriter().apply {
             val caw = this
             if (obj is XmlSerializable) {
-                XmlStreaming.newWriter(this).use { writer ->
+                xmlStreaming.newWriter(this).use { writer ->
                     obj.serialize(writer)
                 }
             } else {
@@ -346,11 +347,11 @@ class TestProcessEngine : ProcessEngineTestSupport() {
                     ?: throw AssertionError("Message node not found")// This should be 0 as it's the first activity
 
             ac1.node.results.let { r ->
-                assertArrayEquals(CharArray(0), r[0].content)
-                assertEquals("name", r[0].getName())
-                assertEquals("user", r[1].getName())
-                assertEquals("/umh:result/umh:value[@name='user']/text()", r[0].getPath())
-                assertEquals(null, r[1].getPath())
+                assertArrayEquals(CharArray(0), r[0].content.content)
+                assertEquals("name", r[0].name)
+                assertEquals("user", r[1].name)
+                assertEquals("/umh:result/umh:value[@name='user']/text()", r[0].path)
+                assertEquals(null, r[1].path)
 
                 assertEquals(listOf(XmlEvent.NamespaceImpl("umh", "http://adaptivity.nl/userMessageHandler")),
                     r[0].originalNSContext.sortedBy { it.prefix })
@@ -377,7 +378,7 @@ class TestProcessEngine : ProcessEngineTestSupport() {
                 |        </fullname>
                 |      </user>
                 |    """.trimMargin("|")
-                assertEquals(result2ExpectedContent, String(r[1].content!!).replace(" />", "/>"))
+                assertXmlEquals(result2ExpectedContent, r[1].content.contentString)
             }
 
             messageService.clear() // (Process the message)
@@ -446,8 +447,7 @@ class TestProcessEngine : ProcessEngineTestSupport() {
                     predecessor = split1.identifier
                     id = "ac1"
                     message = DummyMessage
-                    result {
-                        name = "ac1result"
+                    result("ac1result") {
                         content = "ac1content".toCharArray()
                     }
                 }
@@ -455,8 +455,7 @@ class TestProcessEngine : ProcessEngineTestSupport() {
                     predecessor = split1.identifier
                     id = "ac2"
                     message = DummyMessage
-                    result {
-                        name = "ac2result"
+                    result("ac2result") {
                         content = "ac2content".toCharArray()
                     }
                 }

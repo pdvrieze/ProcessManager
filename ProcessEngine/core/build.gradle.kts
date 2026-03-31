@@ -81,6 +81,7 @@ kotlin {
                 implementation(libs.xmlutil.core)
                 implementation(libs.xmlutil.serialization)
                 implementation(libs.xmlutil.serialutil)
+                implementation(libs.xmlutil.xmlserializable)
                 compileOnly(project(":JavaCommonApi"))
                 compileOnly(project(":DarwinJavaApi"))
             }

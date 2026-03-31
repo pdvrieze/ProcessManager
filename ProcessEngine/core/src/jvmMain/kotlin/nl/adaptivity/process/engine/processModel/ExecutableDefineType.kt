@@ -78,8 +78,8 @@ private fun IXmlDefineType.applyDataImpl(nodeInstanceSource: IProcessInstance, r
     } else {
         processData = ProcessData(name, CompactFragment(""))
     }
-    val content = content
-    if (content != null && content.isNotEmpty()) {
+    val content = this@applyDataImpl.content.content
+    if (content.isNotEmpty()) {
         try {
             val transformer = PETransformer.create(SimpleNamespaceContext.from(originalNSContext), processData)
             val fragmentReader =
@@ -104,5 +104,5 @@ private fun IXmlDefineType.applyDataImpl(nodeInstanceSource: IProcessInstance, r
 
 private fun ProcessNode.effectiveRefName(refName: String?): String? = when {
     ! refName.isNullOrEmpty() -> refName
-    else -> results.singleOrNull()?.getName()
+    else -> results.singleOrNull()?.name
 }

@@ -16,8 +16,6 @@
 
 package nl.adaptivity.process.processModel
 
-import nl.adaptivity.util.MyGatheringNamespaceContext
-import nl.adaptivity.util.xml.CombinedNamespaceContext
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
@@ -31,56 +29,11 @@ import nl.adaptivity.xmlutil.util.XMLFragmentStreamReader
 @OptIn(XmlUtilInternal::class)
 abstract class XMLContainer(
     fragment: ICompactFragment
-) : ICompactFragment {
-
-    var fragment: CompactFragment = CompactFragment(fragment)
-        private set
-
-    final override var namespaces: IterableNamespaceContext
-        get() = fragment.namespaces
-        private set(value) { fragment = CompactFragment(value, fragment.content) }
-
-    final override var content: CharArray
-        get() = fragment.content
-        private set(value) { fragment = CompactFragment(fragment.namespaces, value) }
-
+) {
+    val fragment: CompactFragment = CompactFragment(fragment)
 
     constructor(namespaces: Iterable<Namespace>, content: CharArray) :
         this(CompactFragment(namespaces, content))
-
-    override val isEmpty: Boolean
-        get() = content.isEmpty()
-
-    override val contentString: String
-        get() = buildString(content.size) { content.forEach { append(it) } }
-
-    val originalNSContext: IterableNamespaceContext
-        get() = namespaces
-
-    constructor() : this(emptyList(), CharArray(0))
-
-    @Deprecated("XMLContainer should be immutable")
-    protected fun updateNamespaceContext(additionalContext: Iterable<Namespace>) {
-        val nsmap = mutableMapOf<String, String>()
-        val context = when ((namespaces as? SimpleNamespaceContext)?.size) {
-            0    -> SimpleNamespaceContext.from(additionalContext)
-            else -> CombinedNamespaceContext(namespaces, SimpleNamespaceContext.from(additionalContext))
-        }
-        val gatheringNamespaceContext = MyGatheringNamespaceContext(nsmap, context)
-
-        namespaces = SimpleNamespaceContext(nsmap)
-    }
-
-    protected open fun visitNamesInAttributeValue(
-        referenceContext: NamespaceContext,
-        owner: QName,
-        attributeName: QName,
-        attributeValue: CharSequence
-    ) {
-        // By default, there are no special attributes
-    }
-
-    override fun getXmlReader(): XmlReader = XMLFragmentStreamReader.from(this)
 
     override fun equals(other: Any?): Boolean {
         if (this === other) return true
@@ -88,28 +41,11 @@ abstract class XMLContainer(
 
         other as XMLContainer
 
-        val orderedNamespaces = namespaces.sortedBy { it.prefix }
-        val orderedOtherNamespaces = other.namespaces.sortedBy { it.prefix }
-
-        if (orderedNamespaces != orderedOtherNamespaces) return false
-        if (!content.contentEquals(other.content)) return false
-
-        return true
+        return fragment == other.fragment
     }
 
     override fun hashCode(): Int {
-        var result = namespaces.hashCode()
-        result = 31 * result + content.contentHashCode()
-        return result
+        return fragment.hashCode()
     }
 
-    companion object {
-
-        protected fun visitNamespace(reader: XmlReader, prefix: CharSequence?) {
-            if (prefix != null) {
-                reader.namespaceContext.getNamespaceURI(prefix.toString())
-            }
-        }
-
-    }
 }

@@ -8,8 +8,6 @@ import nl.adaptivity.process.engine.pma.dynamic.TaskBuilderContext.BrowserContex
 import nl.adaptivity.process.engine.pma.dynamic.runtime.DynamicPmaActivityContext
 import nl.adaptivity.process.processModel.configurableModel.ConfigurationDsl
 import nl.adaptivity.process.processModel.engine.ExecutableProcessModel
-import nl.adaptivity.process.processModel.name
-import nl.adaptivity.process.processModel.path
 import nl.adaptivity.util.multiplatform.PrincipalCompat
 import nl.adaptivity.util.multiplatform.UUID
 import kotlin.experimental.ExperimentalTypeInference
@@ -28,11 +26,12 @@ fun <AIC : DynamicPmaActivityContext<AIC, BIC>, BIC : BrowserContext<AIC, BIC>> 
 
     var updateCount = 0
     val newImports = context.modelBuilder.imports.map { define ->
-        when (define.getPath()) {
+        when (define.path) {
             null -> {
                 ++updateCount
                 define.copy(path = "/${define.name}/node()")
             }
+
             else -> define
         }
     }

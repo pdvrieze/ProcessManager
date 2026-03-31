@@ -72,7 +72,7 @@ abstract class SoapMessageHandler {
 
         @Throws(XmlException::class)
         override fun processMessage(source: Reader, attachments: Map<String, DataSource>): Source {
-            return processMessage(XmlStreaming.newReader(source), attachments)
+            return processMessage(xmlStreaming.newReader(source), attachments)
         }
 
         private fun processMessage(source: XmlReader, pAttachments: Map<String, DataSource>): Source {
