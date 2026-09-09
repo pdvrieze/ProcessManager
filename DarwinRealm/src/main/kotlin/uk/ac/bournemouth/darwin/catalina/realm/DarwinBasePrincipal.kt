@@ -27,15 +27,19 @@ import javax.security.auth.login.LoginContext
  * Base class for darwin principals. This will allo
  *
  * @author Paul de Vrieze
- */
-abstract class DarwinBasePrincipal
-/**
- * Create a new [DarwinBasePrincipal]
+ * @constructor Create a new [DarwinBasePrincipal]
  * @param realm The realm the principal is recorded against.
  *
  * @param name The name of the principal.
  */
-(name: String, roles: List<out String> = Collections.emptyList(), userPrincipal: Principal? = null, loginContext: LoginContext? = null, gssCredential: GSSCredential? = null) : GenericPrincipal(name, null, roles, userPrincipal, loginContext, gssCredential), DarwinPrincipal {
+abstract class DarwinBasePrincipal(
+    name: String,
+    roles: List<String> = Collections.emptyList(),
+    userPrincipal: Principal? = null,
+    loginContext: LoginContext? = null,
+    gssCredential: GSSCredential? = null,
+    attributes: Map<String, Any?> = emptyMap()
+) : GenericPrincipal(name, roles, userPrincipal, loginContext, gssCredential, attributes), DarwinPrincipal {
 
     /**
      * Attribute to record when we last checked the database. By default very far

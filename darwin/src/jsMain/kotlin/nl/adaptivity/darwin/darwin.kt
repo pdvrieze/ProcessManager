@@ -95,11 +95,9 @@ private fun onMenuReceived(request: XMLHttpRequest) {
     val m = menu
     m.clear()
     var first = true
-    for (child in holder.firstElementChild?.childElements()?: emptyList<Element>()) {
-      if (child !is Text) {
+    for (child in holder.firstElementChild?.childElements()?: emptyList()) {
         if (first) first = false else m.appendChild(document.createTextNode("\n"))
         m.appendChild(child)
-      }
     }
     convertMenuToJS()
   } else {

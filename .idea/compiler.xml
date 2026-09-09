@@ -8,9 +8,28 @@
       <module name="ProcessManager.compose.jvm" target="11" />
       <module name="ProcessManager.compose.jvm.main" target="11" />
       <module name="ProcessManager.compose.jvm.test" target="11" />
+      <module name="ProcessManager.dynamicProcessModel.jvmMainGenerators" target="21" />
+      <module name="ProcessManager.dynamicProcessModel.jvmTestGenerators" target="21" />
       <module name="ProcessManager.java-common.jaxb" target="11" />
       <module name="ProcessManager.java-common.jaxb.main" target="11" />
       <module name="ProcessManager.java-common.jaxb.test" target="11" />
+      <module name="ProcessManager.PE-common.jvmMainGenerators" target="21" />
+      <module name="ProcessManager.PE-common.jvmTestGenerators" target="21" />
+      <module name="ProcessManager.PE-server" target="21" />
+      <module name="ProcessManager.PE-server.main" target="21" />
+      <module name="ProcessManager.PE-server.test" target="21" />
+      <module name="ProcessManager.pma.agfil.jvmMainGenerators" target="21" />
+      <module name="ProcessManager.pma.agfil.jvmTestGenerators" target="21" />
+      <module name="ProcessManager.pma.core.jvmMainGenerators" target="21" />
+      <module name="ProcessManager.pma.core.jvmTestGenerators" target="21" />
+      <module name="ProcessManager.pma.dynamic.jvmMainGenerators" target="21" />
+      <module name="ProcessManager.pma.dynamic.jvmTestGenerators" target="21" />
+      <module name="ProcessManager.pma.loanorigination.jvmMainGenerators" target="21" />
+      <module name="ProcessManager.pma.loanorigination.jvmTestGenerators" target="21" />
+      <module name="ProcessManager.ProcessEngine.simulator.jvmMainGenerators" target="21" />
+      <module name="ProcessManager.ProcessEngine.simulator.jvmTestGenerators" target="21" />
+      <module name="ProcessManager.ProcessEngine.testLib.jvmMainGenerators" target="21" />
+      <module name="ProcessManager.ProcessEngine.testLib.jvmTestGenerators" target="21" />
       <module name="ProcessManager.webeditor" target="11" />
       <module name="ProcessManager.webeditor.main" target="11" />
       <module name="ProcessManager.webeditor.test" target="11" />

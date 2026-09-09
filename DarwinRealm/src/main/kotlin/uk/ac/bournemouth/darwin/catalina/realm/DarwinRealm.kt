@@ -66,7 +66,17 @@ class DarwinRealm : RealmBase(), Lifecycle {
         log.info("Account tables ensured")
     }
 
-    override fun authenticate(username: String, digest: String, nonce: String, nc: String, cnonce: String, qop: String, realm: String, md5a2: String): Principal? {
+    override fun authenticate(
+        username: String,
+        clientDigest: String,
+        nonce: String,
+        nc: String?,
+        cnonce: String?,
+        qop: String?,
+        realm: String,
+        digestA2: String,
+        algorithm: String?
+    ): Principal? {
         return null
         // Digest authentication using md5 is not supported.
     }

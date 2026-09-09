@@ -38,6 +38,8 @@ dependencyResolutionManagement {
 
 rootProject.name = "ProcessManager"
 
+enableFeaturePreview("TYPESAFE_PROJECT_ACCESSORS")
+
 include(":multiplatform")
 include(":JavaCommonApi")
 
@@ -100,7 +102,7 @@ include(":accountmgr:js")
 
 include(":DarwinServices")
 
-include(":PE-server")
+//include(":PE-server")
 
 include(":dynamicProcessModel")
 

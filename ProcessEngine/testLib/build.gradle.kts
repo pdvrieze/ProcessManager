@@ -19,7 +19,7 @@ import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
 
 plugins {
     kotlin("multiplatform")
-    alias(libs.plugins.codegen)
+//    alias(libs.plugins.codegen)
     alias(libs.plugins.kotlin.serialization)
 }
 
@@ -40,7 +40,7 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 api(project(":JavaCommonApi"))
                 api(project(":ProcessEngine:core"))
@@ -58,7 +58,7 @@ kotlin {
 
             }
         }
-        val jvmMain by getting {
+        jvmMain {
             dependencies {
                 implementation(kotlin("test-junit5"))
                 implementation(libs.xmlutil.core)

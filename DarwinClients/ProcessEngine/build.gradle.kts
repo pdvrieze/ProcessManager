@@ -54,7 +54,7 @@ kotlin.sourceSets.named("main") {
 
 tasks {
 
-    val generate by registering(JavaExec::class) {
+    val generate = register("generate", JavaExec::class) {
         dependsOn(configurations["codegen"])
         dependsOn(configurations["codegenClasspath"])
         dependsOn(":DarwinGenerators:assemble")
@@ -81,11 +81,11 @@ tasks {
         }
     }
 
-    val compileKotlin by existing {
+    compileKotlin {
         dependsOn(generate)
     }
 
-    named<Jar>("jar") {
+    jar {
         archiveBaseName.set("ProcessEngineClients")
     }
 }

@@ -1,6 +1,3 @@
-import org.jetbrains.kotlin.gradle.dsl.JvmTarget
-import org.jetbrains.kotlin.gradle.dsl.KotlinVersion
-
 /*
  * Copyright (c) 2019.
  *
@@ -32,14 +29,14 @@ base {
 
 kotlin {
     compilerOptions {
-        languageVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.fromVersion(libs.versions.kotlin.languageVersion.get())
-        apiVersion = KotlinVersion.fromVersion(libs.versions.kotlin.apiVersion.get())
+//        languageVersion = KotlinVersion.fromVersion(libs.versions.kotlin.languageVersion.get())
+//        apiVersion = KotlinVersion.fromVersion(libs.versions.kotlin.apiVersion.get())
     }
 
     targets {
         jvm {
             compilerOptions {
-                jvmTarget = JvmTarget.fromTarget(libs.versions.kotlin.classTarget.get())
+//                jvmTarget = JvmTarget.fromTarget(libs.versions.kotlin.classTarget.get())
             }
             compilations.all {
                 tasks.withType<Test> {
@@ -81,7 +78,7 @@ kotlin {
                 optIn("kotlin.RequiresOptIn")
             }
         }
-        val commonMain by getting {
+        commonMain {
             dependencies {
                 implementation(project(":ProcessEngine:core"))
                 implementation(project(":PE-common"))
@@ -136,7 +133,9 @@ kotlin {
 
 }
 
+/*
 tasks.register("test") {
     dependsOn(tasks.named("jvmTest"))
     group="verification"
 }
+*/

@@ -34,6 +34,7 @@ dependencies {
     implementation(project(":DarwinJavaApi"))
     implementation(project(":JavaCommonApi"))
     implementation(project(":accountcommon"))
+    implementation(project(":multiplatform"))
 }
 
 kotlin.compilerOptions {

@@ -17,7 +17,7 @@
 import org.jetbrains.kotlin.gradle.plugin.KotlinJsCompilerType
 
 plugins {
-    kotlin("js")
+    kotlin("multiplatform")
 }
 
 base {
@@ -29,9 +29,13 @@ kotlin {
     js {
         browser()
     }
-}
 
-dependencies {
-    implementation(libs.kotlinx.html)
+    sourceSets {
+        val jsMain by getting {
+            dependencies {
+                implementation(libs.kotlinx.html)
+            }
+        }
+    }
 }
 
