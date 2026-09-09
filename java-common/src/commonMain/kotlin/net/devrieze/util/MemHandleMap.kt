@@ -29,6 +29,7 @@ expect open class MemHandleMap<V : Any>: MutableHandleMap<V> {
     override fun containsElement(element: V): Boolean
     override fun contains(handle: Handle<V>): Boolean
     override fun get(handle: Handle<V>): V?
+    @Deprecated("Don't use, this may be expensive", level = DeprecationLevel.ERROR)
     override fun getSize(): Int
     override fun forEach(body: MutableHasForEach.ForEachReceiver<V>)
 }

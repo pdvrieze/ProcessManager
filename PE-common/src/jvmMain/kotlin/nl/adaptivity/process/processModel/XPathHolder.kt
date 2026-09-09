@@ -66,8 +66,8 @@ actual abstract class XPathHolder actual constructor(
     }
 
     actual override fun hashCode(): Int {
-        var result = name?.hashCode() ?: 0
-        result = 31 * result + (path?.hashCode() ?: 0)
+        var result = name.hashCode()
+        result = 31 * result + path.hashCode()
         result = 31 * result + this@XPathHolder.content.hashCode()
         return result
     }

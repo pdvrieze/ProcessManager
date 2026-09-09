@@ -31,9 +31,9 @@ class AttachmentMap(private val message: NormalizedMessage) : AbstractMap<String
                 return message.getAttachment(key)
             }
 
-        override fun setValue(value: DataHandler): DataHandler {
+        override fun setValue(newValue: DataHandler): DataHandler {
             val result = message.getAttachment(key)
-            message.addAttachment(key, value)
+            message.addAttachment(key, newValue)
             return result
         }
 

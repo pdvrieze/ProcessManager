@@ -26,10 +26,10 @@ class OwnerOnlySecurityProvider(val adminRoles:Set<String>) : BaseSecurityProvid
 
   constructor(vararg adminRoles: String): this(setOf(*adminRoles))
 
-  override fun getPermission(permission: SecurityProvider.Permission, subject: PrincipalCompat?, securedObject: SecuredObject<*>): PermissionResult {
+  override fun getPermission(permission: SecurityProvider.Permission, subject: PrincipalCompat?, secureObject: SecuredObject<*>): PermissionResult {
     if (subject==null) return PermissionResult.UNAUTHENTICATED
     if (subject is SYSTEMPRINCIPAL) { return PermissionResult.GRANTED }
-    val owner = (securedObject as? SecureObject<*>)?.owner ?: return PermissionResult.DENIED
+    val owner = (secureObject as? SecureObject<*>)?.owner ?: return PermissionResult.DENIED
     if (owner is SYSTEMPRINCIPAL) {
       if (subject is RolePrincipal && adminRoles.any { subject.hasRole(it) })
           return PermissionResult.GRANTED

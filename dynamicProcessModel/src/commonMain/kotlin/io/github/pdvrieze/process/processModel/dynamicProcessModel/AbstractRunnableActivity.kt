@@ -190,11 +190,11 @@ abstract class AbstractRunnableActivity<I: Any, O: Any, C: ActivityInstanceConte
             try {
                 if (startsWithtag) {
                     val valueReader = elementData.contentStream
-                    define.name to XML.decodeFromReader(ser, valueReader)
+                    define.name to XML.v1.decodeFromReader(ser, valueReader)
                 } else {
 
                     val valueReader = KtXmlReader(CombiningReader(StringReader("<w>"),CharArrayReader(elementData.content.content), StringReader("</w>")))
-                    val value = XML.decodeFromReader(ValueHolder.Serializer(ser), valueReader, QName("w")).value
+                    val value = XML.v1.decodeFromReader(ValueHolder.Serializer(ser), valueReader, QName("w")).value
                     define.name to value
                 }
             } catch (e: XmlException) {

@@ -47,14 +47,14 @@ abstract class AbstractElementFactory<BUILDER, T : Any, in TR: MonadicDBTransact
             return row.value(this, row.metaData.columnIdx(this))
         }
 
-        fun <T, S : IColumnType<T, S, C>, C : Column<T, S, C>> C.nullableValue(
+        fun <T: Any, S : IColumnType<T, S, C>, C : Column<T, S, C>> C.nullableValue(
             columns: List<Column<*, *, *>>,
             values: List<Any?>
         ): T? {
             return values[columns.checkedIndexOf(this)]?.let { type.cast(it) }
         }
 
-        fun <T, S : IColumnType<T, S, C>, C : Column<T, S, C>> C.value(
+        fun <T: Any, S : IColumnType<T, S, C>, C : Column<T, S, C>> C.value(
             columns: List<Column<*, *, *>>,
             values: List<Any?>
         ): T {

@@ -18,7 +18,6 @@ interface IModelBuilderContext<AIC : ActivityInstanceContext> : IModelBuilderCon
     val startNode: StartNode.Builder
         get() = StartNodeBase.Builder()
 
-    @ConfigurationDsl
     fun startNode(config: @ConfigurationDsl() (StartNode.Builder.() -> Unit)): StartNode.Builder =
         StartNodeBase.Builder().apply(config)
 
@@ -42,34 +41,28 @@ interface IModelBuilderContext<AIC : ActivityInstanceContext> : IModelBuilderCon
     ): EventNode.Builder =
         EventNodeBase.Builder(predecessor = predecessor, eventType = eventType).apply(config)
 
-    @ConfigurationDsl
     fun split(predecessor: Identified): Split.Builder =
         SplitBase.Builder().apply { this.predecessor = predecessor }
 
-    @ConfigurationDsl
     fun split(
         predecessor: Identified,
         config: @ConfigurationDsl() (Split.Builder.() -> Unit)
     ): Split.Builder =
         split(predecessor).apply(config)
 
-    @ConfigurationDsl
     fun join(vararg predecessors: Identified): Join.Builder = JoinBase.Builder().apply {
         this.predecessors = IdentifyableSet.processNodeSet(predecessors)
     }
 
-    @ConfigurationDsl
     fun join(predecessors: Collection<Identified>): Join.Builder = JoinBase.Builder().apply {
         this.predecessors = IdentifyableSet.processNodeSet(predecessors)
     }
 
-    @ConfigurationDsl
     fun join(
         vararg predecessors: Identified,
         config: @ConfigurationDsl() (Join.Builder.() -> Unit)
     ): Join.Builder = join(*predecessors).apply(config)
 
-    @ConfigurationDsl
     fun join(
         predecessors: Collection<Identified>,
         config: @ConfigurationDsl() (Join.Builder.() -> Unit)
@@ -141,12 +134,28 @@ interface IModelBuilderContext<AIC : ActivityInstanceContext> : IModelBuilderCon
     }
 
     @OptIn(XmlUtilInternal::class)
+    @Deprecated("Avoid using CharArray due to efficiency issues")
     fun <T> processResult(
         name: String,
         refNode: Identified,
         refName: String? = null,
         path: String? = null,
-        content: CharArray? = null,
+        content: CharArray,
+        nsContext: IterableNamespaceContext = SimpleNamespaceContext(),
+        serializer: KSerializer<T>
+    ): ProcessResultRef<T> {
+        @Suppress("DEPRECATION")
+        modelBuilder.exports.add(XmlDefineType(name, refNode, refName, path, content, nsContext))
+        return ProcessResultRefImpl(name, serializer)
+    }
+
+    @OptIn(XmlUtilInternal::class)
+    fun <T> processResult(
+        name: String,
+        refNode: Identified,
+        refName: String? = null,
+        path: String? = null,
+        content: String? = null,
         nsContext: IterableNamespaceContext = SimpleNamespaceContext(),
         serializer: KSerializer<T>
     ): ProcessResultRef<T> {
@@ -247,7 +256,7 @@ inline fun <AIC : ActivityInstanceContext, reified T> IModelBuilderContext<AIC>.
     return processResult(name, refNode.nodeRef, refNode.propertyName, path, content, nsContext, serializer())
 }
 
-inline fun <AIC : ActivityInstanceContext, I> IModelBuilderContext<AIC>.processResult(
+fun <AIC : ActivityInstanceContext, I> IModelBuilderContext<AIC>.processResult(
     name: String,
     refNode: DataNodeHandle<I>,
     path: String? = null,

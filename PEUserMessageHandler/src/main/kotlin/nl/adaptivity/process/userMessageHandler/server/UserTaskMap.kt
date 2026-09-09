@@ -86,7 +86,7 @@ class UserTaskMap(connectionProvider: DBTransactionFactory<MonadicDBTransaction<
             }
 
             val handle = row.value(u.taskhandle, 1)!!
-            val remoteHandle = row.value(u.remotehandle, 2)!! as Handle<Unit>
+            val remoteHandle: Handle<*> = row.value(u.remotehandle, 2)!!
 
             val instanceFuture = ServletProcessEngineClient
                 .getProcessNodeInstance(
@@ -106,10 +106,10 @@ class UserTaskMap(connectionProvider: DBTransactionFactory<MonadicDBTransaction<
                     handleException(e)
                 }
                 instance?.body?.let { body ->
-                    val env = XML.decodeFromReader<Envelope<XmlTask>>(body.getXmlReader())
+                    val env = XML.v1.decodeFromReader<Envelope<XmlTask>>(body.getXmlReader())
                     env.body.child.apply {
                         setHandleValue(handle.handleValue)
-                        this.remoteHandle = remoteHandle
+                        this.remoteHandle = Handle(remoteHandle.handleValue)
                         state = instance.state
                     }
                 }

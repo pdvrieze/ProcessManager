@@ -24,7 +24,7 @@ import nl.adaptivity.xmlutil.XmlWriter
 import nl.adaptivity.xmlutil.serialization.XML
 
 class SerializableData<T>(val serializer: KSerializer<T>, val data: T, val tagName: QName? = null) {
-    fun encodeToWriter(writer: XmlWriter, format: XML = XML { autoPolymorphic = true }) {
+    fun encodeToWriter(writer: XmlWriter, format: XML = XML.v1 {}) {
         when (tagName) {
             null -> format.encodeToWriter(writer, serializer, data)
             else -> format.encodeToWriter(writer, serializer, data, tagName)

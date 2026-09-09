@@ -21,12 +21,28 @@ abstract class CompositePmaModelBuilderContext<
     abstract override val modelBuilder: ActivityBase.CompositeActivityBuilder
 
 
+    @Deprecated("Avoid using CharArray due to efficiency issues")
     override fun <T> input(
         name: String,
         refNode: Identified,
         refName: String?,
         path: String?,
-        content: CharArray?,
+        content: CharArray,
+        nsContext: IterableNamespaceContext,
+        deserializer: DeserializationStrategy<T>,
+    ): InputRef<T> {
+        @Suppress("DEPRECATION")
+        modelBuilder.defines.add(XmlDefineType(name, refNode, refName, path, content, nsContext))
+        modelBuilder.imports.add(XmlResultType(name, "/$name/node()"))
+        return InputRefImpl(name, deserializer)
+    }
+
+    override fun <T> input(
+        name: String,
+        refNode: Identified,
+        refName: String?,
+        path: String?,
+        content: String?,
         nsContext: IterableNamespaceContext,
         deserializer: DeserializationStrategy<T>,
     ): InputRef<T> {

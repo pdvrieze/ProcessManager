@@ -71,7 +71,7 @@ tasks.named<War>("war") {
     dependsOn(configurations["javascript"])
 
     into("js") {
-        duplicatesStrategy = DuplicatesStrategy.WARN
+        duplicatesStrategy = DuplicatesStrategy.EXCLUDE
         from({ configurations["javascript"].map { zipTree(it) } })
         include { fileTreeElement ->
             val path = fileTreeElement.path

@@ -51,7 +51,7 @@ interface MutableIdentifyableSet<T : Identifiable> : IdentifyableSet<T>, Mutable
 
 interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, ReadMap<String, T>, RandomAccess {
 
-    private class ReadonlyIterator<T> constructor(private val mIterator: ListIterator<T>) : ListIterator<T> {
+    private class ReadonlyIterator<T>(private val mIterator: ListIterator<T>) : ListIterator<T> {
 
         override fun hasNext() = mIterator.hasNext()
 
@@ -105,7 +105,7 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
                 other.all { it in data }
         }
 
-        override fun hashCode() = data.hashCode()
+        override fun hashCode() = data.contentHashCode()
 
         override fun toString(): String {
             return data.joinToString(prefix = "ReadOnlyIdentifyableSet{", postfix = "}")
@@ -279,7 +279,7 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
     private class SingletonIdentifyableSet<V : Identifiable> : AbstractSet<V>, MutableIdentifyableSet<V> {
         private var element: V? = null
 
-        constructor() {}
+        constructor()
 
         constructor(element: V?) {
             if (element == null) throw NullPointerException()
@@ -294,11 +294,11 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
             }
         }
 
-        override fun add(e: V): Boolean {
-            if (e == element) {
+        override fun add(element: V): Boolean {
+            if (element == this@SingletonIdentifyableSet.element) {
                 return false
-            } else if (element == null) {
-                element = e
+            } else if (this@SingletonIdentifyableSet.element == null) {
+                this@SingletonIdentifyableSet.element = element
                 return true
             } else {
                 throw IllegalStateException("Singleton node set can only contain one element")
@@ -323,10 +323,10 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
             }
         }
 
-        override fun set(index: Int, element: V): V {
+        override fun set(index: Int, value: V): V {
             this.element.let {
                 if (it == null || index != 0) throw IndexOutOfBoundsException()
-                this.element = element
+                this.element = value
                 return it
             }
         }
@@ -367,13 +367,13 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
             }
         }
 
-        override fun listIterator(initialPos: Int): ListIterator<V> {
+        override fun listIterator(index: Int): ListIterator<V> {
             return when (element) {
                 null -> {
-                    if (initialPos != 0) throw IndexOutOfBoundsException()
+                    if (index != 0) throw IndexOutOfBoundsException()
                     emptyList<V>().listIterator()
                 }
-                else -> ReadonlyIterator(listOf(element!!).listIterator(initialPos))
+                else -> ReadonlyIterator(listOf(element!!).listIterator(index))
             }
         }
 
@@ -413,7 +413,7 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
 
         override fun hashCode(): Int {
             var result = super.hashCode()
-            result = 31 * result + (element?.hashCode() ?: 0)
+            result = 31 * result + element.hashCode()
             return result
         }
 
@@ -442,44 +442,36 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
 
     }
 
-    override fun containsAll(elements: Collection<@kotlin.UnsafeVariance T>) = elements.all { contains(it) }
+    override fun containsAll(elements: Collection<@UnsafeVariance T>) = elements.all { contains(it) }
 
     override fun containsKey(key: String): Boolean {
         return get(key) != null
     }
 
-    override fun containsValue(value: @kotlin.UnsafeVariance T): Boolean {
+    override fun containsValue(value: @UnsafeVariance T): Boolean {
         return contains(value)
     }
 
     override fun isEmpty() = size == 0
 
-    override operator fun get(pos: Int): T
+    override operator fun get(index: Int): T
 
     operator fun get(key: Identifiable): T? {
         return key.id?.let { get(it) }
     }
 
     override fun get(key: String): T? {
-        if (key == null) {
-            for (elem in this) {
-                if (elem.id == null) {
-                    return elem
-                }
-            }
-        } else {
-            for (elem in this) {
-                if (key == elem.id) {
-                    return elem
-                }
+        for (elem in this) {
+            if (key == elem.id) {
+                return elem
             }
         }
         return null
     }
 
-    override fun indexOf(element: @kotlin.UnsafeVariance T): Int = indexOfFirst { it == element }
+    override fun indexOf(element: @UnsafeVariance T): Int = indexOfFirst { it == element }
 
-    override fun lastIndexOf(element: @kotlin.UnsafeVariance T): Int = indexOfLast { it == element }
+    override fun lastIndexOf(element: @UnsafeVariance T): Int = indexOfLast { it == element }
 
     override val keys: Set<String> get() = MyKeySet(this)
 
@@ -487,12 +479,12 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
 
     override fun listIterator(): ListIterator<T> = listIterator(0)
 
-    override fun listIterator(initialPos: Int): ListIterator<T>
+    override fun listIterator(index: Int): ListIterator<T>
 
     override fun values() = readOnly()
 
     fun readOnly(): IdentifyableSet<T> {
-        if (this is IdentifyableSet.ReadOnlyIdentifyableSet) {
+        if (this is ReadOnlyIdentifyableSet) {
             return this
         }
         return ReadOnlyIdentifyableSet(this)

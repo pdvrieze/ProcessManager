@@ -30,13 +30,13 @@ class WASP4: TraceTest(Companion) {
             val start1 by startNode
             val ac1 by activity(start1)
 
-            internal inner class Comp1: ConfigurableCompositeActivity( ac1) {
+            internal class Comp1(model: Wasp4Model): ConfigurableCompositeActivity(model,  model.ac1) {
                 val start2 by startNode
                 val ac2 by activity(start2)
                 val end2 by endNode(ac2)
             }
 
-            val comp1 by Comp1()
+            val comp1 by Comp1(this)
             val ac3 by activity(comp1)
             val end by endNode(ac3)
         }

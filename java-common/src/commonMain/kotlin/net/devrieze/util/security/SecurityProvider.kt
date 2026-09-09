@@ -181,13 +181,4 @@ interface SecurityProvider {
      */
     fun getPermission(permission: Permission, subject: Principal?, objectPrincipal: Principal): PermissionResult
 
-    companion object {
-
-        /**
-         * Special principal that represents the system.
-         */
-        @Deprecated("", ReplaceWith("net.devrieze.util.security.SYSTEMPRINCIPAL", "net.devrieze.util.security.SYSTEMPRINCIPAL"))
-        val SYSTEMPRINCIPAL: RolePrincipal = net.devrieze.util.security.SYSTEMPRINCIPAL
-    }
-
 }

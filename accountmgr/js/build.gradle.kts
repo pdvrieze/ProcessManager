@@ -20,7 +20,6 @@ import org.jetbrains.kotlin.gradle.dsl.JsModuleKind
 plugins {
     kotlin("multiplatform")
     idea
-    id("mpconsumer")
 }
 
 base {
@@ -28,8 +27,6 @@ base {
 }
 
 description = "Javascript library supporting the accountmanager funcationality."
-
-val myJavaVersion: JavaVersion by project
 
 kotlin {
     js {
@@ -58,7 +55,7 @@ kotlin {
     }
 */
     sourceSets {
-        val jsMain by getting {
+        jsMain {
             dependencies {
             //    compile "org.jetbrains.kotlin:kotlin-stdlib:$kotlin_version"
                 implementation(libs.kotlinx.html)

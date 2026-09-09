@@ -112,7 +112,7 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
     @Throws(IOException::class, ServletException::class)
     override fun invoke(request: Request, response: Response) {
         log.info("Invoking DarwinAuthenticator for ${request.method} request ${request.requestURI}")
-        val container = container_!!
+        val container = checkNotNull(container) { "Authenticator called before container set" }
 
         // First do any handling of already present authentication information
         val authresult = lazy { authenticateHelper(dataSource, request, response) }
@@ -169,7 +169,7 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
 
             if (authRequired) {
                 when (authresult.value) {
-                    AuthResult.AUTHENTICATED -> if (container is Context && realm.hasResourcePermission(request, response, constraints, container)) {
+                    AuthResult.AUTHENTICATED -> if (realm.hasResourcePermission(request, response, constraints, container)) {
                             invokeNext(request, response)
                         } else {
                             response.sendError(HttpServletResponse.SC_FORBIDDEN,
@@ -283,7 +283,6 @@ class DarwinAuthenticator : ValveBase(), Lifecycle, Authenticator {
             maxAge = MAXTOKENLIFETIME
             path="/"
             secure = secureCookie
-            version=1
         }
 
         private fun clearCookies(request: Request, response:HttpServletResponse) {

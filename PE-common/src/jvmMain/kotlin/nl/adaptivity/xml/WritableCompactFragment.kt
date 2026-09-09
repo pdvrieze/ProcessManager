@@ -54,7 +54,7 @@ actual class WritableCompactFragment private actual constructor(
         false
                                                                                   )
 
-    actual constructor(string: String) : this(CompactFragment(string), false) {}
+    actual constructor(string: String) : this(CompactFragment(string), false)
 
     actual constructor(orig: ICompactFragment) : this(CompactFragment(orig.namespaces, orig.contentString), false) {}
 

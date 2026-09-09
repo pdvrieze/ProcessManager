@@ -163,7 +163,7 @@ class ActivityResponse<T : Any, V: T?> {
         }
 
         fun <T: Any> deserialize(reader: XmlReader): ActivityResponse<T, T> {
-            return XML.decodeFromReader(reader)
+            return XML.v1.decodeFromReader(reader)
         }
     }
 

@@ -100,7 +100,7 @@ class XmlProcessNodeInstance {
         internal val BODY_ELEMENTNAME = QName(Engine.NAMESPACE, BODY_LOCALNAME, Engine.NSPREFIX)
 
         fun deserialize(reader: XmlReader): XmlProcessNodeInstance {
-            return XML.decodeFromReader(reader)
+            return XML.v1.decodeFromReader(reader)
         }
     }
 

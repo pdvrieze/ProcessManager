@@ -550,7 +550,7 @@ class ProcessEngine<TR : ContextProcessTransaction> {
         // If security allows this, return an empty list.
         engineData.inReadonlyTransaction(transaction) {
             return instances.map {
-                it.withPermission(securityProvider, SecureObject.Permissions.READ, user) { it } as ProcessInstance
+                it.withPermission(securityProvider, SecureObject.Permissions.READ, user) { it }
             }.filter { instance -> instance.owner.name == user.name }
         }
     }
@@ -1042,7 +1042,7 @@ class ProcessEngine<TR : ContextProcessTransaction> {
 
         @JvmStatic
         @JvmName("newInstance")
-        operator fun <T : ProcessDBTransaction> invoke(
+        operator fun <T : ContextProcessTransaction> invoke(
             messageService: IMessageService<*>,
             engineData: IProcessEngineData<T>
         ): ProcessEngine<T> {

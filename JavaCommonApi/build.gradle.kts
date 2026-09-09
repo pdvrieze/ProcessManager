@@ -32,8 +32,9 @@ base {
 kotlin {
     applyDefaultHierarchyTemplate()
     compilerOptions {
-        languageVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.fromVersion(libs.versions.kotlin.languageVersion.get())
+        languageVersion = KotlinVersion.fromVersion(libs.versions.kotlin.languageVersion.get())
         apiVersion = KotlinVersion.fromVersion(libs.versions.kotlin.apiVersion.get())
+        freeCompilerArgs.add("-Xexpect-actual-classes")
     }
     jvm {
         compilerOptions {
@@ -54,21 +55,12 @@ kotlin {
     }
 
     sourceSets {
-/*
-        all {
-            languageSettings {
-                optIn("kotlin.RequiresOptIn")
-            }
-        }
-*/
-        val commonMain by getting {
+        commonMain {
             dependencies {
-                implementation(project(":multiplatform"))
+                implementation(projects.multiplatform)
                 implementation(libs.xmlutil.core)
+//                implementation(projects.javaCommonApi)
             }
-        }
-        val jsMain by getting {
-            dependsOn(commonMain)
         }
     }
 

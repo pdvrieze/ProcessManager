@@ -106,6 +106,7 @@ class PMAActivityInstance <C : PmaActivityContext<C>> : ProcessNodeInstance<PMAA
 
     }
 
+
     class BaseBuilder<C: PmaActivityContext<C>>(
         node: IPMAMessageActivity<*>,
         predecessor: PNIHandle?,
@@ -116,8 +117,13 @@ class PMAActivityInstance <C : PmaActivityContext<C>> : ProcessNodeInstance<PMAA
         handle: PNIHandle = Handle.invalid(),
         state: NodeInstanceState = NodeInstanceState.Pending
     ) : ProcessNodeInstance.BaseBuilder<IPMAMessageActivity<C>, PMAActivityInstance<C>>(
-        node as IPMAMessageActivity<C>, listOfNotNull(predecessor), processInstanceBuilder, owner,
-        entryNo, handle, state
+        @Suppress("UNCHECKED_CAST") run { node as IPMAMessageActivity<C> },
+        listOfNotNull(predecessor),
+        processInstanceBuilder,
+        owner,
+        entryNo,
+        handle,
+        state
     ), Builder<C> {
         override fun build(): PMAActivityInstance<C> {
             return PMAActivityInstance(this)

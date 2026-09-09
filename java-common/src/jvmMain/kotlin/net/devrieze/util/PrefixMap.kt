@@ -837,7 +837,7 @@ class PrefixMap<V : Any> : AbstractCollection<PrefixMap.Entry<V>>() {
 //            v.setBelow(v.below!!.copy())
 //            v.below!!.setLeft(null)
 //            v.below!!.setRight(null)
-            v = v.below?.copy(left = null, right = null)
+            v = v.below.copy(left = null, right = null)
         }
 //        resultNode.fixCount()
 

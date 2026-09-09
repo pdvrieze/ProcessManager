@@ -152,21 +152,12 @@ class PETransformer private constructor(
                     when (elem.eventType) {
                         EventType.IGNORABLE_WHITESPACE, EventType.COMMENT -> {
                         }
-                        EventType.TEXT                                    -> {
-                            if (isXmlWhitespace((elem as TextEvent).text)) {
-                                continue@loop
-                            }
-                            if (!(elem.eventType === EventType.END_ELEMENT && name.isEqualNames(
-                                    elem as EndElementEvent
-                                ))
-                            ) {
-                                throw XmlException(
-                                    "Unexpected tag found ($elem) when expecting an end tag for $name"
-                                )
-                            }
-                            return
+
+                        EventType.TEXT -> if (!isXmlWhitespace((elem as TextEvent).text)) {
+                            throw XmlException("Unexpected tag found ($elem) when expecting an end tag for $name")
                         }
-                        else                                              -> {
+
+                        else -> {
                             if (!(elem.eventType === EventType.END_ELEMENT && name.isEqualNames(
                                     elem as EndElementEvent
                                 ))

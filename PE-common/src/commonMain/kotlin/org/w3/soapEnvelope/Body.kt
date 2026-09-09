@@ -82,6 +82,7 @@ class Body<T: Any>(
         otherAttributes: Map<QName, String> = this.otherAttributes,
     ): Body<U> = Body(child, encodingStyle, otherAttributes)
 
+    @OptIn(ExperimentalSerializationApi::class)
     class Serializer<T: Any>(private val contentSerializer: KSerializer<T>): KSerializer<Body<T>> {
 
         @OptIn(ExperimentalSerializationApi::class, XmlUtilInternal::class)
@@ -130,9 +131,8 @@ class Body<T: Any>(
             if (encoder is XML.XmlOutput) {
                 val out = encoder.target
                 out.smartStartTag(ELEMENTNAME) {
-                    value.encodingStyle?.also { style ->
-                        out.attribute(Envelope.NAMESPACE, "encodingStyle", Envelope.PREFIX, style.toString())
-                    }
+                    out.attribute(Envelope.NAMESPACE, "encodingStyle", Envelope.PREFIX, value.encodingStyle.toString())
+
                     for ((aName, aValue) in value.otherAttributes) {
                         out.writeAttribute(aName,  aValue)
                     }
@@ -152,9 +152,9 @@ class Body<T: Any>(
                 }
             } else {
                 encoder.encodeStructure(descriptor) {
-                    value.encodingStyle?.also { style ->
-                        encodeSerializableElement(descriptor, 0, URISerializer, style)
-                    }
+
+                    encodeSerializableElement(descriptor, 0, URISerializer, value.encodingStyle)
+
                     if (value.otherAttributes.isNotEmpty() || shouldEncodeElementDefault(descriptor, 1)) {
                         encodeSerializableElement(descriptor, 1, SoapSerialObjects.attrsSerializer, value.otherAttributes)
                     }

@@ -103,7 +103,7 @@ internal class ProcessModelFactory() :
     override fun store(update: _UpdateBuilder, value: SecureObject<ExecutableProcessModel>) {
         value.withPermission().let { processModel ->
             update.SET(pm.owner, processModel.owner.name)
-            update.SET(pm.model, XML.encodeToString(processModel))
+            update.SET(pm.model, XML.v1.encodeToString(processModel))
         }
     }
 
@@ -120,7 +120,7 @@ internal class ProcessModelFactory() :
         value: SecureObject<ExecutableProcessModel>
     ): InsertAction<ProcessEngineDB, Insert> {
         return value.withPermission().let { processModel ->
-            insert.listVALUES(processModel.owner.name, XML.encodeToString(processModel))
+            insert.listVALUES(processModel.owner.name, XML.v1.encodeToString(processModel))
         }
     }
 

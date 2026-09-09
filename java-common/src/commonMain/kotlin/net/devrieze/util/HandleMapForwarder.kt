@@ -25,7 +25,10 @@ open class HandleMapForwarder<V : Any, T : Transaction>(
     override fun containsElement(element: V) = delegate.containsElement(transaction, element)
 
     @Deprecated("Not safe for use")
-    override fun iterator() = delegate.iterator(transaction, true)
+    override fun iterator(): Iterator<V> {
+        @Suppress("DEPRECATION")
+        return delegate.iterator(transaction, true)
+    }
 
     override fun forEach(body: HasForEach.ForEachReceiver<V>) {
         delegate.forEach(transaction, body)

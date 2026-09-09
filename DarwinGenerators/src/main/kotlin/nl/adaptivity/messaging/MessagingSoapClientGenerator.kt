@@ -238,7 +238,7 @@ object MessagingSoapClientGenerator {
                     try {
                         val uri = URI.create(element)
                         url = uri.toURL()
-                    } catch (e: IllegalArgumentException) {
+                    } catch (_: IllegalArgumentException) {
                         val file = fs.getPath(element)
                         url = file.normalize().toUri().toURL()
                     }
@@ -300,13 +300,13 @@ object MessagingSoapClientGenerator {
         for (str in finalStrings) {
             val prefix = if (str.indexOf('.') < 0) "" else str.substring(0, str.indexOf('.'))
             if (oldPrefix != null && oldPrefix != prefix) {
-                out.write('\n')
+                out.append('\n')
             }
 
             out.append("import ").append(str).append("\n")
             oldPrefix = prefix
         }
-        out.write('\n')
+        out.append('\n')
 
         buffer.writeTo(out)
     }
@@ -535,7 +535,7 @@ object MessagingSoapClientGenerator {
             out.write(", ")
             writeType(out, value[i], false, false, imports)
         }
-        out.write(')')
+        out.append(')')
     }
 
     private fun getRawType(type: KType): KClass<*> {
@@ -568,7 +568,7 @@ object MessagingSoapClientGenerator {
                           varargs: Boolean,
                           imports: MutableMap<String, String>) {
         if (projection.type == null) {
-            out.write('*'); return
+            out.append('*'); return
         }
         @Suppress("NON_EXHAUSTIVE_WHEN")
         when (projection.variance) {
@@ -633,7 +633,7 @@ object MessagingSoapClientGenerator {
             writeTypeProjections(out, ktype.arguments, imports)
         }
         if (ktype.isMarkedNullable) {
-            out.write('?')
+            out.append('?')
         }
 /*
 
@@ -760,13 +760,13 @@ object MessagingSoapClientGenerator {
     @Throws(IOException::class)
     private fun writeTypeProjections(out: Writer, types: List<KTypeProjection>, imports: MutableMap<String, String>) {
         if (types.isNotEmpty()) {
-            out.write('<')
+            out.append('<')
             writeType(out, types[0], false, false, imports)
             for (i in 1 until types.size) {
-                out.write(',')
+                out.append(',')
                 writeType(out, types[i], false, false, imports)
             }
-            out.write('>')
+            out.append('>')
         }
 
     }
@@ -774,13 +774,13 @@ object MessagingSoapClientGenerator {
     @Throws(IOException::class)
     private fun writeTypeParams(out: Writer, types: List<KTypeParameter>, imports: MutableMap<String, String>) {
         if (types.isNotEmpty()) {
-            out.write('<')
+            out.append('<')
             writeType(out, types[0], false, false, imports)
             for (i in 1 until types.size) {
-                out.write(',')
+                out.append(',')
                 writeType(out, types[i], false, false, imports)
             }
-            out.write('>')
+            out.append('>')
         }
 
     }
@@ -852,7 +852,3 @@ object MessagingSoapClientGenerator {
     }
 
 }
-
-/** No object instances expected. */
-
-inline fun Writer.write(ch: Char) = write(ch.toInt())

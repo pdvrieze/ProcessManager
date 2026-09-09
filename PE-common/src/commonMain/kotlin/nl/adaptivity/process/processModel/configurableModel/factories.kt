@@ -55,34 +55,28 @@ fun ConfigurableNodeContainer.compositeActivity(
         configurationBuilder.rootBuilder, predecessor = predecessor
     ).apply(config)
 
-@ConfigurationDsl
 fun ConfigurableNodeContainer.split(predecessor: Identified): Split.Builder =
     SplitBase.Builder().apply { this.predecessor = predecessor }
 
-@ConfigurationDsl
 fun ConfigurableNodeContainer.split(
     predecessor: Identified,
     config: @ConfigurationDsl Split.Builder.() -> Unit
 ): Split.Builder =
     split(predecessor).apply(config)
 
-@ConfigurationDsl
 fun ConfigurableNodeContainer.join(vararg predecessors: Identified): Join.Builder = JoinBase.Builder().apply {
     this.predecessors = IdentifyableSet.processNodeSet(predecessors)
 }
 
-@ConfigurationDsl
 fun ConfigurableNodeContainer.join(predecessors: Collection<Identified>): Join.Builder = JoinBase.Builder().apply {
     this.predecessors = IdentifyableSet.processNodeSet(predecessors)
 }
 
-@ConfigurationDsl
 fun ConfigurableNodeContainer.join(
     vararg predecessors: Identified,
     config: @ConfigurationDsl Join.Builder.() -> Unit
 ): Join.Builder = join(*predecessors).apply(config)
 
-@ConfigurationDsl
 fun ConfigurableNodeContainer.join(
     predecessors: Collection<Identified>,
     config: @ConfigurationDsl Join.Builder.() -> Unit
@@ -99,12 +93,26 @@ fun ConfigurableNodeContainer.endNode(
 ): EndNode.Builder = endNode(predecessor).apply(config)
 
 
+@Deprecated("Avoid using CharArray due to efficiency issues")
 fun ConfigurableProcessModel<*>.input(
     name: String,
     refNode: Identified,
     refName: String? = null,
     path: String? = null,
-    content: CharArray? = null,
+    content: CharArray,
+    nsContext: Iterable<Namespace>
+) {
+    @Suppress("DEPRECATION")
+    @OptIn(XmlUtilInternal::class)
+    input(name, refNode, refName, path, content, SimpleNamespaceContext(nsContext))
+}
+
+fun ConfigurableProcessModel<*>.input(
+    name: String,
+    refNode: Identified,
+    refName: String? = null,
+    path: String? = null,
+    content: String? = null,
     nsContext: Iterable<Namespace>
 ) {
     @OptIn(XmlUtilInternal::class)
@@ -112,15 +120,42 @@ fun ConfigurableProcessModel<*>.input(
 }
 
 @OptIn(XmlUtilInternal::class)
+@Deprecated("Avoid using CharArray due to efficiency issues")
 fun ConfigurableProcessModel<*>.input(
     name: String,
     refNode: Identified,
     refName: String? = null,
     path: String? = null,
-    content: CharArray? = null,
+    content: CharArray,
     nsContext: IterableNamespaceContext = SimpleNamespaceContext()
 ) {
     configurationBuilder.imports.add(XmlResultType(name, "/$name", content, nsContext))
+}
+
+@OptIn(XmlUtilInternal::class)
+fun ConfigurableProcessModel<*>.input(
+    name: String,
+    refNode: Identified,
+    refName: String? = null,
+    path: String? = null,
+    content: String? = null,
+    nsContext: IterableNamespaceContext = SimpleNamespaceContext()
+) {
+    configurationBuilder.imports.add(XmlResultType(name, "/$name", content, nsContext))
+}
+
+@Deprecated("Avoid using CharArray due to efficiency issues")
+fun ConfigurableProcessModel<*>.output(
+    name: String,
+    refNode: Identified,
+    refName: String? = null,
+    path: String? = null,
+    content: CharArray,
+    nsContext: Iterable<Namespace>
+) {
+    @Suppress("DEPRECATION")
+    @OptIn(XmlUtilInternal::class)
+    output(name, refNode, refName, path, content, SimpleNamespaceContext(nsContext))
 }
 
 fun ConfigurableProcessModel<*>.output(
@@ -128,11 +163,25 @@ fun ConfigurableProcessModel<*>.output(
     refNode: Identified,
     refName: String? = null,
     path: String? = null,
-    content: CharArray? = null,
+    content: String? = null,
     nsContext: Iterable<Namespace>
 ) {
     @OptIn(XmlUtilInternal::class)
     output(name, refNode, refName, path, content, SimpleNamespaceContext(nsContext))
+}
+
+@OptIn(XmlUtilInternal::class)
+@Deprecated("Avoid using CharArray due to efficiency issues")
+fun ConfigurableProcessModel<*>.output(
+    name: String,
+    refNode: Identified,
+    refName: String? = null,
+    path: String? = null,
+    content: CharArray,
+    nsContext: IterableNamespaceContext = SimpleNamespaceContext()
+) {
+    @Suppress("DEPRECATION")
+    configurationBuilder.exports.add(XmlDefineType(name, refNode, refName, path, content, nsContext))
 }
 
 @OptIn(XmlUtilInternal::class)
@@ -141,7 +190,7 @@ fun ConfigurableProcessModel<*>.output(
     refNode: Identified,
     refName: String? = null,
     path: String? = null,
-    content: CharArray? = null,
+    content: String? = null,
     nsContext: IterableNamespaceContext = SimpleNamespaceContext()
 ) {
     configurationBuilder.exports.add(XmlDefineType(name, refNode, refName, path, content, nsContext))

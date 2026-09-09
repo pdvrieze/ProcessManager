@@ -10,7 +10,6 @@ import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.XmlResultType
 import nl.adaptivity.process.util.Identified
 import nl.adaptivity.xmlutil.IterableNamespaceContext
-import nl.adaptivity.xmlutil.Namespace
 import kotlin.experimental.ExperimentalTypeInference
 
 abstract class CompositeModelBuilderContext<AIC : ActivityInstanceContext> : ModelBuilderContext<AIC>(), ICompositeModelBuilderContext<AIC> {
@@ -18,12 +17,28 @@ abstract class CompositeModelBuilderContext<AIC : ActivityInstanceContext> : Mod
     internal val activityBuilder: ActivityBase.CompositeActivityBuilder
         get() = modelBuilder
 
+    @Deprecated("Avoid using CharArray due to efficiency issues")
     override fun <T> input(
         name: String,
         refNode: Identified,
         refName: String?,
         path: String?,
-        content: CharArray?,
+        content: CharArray,
+        nsContext: IterableNamespaceContext,
+        deserializer: DeserializationStrategy<T>,
+    ): InputRef<T> {
+        @Suppress("DEPRECATION")
+        modelBuilder.defines.add(XmlDefineType(name, refNode, refName, path, content, nsContext))
+        modelBuilder.imports.add(XmlResultType(name, "/$name/node()"))
+        return InputRefImpl(name, deserializer)
+    }
+
+    override fun <T> input(
+        name: String,
+        refNode: Identified,
+        refName: String?,
+        path: String?,
+        content: String?,
         nsContext: IterableNamespaceContext,
         deserializer: DeserializationStrategy<T>,
     ): InputRef<T> {
@@ -49,7 +64,6 @@ abstract class CompositeModelBuilderContext<AIC : ActivityInstanceContext> : Mod
         predecessor: Identified,
         input: InputRef<I>,
         outputSerializer: SerializationStrategy<O>,
-        @BuilderInference
         action: RunnableAction<I, O, AIC>
     ): RunnableActivity.Builder<I, O, AIC> {
         return RunnableActivity.Builder(

@@ -29,15 +29,14 @@ kotlin {
         languageVersion = KotlinVersion.fromVersion(libs.versions.kotlin.languageVersion.get())
         apiVersion = KotlinVersion.fromVersion(libs.versions.kotlin.apiVersion.get())
     }
-    targets {
-        jvm {
-            compilerOptions {
-                jvmTarget = JvmTarget.fromTarget(libs.versions.kotlin.classTarget.get())
-            }
-            compilations.all {
-                tasks.withType<Test> {
-                    useJUnitPlatform()
-                }
+
+    jvm {
+        compilerOptions {
+            jvmTarget = JvmTarget.fromTarget(libs.versions.kotlin.classTarget.get())
+        }
+        compilations.all {
+            tasks.withType<Test> {
+                useJUnitPlatform()
             }
         }
     }
@@ -48,7 +47,8 @@ kotlin {
                 optIn("kotlin.RequiresOptIn")
             }
         }
-        val commonMain by getting {
+
+        commonMain {
             dependencies {
                 implementation(project(":ProcessEngine:core"))
 
@@ -63,29 +63,21 @@ kotlin {
 
             }
         }
-        val commonTest by getting {
+
+        commonTest {
             dependencies {
                 implementation(libs.xmlutil.core)
                 implementation(kotlin("test"))
                 implementation(kotlin("test-annotations-common"))
             }
         }
-        val javaMain by creating {
-            dependsOn(commonMain)
+
+        jvmMain {
             dependencies {
                 implementation(libs.xmlutil.xmlserializable)
             }
         }
-        val jvmMain by getting {
-            dependsOn(javaMain)
-            dependencies {
-            }
-        }
-        val jvmTest by getting {
-            dependencies {
 
-            }
-        }
     }
 
 }

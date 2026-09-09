@@ -22,7 +22,8 @@ import nl.adaptivity.xmlutil.SimpleNamespaceContext
 import nl.adaptivity.xmlutil.XmlUtilInternal
 import org.w3c.dom.Attr
 import org.w3c.dom.NamedNodeMap
-import java.lang.reflect.Method
+import java.lang.invoke.MethodHandle
+import java.lang.invoke.MethodHandles
 import java.util.logging.Level
 import java.util.logging.Logger
 import javax.xml.XMLConstants
@@ -77,24 +78,28 @@ class SimpleAdapter {
         }
         val context: Any?
         try {
-            if (_getContext == null) {
+
+            val getContext = _getContext
+            if (getContext == null) {
                 synchronized(javaClass) {
-                    _getContext = unmarshaller.javaClass.getMethod("getContext")
-                    context = _getContext!!.invoke(unmarshaller)
-                    _getAllDeclaredPrefixes = context!!.javaClass.getMethod("getAllDeclaredPrefixes")
-                    _getNamespaceURI = context.javaClass.getMethod("getNamespaceURI", String::class.java)
+                    val mh = MethodHandles.lookup().unreflect(unmarshaller.javaClass.getMethod("getContext"))
+                    _getContext = mh
+
+                    context = mh.invoke(unmarshaller) as Any
+
+                    _getAllDeclaredPrefixes = MethodHandles.lookup().unreflect(context.javaClass.getMethod("getAllDeclaredPrefixes"))
+                    _getNamespaceURI = MethodHandles.lookup().unreflect(context.javaClass.getMethod("getNamespaceURI", String::class.java))
 
                 }
             } else {
-                context = _getContext!!.invoke(unmarshaller)
+                context = getContext(unmarshaller)
             }
-            val _getNamespaceURI = _getNamespaceURI!!
-            val _getAllDeclaredPrefixes = _getAllDeclaredPrefixes!!
 
             if (context != null) {
+                @Suppress("UNCHECKED_CAST")
                 val prefixes = _getAllDeclaredPrefixes(context) as Array<String>
                 if (prefixes.isNotEmpty()) {
-                    val namespaces = prefixes.arrayMap { _getNamespaceURI(context, it) as String }
+                    val namespaces = prefixes.arrayMap { Companion._getNamespaceURI(context, it) as String }
                     namespaceContext = SimpleNamespaceContext(prefixes, namespaces)
                 }
             }
@@ -109,10 +114,10 @@ class SimpleAdapter {
     companion object {
 
         @Volatile
-        private var _getContext: Method? = null
+        private var _getContext: MethodHandle? = null
         @Volatile
         private var _failedReflection = false
-        private var _getAllDeclaredPrefixes: Method? = null
-        private var _getNamespaceURI: Method? = null
+        private lateinit var _getAllDeclaredPrefixes: MethodHandle
+        private lateinit var _getNamespaceURI: MethodHandle
     }
 }

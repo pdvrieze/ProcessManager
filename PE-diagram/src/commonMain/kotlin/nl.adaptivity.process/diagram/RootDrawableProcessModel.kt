@@ -18,7 +18,6 @@ package nl.adaptivity.process.diagram
 
 import net.devrieze.util.Handle
 import net.devrieze.util.collection.replaceBy
-import net.devrieze.util.security.SYSTEMPRINCIPAL
 import nl.adaptivity.diagram.Drawable
 import nl.adaptivity.diagram.ItemCache
 import nl.adaptivity.diagram.Rectangle
@@ -229,7 +228,7 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
             childModels: Collection<ChildProcessModel.Builder> = emptyList(),
             name: String? = null,
             handle: Long = -1L,
-            owner: PrincipalCompat = SYSTEMPRINCIPAL,
+            owner: PrincipalCompat? = null,
             roles: Collection<String> = emptyList(),
             uuid: UUID? = null,
             imports: Collection<IXmlResultType> = emptyList(),
@@ -292,7 +291,9 @@ final class RootDrawableProcessModel @JvmOverloads constructor(
 
         override fun endNodeBuilder(endNode: EndNode) = DrawableEndNode.Builder(endNode)
 
-        override val childElements: List<DrawableProcessNode.Builder<*>> get() = nodes as List<DrawableProcessNode.Builder<*>> // We know they are drawable
+        @Suppress("UNCHECKED_CAST")
+        override val childElements: List<DrawableProcessNode.Builder<*>>
+            get() = nodes as List<DrawableProcessNode.Builder<*>> // We know they are drawable
 
         override fun layout(layoutStepper: LayoutStepper<DrawableProcessNode.Builder<*>>) {
             val leftPadding = this.leftPadding
@@ -447,6 +448,7 @@ object STUB_DRAWABLE_BUILD_HELPER :
     }
 
     override fun <M : ProcessModel<DrawableProcessNode>> withOwner(newOwner: M): ProcessModel.BuildHelper<DrawableProcessNode, M, RootDrawableProcessModel, ChildProcessModelBase<DrawableProcessNode>> {
+        @Suppress("UNCHECKED_CAST")
         return this as ProcessModel.BuildHelper<DrawableProcessNode, M, RootDrawableProcessModel, ChildProcessModelBase<DrawableProcessNode>>
     }
 

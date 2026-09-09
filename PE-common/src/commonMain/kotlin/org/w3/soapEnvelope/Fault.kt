@@ -83,7 +83,7 @@ class Fault(
 
     override val content: CharArray get() = contentString.toCharArray()
 
-    override val contentString: String get() = XML{ autoPolymorphic= true; indent=4}.encodeToString(serializer(), this, Envelope.PREFIX)
+    override val contentString: String get() = XML.v1 { setIndent(4) }.encodeToString(serializer(), this, Envelope.PREFIX)
 
     override fun getXmlReader(): XmlReader {
         val writer = XmlBufferedWriter()
@@ -97,6 +97,6 @@ class Fault(
         get() = SimpleNamespaceContext()
 
     override fun serialize(out: XmlWriter) {
-        XML{ autoPolymorphic= true; indent=4}.encodeToWriter(out, serializer(), this)
+        XML.v1{ setIndent(4) }.encodeToWriter(out, serializer(), this)
     }
 }

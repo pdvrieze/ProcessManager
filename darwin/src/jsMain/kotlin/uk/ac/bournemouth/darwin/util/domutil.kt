@@ -67,7 +67,7 @@ inline fun Element.removeChildIf(predicate: (Node) -> Boolean) {
     }
 }
 
-inline fun Node.removeFromParent() {
+fun Node.removeFromParent() {
     parentElement!!.removeChild(this)
 }
 

@@ -25,7 +25,7 @@ import java.util.*
 import javax.security.auth.login.LoginContext
 import javax.sql.DataSource
 
-class DarwinUserPrincipalImpl(private val dataSource: DataSource, name: String, roles: List<out String> = Collections.emptyList(), userPrincipal: Principal? = null, loginContext: LoginContext? = null, gssCredential: GSSCredential? = null) : DarwinBasePrincipal(name, roles, userPrincipal, loginContext, gssCredential), DarwinUserPrincipal {
+class DarwinUserPrincipalImpl(private val dataSource: DataSource, name: String, roles: List<String> = Collections.emptyList(), userPrincipal: Principal? = null, loginContext: LoginContext? = null, gssCredential: GSSCredential? = null) : DarwinBasePrincipal(name, roles, userPrincipal, loginContext, gssCredential), DarwinUserPrincipal {
 
     constructor(dataSource: DataSource, name: String) : this(dataSource, name, Collections.emptyList<String>())
 

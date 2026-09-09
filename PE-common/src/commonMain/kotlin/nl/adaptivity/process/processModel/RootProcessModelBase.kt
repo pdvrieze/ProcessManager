@@ -267,7 +267,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
             childModels: Collection<ChildProcessModel.Builder> = emptyList(),
             name: String? = null,
             handle: Long = -1L,
-            owner: PrincipalCompat = SYSTEMPRINCIPAL,
+            owner: PrincipalCompat? = null,
             roles: Collection<String> = emptyList(),
             uuid: UUID? = null,
             imports: Collection<IXmlResultType> = emptyList(),
@@ -276,7 +276,7 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
             this.childModels = childModels.toMutableList()
             this.name = name
             this.handle = handle
-            this.owner = owner
+            this.owner = owner ?: SYSTEMPRINCIPAL
             this.roles = roles.toMutableSet()
             this.uuid = uuid
         }
@@ -367,7 +367,8 @@ abstract class RootProcessModelBase<NodeT : ProcessNode> :
         constructor(orig: ChildModelProvider<NodeT, *, RootT, ChildT>, newOwner: ModelT) {
             nodeFactory = orig.nodeFactory
             pedantic = orig.pedantic
-            data = LinkedHashMap(orig.data as LinkedHashMap<String, Node>)
+            @Suppress("UNCHECKED_CAST")
+            data = LinkedHashMap(orig.data as Map<String, Node>)
             this.newOwner = newOwner
         }
 

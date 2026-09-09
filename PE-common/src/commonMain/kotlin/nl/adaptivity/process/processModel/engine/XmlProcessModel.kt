@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.processModel.engine
 
-import kotlinx.serialization.InternalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -81,7 +80,6 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode> {
             include(ProcessNodeBase.serialModule)
         }
 
-        @Suppress("RedundantOverride")
         override fun serialize(encoder: Encoder, value: XmlProcessModel) {
             delegateSerializer.serialize(encoder, SerialDelegate(value))
         }
@@ -94,7 +92,7 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode> {
         @kotlin.jvm.JvmOverloads
         @kotlin.jvm.JvmStatic
         fun deserialize(reader: XmlReader, pedantic: Boolean = true): XmlProcessModel {
-            val delegate: SerialDelegate = XML { autoPolymorphic = true }.decodeFromReader(delegateSerializer, reader)
+            val delegate: SerialDelegate = XML.v1.decodeFromReader(delegateSerializer, reader)
             return XmlProcessModel(delegate, pedantic)
         }
 
@@ -123,7 +121,6 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode> {
 
         internal constructor(serialDelegate: SerialDelegate) : super(serialDelegate)
 
-        @OptIn(InternalSerializationApi::class)
         companion object : KSerializer<Builder> {
             private val delegateSerializer = SerialDelegate.serializer()
 
@@ -138,7 +135,7 @@ class XmlProcessModel : RootProcessModelBase<XmlProcessNode> {
             }
 
             fun deserialize(reader: XmlReader): Builder {
-                return Builder(XML.decodeFromReader(delegateSerializer, reader))
+                return Builder(XML.v1.decodeFromReader(delegateSerializer, reader))
             }
         }
     }

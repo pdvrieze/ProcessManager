@@ -28,7 +28,6 @@ import javax.xml.transform.stream.StreamSource
 
 import java.io.*
 import java.net.*
-import java.util.ArrayList
 import java.util.concurrent.*
 import java.util.logging.Level
 import java.util.logging.Logger
@@ -52,7 +51,7 @@ private constructor() : IMessenger {
 
     private val notifier: MessageCompletionNotifier<*>
 
-    private var mLocalUrl: URI? = null
+    private var localUrl: URI? = null
 
     /**
      * Helper thread that performs (in a single tread) all notifications of
@@ -280,7 +279,7 @@ private constructor() : IMessenger {
                 }
                 if (hasPayload && !contenttypeset) { // Set the content type from the source if not yet set.
                     val contentType = message.contentType
-                    if (contentType != null && contentType.length > 0) {
+                    if (contentType.isNotEmpty()) {
                         connection.addRequestProperty("Content-Type", contentType)
                     }
                 }
@@ -432,7 +431,7 @@ private constructor() : IMessenger {
      */
     private object MessengerHolder {
 
-        internal val _GlobalMessenger = DarwinMessenger()
+        val _GlobalMessenger = DarwinMessenger()
     }
 
     init {
@@ -460,7 +459,7 @@ private constructor() : IMessenger {
             Logger.getAnonymousLogger().warning(msg.toString())
         } else {
             try {
-                mLocalUrl = URI.create(localUrl)
+                this@DarwinMessenger.localUrl = URI.create(localUrl)
             } catch (e: IllegalArgumentException) {
                 Logger.getAnonymousLogger().log(Level.SEVERE, "The given local url is not a valid uri.", e)
             }
@@ -568,13 +567,15 @@ private constructor() : IMessenger {
         }
 
         val destURL: URI
-        if (mLocalUrl == null) {
-            destURL = registeredEndpoint!!.endpointLocation!!
+        val localUrl = localUrl
+        if (localUrl == null) {
+            destURL = registeredEndpoint.endpointLocation ?:
+            return MessageTask(NullPointerException("No endpoint location specified, and the service is not local"))
         } else {
-            val endpointLocation = registeredEndpoint!!.endpointLocation ?: return MessageTask(
+            val endpointLocation = registeredEndpoint.endpointLocation ?: return MessageTask(
                 NullPointerException("No endpoint location specified, and the service could not be found")
             )
-            destURL = mLocalUrl!!.resolve(endpointLocation)
+            destURL = localUrl.resolve(endpointLocation)
         }
 
         val messageTask = MessageTask<T>(destURL, message, completionListener, returnType)
@@ -601,6 +602,7 @@ private constructor() : IMessenger {
      * @param future The Task whose completion to notify of.
      */
     internal fun <T> notifyCompletionListener(future: MessageTask<T>) {
+        @Suppress("UNCHECKED_CAST")
         (notifier as MessageCompletionNotifier<T>).addNotification(future)
     }
 
@@ -611,7 +613,7 @@ private constructor() : IMessenger {
      * @return
      */
     fun getEndpoint(serviceName: QName, endpointName: String): EndpointDescriptor? {
-        val service = services!![serviceName] ?: return null
+        val service = services[serviceName] ?: return null
         return service[endpointName]
     }
 
@@ -621,7 +623,7 @@ private constructor() : IMessenger {
      * @return
      */
     fun getEndpoint(endpoint: EndpointDescriptor): EndpointDescriptor? {
-        val service = services!![endpoint.serviceName] ?: return null
+        val service = services[endpoint.serviceName] ?: return null
 
         return service[endpoint.endpointName]
     }
@@ -678,14 +680,17 @@ private constructor() : IMessenger {
 }
 
 
+@Suppress("NOTHING_TO_INLINE", "PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 private inline fun DarwinMessenger.wait() {
     (this as java.lang.Object).wait()
 }
 
+@Suppress("NOTHING_TO_INLINE", "PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 private inline fun DarwinMessenger.wait(timeout: Long) {
     (this as java.lang.Object).wait(timeout)
 }
 
+@Suppress("NOTHING_TO_INLINE", "PLATFORM_CLASS_MAPPED_TO_KOTLIN")
 private inline fun DarwinMessenger.wait(timeout: Long, nanos: Int) {
     (this as java.lang.Object).wait(timeout, nanos)
 }

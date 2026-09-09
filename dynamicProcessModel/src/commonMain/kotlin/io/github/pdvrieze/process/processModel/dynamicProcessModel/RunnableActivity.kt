@@ -153,15 +153,27 @@ open class RunnableActivity<I : Any, O : Any, C : ActivityInstanceContext>(
         @OptIn(XmlUtilInternal::class)
         override val originalNSContext: IterableNamespaceContext get() = SimpleNamespaceContext()
 
+        @Deprecated("Avoid using CharArray due to efficiency issues")
         override fun copy(
             name: String,
             refNode: String?,
             refName: String?,
             path: String?,
-            content: CharArray?,
+            content: CharArray,
             nsContext: IterableNamespaceContext
         ): DefineType<T> {
-            return DefineType(name, Identifier(refNode!!), refName!!, path, deserializer, nsContext)
+            return DefineType(name, refNode!!, refName!!, path, deserializer, CompactFragment(nsContext, content))
+        }
+
+        override fun copy(
+            name: String,
+            refNode: String?,
+            refName: String?,
+            path: String?,
+            content: String?,
+            nsContext: IterableNamespaceContext
+        ): IXmlDefineType {
+            return DefineType(name, refNode!!, refName!!, path, deserializer, CompactFragment(nsContext, content ?: ""))
         }
 
         override fun copy(

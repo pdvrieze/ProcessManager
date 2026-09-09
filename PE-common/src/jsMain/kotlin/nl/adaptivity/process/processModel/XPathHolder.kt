@@ -66,8 +66,8 @@ actual abstract class XPathHolder actual constructor(
     }
 
     actual override fun hashCode(): Int {
-        var result = name?.hashCode() ?: 0
-        result = 31 * result + (path?.hashCode() ?: 0)
+        var result = name.hashCode()
+        result = 31 * result + path.hashCode()
         result = 31 * result + this@XPathHolder.content.hashCode()
         return result
     }
@@ -95,7 +95,7 @@ internal actual fun visitXpathUsedPrefixes(path: CharSequence?, namespaceContext
 
 typealias NamespaceResolver = (String) -> String?
 
-@Suppress("UnsafeCastFromDynamic")
+@Suppress("UnsafeCastFromDynamic", "NOTHING_TO_INLINE")
 inline fun Document.createExpression(
     xpathText: String,
     noinline namespaceUrlMapper: NamespaceResolver? = null
@@ -103,7 +103,7 @@ inline fun Document.createExpression(
     xpathText, namespaceUrlMapper
                                                                                      )
 
-@Suppress("UnsafeCastFromDynamic")
+@Suppress("UnsafeCastFromDynamic", "NOTHING_TO_INLINE")
 inline fun Document.evaluate(
     xpathExpression: String,
     contextNode: Node,
@@ -112,7 +112,7 @@ inline fun Document.evaluate(
                             ): XPathResult =
     asDynamic().evaluate(xpathExpression, contextNode, namespaceResolver, resultType, null)
 
-@Suppress("UnsafeCastFromDynamic")
+@Suppress("UnsafeCastFromDynamic", "NOTHING_TO_INLINE")
 inline fun Document.evaluate(
     xpathExpression: String,
     contextNode: Node,

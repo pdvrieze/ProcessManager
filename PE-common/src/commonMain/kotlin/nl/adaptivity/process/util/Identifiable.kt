@@ -16,16 +16,8 @@
 
 package nl.adaptivity.process.util
 
-import kotlinx.serialization.Serializer
-import kotlinx.serialization.*
-import kotlinx.serialization.builtins.ListSerializer
-import kotlinx.serialization.builtins.SetSerializer
 import kotlinx.serialization.builtins.nullable
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.descriptors.SerialDescriptor
-import kotlinx.serialization.encoding.Decoder
-import kotlinx.serialization.encoding.Encoder
-import nl.adaptivity.serialutil.DelegateSerializer
 import nl.adaptivity.serialutil.DelegatingSerializer
 
 /**
@@ -57,6 +49,3 @@ interface Identifiable : Comparable<Identifiable> {
 
 }
 
-object IdentifiableListSerializer : DelegateSerializer<List<Identifiable>>(ListSerializer(Identifiable))
-
-object IdentifiableSetSerializer : DelegateSerializer<Set<Identifiable>>(SetSerializer(Identifiable))

@@ -133,7 +133,7 @@ class UserMessageService<T : Transaction> private constructor(
     }
 
     @Throws(SQLException::class)
-    fun finishTask(transaction: T, taskHandle: Handle<out XmlTask>, user: Principal?): NodeInstanceState {
+    fun finishTask(transaction: T, taskHandle: Handle<XmlTask>, user: Principal?): NodeInstanceState {
         user ?: throw AuthenticationNeededException("There is no user associated with this request")
 
         val task = tasks[transaction, taskHandle] ?: throw NullPointerException("Missing task")
@@ -144,7 +144,7 @@ class UserMessageService<T : Transaction> private constructor(
         return task.state ?: throw NullPointerException("Task has an unspecified state")
     }
 
-    fun cancelTask(transaction: T, taskHandle: Handle<out XmlTask>, user: Principal?): NodeInstanceState {
+    fun cancelTask(transaction: T, taskHandle: Handle<XmlTask>, user: Principal?): NodeInstanceState {
         user ?: throw AuthenticationNeededException("There is no user associated with this request")
 
         val task = tasks[transaction, taskHandle] ?: throw NullPointerException("Missing task")

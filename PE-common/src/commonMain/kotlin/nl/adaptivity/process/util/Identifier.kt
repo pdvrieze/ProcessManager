@@ -18,7 +18,6 @@ package nl.adaptivity.process.util
 
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.builtins.serializer
-import kotlinx.serialization.descriptors.SerialDescriptor
 import nl.adaptivity.serialutil.DelegatingSerializer
 
 

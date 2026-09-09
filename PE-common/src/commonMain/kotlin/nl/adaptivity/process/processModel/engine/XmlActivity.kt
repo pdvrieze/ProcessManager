@@ -18,6 +18,7 @@ package nl.adaptivity.process.processModel.engine
 
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.process.processModel.ProcessModel.BuildHelper
+import nl.adaptivity.process.util.Identifiable
 
 
 /**
@@ -34,7 +35,7 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
 
     private var _message: XmlMessage?
 
-    final override var message: IXmlMessage?
+    override var message: IXmlMessage?
         get() = _message
         private set(value) {
             _message = XmlMessage.from(value)
@@ -126,7 +127,7 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
      * Wrapper builder needed because XmlActivity wraps both composite and message
      */
     class Builder private constructor(val base: Activity.Builder) : CompositeActivity.Builder, MessageActivity.Builder,
-        Activity.Builder by base {
+        Activity.Builder {
         constructor(base: MessageActivity.Builder) : this(base as Activity.Builder)
         constructor(base: ReferenceActivityBuilder) : this(base as Activity.Builder)
 
@@ -139,6 +140,51 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
         override val accessRestrictions: AccessRestriction?
             get() = (base as? MessageActivity.Builder)?.accessRestrictions
 
+        @Deprecated("Not needed, use id.", replaceWith = ReplaceWith("id"))
+        override var name: String?
+            get() = base.name
+            set(value) { base.name = value}
+
+        override var condition: Condition?
+            get() = base.condition
+            set(value) { base.condition = value }
+
+        override var predecessor: Identifiable?
+            get() = base.predecessor
+            set(value) { base.predecessor = value}
+
+        override var successor: Identifiable?
+            get() = base.successor
+            set(value) { base.successor = value }
+
+        override var id: String?
+            get() = base.id
+            set(value) { base.id = value }
+
+        override var label: String?
+            get() = base.label
+            set(value) { base.label = value }
+
+        override var x: Double
+            get() = base.x
+            set(value) { base.x = value }
+
+        override var y: Double
+            get() = base.y
+            set(value) { base.y = value}
+
+        override val defines: MutableCollection<IXmlDefineType>
+            get() = base.defines
+
+        override val results: MutableCollection<IXmlResultType>
+            get() = base.results
+
+        override val idBase: String
+            get() = base.idBase
+
+        override var isMultiInstance: Boolean
+            get() = base.isMultiInstance
+            set(value) { base.isMultiInstance = value }
     }
 
 }

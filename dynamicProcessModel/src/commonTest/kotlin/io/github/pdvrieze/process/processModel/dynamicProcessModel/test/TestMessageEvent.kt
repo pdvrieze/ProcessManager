@@ -31,7 +31,7 @@ class TestMessageEvent  : ProcessEngineTestSupport() {
                 assertEquals(NodeInstanceState.Sent, evInst.state)
 
                 assertNull(pinst.getChild( "ac2", evInst.entryNo))
-                val data = CompactFragment { writer -> XML.encodeToWriter(writer, Data("foobar")) }
+                val data = CompactFragment { writer -> XML.v1.encodeToWriter(writer, Data("foobar")) }
                 engine.finishTask(transaction, evInst.handle, data, testModelOwnerPrincipal)
             }
 

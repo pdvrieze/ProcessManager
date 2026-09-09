@@ -46,12 +46,22 @@ interface IXmlDefineType {
      */
     val originalNSContext: IterableNamespaceContext get() = content.namespaces
 
+    @Deprecated("Avoid using CharArray due to efficiency issues")
     fun copy(
         name: String = this.name,
         refNode: String? = this.refNode,
         refName: String? = this.refName,
         path: String? = this.path,
-        content: CharArray? = this.content.content,
+        content: CharArray,
+        nsContext: IterableNamespaceContext = originalNSContext
+    ): IXmlDefineType
+
+    fun copy(
+        name: String = this.name,
+        refNode: String? = this.refNode,
+        refName: String? = this.refName,
+        path: String? = this.path,
+        content: String? = this.content.contentString,
         nsContext: IterableNamespaceContext = originalNSContext
     ): IXmlDefineType
 
@@ -63,7 +73,7 @@ interface IXmlDefineType {
         content: CompactFragment = this.content,
     ): IXmlDefineType
 
-    private class Serializer : DelegatingSerializer<IXmlDefineType, XmlDefineType>("nl.adaptivity.process.processModel.IXmlDefineType", XmlDefineType.serializer()) {
+    class Serializer : DelegatingSerializer<IXmlDefineType, XmlDefineType>("nl.adaptivity.process.processModel.IXmlDefineType", XmlDefineType.serializer()) {
 
         override fun fromDelegate(delegate: XmlDefineType): IXmlDefineType = delegate
         override fun IXmlDefineType.toDelegate(): XmlDefineType =
@@ -71,15 +81,6 @@ interface IXmlDefineType {
     }
 
 }
-
-val IXmlDefineType.refNode: String?
-    inline get() = refNode
-
-val IXmlDefineType.refName: String?
-    inline get() = refName
-
-val IXmlDefineType.name: String
-    inline get() = name
 
 
 object IXmlDefineTypeListSerializer : KSerializer<List<IXmlDefineType>> {

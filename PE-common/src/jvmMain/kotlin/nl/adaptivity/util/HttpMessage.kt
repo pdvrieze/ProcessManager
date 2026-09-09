@@ -421,28 +421,20 @@ class HttpMessage {
    */
 
     fun getQuery(name: String): String? {
-        return if (_queries == null) null else _queries!![name]
+        return _queries[name]
     }
 
     fun getPosts(name: String): String? {
-        if (_post != null) {
-            var result: String? = _post!![name]
-            if (result == null && _attachments != null) {
-                val source = _attachments!![name]
-                if (source != null) {
-                    try {
-                        result = toString(InputStreamReader(source.inputStream, "UTF-8"))
-                        return result
-                    } catch (e: UnsupportedEncodingException) {
-                        throw RuntimeException(e)
-                    } catch (e: IOException) {
-                        throw RuntimeException(e)
-                    }
+        _post[name]?.let { return it }
 
-                }
-            }
+        val source = _attachments[name] ?: return null
+        try {
+            return toString(InputStreamReader(source.inputStream, "UTF-8"))
+        } catch (e: UnsupportedEncodingException) {
+            throw RuntimeException(e)
+        } catch (e: IOException) {
+            throw RuntimeException(e)
         }
-        return if (_post == null) null else _post!![name]
     }
 
     fun getParam(name: String): String? {

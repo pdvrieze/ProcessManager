@@ -480,7 +480,7 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
             if (outputs.isEmpty()) return null
 
             return CompactFragment { xmlWriter ->
-                val xmlEncoder = XML
+                val xmlEncoder = XML.v1
                 outputs.forEach { output ->
                     xmlEncoder.encodeToWriter(xmlWriter, output)
                 }
@@ -1134,12 +1134,12 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
             writeAttribute("state", state.name)
 
             smartStartTag(Constants.PROCESS_ENGINE_NS, "inputs") {
-                val xml = XML
+                val xml = XML.v1
                 inputs.forEach { xml.encodeToWriter(this, it) }
             }
 
             writer.smartStartTag(Constants.PROCESS_ENGINE_NS, "outputs") {
-                val xml = XML
+                val xml = XML.v1
                 outputs.forEach { xml.encodeToWriter(this, it) }
             }
 
@@ -1177,7 +1177,7 @@ class ProcessInstance : MutableHandleAware<SecureProcessInstance>,
             writeNodeRefCommon(nodeInstance)
 
             startTag(Constants.PROCESS_ENGINE_NS, "results") {
-                val xml = XML
+                val xml = XML.v1
                 nodeInstance.results.forEach { xml.encodeToWriter(this, it) }
             }
         }

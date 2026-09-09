@@ -91,10 +91,10 @@ private class ConditionResolver(nodeSource: IProcessInstance, nodeInstance: IPro
 
 
     @Suppress("UNCHECKED_CAST")
-    val aNodeInstance: IProcessNodeInstance = nodeInstance as IProcessNodeInstance
+    val aNodeInstance: IProcessNodeInstance = nodeInstance
 
     @Suppress("UNCHECKED_CAST")
-    val aNodeSource: IProcessInstance = nodeSource as IProcessInstance
+    val aNodeSource: IProcessInstance = nodeSource
 
     private val defaultNodeFunction: XPathFunction = object : XPathFunction {
         override fun evaluate(args: List<*>): Any? {

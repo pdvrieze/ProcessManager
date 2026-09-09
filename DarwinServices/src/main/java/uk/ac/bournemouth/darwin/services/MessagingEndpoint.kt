@@ -99,11 +99,8 @@ class MessagingEndpoint : GenericEndpoint {
         }
 
     override fun destroy() {
-        if (endpointDescriptor != null) {
-            val messenger = messenger
-            if (messenger != null) {
-                messenger.unregisterEndpoint(endpointDescriptor!!)
-            }
+        endpointDescriptor?.let { ed ->
+            messenger.unregisterEndpoint(ed)
             endpointDescriptor = null
         }
     }

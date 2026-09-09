@@ -192,7 +192,7 @@ open class ProcessEngineTestSupport(
 
     @BeforeTest
     fun beforeTest() {
-        (messageService as? StubMessageService)?.clear()
+        messageService.clear()
     }
 
     companion object {

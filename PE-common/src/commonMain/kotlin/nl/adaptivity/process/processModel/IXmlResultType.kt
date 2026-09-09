@@ -46,9 +46,22 @@ interface IXmlResultType {
 
     fun copy(name: String = this.name, path: String? = this.path, content: ICompactFragment = this.content): IXmlResultType
 
-    fun copy(name: String = this.name, path: String? = this.path, content: CharArray? = this.content.content, originalNSContext: Iterable<Namespace> = this.content?.namespaces ?: emptyList()): IXmlResultType
+    @Deprecated("Avoid using CharArray due to efficiency issues")
+    fun copy(
+        name: String = this.name,
+        path: String? = this.path,
+        content: CharArray,
+        originalNSContext: Iterable<Namespace> = this.content.namespaces ?: emptyList()
+    ): IXmlResultType
 
-    private class Serializer : DelegatingSerializer<IXmlResultType, XmlResultType>("nl.adaptivity.process.processModel.IXmlResultType", XmlResultType.serializer()) {
+    fun copy(
+        name: String = this.name,
+        path: String? = this.path,
+        content: String? = this.content.contentString,
+        originalNSContext: Iterable<Namespace> = this.content.namespaces ?: emptyList()
+    ): IXmlResultType
+
+    class Serializer : DelegatingSerializer<IXmlResultType, XmlResultType>("nl.adaptivity.process.processModel.IXmlResultType", XmlResultType.serializer()) {
 
         override fun fromDelegate(delegate: XmlResultType): IXmlResultType = delegate
 

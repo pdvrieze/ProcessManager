@@ -121,7 +121,7 @@ open class ExecutableMessageActivity(
     @Throws(XmlException::class)
     fun serializeCondition(out: XmlWriter) {
         condition?.let {
-            XML.Companion.encodeToWriter(out, XmlCondition(it.condition))
+            XML.v1.encodeToWriter(out, XmlCondition(it.condition))
         }
     }
 

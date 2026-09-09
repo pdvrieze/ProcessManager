@@ -300,6 +300,7 @@ private inner class HistoryChangeHandler : ValueChangeHandler<String> {
 }
 */
 
+@OptIn(ExperimentalJsExport::class)
 @JsExport
 public fun onLinkClick(event: MouseEvent) {
   return html.onLinkClick(event)

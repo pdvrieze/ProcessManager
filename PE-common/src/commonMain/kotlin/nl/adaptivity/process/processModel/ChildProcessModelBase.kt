@@ -18,15 +18,11 @@ package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.Transient
 import nl.adaptivity.process.ProcessConsts
 import nl.adaptivity.process.processModel.engine.XML_BUILDER_VISITOR
-import nl.adaptivity.process.processModel.engine.XmlProcessModel
-import nl.adaptivity.process.util.IdentifiableSetSerializer
 import nl.adaptivity.process.util.Identifier
 import nl.adaptivity.process.util.IdentifyableSet
 import nl.adaptivity.xmlutil.QName
-import nl.adaptivity.xmlutil.serialization.XmlPolyChildren
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import kotlin.jvm.JvmField
 

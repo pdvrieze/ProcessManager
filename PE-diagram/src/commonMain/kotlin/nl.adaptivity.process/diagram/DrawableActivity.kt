@@ -87,7 +87,7 @@ interface IDrawableActivity : IDrawableProcessNode {
     val isUserTask: Boolean
         get() {
             val message = XmlMessage.from(message)
-            return message != null && Endpoints.USER_TASK_SERVICE_DESCRIPTOR.isSameService(message.endpointDescriptor)
+            return message != null && Endpoints.USER_TASK_SERVICE_DESCRIPTOR.isSameService(message.targetMethod.endpoint)
         }
 
     val isService get() = isBodySpecified && !isUserTask
@@ -140,7 +140,6 @@ open class DrawableActivity @JvmOverloads constructor(
 
         constructor() : this(id = null)
 
-        @Suppress("PropertyName")
         override val _delegate: DrawableProcessNode.Builder.Delegate = DrawableProcessNode.Builder.Delegate(state, isCompat)
 
         constructor(node: Activity) : this(
@@ -155,7 +154,7 @@ open class DrawableActivity @JvmOverloads constructor(
             (node as? CompositeActivity)?.childModel?.id,
             (node as? MessageActivity)?.message,
             node.condition,
-            node.name,
+            node.id,
             Drawable.STATE_DEFAULT,
             node.isMultiInstance,
             (node as? DrawableActivity)?.isCompat ?: false
@@ -173,7 +172,7 @@ open class DrawableActivity @JvmOverloads constructor(
                 results,
                 message = XmlMessage.from(message),
                 condition = condition,
-                name = name,
+                name = id,
                 state = state,
                 isMultiInstance = isMultiInstance,
                 isCompat = isCompat
@@ -182,7 +181,6 @@ open class DrawableActivity @JvmOverloads constructor(
 
     }
 
-    @Suppress("PropertyName")
     override val _delegate: DrawableProcessNode.Delegate = DrawableProcessNode.Delegate(builder)
 
     val isBodySpecified get() = message != null
@@ -190,7 +188,7 @@ open class DrawableActivity @JvmOverloads constructor(
     val isUserTask: Boolean
         get() {
             val message = XmlMessage.from(message)
-            return message != null && Endpoints.USER_TASK_SERVICE_DESCRIPTOR.isSameService(message.endpointDescriptor)
+            return message != null && Endpoints.USER_TASK_SERVICE_DESCRIPTOR.isSameService(message.targetMethod.endpoint)
         }
 
     val isService get() = isBodySpecified && !isUserTask

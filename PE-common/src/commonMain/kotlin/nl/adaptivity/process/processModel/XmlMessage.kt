@@ -16,7 +16,6 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
@@ -27,9 +26,7 @@ import kotlinx.serialization.encoding.Encoder
 import nl.adaptivity.messaging.EndpointDescriptor
 import nl.adaptivity.process.ProcessConsts.Engine
 import nl.adaptivity.process.messaging.*
-import nl.adaptivity.process.messaging.RESTMethod
-import nl.adaptivity.process.messaging.SOAPMethod
-import nl.adaptivity.xmlutil.*
+import nl.adaptivity.xmlutil.XmlWriter
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.serialization.XmlSerialName
 import nl.adaptivity.xmlutil.serialization.XmlValue
@@ -89,11 +86,11 @@ class XmlMessage private constructor(
     constructor(baseMessage: IXmlMessage, newMessageBody: ICompactFragment) : this(baseMessage.targetMethod, newMessageBody)
 
     fun serialize(out: XmlWriter) {
-        XML { autoPolymorphic = true }.encodeToWriter(out, Companion, this)
+        XML.v1.encodeToWriter(out, serializer(), this)
     }
 
     override fun toString(): String {
-        return XML.encodeToString(this)
+        return XML.v1.encodeToString(this)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -159,7 +156,6 @@ class XmlMessage private constructor(
         }
     }
 
-    @OptIn(ExperimentalSerializationApi::class)
     companion object : KSerializer<XmlMessage> {
         private val delegateSerializer = SerialDelegate.serializer()
         override val descriptor: SerialDescriptor = SerialDescriptor("XmlMessage", delegateSerializer.descriptor)
@@ -187,7 +183,7 @@ class XmlMessage private constructor(
             val data = delegateSerializer.deserialize(decoder)
             return when (val method = data.targetMethod) {
                 is SOAPMethod -> XmlMessage(method, data.content)
-                is RESTMethod -> XmlMessage(method as RESTMethod, data.content)
+                is RESTMethod -> XmlMessage(method, data.content)
                 else -> error("Unsupported method type")
             }
         }

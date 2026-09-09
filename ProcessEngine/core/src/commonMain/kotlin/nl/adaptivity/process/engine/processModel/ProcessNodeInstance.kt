@@ -160,7 +160,7 @@ abstract class ProcessNodeInstance<out T : ProcessNodeInstance<T>>(
             }
 
             for (result in results) {
-                XML.encodeToWriter(this, result)
+                XML.v1.encodeToWriter(this, result)
             }
 
             (node as? MessageActivity)?.message?.messageBody?.let { body ->

@@ -109,7 +109,7 @@ abstract class CompositeActivityBase : ActivityBase, CompositeActivity {
             node.results,
             node.childModel?.id,
             node.condition,
-            node.name,
+            node.id,
             node.x,
             node.y,
             node.isMultiInstance,

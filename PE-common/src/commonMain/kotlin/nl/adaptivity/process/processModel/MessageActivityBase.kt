@@ -111,7 +111,7 @@ abstract class MessageActivityBase(
             activity.results,
             XmlMessage.from(activity.message),
             activity.condition,
-            activity.name,
+            activity.id,
             activity.x,
             activity.y,
             activity.isMultiInstance

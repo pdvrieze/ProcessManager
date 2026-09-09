@@ -28,6 +28,7 @@ import net.devrieze.util.security.SecurityProvider
 import nl.adaptivity.process.engine.impl.getClass
 import nl.adaptivity.process.processModel.*
 import nl.adaptivity.util.multiplatform.randomUUID
+import nl.adaptivity.xmlutil.ExperimentalXmlUtilApi
 import nl.adaptivity.xmlutil.XmlReader
 import nl.adaptivity.xmlutil.serialization.FormatCache
 import nl.adaptivity.xmlutil.serialization.XML
@@ -110,6 +111,7 @@ class ExecutableProcessModel : RootProcessModelBase<ExecutableProcessNode>,
 
         @JvmStatic
         fun deserialize(reader: XmlReader): ExecutableProcessModel {
+            @OptIn(ExperimentalXmlUtilApi::class)
             return ExecutableProcessModel(
                 XML.v1 { policy { formatCache = FormatCache.Dummy } }.decodeFromReader<XmlProcessModel.Builder>(
                     reader

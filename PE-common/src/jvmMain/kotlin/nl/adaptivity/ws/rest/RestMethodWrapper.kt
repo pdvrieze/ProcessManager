@@ -31,7 +31,6 @@ import nl.adaptivity.rest.annotations.RestParamType
 import nl.adaptivity.util.DomUtil
 import nl.adaptivity.util.HttpMessage
 import nl.adaptivity.util.SerializableData
-import nl.adaptivity.util.activation.Sources
 import nl.adaptivity.util.activation.writeToStream
 import nl.adaptivity.xmlutil.*
 import nl.adaptivity.xmlutil.serialization.XML
@@ -96,7 +95,6 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
             get() = method.declaringClass
 
         override fun exec() {
-            val params = params ?: throw IllegalArgumentException("Argument unmarshalling has not taken place yet")
 
             try {
                 result = method(owner, *params)
@@ -325,7 +323,7 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
             null -> throw HttpResponseException(HttpServletResponse.SC_NOT_FOUND, "no value")
             is Source -> {
                 setContentType(pResponse, "application/binary")// Unknown content type
-                Sources.writeToStream(value, pResponse.outputStream)
+                value.writeToStream(pResponse.outputStream)
             }
             is Node -> {
                 pResponse.contentType = "text/xml"

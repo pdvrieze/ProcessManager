@@ -6,6 +6,7 @@ import nl.adaptivity.xmlutil.util.ICompactFragment
 
 class PMAMessage(
     override val targetMethod: InvokableMethod,
+    @Deprecated("Use targetMethod", replaceWith = ReplaceWith("targetMethod.operation"))
     override val operation: String?,
     override val messageBody: ICompactFragment,
 ) : IXmlMessage {

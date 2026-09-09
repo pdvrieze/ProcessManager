@@ -487,6 +487,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction> : EndpointServle
 
         val logger = Logger.getLogger(ServletProcessEngine::class.java.name)
 
+        @Suppress("UNCHECKED_CAST")
         processEngine = ProcessEngine.newInstance(messageService, logger) as ProcessEngine<TR>
 
         MessagingRegistry.messenger.registerEndpoint(this)
@@ -834,7 +835,7 @@ open class ServletProcessEngine<TR : ContextProcessTransaction> : EndpointServle
                     transaction,
                     if (handle < 0) Handle.invalid() else Handle(handle),
                     user
-                ) as ProcessNodeInstance<*>? ?: return null
+                ) ?: return null
 
             val processContextFactory = transaction.readableEngineData.processContextFactory
 

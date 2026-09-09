@@ -34,9 +34,10 @@ expect abstract class ObservableCollectionBase<C : MutableCollection<T>, T, S : 
     override fun retainAll(elements: Collection<T>): Boolean
 }
 
-expect class ObservableCollection<T>
-constructor(delegate: MutableCollection<T>, observers: Iterable<(ObservableCollection<T>) -> Unit> = emptyList()) :
-    ObservableCollectionBase<MutableCollection<T>, T, ObservableCollection<T>> {
+expect class ObservableCollection<T>(
+    delegate: MutableCollection<T>, observers: Iterable<(ObservableCollection<T>) -> Unit> = emptyList()
+) : ObservableCollectionBase<MutableCollection<T>, T, ObservableCollection<T>> {
+
     constructor(delegate: MutableCollection<T>, vararg observers: (ObservableCollection<T>) -> Unit)
 
     override fun contains(element: T): Boolean

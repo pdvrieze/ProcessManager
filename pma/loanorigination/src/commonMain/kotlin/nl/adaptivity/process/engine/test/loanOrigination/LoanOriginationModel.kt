@@ -55,7 +55,7 @@ class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<Ex
             }
         }
     }
-    val evaluateCredit by object : ConfigurableCompositeActivity(createLoanRequest, "evaluateCredit") {
+    val evaluateCredit by object : ConfigurableCompositeActivity(this, createLoanRequest, "evaluateCredit") {
 
         init {
             input("customerId", this@LoanOriginationModel.inputCustomerMasterData)
@@ -202,7 +202,7 @@ class LoanOriginationModel(owner: PrincipalCompat) : ConfigurableProcessModel<Ex
         LoanProductBundle("simpleLoan", "simpleLoan2019.a")
     }
 
-    val offerPricedLoan by object : ConfigurableCompositeActivity(chooseBundledProduct) {
+    val offerPricedLoan by object : ConfigurableCompositeActivity(this, chooseBundledProduct) {
 
         init {
             input("loanEval", this@LoanOriginationModel.evaluateCredit, "loanEvaluation")

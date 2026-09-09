@@ -155,13 +155,13 @@ open class EndpointServlet : HttpServlet {
                 try {
                     if (!SoapMessageHandler.isSoapMessage(request)) {
                         val restHandler = restMessageHandler
-                        if (!restHandler!!.processRequest(method, message, response)) {
+                        if (!restHandler.processRequest(method, message, response)) {
                             logger.warning("Error processing rest request " + request.requestURI)
                         }
                     } else {
                         soap = true
                         val soapHandler = soapMessageHandler
-                        if (!soapHandler!!.processRequest(message, response)) {
+                        if (!soapHandler.processRequest(message, response)) {
                             logger.warning("Error processing soap request " + request.requestURI)
                         }
                     }
@@ -223,6 +223,7 @@ open class EndpointServlet : HttpServlet {
     override fun init(config: ServletConfig) {
         super.init(config)
         val className = config.getInitParameter("endpoint")
+        val endpointProvider = endpointProvider
         if (className == null && endpointProvider === null) {
             throw ServletException("The EndpointServlet needs to be configured with an endpoint parameter.")
         }
@@ -240,8 +241,9 @@ open class EndpointServlet : HttpServlet {
             }
 
             try {
-                endpointProvider = clazz.newInstance()
-                endpointProvider!!.initEndpoint(config)
+                this.endpointProvider = clazz.getDeclaredConstructor().newInstance().apply {
+                    initEndpoint(config)
+                }
             } catch (e: InstantiationException) {
                 throw ServletException(e)
             } catch (e: IllegalAccessException) {
@@ -249,7 +251,7 @@ open class EndpointServlet : HttpServlet {
             }
 
         } else {
-            endpointProvider!!.initEndpoint(config)
+            endpointProvider.initEndpoint(config)
         }
     }
 

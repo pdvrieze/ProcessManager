@@ -24,7 +24,6 @@
 
 package nl.adaptivity.process.processModel
 
-import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.SerialName
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.descriptors.SerialDescriptor
@@ -52,15 +51,38 @@ class XmlDefineType(
     constructor(): this("", null)
 
     @OptIn(XmlUtilInternal::class)
+    @Deprecated("Avoid using CharArray due to efficiency issues")
     constructor(
         name: String,
         refNode: String?,
         refName: String? = null,
         path: String? = null,
-        content: CharArray? = null,
+        content: CharArray,
         originalNSContext: IterableNamespaceContext = SimpleNamespaceContext()
     ) : this(name, refNode, refName, path, CompactFragment(originalNSContext, content))
 
+    @OptIn(XmlUtilInternal::class)
+    constructor(
+        name: String,
+        refNode: String?,
+        refName: String? = null,
+        path: String? = null,
+        content: String? = null,
+        originalNSContext: IterableNamespaceContext = SimpleNamespaceContext()
+    ) : this(name, refNode, refName, path, CompactFragment(originalNSContext, content ?: ""))
+
+
+    @Suppress("DEPRECATION")
+    @OptIn(XmlUtilInternal::class)
+    @Deprecated("Avoid using CharArray due to efficiency issues")
+    constructor(
+        name: String,
+        refNode: Identified,
+        refName: String? = null,
+        path: String? = null,
+        content: CharArray,
+        originalNSContext: IterableNamespaceContext = SimpleNamespaceContext()
+    ) : this(name, refNode.id, refName, path, content, originalNSContext)
 
     @OptIn(XmlUtilInternal::class)
     constructor(
@@ -68,7 +90,7 @@ class XmlDefineType(
         refNode: Identified,
         refName: String? = null,
         path: String? = null,
-        content: CharArray? = null,
+        content: String? = null,
         originalNSContext: IterableNamespaceContext = SimpleNamespaceContext()
     ) : this(name, refNode.id, refName, path, content, originalNSContext)
 
@@ -82,19 +104,32 @@ class XmlDefineType(
         return XmlDefineType(name, refNode, refName, path, content)
     }
 
+    @Deprecated("Avoid using CharArray due to efficiency issues")
     override fun copy(
         name: String,
         refNode: String?,
         refName: String?,
         path: String?,
-        content: CharArray?,
+        content: CharArray,
+        nsContext: IterableNamespaceContext
+    ): XmlDefineType {
+        @Suppress("DEPRECATION")
+        return XmlDefineType(name, refNode, refName, path, content, nsContext)
+    }
+
+    override fun copy(
+        name: String,
+        refNode: String?,
+        refName: String?,
+        path: String?,
+        content: String?,
         nsContext: IterableNamespaceContext
     ): XmlDefineType {
         return XmlDefineType(name, refNode, refName, path, content, nsContext)
     }
 
     fun serialize(out: XmlWriter) {
-        XML { autoPolymorphic = true }.encodeToWriter(out, serializer(), this)
+        XML.v1.encodeToWriter(out, serializer(), this)
     }
 
     override fun equals(other: Any?): Boolean {
@@ -112,8 +147,8 @@ class XmlDefineType(
 
     override fun hashCode(): Int {
         var result = super.hashCode()
-        result = 31 * result + (refNode?.hashCode() ?: 0)
-        result = 31 * result + (refName?.hashCode() ?: 0)
+        result = 31 * result + refNode.hashCode()
+        result = 31 * result + refName.hashCode()
         return result
     }
 
@@ -133,7 +168,7 @@ class XmlDefineType(
             this.name = name
             path = null
             content = CharArray(0)
-            nsContext = ArrayList<Namespace>()
+            nsContext = ArrayList()
         }
 
         internal constructor(orig: IXmlResultType) {
@@ -152,7 +187,7 @@ class XmlDefineType(
 
     @Serializable
     @XmlSerialName(value = ELEMENTLOCALNAME, namespace = Engine.NAMESPACE, prefix = Engine.NSPREFIX)
-    private class SerialDelegate private constructor(
+    class SerialDelegate private constructor(
         @SerialName("name") val name: String,
         @SerialName("refnode") val refNode: String? = null,
         @SerialName("refname") val refName: String? = null,
@@ -171,9 +206,8 @@ class XmlDefineType(
         ): this(name, refNode, refName, xpath, null, content)
     }
 
-    private class Serializer : XPathHolderSerializer<XmlDefineType, SerialDelegate>(SerialDelegate.serializer()) {
+    class Serializer : XPathHolderSerializer<XmlDefineType, SerialDelegate>(SerialDelegate.serializer()) {
 
-        @OptIn(ExperimentalSerializationApi::class)
         override val descriptor = SerialDescriptor(
             "nl.adaptivity.process.processModel.XmlDefineType",
             delegateSerializer.descriptor
@@ -182,7 +216,7 @@ class XmlDefineType(
         override fun deserialize(decoder: Decoder): XmlDefineType {
             val (data, extNamespaces) = deserializeCommon(decoder)
 
-            return XmlDefineType(data.name, data.refNode, data.refName, data.xpath, data.content.content, extNamespaces)
+            return XmlDefineType(data.name, data.refNode, data.refName, data.xpath, data.content.contentString, extNamespaces)
         }
 
         override fun serialize(encoder: Encoder, value: XmlDefineType) {

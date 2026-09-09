@@ -44,10 +44,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
         ReadOnlyProperty<ConfigurableProcessModel<*>, T>, Identifiable {
         override fun getValue(thisRef: ConfigurableProcessModel<*>, property: KProperty<*>): T {
             @Suppress("UNCHECKED_CAST")
-            return when {
-                thisRef.configurationBuilder != null -> this
-                else -> thisRef.model.getNode(Identifier(id))
-            } as T // Really nasty hack to allow node references to be used at definition time
+            return this as T
         }
     }
 
@@ -55,18 +52,17 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
         ReadOnlyProperty<ConfigurableProcessModel<*>, T>, Identifiable {
         override fun getValue(thisRef: ConfigurableProcessModel<*>, property: KProperty<*>): T {
             @Suppress("UNCHECKED_CAST")
-            return when {
-                thisRef.configurationBuilder != null -> this
-                else -> thisRef.model.getChildModel(this)
-            } as T // Really nasty hack to allow node references to be used at definition time
+            return this as T // Really nasty hack to allow node references to be used at definition time
         }
     }
 
     inner class NodeBinder {
+        @Suppress("NOTHING_TO_INLINE")
         inline operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) = nodeRef(property.name)
     }
 
     inner class ChildBinder {
+        @Suppress("NOTHING_TO_INLINE")
         inline operator fun provideDelegate(thisRef: Any?, property: KProperty<*>) = childRef(property.name)
     }
 
@@ -157,14 +153,15 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
     inline operator fun <T : ConfigurableCompositeActivity>
         T.getValue(thisRef: ConfigurableProcessModel<*>, property: KProperty<*>): T = this
 
-    abstract inner class ConfigurableCompositeActivity(
+    abstract class ConfigurableCompositeActivity(
+        private val model: ConfigurableProcessModel<*>,
         predecessor: Identified,
         childId: String? = null,
         id: String? = null
     ) : Identified,
         ConfigurableNodeContainer /*: ChildProcessModel.Builder<ExecutableProcessNode, ExecutableModelCommon>*/ {
 
-        private inline fun rootBuilder() = this@ConfigurableProcessModel.configurationBuilder
+        private inline fun rootBuilder() = model.configurationBuilder
 
         override val configurationBuilder: CompositeActivity.ModelBuilder = ActivityBase.CompositeActivityBuilder(
             rootBuilder(),
@@ -235,12 +232,26 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
         }
 
         @OptIn(XmlUtilInternal::class)
+        @Deprecated("Avoid using CharArray due to efficiency issues")
         fun input(
             name: String,
             refNode: Identified,
             refName: String? = null,
             path: String? = null,
-            content: CharArray? = null,
+            content: CharArray,
+            nsContext: IterableNamespaceContext = SimpleNamespaceContext()
+        ) {
+            configurationBuilder.defines.add(XmlDefineType(name, refNode, refName, path, content, nsContext))
+            configurationBuilder.imports.add(XmlResultType(name, "/$name/node()"))
+        }
+
+        @OptIn(XmlUtilInternal::class)
+        fun input(
+            name: String,
+            refNode: Identified,
+            refName: String? = null,
+            path: String? = null,
+            content: String? = null,
             nsContext: IterableNamespaceContext = SimpleNamespaceContext()
         ) {
             configurationBuilder.defines.add(XmlDefineType(name, refNode, refName, path, content, nsContext))
@@ -261,12 +272,26 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
         }
 
         @OptIn(XmlUtilInternal::class)
+        @Deprecated("Avoid using CharArray due to efficiency issues")
         fun output(
             name: String,
             refNode: Identified,
             refName: String? = null,
             path: String? = null,
-            content: CharArray? = null,
+            content: CharArray,
+            nsContext: IterableNamespaceContext = SimpleNamespaceContext()
+        ) {
+            configurationBuilder.results.add(XmlResultType(name, "/$name/node()"))
+            configurationBuilder.exports.add(XmlDefineType(name, refNode, refName, path, content, nsContext))
+        }
+
+        @OptIn(XmlUtilInternal::class)
+        fun output(
+            name: String,
+            refNode: Identified,
+            refName: String? = null,
+            path: String? = null,
+            content: String? = null,
             nsContext: IterableNamespaceContext = SimpleNamespaceContext()
         ) {
             configurationBuilder.results.add(XmlResultType(name, "/$name/node()"))
@@ -278,7 +303,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
 
 }
 
-//@ConfigurationDsl
+@ConfigurationDsl
 interface ConfigurableNodeContainer {
     /**
      * Property to access the builder that allows for configuration. This is only valid for as long as

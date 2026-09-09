@@ -38,6 +38,8 @@ actual typealias Source = javax.xml.transform.Source
 actual typealias Result = javax.xml.transform.Result
 
 actual fun JAXBmarshal(jaxbObject: Any, xml: Result) = JAXB.marshal(jaxbObject, xml)
+
+@Suppress("NOTHING_TO_INLINE")
 actual inline fun <T:Any> T.getClass(): Class<T> = this.javaClass
 
 actual inline fun generateXmlString(

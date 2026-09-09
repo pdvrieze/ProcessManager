@@ -73,9 +73,8 @@ fun Application.myApplicationModule() {
     routing {
         get("/") { mainPage() }
         get("/common/menu") { menu() }
-        static("/") {
-            resources("")
-        }
+        staticResources("/", "")
+
         route("/js") {
             get("{static-content-path-parameter...}") {
 //                val packageName = staticBasePackage.combinePackage(resourcePackage)

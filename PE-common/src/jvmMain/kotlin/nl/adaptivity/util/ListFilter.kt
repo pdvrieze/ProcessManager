@@ -16,9 +16,6 @@
 
 package nl.adaptivity.util
 
-import java.util.AbstractList
-import java.util.ArrayList
-
 
 class ListFilter<T>(private val clazz: Class<T>, private val isLax: Boolean) : AbstractMutableList<T>() {
 
@@ -42,9 +39,9 @@ class ListFilter<T>(private val clazz: Class<T>, private val isLax: Boolean) : A
         }
     }
 
-    override fun add(elem: T): Boolean {
-        return if (clazz.isInstance(elem)) {
-            super.add(clazz.cast(elem))
+    override fun add(element: T): Boolean {
+        return if (clazz.isInstance(element)) {
+            super.add(clazz.cast(element))
         } else {
             false
         }

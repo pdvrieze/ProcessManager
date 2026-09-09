@@ -73,7 +73,7 @@ constructor(
 
         @JvmStatic
         fun <NodeT : ProcessNode, ObjectT : RootProcessModel<NodeT>> deserialize(reader: XmlReader): ProcessModelRef<NodeT, ObjectT> {
-            return XML.decodeFromReader(reader)
+            return XML.v1.decodeFromReader(reader)
         }
 
     }

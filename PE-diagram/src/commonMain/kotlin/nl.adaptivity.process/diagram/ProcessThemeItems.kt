@@ -33,7 +33,7 @@ enum class ProcessThemeItems(
     private var parent: ProcessThemeItems? = null,
     private var stroke: Double = 0.0,
     private var fontSize: Double = Double.NaN,
-    vararg private var specifiers: StateSpecifier) : ThemeItem {
+    private vararg var specifiers: StateSpecifier) : ThemeItem {
 
   LINE(RootDrawableProcessModel.STROKEWIDTH, state(STATE_DEFAULT, 0, 0, 0),
        stateStroke(STATE_SELECTED, 0, 0, 255, 255, 2.0),
@@ -72,12 +72,12 @@ enum class ProcessThemeItems(
 
   constructor(parent: ProcessThemeItems) : this(fill = true, parent = parent)
 
-  constructor(stroke: Double, vararg specifiers: StateSpecifier) : this(fill=false, stroke = stroke, specifiers = *specifiers)
+  constructor(stroke: Double, vararg specifiers: StateSpecifier) : this(fill=false, stroke = stroke, specifiers = specifiers)
 
   constructor(stroke: Double, fontSize: Double, vararg specifiers: StateSpecifier) :
-    this(fill = true, stroke = stroke, fontSize = fontSize, specifiers = *specifiers)
+    this(fill = true, stroke = stroke, fontSize = fontSize, specifiers = specifiers)
 
-  constructor(vararg specifiers: StateSpecifier) : this(fill = true, specifiers = *specifiers)
+  constructor(vararg specifiers: StateSpecifier) : this(fill = true, specifiers = specifiers)
 
   override val itemNo: Int get() = ordinal
 

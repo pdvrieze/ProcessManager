@@ -24,6 +24,7 @@
 
 package org.w3.soapEnvelope
 
+import kotlinx.serialization.ExperimentalSerializationApi
 import kotlinx.serialization.KSerializer
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.SerializationException
@@ -84,6 +85,7 @@ class Envelope<T : Any>(
 
     constructor(content: T) : this(Body<T>(content))
 
+    @OptIn(ExperimentalSerializationApi::class)
     public class Serializer<T : Any>(private val bodyContentSerializer: KSerializer<T>) : KSerializer<Envelope<T>> {
         private val bodySerializer: KSerializer<Body<T>> = Body.Serializer(bodyContentSerializer)
 

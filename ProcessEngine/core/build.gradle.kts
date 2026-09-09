@@ -35,6 +35,7 @@ kotlin {
         languageVersion = KotlinVersion.fromVersion(libs.versions.kotlin.languageVersion.get())
         apiVersion = KotlinVersion.fromVersion(libs.versions.kotlin.apiVersion.get())
         optIn.add("nl.adaptivity.process.engine.ProcessInstanceStorage")
+        freeCompilerArgs.add("-Xexpect-actual-classes")
     }
     jvm {
         compilerOptions {

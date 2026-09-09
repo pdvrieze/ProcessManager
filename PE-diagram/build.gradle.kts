@@ -36,62 +36,47 @@ kotlin {
         apiVersion = KotlinVersion.fromVersion(libs.versions.kotlin.apiVersion.get())
     }
 
-    targets {
-        jvm {
-            compilerOptions {
-                jvmTarget = JvmTarget.fromTarget(libs.versions.kotlin.classTarget.get())
-            }
-            compilations.all {
-                tasks.withType<Test> {
-                    useJUnitPlatform()
-                }
-            }
+    jvm {
+        compilerOptions {
+            jvmTarget = JvmTarget.fromTarget(libs.versions.kotlin.classTarget.get())
         }
-/*
-        jvmAndroid {
-        }
-*/
-        js {
-            browser()
-            binaries
+        compilations.all {
+            tasks.withType<Test> {
+                useJUnitPlatform()
+            }
         }
     }
 
+    js {
+        browser()
+        binaries
+    }
+
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
 
-                implementation(project(":multiplatform"))
-                implementation(kotlin("stdlib"))
-                implementation(project(":java-common"))
+                implementation(projects.multiplatform)
+                implementation(projects.javaCommon)
                 implementation(project(":PE-common"))
                 implementation(libs.xmlutil.core)
                 implementation(libs.xmlutil.serialization)
                 implementation(libs.xmlutil.xmlserializable)
-                compileOnly(project(":JavaCommonApi"))
 
             }
         }
-        val commonTest by getting {
+        jvmMain {
+            dependencies {
+                compileOnly(project(":JavaCommonApi"))
+            }
+        }
+        commonTest {
             dependencies {
                 implementation(kotlin("test"))
             }
         }
-/*
-        val javaMain by creating {
-            dependsOn(commonMain)
-            dependencies {
-                implementation(kotlin("stdlib"))
-            }
-        }
-*/
-        val jvmMain by getting {
-//            dependsOn(javaMain)
-            dependencies {
-                implementation(kotlin("stdlib-jdk8"))
-            }
-        }
-        val jvmTest by getting {
+
+        jvmTest {
             dependencies {
                 implementation(kotlin("test-junit5"))
                 runtimeOnly(libs.woodstox)

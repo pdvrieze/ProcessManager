@@ -109,7 +109,7 @@ abstract class ActivityBase(
 
         constructor(node: Activity) : super(node) {
             @Suppress("DEPRECATION")
-            name = node.name
+            name = node.id
             condition = node.condition
             predecessor = node.predecessor
             successor = node.successor
@@ -201,7 +201,7 @@ abstract class ActivityBase(
             results = node.results.map { XmlResultType(it) },
             message = XmlMessage.from(node.message),
             condition = node.condition?.let { XmlCondition(it.condition, it.label) },
-            name = node.name,
+            name = node.id,
             childId = null,
             accessRestrictions = node.accessRestrictions?.serializeToString()
         )
@@ -236,7 +236,7 @@ abstract class ActivityBase(
             message = null,
             childId = node.childModel?.identifier,
             condition = node.condition?.let { XmlCondition(it.condition, it.label) },
-            name = node.name
+            name = node.id
         )
 
         @Suppress("DEPRECATION")

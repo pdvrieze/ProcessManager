@@ -77,21 +77,19 @@ class Header(
     sealed class Block<out T: Any> {
         abstract fun get(): T
 
-        abstract internal fun toCompactFragment(): CompactFragment
+        internal abstract fun toCompactFragment(): CompactFragment
     }
 
     class SupportedBlock<T: Any>(val data: T, val serializer: KSerializer<T>): Block<T>() {
         override fun get(): T = data
 
         override fun toCompactFragment(): CompactFragment {
-            val s: SerializationStrategy<T> = serializer
-            return CompactFragment(XML.encodeToString<T>(s, value = data))
+            return CompactFragment(XML.v1.encodeToString(serializer, value = data))
         }
 
         companion object {
             inline operator fun <reified T:Any> invoke(data: T): SupportedBlock<T> {
-                val serializer = kotlinx.serialization.serializer<T>()
-                return SupportedBlock(data, serializer)
+                return SupportedBlock(data, serializer<T>())
             }
         }
     }
@@ -104,7 +102,7 @@ class Header(
     companion object : KSerializer<Header> {
         private val blockSerializer = ListSerializer(CompactFragment.serializer())
 
-        @OptIn(ExperimentalSerializationApi::class, nl.adaptivity.xmlutil.XmlUtilInternal::class)
+        @OptIn(ExperimentalSerializationApi::class, XmlUtilInternal::class)
         override val descriptor: SerialDescriptor = buildClassSerialDescriptor(Header::class.name) {
             annotations = SoapSerialObjects.headerAnnotations
             element("encodingStyle", URISerializer.descriptor, SoapSerialObjects.encodingStyleAnnotations, true)

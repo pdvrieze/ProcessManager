@@ -107,6 +107,7 @@ object MessagingRegistry {
         returnType: Class<*>,
         returnTypeContext: Array<out Class<*>>
     ): Future<T> {
+        @Suppress("UNCHECKED_CAST")
         return messenger.sendMessage<T>(message, completionListener, returnType as Class<T>, returnTypeContext)
     }
 

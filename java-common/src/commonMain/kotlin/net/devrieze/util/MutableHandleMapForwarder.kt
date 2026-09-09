@@ -24,7 +24,11 @@ open class MutableHandleMapForwarder<V : Any, T : Transaction>(
     override val delegate: MutableTransactionedHandleMap<V, T>
 ) : HandleMapForwarder<V, T>(transaction, delegate), MutableHandleMap<V> {
 
-    override fun iterator(): MutableIterator<V> = delegate.iterator(transaction, false)
+    @Deprecated("Unsafe as it does not guarantee closing the transaction")
+    final override fun iterator(): MutableIterator<V> {
+        @Suppress("DEPRECATION")
+        return delegate.iterator(transaction, false)
+    }
 
     override fun <W : V> put(value: W) = delegate.put(transaction, value)
 

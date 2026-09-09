@@ -31,6 +31,7 @@ internal class ProcessInstanceMap(
     ProcessInstanceElementFactory(processEngine)
 ) {
 
+    @Suppress("UNCHECKED_CAST")
     class Cache<T : ContextProcessTransaction>(
         delegate: ProcessInstanceMap,
         cacheSize: Int

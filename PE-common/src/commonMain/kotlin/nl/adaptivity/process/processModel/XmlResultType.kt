@@ -73,10 +73,21 @@ class XmlResultType(
         return XmlResultType(name, path, content)
     }
 
+    @Deprecated("Avoid using CharArray due to efficiency issues")
     override fun copy(
         name: String,
         path: String?,
-        content: CharArray?,
+        content: CharArray,
+        originalNSContext: Iterable<Namespace>
+    ): XmlResultType {
+        @OptIn(XmlUtilInternal::class)
+        return XmlResultType(name, path, content, originalNSContext as? IterableNamespaceContext ?: SimpleNamespaceContext(originalNSContext))
+    }
+
+    override fun copy(
+        name: String,
+        path: String?,
+        content: String?,
         originalNSContext: Iterable<Namespace>
     ): XmlResultType {
         @OptIn(XmlUtilInternal::class)
@@ -109,7 +120,7 @@ class XmlResultType(
     /** Dummy serializer that is just used to get the annotations on the type. */
     @Serializable
     @XmlSerialName(value = ELEMENTLOCALNAME, namespace = Engine.NAMESPACE, prefix = Engine.NSPREFIX)
-    private class SerialDelegate private constructor(
+    class SerialDelegate private constructor(
         @SerialName("name") val name: String,
         @SerialName("xpath") val _xpath: String? = null,
         @SerialName("path") val _path: String? = null,
@@ -124,7 +135,7 @@ class XmlResultType(
         ): this(name, xpath, null, content)
     }
 
-    private class Serializer : XPathHolderSerializer<XmlResultType, SerialDelegate>(SerialDelegate.serializer()) {
+    class Serializer : XPathHolderSerializer<XmlResultType, SerialDelegate>(SerialDelegate.serializer()) {
         override val descriptor = SerialDescriptor(
             "nl.adaptivity.process.processModel.XmlResultType",
             delegateSerializer.descriptor

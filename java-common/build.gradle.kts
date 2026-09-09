@@ -37,6 +37,7 @@ kotlin {
     compilerOptions {
         languageVersion = org.jetbrains.kotlin.gradle.dsl.KotlinVersion.fromVersion(libs.versions.kotlin.languageVersion.get())
         apiVersion = KotlinVersion.fromVersion(libs.versions.kotlin.apiVersion.get())
+        freeCompilerArgs.add("-Xexpect-actual-classes")
     }
 
     jvm {
@@ -64,32 +65,25 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
-                implementation(project(":multiplatform"))
+                implementation(projects.multiplatform)
                 implementation(libs.kotlinx.serialization.core)
-                implementation(kotlin("stdlib"))
 
-                compileOnly(project(":JavaCommonApi"))
-
-//                api(project(":JavaCommonApi"))
-                api(project(":multiplatform"))
+                api(projects.javaCommonApi)
+                api(projects.multiplatform)
             }
         }
-        val jvmMain by getting {
+        jvmMain {
             dependencies {
-//                implementation(libs.jaxb.api)
                 api(libs.kotlinsql.monadic)
             }
         }
-        val jvmTest by getting {
+        jvmTest {
             dependencies {
                 implementation(libs.junit5.api)
                 runtimeOnly(libs.junit5.engine)
             }
-        }
-        val jsMain by getting {
-            dependsOn(commonMain)
         }
     }
 }

@@ -16,8 +16,10 @@
 
 package net.devrieze.util
 
-import net.devrieze.util.CachingHandleMap.WrappingIterator
-import nl.adaptivity.util.multiplatform.*
+import nl.adaptivity.util.multiplatform.AutoCloseable
+import nl.adaptivity.util.multiplatform.Closeable
+import nl.adaptivity.util.multiplatform.assert
+import nl.adaptivity.util.multiplatform.synchronizedCompat
 import nl.adaptivity.util.net.devrieze.util.HasForEach
 import nl.adaptivity.util.net.devrieze.util.MutableHasForEach
 
@@ -51,11 +53,11 @@ open class CachingHandleMap<V : Any, T : Transaction>(
     ) : MutableIterator<V> {
         private var last: V? = null
 
-        override final fun hasNext(): Boolean {
+        final override fun hasNext(): Boolean {
             return iterator.hasNext()
         }
 
-        override final fun next(): V {
+        final override fun next(): V {
             val result = iterator.next()
             putCache(transaction, result)
             last = result
@@ -166,10 +168,7 @@ open class CachingHandleMap<V : Any, T : Transaction>(
     }
 
     override fun contains(transaction: T, handle: Handle<V>): Boolean {
-        if (getFromCache(handle.handleValue) != null) {
-            return true
-        }
-        return delegate.contains(transaction, handle)
+        return getFromCache(handle.handleValue) != null || delegate.contains(transaction, handle)
     }
 
     override fun containsElement(transaction: T, element: Any): Boolean {
@@ -224,17 +223,6 @@ open class CachingHandleMap<V : Any, T : Transaction>(
         }
     }
 
-    @Deprecated("")
-    fun getUncached(transaction: T, pHandle: Handle<V>): V? {
-        return delegate[transaction, pHandle].apply {
-            if (this != null)
-                storeInCache(transaction, pHandle, this)
-            else {
-                removeFromCache(pHandle.handleValue)
-            }
-        }
-    }
-
     override fun remove(transaction: T, handle: Handle<V>): Boolean {
         removeFromCache(handle.handleValue)
         return delegate.remove(transaction, handle)
@@ -255,11 +243,13 @@ open class CachingHandleMap<V : Any, T : Transaction>(
 
     @Deprecated("Unsafe as it does not guarantee closing the transaction")
     override fun iterator(transaction: T, readOnly: Boolean): MutableIterator<V> {
+        @Suppress("DEPRECATION")
         return WrappingIterator(transaction, delegate.iterator(transaction, readOnly))
     }
 
     @Deprecated("Unsafe as it does not guarantee closing the transaction")
     override fun iterable(transaction: T): MutableIterable<V> {
+        @Suppress("DEPRECATION")
         return WrappingIterable(transaction, delegate.iterable(transaction))
     }
 
