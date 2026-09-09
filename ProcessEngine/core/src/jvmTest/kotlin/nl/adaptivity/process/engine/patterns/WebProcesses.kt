@@ -16,8 +16,14 @@
 
 package nl.adaptivity.process.engine.patterns
 
-import nl.adaptivity.process.engine.*
-import nl.adaptivity.process.processModel.configurableModel.*
+import nl.adaptivity.process.engine.ModelData
+import nl.adaptivity.process.engine.TestConfigurableModel
+import nl.adaptivity.process.engine.TraceTest
+import nl.adaptivity.process.engine.trace
+import nl.adaptivity.process.processModel.configurableModel.endNode
+import nl.adaptivity.process.processModel.configurableModel.join
+import nl.adaptivity.process.processModel.configurableModel.split
+import nl.adaptivity.process.processModel.configurableModel.startNode
 import nl.adaptivity.process.processModel.engine.ExecutableXPathCondition
 import org.junit.jupiter.api.DisplayName
 import org.junit.jupiter.api.Nested
@@ -113,24 +119,23 @@ private object WebProcess1Config : TraceTest.ConfigBase() {
         }
         with(m) {
             val valid = trace {
-                (start..
+                ((start..
                     ((ac1 % ac2) or (ac1("<coverage_exists/>") % ac2) or (ac1 % ac2("<accepted/>")))
-                    ..split1..(
+                    ..split1) * (
                     ((ac3 % split2) % ((ac5 % split3)..join2))
                     )..join3..end
                     ) or (
-                    start..((ac1("<coverage_exists/>") % ac2("<accepted/>"))..
-                        split1..(split2 % split3)..join1..ac4..join2..join3..end)
+                    start..(((ac1("<coverage_exists/>") % ac2("<accepted/>"))..
+                        split1) * (split2 % split3)..join1..ac4..join2..join3..end)
                     )
             }
             val invalid = trace {
                 (start.opt * (split2 or split3 or ac3 or ac4 or join1 or join2 or join3 or end)) or
                     (start..ac1..end) or
-                    (start..
+                    (((start..
                         ((ac1 % ac2) or (ac1("<coverage_exists/>") % ac2) or (ac1 % ac2("<accepted/>")))..
-                        split1..(split2 % split3)..
-                        (join1 or ac4)) or
-                    (start..(ac1("<coverage_exists/>") % ac2("<accepted/>"))..((ac3 % split2) or (ac5 % split3)))
+                        split1) * (split2 % split3)) * (join1 or ac4)) or
+                    ((start..(ac1("<coverage_exists/>") % ac2("<accepted/>"))) * ((ac3 % split2) or (ac5 % split3)))
             }
             ModelData(m, valid, invalid)
         }
@@ -212,24 +217,23 @@ private object WebProcess1Config2 : TraceTest.ConfigBase() {
         }
         with(m) {
             val valid = trace {
-                (start..
+                ((start..
                     ((ac1 % ac2) or (ac1("<coverage_exists/>") % ac2) or (ac1 % ac2("<accepted/>")))
-                    ..split1..(
+                    ..split1) * (
                     ((ac3 % split2) % ((ac5 % split3)))
                     )..join3..end
                     ) or (
-                    start..((ac1("<coverage_exists/>") % ac2("<accepted/>"))..
-                        split1..(split2 % split3)..join1..ac4..join3..end)
+                    start..(((ac1("<coverage_exists/>") % ac2("<accepted/>"))..
+                        split1) * (split2 % split3)..join1..ac4..join3..end)
                     )
             }
             val invalid = trace {
                 (start.opt * (split2 or split3 or ac3 or ac4 or join1 or join3 or end)) or
                     (start..ac1..end) or
-                    (start..
+                    (((start..
                         ((ac1 % ac2) or (ac1("<coverage_exists/>") % ac2) or (ac1 % ac2("<accepted/>")))..
-                        split1..(split2 % split3)..
-                        (join1 or ac4)) or
-                    (start..(ac1("<coverage_exists/>") % ac2("<accepted/>"))..((ac3 % split2) or (ac5 % split3)))
+                        split1) * (split2 % split3)) * (join1 or ac4)) or
+                    ((start..(ac1("<coverage_exists/>") % ac2("<accepted/>"))) * ((ac3 % split2) or (ac5 % split3)))
             }
             ModelData(m, valid, invalid)
         }

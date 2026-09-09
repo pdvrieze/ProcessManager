@@ -35,6 +35,7 @@ import javax.xml.parsers.DocumentBuilderFactory
 /**
  * Created by pdvrieze on 03/12/15.
  */
+@OptIn(ExperimentalXmlUtilApi::class)
 class TestSoapHelper {
 
     @Test

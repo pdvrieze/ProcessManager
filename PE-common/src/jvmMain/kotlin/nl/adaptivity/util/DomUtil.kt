@@ -39,7 +39,9 @@ import javax.xml.transform.dom.DOMResult
 import javax.xml.transform.dom.DOMSource
 import javax.xml.transform.stream.StreamResult
 
+@OptIn(ExperimentalXmlUtilApi::class)
 object DomUtil {
+    @Suppress("DEPRECATION")
     private val DEFAULT_FLAGS = FLAG_OMIT_XMLDECL
 
     /**
@@ -164,9 +166,20 @@ object DomUtil {
         return toString(value, DEFAULT_FLAGS)
     }
 
+    @OptIn(ExperimentalXmlUtilApi::class)
     @JvmStatic
     fun toString(value: Node, flags: Int): String {
+
         val out = StringWriter()
+        xmlStreaming.newGenericWriter(out).use {w ->
+            xmlStreaming.newReader(value).use { r ->
+                for (e in r) {
+                    r.writeCurrent(w)
+                }
+                Unit
+            }
+
+        }
         try {
             val t = TransformerFactory
                 .newInstance()

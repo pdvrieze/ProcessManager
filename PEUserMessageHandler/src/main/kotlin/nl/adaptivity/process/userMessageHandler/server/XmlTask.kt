@@ -109,7 +109,9 @@ class XmlTask : UserTask<XmlTask> {
     }
 
     constructor(task: UserTask<*>) : this(task.handleValue) {
+        @Suppress("UNCHECKED_CAST")
         this.remoteHandle = task.remoteHandle as Handle<Unit>
+        @Suppress("UNCHECKED_CAST")
         this.instanceHandle = task.instanceHandle as Handle<Unit>
         this.state = task.state
         this.summary = task.summary
@@ -195,58 +197,40 @@ class XmlTask : UserTask<XmlTask> {
         this.endPoint = endPoint
     }
 
+    fun getItem(name: String) = items.firstOrNull { name == it.name }
+    operator fun get(name: String) = getItem(name)
+
     override fun hashCode(): Int {
-        val prime = 31
-        var result = 1
-        result = prime * result + if (endPoint == null) 0 else endPoint!!.hashCode()
-        result = prime * result + (handleValue xor handleValue.ushr(32)).toInt()
-        result = prime * result + if (_items.isEmpty()) 0 else _items.hashCode()
-        result = prime * result + if (owner == null) 0 else owner!!.hashCode()
-        result = prime * result + (remoteHandle.handleValue xor remoteHandle.handleValue.ushr(32)).toInt()
-        result = prime * result + if (state == null) 0 else state!!.hashCode()
-        result = prime * result + if (summary == null) 0 else summary!!.hashCode()
+        var result = handle.hashCode()
+        result = 31 * result + remoteHandle.handleValue.hashCode()
+        result = 31 * result + instanceHandle.handleValue.hashCode()
+        result = 31 * result + state.hashCode()
+        result = 31 * result + summary.hashCode()
+        result = 31 * result + endPoint.hashCode()
+        result = 31 * result + accessRestriction.hashCode()
+        result = 31 * result + owner.hashCode()
+        result = 31 * result + _items.hashCode()
         return result
     }
 
-    override fun equals(obj: Any?): Boolean {
-        if (this === obj)
-            return true
-        if (obj == null)
-            return false
-        if (javaClass != obj.javaClass)
-            return false
-        val other = obj as XmlTask?
-        if (endPoint == null) {
-            if (other!!.endPoint != null)
-                return false
-        } else if (endPoint != other!!.endPoint)
-            return false
-        if (handleValue != other.handleValue)
-            return false
-        if (_items.isEmpty()) {
-            if (other._items.isNotEmpty())
-                return false
-        } else if (_items != other._items)
-            return false
-        if (owner == null) {
-            if (other.owner != null)
-                return false
-        } else if (owner != other.owner)
-            return false
-        if (remoteHandle != other.remoteHandle)
-            return false
-        if (state != other.state)
-            return false
-        if (summary == null) {
-            if (other.summary != null)
-                return false
-        } else if (summary != other.summary)
-            return false
+    override fun equals(other: Any?): Boolean {
+        if (this === other) return true
+        if (javaClass != other?.javaClass) return false
+
+        other as XmlTask
+
+        if (handle != other.handle) return false
+        if (remoteHandle != other.remoteHandle) return false
+        if (instanceHandle != other.instanceHandle) return false
+        if (state != other.state) return false
+        if (summary != other.summary) return false
+        if (endPoint != other.endPoint) return false
+        if (accessRestriction != other.accessRestriction) return false
+        if (owner != other.owner) return false
+        if (_items != other._items) return false
+
         return true
     }
-
-    fun getItem(name: String) = items.firstOrNull { name == it.name }
-    operator fun get(name: String) = getItem(name)
 
     companion object {
 

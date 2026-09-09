@@ -19,6 +19,7 @@ import nl.adaptivity.process.util.Identified
 import nl.adaptivity.serialutil.nonNullSerializer
 import nl.adaptivity.util.CombiningReader
 import nl.adaptivity.util.multiplatform.PrincipalCompat
+import nl.adaptivity.xmlutil.ExperimentalXmlUtilApi
 import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.core.KtXmlReader
@@ -53,7 +54,7 @@ abstract class AbstractRunnableActivity<I: Any, O: Any, C: ActivityInstanceConte
 
     final override val accessRestrictions: RunnableAccessRestriction? = builder.accessRestrictions
 
-    final val onActivityProvided: RunnableActivity.OnActivityProvided<I, O, C> = builder.onActivityProvided
+    val onActivityProvided: RunnableActivity.OnActivityProvided<I, O, C> = builder.onActivityProvided
 
 
     @Suppress("UNCHECKED_CAST")
@@ -177,6 +178,7 @@ abstract class AbstractRunnableActivity<I: Any, O: Any, C: ActivityInstanceConte
         class InputValueImpl<V>(override val name: String) : InputCombiner.InputValue<V>
     }
 
+    @OptIn(ExperimentalXmlUtilApi::class)
     fun getInputData(data: List<ProcessData>): I {
         val mappedData = runnableDefines.associate { define ->
             val ser: DeserializationStrategy<Any> = define.deserializer.nonNullSerializer()

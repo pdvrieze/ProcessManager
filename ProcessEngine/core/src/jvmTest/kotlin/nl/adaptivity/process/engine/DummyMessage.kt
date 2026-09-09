@@ -11,10 +11,15 @@ import javax.xml.namespace.QName
 object DummyMessage: IXmlMessage {
     override val targetMethod: InvokableMethod
         get() = RESTMethodDesc(QName("dummy"), "POST", "/dummy", "application/x-dummy")
+
+    @Deprecated("Use targetMethod", replaceWith = ReplaceWith("targetMethod.operation"))
     override val operation: String?
         get() = null
+
     override val messageBody: ICompactFragment
         get() = CompactFragment("")
+
+    @Deprecated("Use targetServicce", replaceWith = ReplaceWith("targetMethod.endpoint.endpointLocation?.toString()"))
     override val url: String?
         get() = "/dummy"
 

@@ -19,8 +19,7 @@ fun <AIC : ActivityInstanceContext> runnableProcess(
     name: String,
     owner: PrincipalCompat = SYSTEMPRINCIPAL,
     uuid: UUID = UUID.randomUUID(),
-    @ConfigurationDsl
-    configureAction: ModelBuilderContext<AIC>.() -> Unit
+    configureAction: @ConfigurationDsl ModelBuilderContext<AIC>.() -> Unit
 ): ExecutableProcessModel {
     val context = RootModelBuilderContextImpl<AIC>(name, owner, uuid).apply(configureAction)
     return ExecutableProcessModel(context.modelBuilder, true)

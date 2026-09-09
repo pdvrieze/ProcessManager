@@ -54,7 +54,6 @@ abstract class PmaModelBuilderContext<
         refNode: Identified? = predecessor.identifier,
         refName: String? = "",
         inputSerializer: DeserializationStrategy<I> = predecessor.serializer,
-        @BuilderInference
         noinline action: TaskBuilderContext<AIC, BIC, I>.() -> TaskBuilderContext.AcceptedTask<AIC, BIC, I, O>
     ): RunnablePmaActivity.Builder<I, O, AIC> {
         return taskActivity(
@@ -71,7 +70,6 @@ abstract class PmaModelBuilderContext<
         permissions: List<AuthScopeTemplate<AIC>> = emptyList(),
         accessRestrictions: RunnableAccessRestriction? = null,
         input: DefineInputCombiner<I>,
-        @BuilderInference
         noinline action: TaskBuilderContext<AIC, BIC, I>.() -> TaskBuilderContext.AcceptedTask<AIC, BIC, I, O>
     ): RunnablePmaActivity.Builder<I, O, AIC> {
         return RunnablePmaActivity.Builder<I, O, AIC>(
@@ -91,7 +89,6 @@ abstract class PmaModelBuilderContext<
         permissions: List<AuthScopeTemplate<AIC>> = emptyList(),
         accessRestrictions: RunnableAccessRestriction? = null,
         input: InputRef<I>,
-        @BuilderInference
         noinline action: TaskBuilderContext<AIC, BIC, I>.() -> TaskBuilderContext.AcceptedTask<AIC, BIC, I, O>
     ): RunnablePmaActivity.Builder<I, O, AIC> {
         return RunnablePmaActivity.Builder<I, O, AIC>(
@@ -112,7 +109,6 @@ abstract class PmaModelBuilderContext<
         service: ServiceName<S>,
         input: DefineInputCombiner<I>,
         configure: RunnablePmaActivity.Builder<I, O, AIC>.() -> Unit = {},
-        @BuilderInference
         noinline action: RunnableAction<I, O, ServiceActivityContext<AIC, S>>
     ): RunnablePmaActivity.Builder<I, O, AIC> {
         return RunnablePmaActivity.Builder<I, O, AIC>(
@@ -133,7 +129,6 @@ abstract class PmaModelBuilderContext<
         service: ServiceId<S>,
         input: DefineInputCombiner<I>,
         configure: RunnablePmaActivity.Builder<I, O, AIC>.() -> Unit = {},
-        @BuilderInference
         noinline action: RunnableAction<I, O, ServiceActivityContext<AIC, S>>
     ): RunnablePmaActivity.Builder<I, O, AIC> {
         return RunnablePmaActivity.Builder<I, O, AIC>(
@@ -153,7 +148,6 @@ abstract class PmaModelBuilderContext<
         authorizationTemplates: List<AuthScopeTemplate<AIC>> = emptyList(),
         service: ServiceName<S>,
         configure: RunnablePmaActivity.Builder<I, O, AIC>.() -> Unit = {},
-        @BuilderInference
         noinline action: RunnableAction<I, O, ServiceActivityContext<AIC, S>>
     ): RunnablePmaActivity.Builder<I, O, AIC> {
         return serviceActivity(
@@ -171,7 +165,6 @@ abstract class PmaModelBuilderContext<
         authorizationTemplates: List<AuthScopeTemplate<AIC>> = emptyList(),
         service: ServiceId<S>,
         configure: RunnablePmaActivity.Builder<I, O, AIC>.() -> Unit = {},
-        @BuilderInference
         noinline action: RunnableAction<I, O, ServiceActivityContext<AIC, S>>
     ): RunnablePmaActivity.Builder<I, O, AIC> {
         return serviceActivity(
@@ -190,7 +183,6 @@ abstract class PmaModelBuilderContext<
         service: ServiceName<S>,
         input: InputRef<I>,
         configure: RunnablePmaActivity.Builder<I, O, AIC>.() -> Unit = {},
-        @BuilderInference
         noinline action: RunnableAction<I, O, ServiceActivityContext<AIC, S>>
     ): RunnablePmaActivity.Builder<I, O, AIC> {
         return RunnablePmaActivity.Builder<I, O, AIC>(
@@ -210,7 +202,6 @@ abstract class PmaModelBuilderContext<
         service: ServiceId<S>,
         input: InputRef<I>,
         configure: RunnablePmaActivity.Builder<I, O, AIC>.() -> Unit = {},
-        @BuilderInference
         noinline action: RunnableAction<I, O, ServiceActivityContext<AIC, S>>
     ): RunnablePmaActivity.Builder<I, O, AIC> {
         return RunnablePmaActivity.Builder<I, O, AIC>(
@@ -227,7 +218,7 @@ abstract class PmaModelBuilderContext<
     @OptIn(ExperimentalContracts::class)
     inline fun compositeActivity(
         predecessor: Identified,
-        @ConfigurationDsl configure: CompositePmaModelBuilderContext<AIC, BIC>.() -> Unit
+        configure: @ConfigurationDsl CompositePmaModelBuilderContext<AIC, BIC>.() -> Unit
     ): ActivityBase.CompositeActivityBuilder {
         contract {
             callsInPlace(configure, InvocationKind.EXACTLY_ONCE)

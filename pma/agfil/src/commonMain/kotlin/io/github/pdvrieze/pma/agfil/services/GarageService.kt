@@ -44,7 +44,7 @@ class GarageService(
     val garageInfo = GarageInfo(serviceName.serviceName, serviceInstanceId.serviceId)
 
     val internal: Internal = Internal()
-    val xml = XML { this.recommended() }
+    val xml = XML.recommended_1_0 {  }
     val hRepairProcess: Handle<ExecutableProcessModel> get() = processHandles[0]
 
     private val repairs = mutableMapOf<ClaimId, RepairInfo>()

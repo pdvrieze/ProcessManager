@@ -60,6 +60,7 @@ import kotlin.reflect.KClass
  *
  * @author Paul de Vrieze
  */
+@OptIn(ExperimentalXmlUtilApi::class)
 object SoapHelper {
 
     val SOAP_ENVELOPE_NS = "http://www.w3.org/2003/05/soap-envelope"
@@ -69,6 +70,8 @@ object SoapHelper {
     val RESULT = "!@#\$Result_MARKER::"
 
     // TODO should no longer be needed as DarwinMessenger will do the class loader shenanigans.
+    @OptIn(ExperimentalXmlUtilApi::class)
+    @Suppress("DEPRECATION")
     object XmlDeserializationHelper {
         fun deserializationTarget(
             clazz: Class<*>,
@@ -389,7 +392,7 @@ object SoapHelper {
                 }
                 EventType.START_ELEMENT -> {
                     if (reader.isElement("http://www.w3.org/2003/05/soap-rpc", "result")) {
-                        val s = reader.readSimpleElement().toString()
+                        val s = reader.readSimpleElement()
                         val i = s.indexOf(':')
                         if (i >= 0) {
                             returnName = QName(reader.getNamespaceURI(s.substring(0, i)), s.substring(i + 1))
@@ -487,6 +490,7 @@ object SoapHelper {
                 result = Types.parsePrimitive(clazz, value.textContent)
             } else if (Enum::class.java.isAssignableFrom(clazz)) {
                 val value = value.textContent
+                @Suppress("UNCHECKED_CAST")
                 result = (clazz as Class<Enum<*>>).enumConstants.first { it.name == value }
             } else if (clazz.isAssignableFrom(Principal::class.java)
                 && value is Element
@@ -515,7 +519,7 @@ object SoapHelper {
                 }
             } else {
                 var helper: Class<*>? = null
-                var deserializabletargetType: Class<*>? = null
+                val deserializabletargetType: Class<*>
                 try {
                     helper = Class.forName(XmlDeserializationHelper::class.java.name, true, clazz.classLoader)
                     val deserializationTarget = helper!!.getMethod(
@@ -536,81 +540,32 @@ object SoapHelper {
                     throw RuntimeException(e)
                 }
 
-                if (deserializabletargetType != null) {
-                    try {
-                        result = helper.getMethod(
-                            "deserialize", Class::class.java, Class::class.java,
-                            Node::class.java
-                        ).invoke(
-                            null, clazz, deserializabletargetType,
-                            value
-                        )
-                    } catch (e: IllegalAccessException) {
-                        throw RuntimeException(e)
-                    } catch (e: NoSuchMethodException) {
-                        throw RuntimeException(e)
-                    } catch (e: InvocationTargetException) {
-                        if (e.cause is XmlException) {
-                            throw (e.cause as XmlException)
-                            throw UnsupportedOperationException("Unreachable")
-                        } else if (e.cause is RuntimeException) {
-                            throw e.cause as RuntimeException
-                        } else {
-                            throw RuntimeException(e)
-                        }
+                try {
+                    result = helper.getMethod(
+                        "deserialize", Class::class.java, Class::class.java,
+                        Node::class.java
+                    ).invoke(
+                        null, clazz, deserializabletargetType,
+                        value
+                    )
+                } catch (e: IllegalAccessException) {
+                    throw RuntimeException(e)
+                } catch (e: NoSuchMethodException) {
+                    throw RuntimeException(e)
+                } catch (e: InvocationTargetException) {
+                    when (val c = e.cause) {
+                        is XmlException,
+                        is RuntimeException -> throw c
+
+                        else -> throw RuntimeException(e)
                     }
-
-                } else {
-
-                    if (value.nextSibling != null && value.nextSibling is Element) {
-                        throw UnsupportedOperationException(
-                            "Collection parameters not yet supported: " + method!!.toGenericString() + " found: '" + DomUtil.toString(
-                                value.nextSibling
-                            ) + "' in " + DomUtil.toString(
-                                value.parentNode
-                            )
-                        )
-                    }
-                    try {
-                        val context: JAXBContext
-
-                        if (clazz.isInterface) {
-                            context = newJAXBContext(method, Arrays.asList(*jaxbContext!!))
-                        } else {
-                            val list = ArrayList<Class<*>>(1 + (jaxbContext?.size ?: 0))
-                            list.add(clazz)
-                            if (jaxbContext != null) {
-                                list.addAll(Arrays.asList(*jaxbContext))
-                            }
-                            context = newJAXBContext(method, list)
-                        }
-                        val um = context.createUnmarshaller()
-                        if (clazz.isInterface) {
-                            if (value is Text) {
-                                result = value.data
-                            } else {
-                                result = um.unmarshal(value)
-
-                                if (result is JAXBElement<*>) {
-                                    result = result.value
-                                }
-                            }
-                        } else {
-                            val umresult: JAXBElement<*>
-                            umresult = um.unmarshal(value, clazz)
-                            result = umresult.value
-                        }
-
-                    } catch (e: JAXBException) {
-                        throw MessagingException("Error unmarshalling node " + attrWrapper!!, e)
-                    }
-
                 }
             }
         } else {
             result = value
         }
         if (Types.isPrimitive(clazz)) {
+            @Suppress("UNCHECKED_CAST")
             return result as T?
         }
 

@@ -125,18 +125,22 @@ abstract class AbstractDynamicPmaActivityContext<AIC : DynamicPmaActivityContext
         val valueReader = result?.contentStream ?: return null
 
         val deserializer: DeserializationStrategy<T> = reference.serializer.nonNullSerializer()
-        return XML.decodeFromReader(deserializer, valueReader)
+        return XML.v1.decodeFromReader(deserializer, valueReader)
     }
 
     fun <InT> nodeResult(reference: OutputRef<InT>): InT {
 //        return processContext.nodeResult(processNode.node, reference) as T
         val defines = (this /*as A*/).getDefines(processContext.processInstance)
+        @Suppress("UNCHECKED_CAST")
         when (val n = node) {
             is ExecutableCompositeActivity -> {
                 val data =  defines.firstOrNull { it.name == reference.propertyName } ?: error("No result found for ${reference} in executable activity")
-                val ser: DeserializationStrategy<Any> = (data as? RunnableActivity.DefineType<InT>)?.run { deserializer.nonNullSerializer() } ?: error("Define cannot be deserialized")
 
-                return XML.decodeFromReader(ser, data.contentStream) as InT
+                val define = n.defines.firstOrNull { it.name == reference.propertyName }
+
+                val ser: DeserializationStrategy<Any> = (define as? RunnableActivity.DefineType<InT>)?.run { deserializer.nonNullSerializer() } ?: error("Define cannot be deserialized")
+
+                return XML.v1.decodeFromReader(ser, data.contentStream) as InT
             }
             is AbstractRunnableActivity<*,*,*> -> {
                 return n.getInputData(defines) as InT

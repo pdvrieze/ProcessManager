@@ -42,8 +42,7 @@ import nl.adaptivity.xmlutil.util.ICompactFragment
 /** Class to represent data attached to process instances.  */
 @Serializable(with = ProcessData.Companion::class)
 @XmlSerialName(ProcessData.ELEMENTLOCALNAME, ProcessConsts.Engine.NAMESPACE, ProcessConsts.Engine.NSPREFIX)
-class ProcessData
-constructor(
+class ProcessData constructor(
     override val name: String?,
     val content: ICompactFragment
 ) : Named {

@@ -59,7 +59,7 @@ inline fun <reified T1: Any, reified T2: Any, reified T3: Any, reified T4: Any> 
 
 fun payload(vararg values: Tripple<QName, Any, out SerializationStrategy<*>>): CompactFragment {
     return CompactFragment { out ->
-        XML { autoPolymorphic=true }.run {
+        XML.v1.run {
             for((name, value, ser) in values) {
                 val valueHolder = ValueHolder(name, value)
                 @Suppress("UNCHECKED_CAST")
@@ -72,7 +72,7 @@ fun payload(vararg values: Tripple<QName, Any, out SerializationStrategy<*>>): C
 
 fun <T> payload(value: T, ser: SerializationStrategy<T>): CompactFragment {
     return CompactFragment { out ->
-        XML { autoPolymorphic=true }.run {
+        XML.v1.run {
             encodeToWriter(out, ser, value)
         }
     }

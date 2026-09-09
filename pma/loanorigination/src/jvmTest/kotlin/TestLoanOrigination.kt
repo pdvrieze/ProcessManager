@@ -64,10 +64,10 @@ class TestLoanOrigination : ProcessEngineTestSupport() {
         val approval = SignedDocument("admin", 5L, Approval(true))
         val offer = SignedDocument("admin", 4L, Offer("1", "2", "signature"))
         val serialized1 = CompactFragment { writer ->
-            XML.defaultInstance.encodeToWriter(writer, serializer<SignedDocument<Offer>>(), offer)
+            XML.v1.encodeToWriter(writer, serializer<SignedDocument<Offer>>(), offer)
         }
         val serialized2 = CompactFragment { writer ->
-            XML.defaultInstance.encodeToWriter(writer, serializer<SignedDocument<Approval>>(), approval)
+            XML.v1.encodeToWriter(writer, serializer<SignedDocument<Approval>>(), approval)
         }
         assertEquals("<SignedDocument signedBy=\"admin\" nodeInstanceHandle=\"4\"><Offer id=\"1\" customerId=\"2\" customerSignature=\"signature\"/></SignedDocument>", serialized1.contentString)
         assertEquals("<SignedDocument signedBy=\"admin\" nodeInstanceHandle=\"5\"><Approval>true</Approval></SignedDocument>", serialized2.contentString)

@@ -30,12 +30,12 @@ class TestAuthServiceClient() : AuthServiceClient<AuthorizationInfo, Authorizati
     }
 
     override fun requestPmaAuthCode(
-        client: ServiceId<*>,
+        authorizedService: ServiceId<*>,
         nodeInstanceHandle: PNIHandle,
-        serviceId: ServiceId<*>,
+        tokenTargetService: ServiceId<*>,
         requestedScope: AuthScope
     ): AuthorizationInfo.Token {
-        return DummyTokenServiceAuthData(serviceId, listOf(requestedScope))
+        return DummyTokenServiceAuthData(tokenTargetService, listOf(requestedScope))
     }
 
     override fun requestPmaAuthCode(

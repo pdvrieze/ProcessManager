@@ -448,7 +448,7 @@ class TestProcessEngine : ProcessEngineTestSupport() {
                     id = "ac1"
                     message = DummyMessage
                     result("ac1result") {
-                        content = "ac1content".toCharArray()
+                        content = "ac1content"
                     }
                 }
                 val ac2 = activity {
@@ -456,7 +456,7 @@ class TestProcessEngine : ProcessEngineTestSupport() {
                     id = "ac2"
                     message = DummyMessage
                     result("ac2result") {
-                        content = "ac2content".toCharArray()
+                        content = "ac2content"
                     }
                 }
                 val join = join {

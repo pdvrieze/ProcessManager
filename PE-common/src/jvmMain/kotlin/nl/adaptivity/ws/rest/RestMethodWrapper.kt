@@ -65,6 +65,7 @@ import javax.xml.xpath.XPathConstants
 import javax.xml.xpath.XPathExpressionException
 import javax.xml.xpath.XPathFactory
 
+@OptIn(ExperimentalXmlUtilApi::class)
 abstract class RestMethodWrapper protected constructor(owner: Any, method: Method) : nl.adaptivity.ws.WsMethodWrapper(
     owner, method
 ) {
@@ -139,7 +140,7 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
             get() = methodHandle.parameterTypes
 
         override fun exec() {
-            val params = params ?: throw IllegalArgumentException("Argument unmarshalling has not taken place yet")
+            val params = params //?: throw IllegalArgumentException("Argument unmarshalling has not taken place yet")
 
             try {
                 result = methodHandle.invoke(owner, *params)
@@ -497,12 +498,12 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
 
     companion object {
 
-        private val xmlFormat = XML { autoPolymorphic = true }
+        private val xmlFormat = XML.v1 {}
 
         operator fun get(pOwner: Any, pMethod: Method): RestMethodWrapper {
             // Make it work with private methods and
             pMethod.isAccessible = true
-            if (HasMethodHandleHelper.HASHANDLES && "1.7" != "java.specification.version") {
+            if (HasMethodHandleHelper.HASHANDLES && "1.7" != System.getProperty("java.specification.version")) {
                 return Java8RestMethodWrapper(pOwner, pMethod)
             } else {
                 return Java6RestMethodWrapper(pOwner, pMethod)
@@ -575,7 +576,9 @@ abstract class RestMethodWrapper protected constructor(owner: Any, method: Metho
                         @OptIn(ExperimentalSerializationApi::class)
                         val deserializer = serializerOrNull(paramType)
                         if (deserializer != null) {
-                            return XML.Companion.decodeFromReader(
+                            @Suppress("UNCHECKED_CAST")
+                            @OptIn(ExperimentalXmlUtilApi::class)
+                            return XML.v1.decodeFromReader(
                                 deserializer,
                                 xmlStreaming.newReader(n)
                             ) as T

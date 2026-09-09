@@ -49,8 +49,8 @@ class Identifier(override var id: String) : Identified {
 
     constructor(id: CharSequence) : this(id.toString()) {}
 
-    override fun compareTo(o: Identifiable): Int {
-        val otherId = o.id ?: return 1
+    override fun compareTo(other: Identifiable): Int {
+        val otherId = other.id ?: return 1
         return id.compareTo(otherId)
     }
 

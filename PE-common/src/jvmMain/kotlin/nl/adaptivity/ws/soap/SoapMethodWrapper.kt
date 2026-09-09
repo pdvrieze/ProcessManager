@@ -76,10 +76,9 @@ class SoapMethodWrapper(owner: Any, method: Method) : WsMethodWrapper(owner, met
                 headers = emptyList()
 
             } else if (result is ActivityResponse<*,*>) {
-                val activityResponse = result as ActivityResponse<out Any, out Any?>
                 params = listOf(
                     Tripple.tripple(SoapHelper.RESULT, String::class.java, "result"),
-                    Tripple.tripple("result", activityResponse.returnType.java, activityResponse.returnValue)
+                    Tripple.tripple("result", result.returnType.java, result.returnValue)
                 )
                 headers = listOf<Any>(result)
             } else if (result != null && ActivityResponse::class.java.canonicalName == result.javaClass.canonicalName) {
@@ -126,12 +125,13 @@ class SoapMethodWrapper(owner: Any, method: Method) : WsMethodWrapper(owner, met
         }
 
     fun unmarshalParams(source: Source, attachments: Map<String, DataSource>) {
+        @Suppress("UNCHECKED_CAST")
         val envelope = JAXB.unmarshal(source, Envelope::class.java) as Envelope<ICompactFragment>
         unmarshalParams(envelope, attachments)
 
     }
 
-    fun unmarshalParams(envelope: Envelope<out ICompactFragment>, attachments: Map<String, out DataSource>) {
+    fun unmarshalParams(envelope: Envelope<out ICompactFragment>, attachments: Map<String, DataSource>) {
         if (paramsInitialised) {
             throw IllegalStateException("Parameters have already been unmarshalled")
         }
@@ -209,14 +209,14 @@ class SoapMethodWrapper(owner: Any, method: Method) : WsMethodWrapper(owner, met
             }
             val value: Node?
             if (annotation != null && annotation.header) {
-                if (parameterTypes[i].isAssignableFrom(Principal::class.java) && envelope.header!!.principal != null) {
-                    this.params[i] = envelope.header!!.principal
+                if (parameterTypes[i].isAssignableFrom(Principal::class.java) && envelope.header.principal != null) {
+                    this.params[i] = envelope.header.principal
                     continue //Finish the parameter, we don't need to unmarshal
                 } else if (parameterTypes[i].isAssignableFrom(
                         String::class.java
-                    ) && envelope.header!!.principal != null
+                    ) && envelope.header.principal != null
                 ) {
-                    this.params[i] = envelope.header!!.principal!!.name
+                    this.params[i] = envelope.header.principal!!.name
                     continue
                 } else {
                     value = headers.remove(name)

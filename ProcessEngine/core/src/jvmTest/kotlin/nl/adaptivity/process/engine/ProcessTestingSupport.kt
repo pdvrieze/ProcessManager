@@ -131,11 +131,8 @@ fun InstanceSupport.testTraceExceptionThrowing(
         }
 
     }
-    @Suppress("UNCHECKED_CAST")
-    impl(
-        transaction as StubProcessTransaction,
-        engine as ProcessEngine<StubProcessTransaction>
-    )
+
+    impl(transaction, engine)
 }
 
 internal class ProcessTestingException(message: String? = null, cause: Throwable? = null) : Exception(message, cause) {

@@ -48,14 +48,14 @@ class RunnableActivityInstance<I : Any, O : Any, C : ActivityInstanceContext>(bu
 
                 val input: InputT = with(builtNodeInstance) { aic.getInputData(processInstanceBuilder) }
 
-                val action: RunnableAction<InputT, OutputT, C> =
-                    node.action as RunnableAction<InputT, OutputT, C>
+                @Suppress("UNCHECKED_CAST")
+                val action = node.action as RunnableAction<InputT, OutputT, C>
 
                 val result: OutputT = aic.action(input)
 
                 return node.outputSerializer?.let { os ->
                     CompactFragment { writer ->
-                        XML.defaultInstance.encodeToWriter(writer, os, result)
+                        XML.v1.encodeToWriter(writer, os, result)
                     }
                 }
 

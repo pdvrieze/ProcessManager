@@ -16,7 +16,10 @@
 
 package nl.adaptivity.process.engine.patterns
 
-import nl.adaptivity.process.engine.*
+import nl.adaptivity.process.engine.ModelData
+import nl.adaptivity.process.engine.TestConfigurableModel
+import nl.adaptivity.process.engine.TraceTest
+import nl.adaptivity.process.engine.trace
 import nl.adaptivity.process.processModel.configurableModel.endNode
 import nl.adaptivity.process.processModel.configurableModel.split
 import nl.adaptivity.process.processModel.configurableModel.startNode
@@ -41,9 +44,9 @@ class WCP4: TraceTest(Companion) {
 
             val invalidTraces = with(model) { trace {
                 end1 or end2 or split or
-                    (start.opt .. (split or end1 or end2 or
-                        (ac1 .. (ac2 or end2)) or
-                        (ac2 .. (ac1 or end1))))
+                    (start.opt * (split or end1 or end2 or
+                        (ac1..(ac2 or end2)) or
+                        (ac2..(ac1 or end1))))
             } }
             ModelData(model, validTraces, invalidTraces)
         }

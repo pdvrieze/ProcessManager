@@ -17,7 +17,6 @@
 package nl.adaptivity.process.processModel
 
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.descriptors.SerialDescriptor
 import nl.adaptivity.serialutil.DelegatingSerializer
 import nl.adaptivity.xmlutil.Namespace
 import nl.adaptivity.xmlutil.XmlReader
@@ -51,14 +50,14 @@ interface IXmlResultType {
         name: String = this.name,
         path: String? = this.path,
         content: CharArray,
-        originalNSContext: Iterable<Namespace> = this.content.namespaces ?: emptyList()
+        originalNSContext: Iterable<Namespace> = this.content.namespaces
     ): IXmlResultType
 
     fun copy(
         name: String = this.name,
         path: String? = this.path,
         content: String? = this.content.contentString,
-        originalNSContext: Iterable<Namespace> = this.content.namespaces ?: emptyList()
+        originalNSContext: Iterable<Namespace> = this.content.namespaces
     ): IXmlResultType
 
     class Serializer : DelegatingSerializer<IXmlResultType, XmlResultType>("nl.adaptivity.process.processModel.IXmlResultType", XmlResultType.serializer()) {

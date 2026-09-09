@@ -41,15 +41,28 @@ class XmlResultType(
         get() = content.getXmlReader()
 
     @OptIn(XmlUtilInternal::class)
+    @Deprecated("Avoid using CharArray due to efficiency issues")
     constructor(
         name: String,
         path: String? = null,
-        content: CharArray? = null,
+        content: CharArray,
         originalNSContext: IterableNamespaceContext = SimpleNamespaceContext()
     ) : this(
         name = name,
         path = path,
         content = CompactFragment(originalNSContext, content)
+    )
+
+    @OptIn(XmlUtilInternal::class)
+    constructor(
+        name: String,
+        path: String? = null,
+        content: String? = null,
+        originalNSContext: IterableNamespaceContext = SimpleNamespaceContext()
+    ) : this(
+        name = name,
+        path = path,
+        content = CompactFragment(originalNSContext, content ?: "")
     )
 
     @OptIn(XmlUtilInternal::class)
@@ -81,6 +94,7 @@ class XmlResultType(
         originalNSContext: Iterable<Namespace>
     ): XmlResultType {
         @OptIn(XmlUtilInternal::class)
+        @Suppress("DEPRECATION")
         return XmlResultType(name, path, content, originalNSContext as? IterableNamespaceContext ?: SimpleNamespaceContext(originalNSContext))
     }
 
@@ -102,13 +116,13 @@ class XmlResultType(
     class Builder(
         var name: String,
         var path: String? = null,
-        var content: CharArray? = CharArray(0),
+        var content: String? = "",
         nsContext: Iterable<Namespace> = emptyList(),
     ) {
 
         val nsContext = nsContext.toMutableList()
 
-        constructor(orig: IXmlResultType) : this(orig.name, orig.path, orig.content.content.copyOf(), orig.originalNSContext)
+        constructor(orig: IXmlResultType) : this(orig.name, orig.path, orig.content.contentString, orig.originalNSContext)
 
         fun build(): XmlResultType {
             @OptIn(XmlUtilInternal::class)
@@ -144,7 +158,7 @@ class XmlResultType(
         override fun deserialize(decoder: Decoder): XmlResultType {
             val (data, extNamespaces) = deserializeCommon(decoder)
 
-            return XmlResultType(data.name, data.xpath, data.content.content, extNamespaces)
+            return XmlResultType(data.name, data.xpath, data.content.contentString, extNamespaces)
         }
 
         override fun serialize(encoder: Encoder, value: XmlResultType) {

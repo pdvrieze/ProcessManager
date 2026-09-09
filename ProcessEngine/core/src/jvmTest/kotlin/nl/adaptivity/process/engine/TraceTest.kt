@@ -71,7 +71,7 @@ abstract class TraceTest(val config: ConfigBase) {
         @TestFactory
         @DisplayName("Xml tests")
         fun serializeToXml(): List<DynamicTest> {
-            return serializeToFormat(config.expectedXml, XML { autoPolymorphic = true; indent=4 }, "getExpectedXml")
+            return serializeToFormat(config.expectedXml, XML.v1 { setIndent(4) }, "getExpectedXml")
         }
 
         private fun serializeToFormat(
@@ -128,7 +128,7 @@ abstract class TraceTest(val config: ConfigBase) {
         @Test
         @DisplayName("Round trip serialization to xml and back should be correct.")
         fun testRoundTrip() {
-            val xml = XML { autoPolymorphic = true }
+            val xml = XML.v1 { }
             val serialized = xml.encodeToString(model)
             val deSerialized = xml.decodeFromString<ExecutableProcessModel>(serialized)
             assertEquals(model, deSerialized, "The result of deserialization should be equal to the original")
@@ -363,7 +363,7 @@ class TestContext(private val config: TraceTest.ConfigBase) {
 
     fun fuzzException(cause: Throwable?, trace: List<TraceElement>): FuzzException {
         val message =
-            "Error in fuzzing${cause?.message?.let { ": $it - " ?: ", " }} - trace: [${trace.joinToString()}]}\n    -${dbgInstance()}"
+            "Error in fuzzing${cause?.message?.let { ": $it - " } ?: ", " } trace: [${trace.joinToString()}]}\n    -${dbgInstance()}"
         return FuzzException(message, cause, trace)
     }
 

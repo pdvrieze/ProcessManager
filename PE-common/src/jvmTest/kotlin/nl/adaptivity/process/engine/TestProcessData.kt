@@ -133,7 +133,7 @@ class TestProcessData {
     fun testXmlResultXpathParam() {
         val nsContext = SimpleNamespaceContext(arrayOf("umh"), arrayOf("http://adaptivity.nl/userMessageHandler"))
         val expression = "/umh:result/umh:value[@name='user']/text()"
-        val result = XmlResultType("foo", expression, null as CharArray?, nsContext)
+        val result = XmlResultType("foo", expression, null, nsContext)
         assertEquals(1, SimpleNamespaceContext.from(result.content.namespaces).size)
     }
 
@@ -204,7 +204,7 @@ class TestProcessData {
             assertEquals("ac1", ac1!!.id)
             val ac1Results = ArrayList(ac1.results)
             val result = ac1Results[1] as XmlResultType
-            XML.encodeToWriter(xsw, result)
+            XML.v1.encodeToWriter(xsw, result)
             xsw.close()
 
             val actual = caw.toString()
@@ -416,7 +416,7 @@ class TestProcessData {
             it.next().results.iterator().next() as XmlResultType
         }
 
-        XML.encodeToWriter(xsw, result)
+        XML.v1.encodeToWriter(xsw, result)
         xsw.close()
         val control =
             "<result xpath=\"/umh:result/umh:value[@name='user']/text()\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" name=\"name\" xmlns=\"http://adaptivity.nl/ProcessEngine/\"/>"
@@ -449,9 +449,11 @@ class TestProcessData {
         val found = xml.encodeToString(result)
         assertXmlEquals(control, found)
 
-        assertXmlEquals(control, XML { indent = 2 }.encodeToString(XmlResultType.serializer(), result, ""))
+        val xml = XML.v1 { setIndent(2) }
 
-        assertEquals(control, XML { indent = 2 }.encodeToString(XmlResultType.serializer(), result, ""))
+        assertXmlEquals(control, xml.encodeToString(XmlResultType.serializer(), result, ""))
+
+        assertEquals(control, xml.encodeToString(XmlResultType.serializer(), result, ""))
 
     }
 
@@ -722,7 +724,7 @@ class TestProcessData {
 
     companion object {
 
-        val xml = XML() { autoPolymorphic = true }
+        val xml = XML.v1 {}
 
         private var _documentBuilder: DocumentBuilder? = null
 
@@ -830,7 +832,7 @@ class TestProcessData {
         fun <T : Any> testRoundTrip(
             xml: String, target: KClass<out T>,
             serializer: KSerializer<T>,
-            serialModule: SerializersModule = EmptySerializersModule,
+            serialModule: SerializersModule = EmptySerializersModule(),
             repairNamespaces: Boolean = false,
             omitXmlDecl: Boolean = true,
             testObject: (T) -> Unit = {}
@@ -848,7 +850,7 @@ class TestProcessData {
             xml: String, target: KClass<out T>,
             serializer: KSerializer<T>,
             @Suppress("UNUSED_PARAMETER") ignoreNs: Boolean,
-            serialModule: SerializersModule = EmptySerializersModule,
+            serialModule: SerializersModule = EmptySerializersModule(),
             testObject: (T) -> Unit = {}
         ): String {
             return testRoundTripCombined(
@@ -913,11 +915,10 @@ class TestProcessData {
             testObject: (T) -> Unit = {}
         ): String {
             assertNotNull(reader)
-            val xml = XML(serialModule) {
+            val xml = XML.v1(serialModule) {
                 this.repairNamespaces = repairNamespaces
                 this.xmlDeclMode = XmlDeclMode.None
-                this.indent = 4
-                this.autoPolymorphic = true
+                this.setIndent(4)
             }
             val obj = xml.decodeFromReader(serializer, reader)
             testObject(obj)

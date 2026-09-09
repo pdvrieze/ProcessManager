@@ -548,6 +548,7 @@ private constructor() : IMessenger {
                             returnType.cast(SourceDataSource("application/soap+xml", resultSource))
                         )
                     } else {
+                        @Suppress("DEPRECATION")
                         val resultval = SoapHelper.processResponse(returnType, returnTypeContext, emptyArray(), resultSource)
                         resultfuture = MessageTask(resultval)
                     }

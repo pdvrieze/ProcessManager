@@ -46,7 +46,7 @@ class XmlItem : TaskItem {
 
         @Throws(XmlException::class)
         fun deserialize(reader: XmlReader): XmlItem {
-            return XML.decodeFromReader(reader)
+            return XML.v1.decodeFromReader(reader)
         }
 
         fun get(source: Sequence<TaskItem>) = source.map { get(it) }

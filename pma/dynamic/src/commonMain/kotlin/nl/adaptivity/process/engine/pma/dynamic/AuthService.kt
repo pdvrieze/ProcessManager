@@ -67,7 +67,7 @@ class AuthService(
 
             is PmaIdSecretAuthInfo -> logger.log(Level.INFO, "[GLOBAL>${authInfo.principal.name}] - $message")
             null -> logger.log(Level.INFO, "[UNAUTH] - $message")
-            else -> logger.log(Level.INFO, "[GLOBAL>${authInfo}] - $message")
+            // else -> logger.log(Level.INFO, "[GLOBAL>${authInfo}] - $message")
         }
     }
 
@@ -90,7 +90,7 @@ class AuthService(
                 pmaAuthInfo.principal,
                 targetService
             ).union(IDENTIFY) // username password always includes identify
-            else -> effectiveUserScope(pmaAuthInfo.principal, targetService)
+            // else -> effectiveUserScope(pmaAuthInfo.principal, targetService)
         }
     }
 
@@ -116,10 +116,7 @@ class AuthService(
         when (authInfo) {
             is PmaIdSecretAuthInfo -> validateUserPermission(authInfo, serviceId, scope)
             is PmaAuthToken -> validateAuthTokenPermission(authInfo, serviceId, scope)
-            else -> doLog(
-                authInfo,
-                "validateAuthInfo(clientId = $serviceId, authInfo = $authInfo, scope = $scope)"
-            )
+            // else -> doLog(authInfo, "validateAuthInfo(clientId = $serviceId, authInfo = $authInfo, scope = $scope)")
         }
     }
 
@@ -286,7 +283,7 @@ class AuthService(
                 requestorAssociatedPermissions.mapNotNull { permission ->
                     when {
                         permission is DELEGATED_PERMISSION.DelegateContextScope &&
-                            permission.serviceId == serviceId -> permission.childScope ?: ANYSCOPE
+                            permission.serviceId == serviceId -> permission.childScope
                         // Any child scopes for activity limited grants
                         permission is GRANT_ACTIVITY_PERMISSION.ContextScope &&
                             permission.taskInstanceHandle == nodeInstanceHandle -> permission.childScope ?: ANYSCOPE
@@ -346,7 +343,7 @@ class AuthService(
             when (map) {
                 null -> mutableMapOf(service.serviceInstanceId.serviceId to scope)
                 else -> map.apply {
-                    compute(service.serviceInstanceId.serviceId) { k, oldScope ->
+                    compute(service.serviceInstanceId.serviceId) { _, oldScope ->
                         when (oldScope) {
                             null -> scope
                             else -> oldScope.union(scope)
@@ -389,9 +386,9 @@ class AuthService(
     /**
      * Create an authorization code for a client to access the service with given scope
      * @param requestorAuth Authorization for this action
-     * @param clientId The client that is being authorized
+     * @param identifiedUser The client that is being authorized
      * @param nodeInstanceHandle The node instance related to this authorization
-     * @param service The service being authorized
+     * @param authorizedService The service being authorized
      * @param requestedScope The scope being authorized
      */
     fun requestPmaAuthCode(
@@ -413,9 +410,9 @@ class AuthService(
     /**
      * Create an authorization code for a client to access the service with given scope
      * @param requestorAuth Authorization for this action
-     * @param clientId The client that is being authorized
+     * @param authorizedService The client that is being authorized
      * @param nodeInstanceHandle The node instance related to this authorization
-     * @param service The service being authorized
+     * @param tokenTargetService The service being authorized
      * @param requestedScope The scope being authorized
      */
     fun requestPmaAuthCode(

@@ -40,7 +40,7 @@ interface InstanceSupport { // TODO add context type parameter
 
     fun ProcessInstance.allChildren(): Sequence<ProcessNodeInstance<*>> {
         @Suppress("UNCHECKED_CAST")
-        return transitiveChildren(this@InstanceSupport.transaction as StubProcessTransaction)
+        return transitiveChildren(this@InstanceSupport.transaction)
     }
 
 
@@ -125,7 +125,7 @@ fun ProcessInstance.toDebugString(transaction: StubProcessTransaction): String {
     }
 }
 
-private val xml = XML { recommended_0_90_2() }
+private val xml = XML.recommended_1_0 { }
 
 fun ProcessInstance.findChild(transaction: StubProcessTransaction, id: String) = transitiveChildren(transaction).firstOrNull { it.node.id==id }
 fun ProcessInstance.findChild(transaction: StubProcessTransaction, id: Identified) = findChild(transaction, id.id)

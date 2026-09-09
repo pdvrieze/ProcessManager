@@ -17,8 +17,7 @@ fun <AIC : DynamicPmaActivityContext<AIC, BIC>, BIC : BrowserContext<AIC, BIC>> 
     name: String,
     owner: PrincipalCompat = SYSTEMPRINCIPAL,
     uuid: UUID = UUID.randomUUID(),
-    @ConfigurationDsl
-    configureAction: RootPmaModelBuilderContext<AIC, BIC>.() -> Unit
+    configureAction: @ConfigurationDsl RootPmaModelBuilderContext<AIC, BIC>.() -> Unit
 ): ExecutableProcessModel {
     val context = RootPmaModelBuilderContext<AIC, BIC>(name, owner, uuid).apply(configureAction)
     val noPathImports = context.modelBuilder.imports

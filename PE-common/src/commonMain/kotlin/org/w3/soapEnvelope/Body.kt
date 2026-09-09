@@ -68,17 +68,17 @@ import nl.adaptivity.xmlutil.util.CompactFragment
 class Body<T: Any>(
     @XmlValue(true)
     val child: T,
-    val encodingStyle: URI = createUri("http://www.w3.org/2003/05/soap-encoding"),
+    val encodingStyle: URI? = createUri("http://www.w3.org/2003/05/soap-encoding"),
     val otherAttributes: Map<QName, String> = emptyMap(),
 ) {
     fun copy(
-        encodingStyle: URI = this.encodingStyle,
+        encodingStyle: URI? = this.encodingStyle,
         otherAttributes: Map<QName, String> = this.otherAttributes,
     ): Body<T> = Body(child, encodingStyle, otherAttributes)
 
     fun <U: Any> copy(
         child: U,
-        encodingStyle: URI = this.encodingStyle,
+        encodingStyle: URI? = this.encodingStyle,
         otherAttributes: Map<QName, String> = this.otherAttributes,
     ): Body<U> = Body(child, encodingStyle, otherAttributes)
 
@@ -124,7 +124,7 @@ class Body<T: Any>(
                     }
                 }
             }
-            return Body(child)
+            return Body(child, encodingStyle, otherAttributes)
         }
 
         override fun serialize(encoder: Encoder, value: Body<T>) {
@@ -153,7 +153,9 @@ class Body<T: Any>(
             } else {
                 encoder.encodeStructure(descriptor) {
 
-                    encodeSerializableElement(descriptor, 0, URISerializer, value.encodingStyle)
+                    value.encodingStyle?.let {
+                        encodeSerializableElement(descriptor, 0, URISerializer, it)
+                    }
 
                     if (value.otherAttributes.isNotEmpty() || shouldEncodeElementDefault(descriptor, 1)) {
                         encodeSerializableElement(descriptor, 1, SoapSerialObjects.attrsSerializer, value.otherAttributes)

@@ -37,7 +37,7 @@ class TestSerializeXmlResultType {
         val data: IXmlResultType = XmlResultType("myName", "/ns1:myPath", originalNSContext = SimpleNamespaceContext("ns1", "http://example.org/ns1"))
 
         val expected = """<result xmlns="http://adaptivity.nl/ProcessEngine/" xmlns:ns1="http://example.org/ns1" name="myName" xpath="/ns1:myPath"/>"""
-        val serialized = XML.encodeToString(IXmlResultType.serializer(), data, "")
+        val serialized = XML.v1.encodeToString(IXmlResultType.serializer(), data, "")
         assertEquals(expected, serialized.replace(" />", "/>"))
     }
 
@@ -48,7 +48,7 @@ class TestSerializeXmlResultType {
         @OptIn(XmlUtilInternal::class)
         val data = XmlResultType("myName", "/ns1:myPath", originalNSContext = SimpleNamespaceContext("ns1", "http://example.org/ns1"))
         val expected = """<result xmlns="http://adaptivity.nl/ProcessEngine/" xmlns:ns1="http://example.org/ns1" name="myName" xpath="/ns1:myPath"/>"""
-        val serialized = XML.encodeToString(data)
+        val serialized = XML.v1.encodeToString(data)
         assertEquals(expected, serialized.replace(" />", "/>"))
     }
 }

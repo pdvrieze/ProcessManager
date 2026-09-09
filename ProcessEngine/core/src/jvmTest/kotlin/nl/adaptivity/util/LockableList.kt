@@ -33,7 +33,7 @@ interface LockableList<T> : MutableList<T> {
 class ArrayLockableList<T> : ArrayList<T>, LockableList<T> {
   constructor(initialCapacity: Int) : super(initialCapacity)
   constructor() : super()
-  constructor(c: Collection<out T>) : super(c)
+  constructor(c: Collection<T>) : super(c)
 
   override fun lock() {
     locked=true
@@ -42,6 +42,7 @@ class ArrayLockableList<T> : ArrayList<T>, LockableList<T> {
   override var locked: Boolean = false
     private set
 
+  @Suppress("NOTHING_TO_INLINE")
   private inline fun checkLocked() {
     if (locked) throw IllegalStateException("The list is locked, modification is not allowed")
   }

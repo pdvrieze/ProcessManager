@@ -142,8 +142,8 @@ class XmlActivity : ActivityBase, XmlProcessNode, CompositeActivity, MessageActi
 
         @Deprecated("Not needed, use id.", replaceWith = ReplaceWith("id"))
         override var name: String?
-            get() = base.name
-            set(value) { base.name = value}
+            get() = base.id
+            set(value) { base.id = value}
 
         override var condition: Condition?
             get() = base.condition

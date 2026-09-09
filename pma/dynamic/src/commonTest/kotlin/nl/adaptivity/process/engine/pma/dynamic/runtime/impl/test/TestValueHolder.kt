@@ -29,14 +29,14 @@ class TestValueHolder {
     @Test
     fun testValueHolderXmlStringSerialization() {
         val value = ValueHolder(QName("foo"), "bar")
-        val json = XML.encodeToString(value)
+        val json = XML.v1.encodeToString(value)
         assertEquals(STRING_XML, json)
     }
 
     @Test
     fun testValueHolderXmlClassSerialization() {
         val value = ValueHolder(QName("foo"), Data("foo2", 42))
-        val encoded = XML.encodeToString(value)
+        val encoded = XML.v1.encodeToString(value)
         assertEquals(DATA_XML, encoded)
     }
 
@@ -57,14 +57,14 @@ class TestValueHolder {
     @Test
     fun testValueHolderXmlStringDeserialization() {
         val expected = ValueHolder(QName("foo"), "bar")
-        val actual = XML.decodeFromString<ValueHolder<String>>(STRING_XML)
+        val actual = XML.v1.decodeFromString<ValueHolder<String>>(STRING_XML)
         assertEquals(expected, actual)
     }
 
     @Test
     fun testValueHolderXmlDataDeserialization() {
         val expected = ValueHolder(QName("foo"), Data("foo2", 42))
-        val actual = XML.decodeFromString<ValueHolder<Data>>(DATA_XML)
+        val actual = XML.v1.decodeFromString<ValueHolder<Data>>(DATA_XML)
         assertEquals(expected, actual)
     }
 

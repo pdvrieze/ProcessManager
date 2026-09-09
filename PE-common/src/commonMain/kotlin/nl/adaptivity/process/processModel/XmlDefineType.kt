@@ -161,20 +161,20 @@ class XmlDefineType(
 
         var name: String
         var path: String? = null
-        var content: CharArray
+        var content: String
         var nsContext: MutableList<Namespace>
 
         internal constructor(name: String) {
             this.name = name
             path = null
-            content = CharArray(0)
+            content = ""
             nsContext = ArrayList()
         }
 
         internal constructor(orig: IXmlResultType) {
             name = orig.name
             path = orig.path
-            content = orig.content.content.copyOf()
+            content = orig.content.contentString
             nsContext = orig.originalNSContext.mapTo(ArrayList()) { it }
         }
 

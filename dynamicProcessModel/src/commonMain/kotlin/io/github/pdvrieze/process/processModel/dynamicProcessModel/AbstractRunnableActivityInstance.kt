@@ -73,7 +73,7 @@ abstract class AbstractRunnableActivityInstance<InputT : Any, OutputT : Any, C :
     ), Builder<I, O, C, NodeT, InstT> {
         override fun invalidateBuilder(engineData: ProcessEngineDataAccess) {
             engineData.nodeInstances[handle]?.withPermission()?.let { n ->
-                val newBase = n as InstT
+                @Suppress("UNCHECKED_CAST") val newBase = n as InstT
                 node = newBase.node
                 predecessors.replaceBy(newBase.predecessors)
                 owner = newBase.owner

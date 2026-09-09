@@ -259,6 +259,8 @@ class DefaultProcessNodeInstance :
         override fun build(): DefaultProcessNodeInstance = DefaultProcessNodeInstance(this)
     }
 
+    @Suppress("DEPRECATION")
+    @Deprecated("XmlDeserializerFactory is deprecated")
     class Factory : XmlDeserializerFactory<XmlProcessNodeInstance> {
 
         override fun deserialize(reader: XmlReader): XmlProcessNodeInstance {

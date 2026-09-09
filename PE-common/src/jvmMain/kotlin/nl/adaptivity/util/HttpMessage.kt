@@ -27,8 +27,8 @@ import kotlinx.serialization.descriptors.SerialDescriptor
 import kotlinx.serialization.encoding.Decoder
 import kotlinx.serialization.encoding.Encoder
 import net.devrieze.util.Iterators
+import net.devrieze.util.readString
 import net.devrieze.util.security.SimplePrincipal
-import net.devrieze.util.toString
 import nl.adaptivity.util.HttpMessage.Companion.ELEMENTLOCALNAME
 import nl.adaptivity.util.HttpMessage.Companion.NAMESPACE
 import nl.adaptivity.xmlutil.*
@@ -378,6 +378,7 @@ class HttpMessage {
 
                 val xml: Document
 
+                @Suppress("DEPRECATION")
                 val isXml =
                     xmlStreaming.newReader(ByteArrayInputStream(bytes), characterEncoding!!.name()).isXml()
 
@@ -404,12 +405,12 @@ class HttpMessage {
             }
         }
         this._post = post ?: mutableMapOf()
-        this._attachments = attachments ?: mutableMapOf()
+        this._attachments = attachments
     }
 
     protected fun getCharacterEncoding(request: HttpServletRequest): Charset {
         val name = request.characterEncoding ?: return DEFAULT_CHARSSET
-        return Charset.forName(request.characterEncoding)
+        return Charset.forName(name)
     }
 
     private fun addByteContent(byteArray: ByteArray, contentType: String) {
@@ -429,7 +430,7 @@ class HttpMessage {
 
         val source = _attachments[name] ?: return null
         try {
-            return toString(InputStreamReader(source.inputStream, "UTF-8"))
+            return InputStreamReader(source.inputStream, "UTF-8").readString()
         } catch (e: UnsupportedEncodingException) {
             throw RuntimeException(e)
         } catch (e: IOException) {

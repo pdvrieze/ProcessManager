@@ -129,6 +129,7 @@ fun ConfigurableProcessModel<*>.input(
     content: CharArray,
     nsContext: IterableNamespaceContext = SimpleNamespaceContext()
 ) {
+    @Suppress("DEPRECATION")
     configurationBuilder.imports.add(XmlResultType(name, "/$name", content, nsContext))
 }
 

@@ -48,6 +48,7 @@ class DynamicPmaActivityInstance<InputT : Any, OutputT : Any, C : DynamicPmaActi
             engineData: MutableProcessEngineDataAccess,
             messageService: IMessageService<*>
         ): Boolean {
+            @Suppress("UNCHECKED_CAST")
             val contextFactory = engineData.processContextFactory as DynamicPmaProcessContextFactory<C>
             val aic = contextFactory.newActivityInstanceContext(engineData, this)
             val processContext = aic.processContext
@@ -74,6 +75,7 @@ class DynamicPmaActivityInstance<InputT : Any, OutputT : Any, C : DynamicPmaActi
         }
 
         override fun doTakeTask(engineData: MutableProcessEngineDataAccess, assignedUser: PrincipalCompat?): Boolean {
+            @Suppress("UNCHECKED_CAST")
             val contextFactory = engineData.processContextFactory as DynamicPmaProcessContextFactory<C>
             val aic = contextFactory.newActivityInstanceContext(engineData, this)
             val processContext: DynamicPmaProcessInstanceContext<C> = aic.processContext
@@ -100,7 +102,7 @@ class DynamicPmaActivityInstance<InputT : Any, OutputT : Any, C : DynamicPmaActi
                                     scope = it
                                 }
                             }
-                            if (service!=null && scope != null) {
+                            if (service!=null) {
                                 AbstractDynamicPmaActivityContext.PendingPermission(user.name, service, scope)
                             } else null
                         }
@@ -150,6 +152,7 @@ class DynamicPmaActivityInstance<InputT : Any, OutputT : Any, C : DynamicPmaActi
             val shouldProgress = tryCreateTask { node.canStartTaskAutoProgress(this) }
 
             if (shouldProgress) {
+                @Suppress("UNCHECKED_CAST")
                 val contextFactory = engineData.processContextFactory as ProcessContextFactory<C>
 
                 val resultFragment = tryRunTask {

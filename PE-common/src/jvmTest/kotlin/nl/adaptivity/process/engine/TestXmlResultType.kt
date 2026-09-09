@@ -20,6 +20,7 @@ import io.github.pdvrieze.xmlutil.testutil.assertXmlEquals
 import nl.adaptivity.process.processModel.XmlDefineType
 import nl.adaptivity.process.processModel.XmlResultType
 import nl.adaptivity.process.util.Constants.USER_MESSAGE_HANDLER_NS
+import nl.adaptivity.xmlutil.ExperimentalXmlUtilApi
 import nl.adaptivity.xmlutil.SimpleNamespaceContext
 import nl.adaptivity.xmlutil.XmlException
 import nl.adaptivity.xmlutil.XmlUtilInternal
@@ -46,7 +47,7 @@ import javax.xml.xpath.XPathFactory
 /**
  * Created by pdvrieze on 24/08/15.
  */
-@OptIn(XmlUtilInternal::class)
+@OptIn(XmlUtilInternal::class, ExperimentalXmlUtilApi::class)
 class TestXmlResultType {
 
     private val db: DocumentBuilder
@@ -122,7 +123,7 @@ class TestXmlResultType {
             |    xmlns:umh="http://adaptivity.nl/userMessageHandler" 
             |    path="/umh:bar/text()" />""".trimMargin()
 
-        val testHolder = XML.decodeFromString<XmlDefineType>(testData)
+        val testHolder = XML.v1.decodeFromString<XmlDefineType>(testData)
 
         assertNotNull(SimpleNamespaceContext.from(testHolder.content.namespaces))
         assertEquals(
@@ -137,7 +138,7 @@ class TestXmlResultType {
         val testData =
             "<result xmlns=\"http://adaptivity.nl/ProcessEngine/\" name=\"foo\" xmlns:umh=\"http://adaptivity.nl/userMessageHandler\" path=\"/umh:bar/text()\" />"
 
-        val testHolder = XML.decodeFromString<XmlResultType>(testData)
+        val testHolder = XML.v1.decodeFromString<XmlResultType>(testData)
 
         assertNotNull(SimpleNamespaceContext.from(testHolder.content.namespaces))
         assertEquals(

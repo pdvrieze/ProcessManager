@@ -56,7 +56,7 @@ import kotlin.reflect.KClass
 /**
  * Created by pdvrieze on 24/08/15.
  */
-@OptIn(XmlUtilInternal::class)
+@OptIn(XmlUtilInternal::class, ExperimentalXmlUtilApi::class)
 class TestEngineProcessData {
 
     @Test
@@ -91,7 +91,7 @@ class TestEngineProcessData {
     fun testXmlResultXpathParam() {
         val nsContext = SimpleNamespaceContext(arrayOf("umh"), arrayOf("http://adaptivity.nl/userMessageHandler"))
         val expression = "/umh:result/umh:value[@name='user']/text()"
-        val result = XmlResultType("foo", expression, null as CharArray?, nsContext)
+        val result = XmlResultType("foo", expression, null, nsContext)
 
         val testData = CompactFragment(
             "<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>"
@@ -175,7 +175,7 @@ class TestEngineProcessData {
 
         @BeforeAll
         @JvmStatic
-        public fun init() {
+        fun init() {
             xmlStreaming.setFactory(null) // make sure to have the default factory
         }
 
@@ -183,7 +183,9 @@ class TestEngineProcessData {
         private fun getProcessModel(name: String): XmlProcessModel {
             getDocument(name).use { inputStream ->
                 val input = xmlStreaming.newReader(inputStream, "UTF-8")
-                return XML.v1 { policy { formatCache = FormatCache.Dummy } }.decodeFromReader(XmlProcessModel.serializer(), input)
+                return XML.v1 { policy {
+                    formatCache = FormatCache.Dummy
+                } }.decodeFromReader(XmlProcessModel.serializer(), input)
             }
         }
 
@@ -254,7 +256,7 @@ class TestEngineProcessData {
         fun <T : Any> testRoundTrip(
             xml: String, target: KClass<out T>,
             serializer: KSerializer<T>,
-            serialModule: SerializersModule = EmptySerializersModule,
+            serialModule: SerializersModule = EmptySerializersModule(),
             repairNamespaces: Boolean = false,
             omitXmlDecl: Boolean = true,
             testObject: (T) -> Unit = {}
@@ -275,7 +277,7 @@ class TestEngineProcessData {
             xml: String, target: KClass<out T>,
             serializer: KSerializer<T>,
             @Suppress("UNUSED_PARAMETER") ignoreNs: Boolean,
-            serialModule: SerializersModule = EmptySerializersModule,
+            serialModule: SerializersModule = EmptySerializersModule(),
             testObject: (T) -> Unit = {}
         ): String {
             return testRoundTripCombined(

@@ -8,5 +8,5 @@ import nl.adaptivity.xmlutil.serialization.XML
 inline fun <reified T: Any> ProcessData.get(): T = get(serializer<T>())
 
 fun <T: Any> ProcessData.get(deserializer: DeserializationStrategy<T>): T {
-    return contentStream.use { XML.decodeFromReader(deserializer, it) }
+    return contentStream.use { XML.v1.decodeFromReader(deserializer, it) }
 }

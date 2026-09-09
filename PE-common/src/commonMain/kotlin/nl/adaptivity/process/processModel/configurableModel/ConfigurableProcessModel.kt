@@ -113,6 +113,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
     override val exports get() = model.exports
 
     fun <R : RootProcessModel<NodeT>> buildModel(factory: (RootProcessModel.Builder) -> R): R {
+        @Suppress("UNCHECKED_CAST")
         return (_model as R?) ?: run {
             factory(configurationBuilder).also { _model = it }
         }
@@ -136,6 +137,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
         return Identifier(id!!)
     }
 
+    @Suppress("NOTHING_TO_INLINE")
     protected inline operator fun Identifier.getValue(
         thisRef: ConfigurableProcessModel<*>,
         property: KProperty<*>
@@ -150,6 +152,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
         return this
     }
 
+    @Suppress("NOTHING_TO_INLINE")
     inline operator fun <T : ConfigurableCompositeActivity>
         T.getValue(thisRef: ConfigurableProcessModel<*>, property: KProperty<*>): T = this
 
@@ -161,7 +164,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
     ) : Identified,
         ConfigurableNodeContainer /*: ChildProcessModel.Builder<ExecutableProcessNode, ExecutableModelCommon>*/ {
 
-        private inline fun rootBuilder() = model.configurationBuilder
+        private fun rootBuilder() = model.configurationBuilder
 
         override val configurationBuilder: CompositeActivity.ModelBuilder = ActivityBase.CompositeActivityBuilder(
             rootBuilder(),
@@ -184,7 +187,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
         override var id: String
             get() = with(rootBuilder()) { configurationBuilder.ensureId().id!! }
             set(value) {
-                configurationBuilder.id = id
+                configurationBuilder.id = value
             }
 
         fun setIdIfEmpty(value: String) {
@@ -213,6 +216,7 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
             return Identifier(id!!)
         }
 
+        @Suppress("NOTHING_TO_INLINE")
         protected inline operator fun Identifier.getValue(
             thisRef: ConfigurableCompositeActivity,
             property: KProperty<*>
@@ -229,20 +233,6 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
         ) {
             @OptIn(XmlUtilInternal::class)
             input(name, refNode, refName, path, content, SimpleNamespaceContext(nsContext))
-        }
-
-        @OptIn(XmlUtilInternal::class)
-        @Deprecated("Avoid using CharArray due to efficiency issues")
-        fun input(
-            name: String,
-            refNode: Identified,
-            refName: String? = null,
-            path: String? = null,
-            content: CharArray,
-            nsContext: IterableNamespaceContext = SimpleNamespaceContext()
-        ) {
-            configurationBuilder.defines.add(XmlDefineType(name, refNode, refName, path, content, nsContext))
-            configurationBuilder.imports.add(XmlResultType(name, "/$name/node()"))
         }
 
         @OptIn(XmlUtilInternal::class)
@@ -264,25 +254,11 @@ abstract class ConfigurableProcessModel<NodeT : ProcessNode>(
             refNode: Identified,
             refName: String? = null,
             path: String? = null,
-            content: CharArray? = null,
+            content: String? = null,
             nsContext: Iterable<Namespace>
         ) {
             @OptIn(XmlUtilInternal::class)
             output(name, refNode, refName, path, content, SimpleNamespaceContext(nsContext))
-        }
-
-        @OptIn(XmlUtilInternal::class)
-        @Deprecated("Avoid using CharArray due to efficiency issues")
-        fun output(
-            name: String,
-            refNode: Identified,
-            refName: String? = null,
-            path: String? = null,
-            content: CharArray,
-            nsContext: IterableNamespaceContext = SimpleNamespaceContext()
-        ) {
-            configurationBuilder.results.add(XmlResultType(name, "/$name/node()"))
-            configurationBuilder.exports.add(XmlDefineType(name, refNode, refName, path, content, nsContext))
         }
 
         @OptIn(XmlUtilInternal::class)
