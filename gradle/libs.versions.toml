@@ -68,7 +68,7 @@ ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor"}
 mariadbConnector = { module= "org.mariadb.jdbc:mariadb-java-client", version.ref="mariaDbConnector"}
 
 mockito-core = { module = "org.mockito:mockito-core", version = "2.28.2" }
-mockito-kotlin = { module = "com.nhaarman.mockitokotlin2:mockito-kotlin", version = "2.1.0" }
+mockito-kotlin = { module = "com.nhaarman.mockitokotlin2:mockito-kotlin", version = "2.2.0" }
 
 requirejs = { module = "org.webjars:requirejs", version.ref="requirejs"}
 
