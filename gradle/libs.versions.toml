@@ -27,7 +27,7 @@ ktor = "3.5.2"
 mariaDbConnector="3.5.10"
 mysqlConnector="5.1.36"
 reactWrappers = "17.0.2-pre.214-kotlin-1.5.20"
-requirejs = "2.3.5"
+requirejs = "2.3.7"
 spek2="2.0.17"
 testng="7.4.0"
 tomcat="11.0.25"
@@ -67,7 +67,7 @@ ktor-server-auth = { module = "io.ktor:ktor-server-auth", version.ref = "ktor"}
 
 mariadbConnector = { module= "org.mariadb.jdbc:mariadb-java-client", version.ref="mariaDbConnector"}
 
-mockito-core = { module = "org.mockito:mockito-core", version = "2.25.0" }
+mockito-core = { module = "org.mockito:mockito-core", version = "2.28.2" }
 mockito-kotlin = { module = "com.nhaarman.mockitokotlin2:mockito-kotlin", version = "2.2.0" }
 
 requirejs = { module = "org.webjars:requirejs", version.ref="requirejs"}
@@ -76,7 +76,7 @@ servletApi = { module = "org.apache.tomcat:tomcat-servlet-api", version.ref = "t
 
 tomcat = { module = "org.apache.tomcat:tomcat-catalina", version.ref = "tomcat"}
 
-woodstox = { module = "com.fasterxml.woodstox:woodstox-core", version = "7.1.1"}
+woodstox = { module = "com.fasterxml.woodstox:woodstox-core", version = "7.2.2"}
 
 xmlutil-core = { module = "io.github.pdvrieze.xmlutil:core", version.ref = "xmlutil"}
 xmlutil-coreJdk = { module = "io.github.pdvrieze.xmlutil:core-jdk", version.ref = "xmlutil"}
