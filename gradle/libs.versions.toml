@@ -76,7 +76,7 @@ servletApi = { module = "org.apache.tomcat:tomcat-servlet-api", version.ref = "t
 
 tomcat = { module = "org.apache.tomcat:tomcat-catalina", version.ref = "tomcat"}
 
-woodstox = { module = "com.fasterxml.woodstox:woodstox-core", version = "7.1.1"}
+woodstox = { module = "com.fasterxml.woodstox:woodstox-core", version = "7.2.2"}
 
 xmlutil-core = { module = "io.github.pdvrieze.xmlutil:core", version.ref = "xmlutil"}
 xmlutil-coreJdk = { module = "io.github.pdvrieze.xmlutil:core-jdk", version.ref = "xmlutil"}
