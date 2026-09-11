@@ -37,7 +37,7 @@ configurations {
 
 dependencies {
     implementation(libs.kotlinx.html)
-    implementation("com.sun.mail:javax.mail:1.5.5")
+    implementation("com.sun.mail:javax.mail:1.6.2")
     implementation(libs.kotlinsql.monadic)
     implementation(libs.xmlutil.core)
     implementation(project(":accountcommon"))

@@ -36,7 +36,7 @@ xmlutil="1.0.2"
 
 [libraries]
 activationApi = { module = "javax.activation:javax.activation-api", version.ref = "activation"}
-javax-mail = "com.sun.mail:javax.mail:1.5.5"
+javax-mail = "com.sun.mail:javax.mail:1.6.2"
 jaxb-api = { module = "jakarta.xml.bind:jakarta.xml.bind-api", version.ref = "jaxb"}
 jaxb-impl = { module = "com.sun.xml.bind:jaxb-impl", version.ref = "jaxb"}
 jwsApi = { module = "jakarta.jws:jakarta.jws-api", version.ref = "jwsApi"}
