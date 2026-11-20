@@ -4,6 +4,7 @@ import nl.adaptivity.process.messaging.InvokableMethod
 import nl.adaptivity.process.messaging.RESTMethodDesc
 import nl.adaptivity.process.processModel.IXmlMessage
 import nl.adaptivity.process.processModel.XmlMessage
+import nl.adaptivity.xmlutil.XmlWriter
 import nl.adaptivity.xmlutil.util.CompactFragment
 import nl.adaptivity.xmlutil.util.ICompactFragment
 import javax.xml.namespace.QName
@@ -27,7 +28,7 @@ object DummyMessage: IXmlMessage {
         return "DummyMessage"
     }
 
-    val JSON = "\"message\":{\"content\":{\"namespaces\":[], \"content\":\"\"},\"type\":\"application/x-dummy\",\"url\":\"/dummy\",\"method\":\"POST\"}"
+    val JSON = "\"message\":{\"content\":{\"namespaces\":[], \"content\":\"\"},\"type\":\"application/x-dummy\",\"url\":\"/dummy\",\"method\":\"POST\", \"serviceNS\":\"\", \"serviceName\":\"dummy\"}"
     val XML = "<pe:message type=\"application/x-dummy\" url=\"/dummy\" method=\"POST\"/>"
 
 

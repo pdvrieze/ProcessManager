@@ -36,15 +36,13 @@ import nl.adaptivity.process.processModel.engine.ExecutableStartNode
 import nl.adaptivity.process.util.Identifiable
 import nl.adaptivity.util.activation.writeToResult
 import nl.adaptivity.xmlutil.*
-import nl.adaptivity.xmlutil.xmlserializable.XmlSerializable
+import nl.adaptivity.xmlutil.serialization.XML
 import org.junit.jupiter.api.Assertions.*
 import org.junit.jupiter.api.Test
 import org.w3c.dom.Document
 import org.w3c.dom.Node
 import java.io.ByteArrayOutputStream
-import java.io.CharArrayWriter
 import java.util.*
-import javax.xml.bind.JAXB
 import javax.xml.parsers.DocumentBuilder
 import javax.xml.parsers.DocumentBuilderFactory
 import javax.xml.transform.TransformerException
@@ -93,20 +91,6 @@ class TestProcessEngine : ProcessEngineTestSupport() {
 
     }
 
-    @Throws(XmlException::class)
-    private fun serializeToXml(obj: Any): String {
-        return CharArrayWriter().apply {
-            val caw = this
-            if (obj is XmlSerializable) {
-                xmlStreaming.newWriter(this).use { writer ->
-                    obj.serialize(writer)
-                }
-            } else {
-                JAXB.marshal(obj, caw)
-            }
-        }.toCharArray().concatToString()
-    }
-
     @Test
     @Throws(Exception::class)
     fun testExecuteSingleActivity() {
@@ -130,7 +114,7 @@ class TestProcessEngine : ProcessEngineTestSupport() {
 
             val expected = getXml("testModel1_task1.xml")
 
-            val receivedChars = serializeToXml(messageService.messages[0].base)
+            val receivedChars = XML.v1.encodeToString(messageService.messages[0].base)
 
             assertXmlEquals(expected, receivedChars, DocDeclEqualityMode.IGNORE)
 
@@ -339,7 +323,7 @@ class TestProcessEngine : ProcessEngineTestSupport() {
 
             assertXmlEquals(
                 getXml("testModel2_task1.xml"),
-                serializeToXml(messageService.messages[0].base)
+                XML.v1.encodeToString(messageService.messages[0].base)
             )
 
             var ac1: IProcessNodeInstance =

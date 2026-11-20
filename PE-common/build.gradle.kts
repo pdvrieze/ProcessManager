@@ -74,30 +74,30 @@ kotlin {
     }
 
     sourceSets {
-        val commonMain by getting {
+        commonMain {
             dependencies {
-                implementation(project(":multiplatform"))
+                implementation(projects.multiplatform)
 
                 api(libs.kotlinx.serialization.core)
                 api(libs.xmlutil.core)
                 api(libs.xmlutil.serialutil)
                 api(libs.xmlutil.serialization)
 
-                compileOnly(project(":JavaCommonApi"))
-                api(project(":java-common"))
+                compileOnly(projects.javaCommonApi)
+                api(projects.javaCommon)
 
             }
         }
-        val commonTest by getting {
+        commonTest {
             dependencies {
                 implementation(libs.xmlutil.core)
                 implementation(libs.xmlutil.testutil)
-                implementation(project(":JavaCommonApi"))
+                implementation(projects.javaCommonApi)
                 implementation(kotlin("test"))
                 implementation(kotlin("test-annotations-common"))
             }
         }
-        val jvmMain by getting {
+        jvmMain {
 //            kotlin.srcDir(file("src/javaMain/kotlin"))
             dependencies {
                 api(libs.kotlinsql.core)
