@@ -490,6 +490,13 @@ interface IdentifyableSet<out T : Identifiable> : ListSet<T>, List<T>, Set<T>, R
         return ReadOnlyIdentifyableSet(this)
     }
 
+    fun equalIds(other: Collection<Identifiable>): Boolean {
+        if (other.size != size) return false
+        return other.all {
+            this.get(it) != null
+        }
+    }
+
     companion object {
 
         fun <V : Identifiable> processNodeSet(): MutableIdentifyableSet<V> {

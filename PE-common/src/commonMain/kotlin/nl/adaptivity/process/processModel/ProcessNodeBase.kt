@@ -199,8 +199,8 @@ abstract class ProcessNodeBase : ProcessNode {
         if (other !is ProcessNodeBase) return false
 
         if (isMultiInstance != other.isMultiInstance) return false
-        if (_predecessors != other._predecessors) return false
-        if (_successors != other._successors) return false
+        if (!_predecessors.equalIds(other._predecessors)) return false
+        if (!_successors.equalIds(other._successors)) return false
         if (x.isNaN()) {
             if (!other.x.isNaN()) return false
         } else if (x != other.x) return false
