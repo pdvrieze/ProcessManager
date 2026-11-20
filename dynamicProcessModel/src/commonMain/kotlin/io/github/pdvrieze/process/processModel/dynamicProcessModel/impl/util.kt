@@ -10,6 +10,7 @@ import net.devrieze.util.Tripple
 import nl.adaptivity.process.engine.impl.CompactFragment
 import nl.adaptivity.xmlutil.EventType
 import nl.adaptivity.xmlutil.QName
+import nl.adaptivity.xmlutil.XmlDeclMode
 import nl.adaptivity.xmlutil.isEquivalent
 import nl.adaptivity.xmlutil.serialization.XML
 import nl.adaptivity.xmlutil.smartStartTag
@@ -93,7 +94,7 @@ class ValueHolder<T> constructor(val name: QName, val value: T) {
 
         override fun serialize(encoder: Encoder, value: ValueHolder<T>) {
             if (encoder is XML.XmlOutput) {
-                val xml = encoder.delegateFormat()
+                val xml = encoder.delegateFormat().copy { xmlDeclMode = XmlDeclMode.None }
 
                 when (childSerializer.descriptor.kind) {
                     SerialKind.ENUM, is PrimitiveKind ->
