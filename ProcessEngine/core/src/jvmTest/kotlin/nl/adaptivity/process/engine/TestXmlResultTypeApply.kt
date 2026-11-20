@@ -16,6 +16,7 @@
 
 package nl.adaptivity.process.engine
 
+import io.github.pdvrieze.xmlutil.testutil.assertXmlEquals
 import nl.adaptivity.process.engine.impl.dom.toFragment
 import nl.adaptivity.process.engine.processModel.applyData
 import nl.adaptivity.process.processModel.XmlDefineType
@@ -86,7 +87,7 @@ class TestXmlResultTypeApply {
         value.setAttribute("name", "user")
         value.appendChild(testData.createTextNode("Paul"))
 
-        assertEquals(
+        assertXmlEquals(
             "<umh:result xmlns:umh=\"http://adaptivity.nl/userMessageHandler\"><umh:value name=\"user\">Paul</umh:value></umh:result>",
             DomUtil.toString(testData)
                     )

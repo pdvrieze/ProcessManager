@@ -171,7 +171,7 @@ object DomUtil {
     fun toString(value: Node, flags: Int): String {
 
         val out = StringWriter()
-        xmlStreaming.newGenericWriter(out).use {w ->
+        xmlStreaming.newGenericWriter(out, isRepairNamespaces = true).use {w ->
             xmlStreaming.newReader(value).use { r ->
                 for (e in r) {
                     r.writeCurrent(w)
