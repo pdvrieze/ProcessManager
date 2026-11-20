@@ -29,7 +29,7 @@ object DummyMessage: IXmlMessage {
     }
 
     val JSON = "\"message\":{\"content\":{\"namespaces\":[], \"content\":\"\"},\"type\":\"application/x-dummy\",\"url\":\"/dummy\",\"method\":\"POST\", \"serviceNS\":\"\", \"serviceName\":\"dummy\"}"
-    val XML = "<pe:message type=\"application/x-dummy\" url=\"/dummy\" method=\"POST\"/>"
+    val XML = "<pe:message serviceNS=\"\" serviceName=\"dummy\" type=\"application/x-dummy\" url=\"/dummy\" method=\"POST\"/>"
 
 
     private val hashCode = XmlMessage.from(this).hashCode()
