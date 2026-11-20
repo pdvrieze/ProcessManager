@@ -42,6 +42,7 @@ dependencies {
     implementation(libs.ktor.server.core)
     implementation(libs.ktor.server.auth)
     implementation(libs.ktor.serialization.xml)
+    implementation(libs.xmlutil.serialization)
 
 
     implementation("org.jetbrains.kotlinx:kotlinx-html:$kotlinx_html_version")

@@ -65,12 +65,13 @@ kotlin {
 //            }
 //        }
 
-        val main by getting {
+        main {
 //            val webpackTask = tasks.getByName<KotlinWebpack>("jsBrowserDevelopmentWebpack")
             dependencies {
                 implementation(libs.kotlinx.serialization.json)
                 implementation(libs.ktor.client.core)
                 implementation(libs.ktor.serialization.xml)
+                implementation(libs.xmlutil.serialization)
                 implementation(libs.ktor.serialization.json)
                 implementation(libs.ktor.server.core)
                 implementation(libs.ktor.server.auth)
