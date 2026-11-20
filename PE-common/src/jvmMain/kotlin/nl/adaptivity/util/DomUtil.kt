@@ -176,18 +176,7 @@ object DomUtil {
                 for (e in r) {
                     r.writeCurrent(w)
                 }
-                Unit
             }
-
-        }
-        try {
-            val t = TransformerFactory
-                .newInstance()
-                .newTransformer()
-            configure(t, flags)
-            t.transform(DOMSource(value), StreamResult(out))
-        } catch (e: TransformerException) {
-            throw RuntimeException(e)
         }
 
         return out.toString()
