@@ -42,24 +42,6 @@ abstract class MessageActivityBase(
 
     override fun <R> visit(visitor: ProcessNode.Visitor<R>): R = visitor.visitActivity(this)
 
-    override fun equals(other: Any?): Boolean {
-        if (this === other) return true
-        if (other == null || this::class != other::class) return false
-        if (!super.equals(other)) return false
-
-        other as MessageActivityBase
-
-        if (_message != other._message) return false
-
-        return true
-    }
-
-    override fun hashCode(): Int {
-        var result = super.hashCode()
-        result = 31 * result + (_message?.hashCode() ?: 0)
-        return result
-    }
-
     open class Builder : BaseBuilder, MessageActivity.RWBuilder {
 
         final override var message: IXmlMessage?

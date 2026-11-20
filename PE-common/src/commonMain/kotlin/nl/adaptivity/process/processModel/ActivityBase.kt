@@ -56,16 +56,15 @@ abstract class ActivityBase(
         if (!super.equals(other)) return false
 
         @Suppress("DEPRECATION")
-        if (name != other.name) return false
+        if (!(name == null || name == id) || !(other.name == null || other.name == id)) {
+            if (name != other.name) return false
+        }
 
         return true
     }
 
     override fun hashCode(): Int {
-        var result = super.hashCode()
-        @Suppress("DEPRECATION")
-        result = 31 * result + (name?.hashCode() ?: 0)
-        return result
+        return super.hashCode()
     }
 
     @Suppress("RemoveRedundantQualifierName")
@@ -201,7 +200,7 @@ abstract class ActivityBase(
             results = node.results.map { XmlResultType(it) },
             message = XmlMessage.from(node.message),
             condition = node.condition?.let { XmlCondition(it.condition, it.label) },
-            name = node.id,
+            name = node.name,
             childId = null,
             accessRestrictions = node.accessRestrictions?.serializeToString()
         )
