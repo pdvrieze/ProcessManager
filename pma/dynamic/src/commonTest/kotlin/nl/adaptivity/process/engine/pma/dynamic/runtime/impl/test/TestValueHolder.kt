@@ -1,10 +1,8 @@
 package nl.adaptivity.process.engine.pma.dynamic.runtime.impl.test
 
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.impl.ValueHolder
-import kotlinx.serialization.SerialName
+import io.github.pdvrieze.xmlutil.testutil.assertXmlEquals
 import kotlinx.serialization.Serializable
-import kotlinx.serialization.decodeFromString
-import kotlinx.serialization.encodeToString
 import kotlinx.serialization.json.Json
 import nl.adaptivity.xmlutil.QName
 import nl.adaptivity.xmlutil.serialization.XML
@@ -29,15 +27,15 @@ class TestValueHolder {
     @Test
     fun testValueHolderXmlStringSerialization() {
         val value = ValueHolder(QName("foo"), "bar")
-        val json = XML.v1.encodeToString(value)
-        assertEquals(STRING_XML, json)
+        val xml = XML.v1.encodeToString(value)
+        assertXmlEquals(STRING_XML, xml)
     }
 
     @Test
     fun testValueHolderXmlClassSerialization() {
         val value = ValueHolder(QName("foo"), Data("foo2", 42))
         val encoded = XML.v1.encodeToString(value)
-        assertEquals(DATA_XML, encoded)
+        assertXmlEquals(DATA_XML, encoded)
     }
 
     @Test

@@ -13,6 +13,8 @@ import nl.adaptivity.xmlutil.IterableNamespaceContext
 import nl.adaptivity.xmlutil.Namespace
 import nl.adaptivity.xmlutil.SimpleNamespaceContext
 import nl.adaptivity.xmlutil.XmlUtilInternal
+import nl.adaptivity.xmlutil.util.CompactFragment
+import nl.adaptivity.xmlutil.util.ICompactFragment
 
 interface IModelBuilderContext<AIC : ActivityInstanceContext> : IModelBuilderContextDelegates {
     val startNode: StartNode.Builder
@@ -105,7 +107,7 @@ interface IModelBuilderContext<AIC : ActivityInstanceContext> : IModelBuilderCon
         content: CharArray? = null,
         nsContext: Iterable<Namespace>
     ): ProcessResultRef<T> {
-        return processResult(name, refNode, refName, path, content, nsContext, refNode.serializer)
+        return processResult(name, refNode, refName, path, CompactFragment(nsContext, content), refNode.serializer)
     }
 
     @OptIn(XmlUtilInternal::class)
@@ -114,10 +116,22 @@ interface IModelBuilderContext<AIC : ActivityInstanceContext> : IModelBuilderCon
         refNode: NodeHandle<T>,
         refName: String? = null,
         path: String? = null,
-        content: CharArray? = null,
+        content: CharArray,
         nsContext: IterableNamespaceContext = SimpleNamespaceContext(),
     ): ProcessResultRef<T> {
-        return processResult(name, refNode, refName, path, content, nsContext, refNode.serializer)
+        @Suppress("DEPRECATION")
+        return processResult(name, refNode, refName, path, CompactFragment(nsContext, content), refNode.serializer)
+    }
+
+    @OptIn(XmlUtilInternal::class)
+    fun <T> processResult(
+        name: String,
+        refNode: NodeHandle<T>,
+        refName: String? = null,
+        path: String? = null,
+        content: ICompactFragment = CompactFragment(""),
+    ): ProcessResultRef<T> {
+        return processResult(name, refNode, refName, path, content, refNode.serializer)
     }
 
     fun <T> processResult(
@@ -130,7 +144,7 @@ interface IModelBuilderContext<AIC : ActivityInstanceContext> : IModelBuilderCon
         serializer: KSerializer<T>,
     ): ProcessResultRef<T> {
         @OptIn(XmlUtilInternal::class)
-        return processResult(name, refNode, refName, path, content, SimpleNamespaceContext(nsContext), serializer)
+        return processResult(name, refNode, refName, path, CompactFragment(nsContext, content), serializer)
     }
 
     @OptIn(XmlUtilInternal::class)
@@ -160,6 +174,19 @@ interface IModelBuilderContext<AIC : ActivityInstanceContext> : IModelBuilderCon
         serializer: KSerializer<T>
     ): ProcessResultRef<T> {
         modelBuilder.exports.add(XmlDefineType(name, refNode, refName, path, content, nsContext))
+        return ProcessResultRefImpl(name, serializer)
+    }
+
+    @OptIn(XmlUtilInternal::class)
+    fun <T> processResult(
+        name: String,
+        refNode: Identified,
+        refName: String? = null,
+        path: String? = null,
+        fragment: ICompactFragment? = null,
+        serializer: KSerializer<T>
+    ): ProcessResultRef<T> {
+        modelBuilder.exports.add(XmlDefineType(name, refNode.id, refName, path, fragment ?: CompactFragment("")))
         return ProcessResultRefImpl(name, serializer)
     }
 

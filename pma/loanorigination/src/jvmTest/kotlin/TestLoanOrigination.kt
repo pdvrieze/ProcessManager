@@ -18,6 +18,7 @@ package nl.adaptivity.process.engine.test.loanOrigination
 
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.RunnableActivity
 import io.github.pdvrieze.process.processModel.dynamicProcessModel.impl.RunningMessageService
+import io.github.pdvrieze.xmlutil.testutil.assertXmlEquals
 import kotlinx.serialization.encodeToString
 import kotlinx.serialization.serializer
 import nl.adaptivity.process.engine.ProcessInstance
@@ -69,8 +70,8 @@ class TestLoanOrigination : ProcessEngineTestSupport() {
         val serialized2 = CompactFragment { writer ->
             XML.v1.encodeToWriter(writer, serializer<SignedDocument<Approval>>(), approval)
         }
-        assertEquals("<SignedDocument signedBy=\"admin\" nodeInstanceHandle=\"4\"><Offer id=\"1\" customerId=\"2\" customerSignature=\"signature\"/></SignedDocument>", serialized1.contentString)
-        assertEquals("<SignedDocument signedBy=\"admin\" nodeInstanceHandle=\"5\"><Approval>true</Approval></SignedDocument>", serialized2.contentString)
+        assertXmlEquals("<SignedDocument signedBy=\"admin\" nodeInstanceHandle=\"4\"><Offer id=\"1\" customerId=\"2\" customerSignature=\"signature\"/></SignedDocument>", serialized1.contentString)
+        assertXmlEquals("<SignedDocument signedBy=\"admin\" nodeInstanceHandle=\"5\"><Approval>true</Approval></SignedDocument>", serialized2.contentString)
     }
 
     @Test
@@ -104,12 +105,12 @@ class TestLoanOrigination : ProcessEngineTestSupport() {
             val instance = tr.getInstance(hinstance)
             assertEquals(ProcessInstance.State.FINISHED, instance.state)
             val creditReport = instance.outputs.singleOrNull { it.name == "creditReport" }
-            assertEquals(
+            assertXmlEquals(
                 "<CreditReport creditRating=\"400\" maxLoan=\"20000\">John Doe (rating 400) is approved for loans up to 20000</CreditReport>",
-                creditReport?.content?.contentString
+                creditReport?.content?.contentString ?: ""
             )
             val accountNumber = instance.outputs.singleOrNull { it.name == "accountNumber" }
-            assertEquals("<BankAccountNumber>123456</BankAccountNumber>", accountNumber?.content?.contentString)
+            assertXmlEquals("<BankAccountNumber>123456</BankAccountNumber>", accountNumber?.content?.contentString ?: "")
         }
     }
 
