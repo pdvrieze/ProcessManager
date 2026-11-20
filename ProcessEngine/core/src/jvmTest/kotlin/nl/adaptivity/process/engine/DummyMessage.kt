@@ -19,7 +19,7 @@ object DummyMessage: IXmlMessage {
     override val messageBody: ICompactFragment
         get() = CompactFragment("")
 
-    @Deprecated("Use targetServicce", replaceWith = ReplaceWith("targetMethod.endpoint.endpointLocation?.toString()"))
+    @Deprecated("Use targetService", replaceWith = ReplaceWith("targetMethod.endpoint.endpointLocation?.toString()"))
     override val url: String?
         get() = "/dummy"
 
